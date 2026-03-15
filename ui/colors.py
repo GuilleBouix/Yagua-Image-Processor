@@ -3,21 +3,31 @@ Definición de paleta de colores del proyecto.
 Usa estas constantes en toda la aplicación para mantener consistencia.
 """
 
-# Colores claros y oscuros (light, dark)
-SIDEBAR_BG = ('#262625', '#262625')
-SIDEBAR_HOVER = ('#9e8d68', "#9e8d68")
-SIDEBAR_ACTIVE = ('#EFD395', '#EFD395')
-SIDEBAR_SEPARATOR = '#262625'
+# Fondos
+FRAMES_BG         = '#0A0A0B'  # Base del canvas
+SIDEBAR_BG        = '#121214'  # Sidebar y contenedores
+PANEL_BG          = '#1C1C1E'  # Paneles internos / Cards
+SIDEBAR_SEPARATOR = '#2C2C2E'  # Divisores y bordes sutiles
 
-DROPOZONE_BORDER = '#EFD395'
-DROPOZONE_BG = ('#ECF3F4', '#2F3B45')
+# Interacción
+SIDEBAR_HOVER     = '#2C2C2E'
+SIDEBAR_ACTIVE    = '#FFFFFF'  # Fondo blanco para item seleccionado
 
-TEXT_COLOR = '#FFFFFF'
-TEXT_GRAY = '#A4A4A4'
-TEXT_HOVER = '#131313'
-TEXT_ACTIVE = '#131313'
+# Drop zone
+DROPZONE_BORDER   = '#3A3A3C'
+DROPZONE_BG       = '#0F0F11'
 
-ICON_COLOR = '#FFFFFF'
-ICON_COLOR_ACTIVE = '#131313'
+# Texto
+TEXT_COLOR        = '#F2F2F7'  # Blanco principal
+TEXT_GRAY         = '#8E8E93'  # Gris secundario
+TEXT_HOVER        = '#000000'  # Negro sobre fondo activo
+TEXT_ACTIVE       = '#000000'
 
-FRAMES_BG = ('#131313', '#131313')
+# Íconos
+ICON_COLOR        = '#E5E5EA'
+ICON_COLOR_ACTIVE = '#000000'
+
+# Acentos (Escala de Blancos/Grises)
+ACENTO            = '#FFFFFF'
+ACENTO_HOVER      = '#D1D1D6'
+ACENTO_DIMMED     = '#48484A'

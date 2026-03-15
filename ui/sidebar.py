@@ -4,10 +4,8 @@ Contiene el menú de módulos disponibles.
 """
 
 from pathlib import Path
-
 from PIL import Image
 import customtkinter as ctk
-
 from ui import colors, fonts
 
 
@@ -80,7 +78,7 @@ class Sidebar(ctk.CTkFrame):
             
             btn = ctk.CTkButton(
                 self,
-                text=f'  {label}',
+                text=f' {label}',
                 image=icon_ctk,
                 compound='left',
                 width=150,

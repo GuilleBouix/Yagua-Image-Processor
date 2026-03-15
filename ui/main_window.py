@@ -16,7 +16,6 @@ from ui.frames.metadata_frame import MetadataFrame
 from ui.frames.lqip_frame import LQIPFrame
 from ui.frames.optimizer_frame import OptimizerFrame
 
-
 MODULOS = {
     'compress': ('Comprimir', CompressFrame),
     'convert': ('Convertir', ConvertFrame),
@@ -29,7 +28,6 @@ MODULOS = {
     'lqip': ('LQIP / Base64', LQIPFrame),
     'optimizer': ('Smart Optimizer', OptimizerFrame),
 }
-
 
 class MainWindow(ctk.CTkFrame):
     """Marco principal que contiene la barra lateral y el área de contenido."""
