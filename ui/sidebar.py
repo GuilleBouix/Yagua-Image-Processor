@@ -48,14 +48,17 @@ class Sidebar(ctk.CTkFrame):
             corner_radius=0,
             fg_color=colors.SIDEBAR_BG
         )
+        
         self.on_select = on_select
         self.buttons = {}
         self._build()
 
     def _build(self):
         """Construye los elementos de la barra lateral."""
+
         ruta_icono = Path('assets/icon.png')
         imagen = Image.open(ruta_icono).convert('RGBA')
+        
         imagen_ctk = ctk.CTkImage(
             light_image=imagen,
             dark_image=imagen,
@@ -74,6 +77,7 @@ class Sidebar(ctk.CTkFrame):
 
         for key, label, icon_path in MENU_ITEMS:
             icon_ctk = tintar_icono(icon_path, colors.ICON_COLOR)
+            
             btn = ctk.CTkButton(
                 self,
                 text=f'  {label}',
@@ -88,6 +92,7 @@ class Sidebar(ctk.CTkFrame):
                 command=lambda k=key: self.on_select(k)
             )
             btn.pack(pady=3, padx=10, fill='x')
+            
             self.buttons[key] = {'btn': btn, 'icon_path': icon_path}
 
     def set_active(self, key):
@@ -95,6 +100,7 @@ class Sidebar(ctk.CTkFrame):
         for k, data in self.buttons.items():
             btn = data['btn']
             icon_path = data['icon_path']
+            
             if k == key:
                 icon_ctk = tintar_icono(icon_path, colors.ICON_COLOR_ACTIVE)
                 btn.configure(
@@ -104,6 +110,7 @@ class Sidebar(ctk.CTkFrame):
                 )
             else:
                 icon_ctk = tintar_icono(icon_path, colors.ICON_COLOR)
+                
                 btn.configure(
                     fg_color='transparent',
                     text_color=colors.TEXT_COLOR,
