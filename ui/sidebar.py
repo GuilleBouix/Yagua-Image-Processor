@@ -103,6 +103,7 @@ class Sidebar(ctk.CTkFrame):
                 icon_ctk = tintar_icono(icon_path, colors.ICON_COLOR_ACTIVE)
                 btn.configure(
                     fg_color=colors.SIDEBAR_ACTIVE,
+                    hover_color='#E5E5EA',  
                     text_color=colors.TEXT_ACTIVE,
                     image=icon_ctk
                 )
@@ -111,6 +112,7 @@ class Sidebar(ctk.CTkFrame):
                 
                 btn.configure(
                     fg_color='transparent',
+                    hover_color=colors.SIDEBAR_HOVER, 
                     text_color=colors.TEXT_COLOR,
                     image=icon_ctk
                 )

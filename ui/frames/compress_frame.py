@@ -56,20 +56,23 @@ class CompressFrame(ctk.CTkFrame):
         # Estado vacío
         self._frame_vacio = ctk.CTkFrame(self._drop_zone, fg_color='transparent')
         self._frame_vacio.grid(row=0, column=0)
+
+        from ui.sidebar import tintar_icono
+        icon_upload = tintar_icono('assets/icons/upload.png', colors.ACENTO_DIMMED)
         ctk.CTkLabel(
             self._frame_vacio,
-            text='+',
-            font=ctk.CTkFont(size=28, weight='bold'),
-            text_color=colors.ACENTO_DIMMED,
+            image=icon_upload,
+            text='',
             fg_color='transparent'
         ).pack()
+
         ctk.CTkLabel(
             self._frame_vacio,
-            text='Arrastrá imágenes acá  ·  o hacé clic para explorar',
+            text='Arrastra tus imágenes aquí \no haz click para explorar',
             font=fonts.FUENTE_BASE,
             text_color=colors.TEXT_GRAY,
             fg_color='transparent'
-        ).pack(pady=(4, 0))
+        ).pack(pady=(6, 0))
 
         # Estado con imagen cargada
         self._frame_preview = ctk.CTkFrame(self._drop_zone, fg_color='transparent')
