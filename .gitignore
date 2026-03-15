@@ -67,4 +67,5 @@ htmlcov/
 outputs/
 exports/
 
+*.pdf
 *.psd
