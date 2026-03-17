@@ -12,11 +12,10 @@ from PIL import Image
 from modules.convert import convertir_imagen, FORMATOS_DESTINO
 from modules.compress import formatear_bytes
 from ui import colors, fonts
-from ui.sidebar import tintar_icono
+from utils import tintar_icono
 
 
 class ConvertFrame(ctk.CTkFrame):
-
     def __init__(self, parent):
         super().__init__(parent, corner_radius=0, fg_color=colors.FRAMES_BG)
         self._imagenes: list[str] = []
@@ -26,12 +25,9 @@ class ConvertFrame(ctk.CTkFrame):
         self._filas_lista: list[ctk.CTkLabel] = []
         self._build()
 
-    # ─── BUILD ────────────────────────────────────────────────────────────────
-
     def _build(self):
         self.grid_columnconfigure(0, weight=1)
 
-        # Título + limpiar
         fila_titulo = ctk.CTkFrame(self, fg_color='transparent')
         fila_titulo.grid(row=0, column=0, padx=28, pady=(26, 8), sticky='ew')
         fila_titulo.grid_columnconfigure(0, weight=1)
@@ -58,43 +54,23 @@ class ConvertFrame(ctk.CTkFrame):
         )
         self._btn_limpiar.grid(row=0, column=1, sticky='e')
 
-        # Zona de carga
-        self._drop_zone = ctk.CTkFrame(
+        self._btn_seleccionar = ctk.CTkButton(
             self,
-            height=110,
-            corner_radius=12,
-            border_width=1,
-            border_color=colors.ACENTO_DIMMED,
-            fg_color=colors.PANEL_BG,
-            cursor='hand2'
-        )
-        self._drop_zone.grid(row=1, column=0, padx=28, pady=8, sticky='ew')
-        self._drop_zone.grid_propagate(False)
-        self._drop_zone.grid_columnconfigure(0, weight=1)
-        self._drop_zone.grid_rowconfigure(0, weight=1)
-
-        contenido_dz = ctk.CTkFrame(self._drop_zone, fg_color='transparent')
-        contenido_dz.grid(row=0, column=0)
-
-        icon_upload = tintar_icono('assets/icons/upload.png', colors.ACENTO_DIMMED)
-        lbl_icon = ctk.CTkLabel(
-            contenido_dz, image=icon_upload, text='', fg_color='transparent'
-        )
-        lbl_icon.pack()
-
-        lbl_txt = ctk.CTkLabel(
-            contenido_dz,
-            text='Click aquí para explorar',
+            text='Seleccionar imágenes',
+            height=40,
+            corner_radius=8,
             font=fonts.FUENTE_BASE,
-            text_color=colors.TEXT_GRAY,
-            fg_color='transparent'
+            fg_color=colors.PANEL_BG,
+            border_width=1,
+            border_color=colors.SIDEBAR_SEPARATOR,
+            text_color=colors.TEXT_COLOR,
+            hover_color=colors.SIDEBAR_HOVER,
+            image=tintar_icono('assets/icons/upload.png', colors.ICON_COLOR),
+            compound='left',
+            command=self._explorar
         )
-        lbl_txt.pack(pady=(6, 0))
+        self._btn_seleccionar.grid(row=1, column=0, padx=28, pady=8, sticky='ew')
 
-        for w in (self._drop_zone, contenido_dz, lbl_icon, lbl_txt):
-            w.bind('<Button-1>', lambda _: self._explorar())
-
-        # Lista de archivos
         self._lista_frame = ctk.CTkScrollableFrame(
             self,
             corner_radius=10,
@@ -115,7 +91,6 @@ class ConvertFrame(ctk.CTkFrame):
         )
         self._lbl_lista_vacia.pack(pady=12)
 
-        # Panel de opciones — con botón adentro
         self._panel_opciones = ctk.CTkFrame(
             self,
             corner_radius=12,
@@ -127,7 +102,6 @@ class ConvertFrame(ctk.CTkFrame):
         self._panel_opciones.grid_columnconfigure(1, weight=1)
         self._construir_opciones()
 
-        # Info debajo del panel
         self._lbl_info = ctk.CTkLabel(
             self, text='',
             font=fonts.FUENTE_CHICA,
@@ -138,7 +112,6 @@ class ConvertFrame(ctk.CTkFrame):
     def _construir_opciones(self):
         p = self._panel_opciones
 
-        # Formato destino
         ctk.CTkLabel(
             p, text='Convertir a',
             font=fonts.FUENTE_BASE,
@@ -160,7 +133,6 @@ class ConvertFrame(ctk.CTkFrame):
         )
         self._seg_formato.grid(row=0, column=1, padx=(0, 16), pady=(16, 8), sticky='w')
 
-        # Calidad
         self._lbl_calidad_label = ctk.CTkLabel(
             p, text='Calidad',
             font=fonts.FUENTE_BASE,
@@ -193,7 +165,6 @@ class ConvertFrame(ctk.CTkFrame):
         )
         self._lbl_calidad.grid(row=0, column=1)
 
-        # Botón dentro del panel
         self._btn_convertir = ctk.CTkButton(
             p,
             text='Convertir',
@@ -211,8 +182,6 @@ class ConvertFrame(ctk.CTkFrame):
         )
 
         self._actualizar_info()
-
-    # ─── LÓGICA ───────────────────────────────────────────────────────────────
 
     def _explorar(self):
         archivos = filedialog.askopenfilenames(
@@ -290,12 +259,6 @@ class ConvertFrame(ctk.CTkFrame):
         self._filas_lista.clear()
         for w in self._lista_frame.winfo_children():
             w.destroy()
-        self._lbl_lista_vacia = ctk.CTkLabel(
-            self._lista_frame,
-            text='Sin imágenes cargadas',
-            font=fonts.FUENTE_CHICA,
-            text_color=colors.TEXT_GRAY
-        )
         self._lbl_lista_vacia.pack(pady=12)
         self._lbl_info.configure(text='')
 

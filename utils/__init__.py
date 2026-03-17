@@ -1,3 +1,7 @@
+"""
+Utils - Funciones helper de la aplicación.
+"""
+
 import customtkinter as ctk
 from PIL import Image
 

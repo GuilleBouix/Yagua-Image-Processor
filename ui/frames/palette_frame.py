@@ -12,7 +12,7 @@ from PIL import Image
 
 from modules.palette import extraer_paleta, exportar_paleta_imagen, formatos_color, es_color_claro, rgb_a_hex
 from ui import colors, fonts
-from ui.sidebar import tintar_icono
+from utils import tintar_icono
 
 
 class PaletteFrame(ctk.CTkFrame):
@@ -57,50 +57,46 @@ class PaletteFrame(ctk.CTkFrame):
         self._btn_limpiar.grid(row=0, column=1, sticky='e')
 
         # Zona de carga
-        self._drop_zone = ctk.CTkFrame(
+        self._btn_seleccionar = ctk.CTkButton(
+            self,
+            text='Seleccionar imagen',
+            height=40,
+            corner_radius=8,
+            font=fonts.FUENTE_BASE,
+            fg_color=colors.PANEL_BG,
+            border_width=1,
+            border_color=colors.SIDEBAR_SEPARATOR,
+            text_color=colors.TEXT_COLOR,
+            hover_color=colors.SIDEBAR_HOVER,
+            image=tintar_icono('assets/icons/upload.png', colors.ICON_COLOR),
+            compound='left',
+            command=self._explorar
+        )
+        self._btn_seleccionar.grid(row=1, column=0, padx=28, pady=8, sticky='ew')
+
+        # Preview de imagen cargada
+        self._frame_preview = ctk.CTkFrame(
             self,
             height=110,
             corner_radius=12,
             border_width=1,
             border_color=colors.ACENTO_DIMMED,
             fg_color=colors.PANEL_BG,
-            cursor='hand2'
         )
-        self._drop_zone.grid(row=1, column=0, padx=28, pady=8, sticky='ew')
-        self._drop_zone.grid_propagate(False)
-        self._drop_zone.grid_columnconfigure(0, weight=1)
-        self._drop_zone.grid_rowconfigure(0, weight=1)
-
-        # Estado vacío
-        self._frame_vacio = ctk.CTkFrame(self._drop_zone, fg_color='transparent')
-        self._frame_vacio.grid(row=0, column=0)
-
-        icon_upload = tintar_icono('assets/icons/upload.png', colors.ACENTO_DIMMED)
-        lbl_icon = ctk.CTkLabel(
-            self._frame_vacio, image=icon_upload, text='', fg_color='transparent'
-        )
-        lbl_icon.pack()
-        lbl_txt = ctk.CTkLabel(
-            self._frame_vacio,
-            text='Click aquí para seleccionar una imagen',
-            font=fonts.FUENTE_BASE,
-            text_color=colors.TEXT_GRAY,
-            fg_color='transparent'
-        )
-        lbl_txt.pack(pady=(6, 0))
-
-        # Estado con imagen cargada
-        self._frame_cargado = ctk.CTkFrame(self._drop_zone, fg_color='transparent')
-        self._frame_cargado.grid_columnconfigure(1, weight=1)
+        self._frame_preview.grid(row=2, column=0, padx=28, pady=8, sticky='ew')
+        self._frame_preview.grid_propagate(False)
+        self._frame_preview.grid_columnconfigure(0, weight=1)
+        self._frame_preview.grid_columnconfigure(1, weight=1)
+        self._frame_preview.grid_rowconfigure(0, weight=1)
 
         self._lbl_preview = ctk.CTkLabel(
-            self._frame_cargado, text='',
+            self._frame_preview, text='',
             width=80, height=80, fg_color='transparent'
         )
-        self._lbl_preview.grid(row=0, column=0, rowspan=2, padx=(14, 12), pady=10)
+        self._lbl_preview.grid(row=0, column=0, padx=(14, 12), pady=10, sticky='w')
 
         self._lbl_nombre = ctk.CTkLabel(
-            self._frame_cargado, text='',
+            self._frame_preview, text='',
             font=fonts.FUENTE_BASE,
             text_color=colors.TEXT_COLOR,
             fg_color='transparent', anchor='w'
@@ -108,17 +104,12 @@ class PaletteFrame(ctk.CTkFrame):
         self._lbl_nombre.grid(row=0, column=1, sticky='w', pady=(16, 2))
 
         self._lbl_meta = ctk.CTkLabel(
-            self._frame_cargado, text='',
+            self._frame_preview, text='',
             font=fonts.FUENTE_CHICA,
             text_color=colors.TEXT_GRAY,
             fg_color='transparent', anchor='w'
         )
-        self._lbl_meta.grid(row=1, column=1, sticky='w', pady=(0, 16))
-
-        for w in (self._drop_zone, self._frame_vacio, self._frame_cargado,
-                  self._lbl_preview, lbl_icon, lbl_txt,
-                  self._lbl_nombre, self._lbl_meta):
-            w.bind('<Button-1>', lambda _: self._explorar())
+        self._lbl_meta.grid(row=0, column=1, sticky='w', pady=(38, 0))
 
         self._mostrar_vacio()
 
@@ -198,14 +189,13 @@ class PaletteFrame(ctk.CTkFrame):
     # ─── HELPERS ──────────────────────────────────────────────────────────────
 
     def _mostrar_vacio(self):
-        self._frame_cargado.grid_remove()
-        self._frame_vacio.grid(row=0, column=0)
-        self._drop_zone.configure(border_color=colors.ACENTO_DIMMED)
+        self._frame_preview.configure(border_color=colors.ACENTO_DIMMED)
+        self._lbl_preview.configure(image='')
+        self._lbl_nombre.configure(text='Sin imagen seleccionada')
+        self._lbl_meta.configure(text='Seleccioná una imagen para ver la paleta')
 
     def _mostrar_cargado(self, ruta: str):
-        self._frame_vacio.grid_remove()
-        self._frame_cargado.grid(row=0, column=0, sticky='ew')
-        self._drop_zone.configure(border_color=colors.ACENTO)
+        self._frame_preview.configure(border_color=colors.ACENTO)
 
         img = Image.open(ruta)
         w, h = img.size
