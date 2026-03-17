@@ -1,0 +1,6 @@
+customtkinter==5.2.2
+darkdetect==0.8.0
+packaging==26.0
+piexif==1.1.3
+pillow==12.1.1
+tkinterdnd2==0.4.3
