@@ -13,6 +13,7 @@ from PIL import Image
 from ui import colors, fonts
 from utils import tintar_icono
 from modules.compress import formatear_bytes
+from translations import t
 
 
 class BaseFrame(ctk.CTkFrame):
@@ -45,7 +46,7 @@ class BaseFrame(ctk.CTkFrame):
 
         self._btn_limpiar = ctk.CTkButton(
             fila_titulo,
-            text='Limpiar',
+            text=t('clean'),
             width=80,
             height=30,
             corner_radius=8,
@@ -69,9 +70,11 @@ class BaseFrame(ctk.CTkFrame):
         )
         self._lbl_info.grid(row=100, column=0, pady=(0, 4))
 
-    def _crear_boton_seleccionar(self, parent, texto: str = 'Seleccionar imágenes', comando=None) -> ctk.CTkButton:
+    def _crear_boton_seleccionar(self, parent, texto: str | None = None, comando=None) -> ctk.CTkButton:
         if comando is None:
             comando = self._explorar
+        if texto is None:
+            texto = t('select_images')
 
         return ctk.CTkButton(
             parent,
@@ -102,12 +105,14 @@ class BaseFrame(ctk.CTkFrame):
     def _crear_lista_vacia(self, parent) -> ctk.CTkLabel:
         return ctk.CTkLabel(
             parent,
-            text='Sin imágenes cargadas',
+            text=t('no_images'),
             font=fonts.FUENTE_CHICA,
             text_color=colors.TEXT_GRAY
         )
 
-    def _explorar(self, titulo: str = 'Seleccionar imágenes', multi: bool = True):
+    def _explorar(self, titulo: str | None = None, multi: bool = True):
+        if titulo is None:
+            titulo = t('select_images')
         if multi:
             archivos = filedialog.askopenfilenames(
                 title=titulo,
@@ -175,7 +180,8 @@ class BaseFrame(ctk.CTkFrame):
         thumbs = []
         for ruta in rutas:
             try:
-                img = Image.open(ruta)
+                with Image.open(ruta) as img:
+                    img = img.copy()
                 img.thumbnail((44, 44), Image.Resampling.LANCZOS)
                 thumb = ctk.CTkImage(light_image=img, dark_image=img, size=(44, 44))
             except Exception:

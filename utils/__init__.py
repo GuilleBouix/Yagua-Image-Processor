@@ -2,12 +2,22 @@
 Utils - Funciones helper de la aplicación.
 """
 
+import logging
+from typing import Optional
+
 import customtkinter as ctk
 from PIL import Image
 
 
-def tintar_icono(ruta_icono: str, color_hex: str) -> ctk.CTkImage:
-    img = Image.open(ruta_icono).convert('RGBA')
+logger = logging.getLogger(__name__)
+
+
+def tintar_icono(ruta_icono: str, color_hex: str) -> Optional[ctk.CTkImage]:
+    try:
+        img = Image.open(ruta_icono).convert('RGBA')
+    except Exception as exc:
+        logger.warning("No se pudo cargar el ícono %s: %s", ruta_icono, exc)
+        return None
     
     if color_hex:
         r, g, b = tuple(int(color_hex.lstrip('#')[i:i+2], 16) for i in (0, 2, 4))

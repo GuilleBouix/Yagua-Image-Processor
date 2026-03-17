@@ -69,6 +69,8 @@ RATIOS = {
     '21:9':  (21, 9),
 }
 
+TRANSPARENCY_EXTS = ('.png', '.webp', '.gif', '.tiff')
+
 
 def preset_a_dimensiones(key: str) -> tuple[int, int] | None:
     """Convierte 'Categoría · Nombre' a (ancho, alto)."""
@@ -88,45 +90,45 @@ def redimensionar(
     mantener_ratio: bool = True,
     resample: int = Image.Resampling.LANCZOS
 ) -> dict:
-    img = Image.open(ruta_entrada)
-    img = ImageOps.exif_transpose(img)
-    w_orig, h_orig = img.size
+    with Image.open(ruta_entrada) as img:
+        img = ImageOps.exif_transpose(img)
+        w_orig, h_orig = img.size
 
-    if preset_key:
-        dims = preset_a_dimensiones(preset_key)
-        if dims:
-            ancho, alto = dims
-        mantener_ratio = False
+        if preset_key:
+            dims = preset_a_dimensiones(preset_key)
+            if dims:
+                ancho, alto = dims
+            mantener_ratio = False
 
-    elif porcentaje is not None:
-        ancho = max(1, int(w_orig * porcentaje / 100))
-        alto  = max(1, int(h_orig * porcentaje / 100))
-        mantener_ratio = False
+        elif porcentaje is not None:
+            ancho = max(1, int(w_orig * porcentaje / 100))
+            alto = max(1, int(h_orig * porcentaje / 100))
+            mantener_ratio = False
 
-    elif ancho and not alto:
-        alto = max(1, int(h_orig * ancho / w_orig))
-        mantener_ratio = False
+        elif ancho and not alto:
+            alto = max(1, int(h_orig * ancho / w_orig))
+            mantener_ratio = False
 
-    elif alto and not ancho:
-        ancho = max(1, int(w_orig * alto / h_orig))
-        mantener_ratio = False
+        elif alto and not ancho:
+            ancho = max(1, int(w_orig * alto / h_orig))
+            mantener_ratio = False
 
-    if not ancho or not alto:
-        raise ValueError('Especificá dimensiones, porcentaje o preset.')
+        if not ancho or not alto:
+            raise ValueError('Especificá dimensiones, porcentaje o preset.')
 
-    if mantener_ratio:
-        img.thumbnail((ancho, alto), resample) # type: ignore
-    else:
-        img = img.resize((ancho, alto), resample)
+        if mantener_ratio:
+            img.thumbnail((ancho, alto), resample) # type: ignore
+        else:
+            img = img.resize((ancho, alto), resample)
 
-    fmt = _formato_desde_ruta(ruta_entrada)
-    img.save(ruta_salida, fmt)
+        fmt = _formato_desde_ruta(ruta_entrada)
+        img.save(ruta_salida, fmt)
 
-    return {
-        'ruta_salida': ruta_salida,
-        'original':    (w_orig, h_orig),
-        'resultado':   img.size,
-    }
+        return {
+            'ruta_salida': ruta_salida,
+            'original': (w_orig, h_orig),
+            'resultado': img.size,
+        }
 
 
 def recortar(
@@ -136,35 +138,35 @@ def recortar(
     izq: int = 0, sup: int = 0,
     der: int | None = None, inf: int | None = None,
 ) -> dict:
-    img = Image.open(ruta_entrada)
-    img = ImageOps.exif_transpose(img)
-    w, h = img.size
+    with Image.open(ruta_entrada) as img:
+        img = ImageOps.exif_transpose(img)
+        w, h = img.size
 
-    if ratio and ratio in RATIOS:
-        rx, ry = RATIOS[ratio]
-        if w / h > rx / ry:
-            nuevo_w = int(h * rx / ry)
-            nuevo_h = h
+        if ratio and ratio in RATIOS:
+            rx, ry = RATIOS[ratio]
+            if w / h > rx / ry:
+                nuevo_w = int(h * rx / ry)
+                nuevo_h = h
+            else:
+                nuevo_w = w
+                nuevo_h = int(w * ry / rx)
+            izq = (w - nuevo_w) // 2
+            sup = (h - nuevo_h) // 2
+            der = izq + nuevo_w
+            inf = sup + nuevo_h
         else:
-            nuevo_w = w
-            nuevo_h = int(w * ry / rx)
-        izq = (w - nuevo_w) // 2
-        sup = (h - nuevo_h) // 2
-        der = izq + nuevo_w
-        inf = sup + nuevo_h
-    else:
-        der = der if der is not None else w
-        inf = inf if inf is not None else h
+            der = der if der is not None else w
+            inf = inf if inf is not None else h
 
-    img_recortada = img.crop((izq, sup, der, inf))
-    fmt = _formato_desde_ruta(ruta_entrada)
-    img_recortada.save(ruta_salida, fmt)
+        img_recortada = img.crop((izq, sup, der, inf))
+        fmt = _formato_desde_ruta(ruta_entrada)
+        img_recortada.save(ruta_salida, fmt)
 
-    return {
-        'ruta_salida': ruta_salida,
-        'original':    (w, h),
-        'resultado':   img_recortada.size,
-    }
+        return {
+            'ruta_salida': ruta_salida,
+            'original': (w, h),
+            'resultado': img_recortada.size,
+        }
 
 
 def agregar_canvas(
@@ -175,42 +177,42 @@ def agregar_canvas(
     color_fondo: tuple[int, int, int] | None = (255, 255, 255),
     centrar: bool = True,
 ) -> dict:
-    img = Image.open(ruta_entrada)
-    img = ImageOps.exif_transpose(img)
-    w, h = img.size
-
-    if w > ancho_final or h > alto_final:
-        img.thumbnail((ancho_final, alto_final), Image.Resampling.LANCZOS)
+    with Image.open(ruta_entrada) as img:
+        img = ImageOps.exif_transpose(img)
         w, h = img.size
 
-    # Transparente real solo si color_fondo es None
-    if color_fondo is None:
-        canvas = Image.new('RGBA', (ancho_final, alto_final), (0, 0, 0, 0))
-        if img.mode != 'RGBA':
-            img = img.convert('RGBA')
-    else:
-        modo = 'RGBA' if img.mode == 'RGBA' else 'RGB'
-        fondo_color = (*color_fondo, 255) if modo == 'RGBA' else color_fondo
-        canvas = Image.new(modo, (ancho_final, alto_final), fondo_color)  # type: ignore
+        if w > ancho_final or h > alto_final:
+            img.thumbnail((ancho_final, alto_final), Image.Resampling.LANCZOS)
+            w, h = img.size
 
-    x = (ancho_final - w) // 2 if centrar else 0
-    y = (alto_final - h) // 2 if centrar else 0
+        # Transparente real solo si color_fondo es None
+        if color_fondo is None:
+            canvas = Image.new('RGBA', (ancho_final, alto_final), (0, 0, 0, 0))
+            if img.mode != 'RGBA':
+                img = img.convert('RGBA')
+        else:
+            modo = 'RGBA' if img.mode == 'RGBA' else 'RGB'
+            fondo_color = (*color_fondo, 255) if modo == 'RGBA' else color_fondo
+            canvas = Image.new(modo, (ancho_final, alto_final), fondo_color)  # type: ignore
 
-    if img.mode == 'RGBA':
-        canvas.paste(img, (x, y), mask=img.split()[3])
-    else:
-        canvas.paste(img, (x, y))
+        x = (ancho_final - w) // 2 if centrar else 0
+        y = (alto_final - h) // 2 if centrar else 0
 
-    fmt = _formato_desde_ruta(ruta_entrada)
-    if fmt == 'JPEG' and canvas.mode == 'RGBA':
-        canvas = canvas.convert('RGB')
-    canvas.save(ruta_salida, fmt)
+        if img.mode == 'RGBA':
+            canvas.paste(img, (x, y), mask=img.split()[3])
+        else:
+            canvas.paste(img, (x, y))
 
-    return {
-        'ruta_salida': ruta_salida,
-        'original':    (w, h),
-        'resultado':   (ancho_final, alto_final),
-    }
+        fmt = _formato_desde_ruta(ruta_entrada)
+        if fmt == 'JPEG' and canvas.mode == 'RGBA':
+            canvas = canvas.convert('RGB')
+        canvas.save(ruta_salida, fmt)
+
+        return {
+            'ruta_salida': ruta_salida,
+            'original': (w, h),
+            'resultado': (ancho_final, alto_final),
+        }
 
 
 def _formato_desde_ruta(ruta: str) -> str:
@@ -221,3 +223,95 @@ def _formato_desde_ruta(ruta: str) -> str:
         '.bmp': 'BMP', '.tiff': 'TIFF',
         '.gif': 'GIF',
     }.get(ext, 'JPEG')
+
+
+def any_supports_transparency(rutas: list[str]) -> bool:
+    return any(Path(r).suffix.lower() in TRANSPARENCY_EXTS for r in rutas)
+
+
+def canvas_color_for_choice(choice_key: str, supports_transparency: bool) -> tuple[tuple[int, int, int] | None, bool]:
+    """
+    choice_key: 'white' | 'black' | 'transparent'
+    returns (color, fallback_used)
+    """
+    if choice_key == 'transparent' and supports_transparency:
+        return None, False
+    if choice_key == 'black' or (choice_key == 'transparent' and not supports_transparency):
+        return (0, 0, 0), choice_key == 'transparent'
+    return (255, 255, 255), False
+
+
+def parse_dimensions(ancho_txt: str, alto_txt: str) -> tuple[int | None, int | None, str | None]:
+    try:
+        ancho = int(ancho_txt) if ancho_txt else None
+        alto = int(alto_txt) if alto_txt else None
+        return ancho, alto, None
+    except ValueError:
+        return None, None, 'invalid'
+
+
+def batch_redimensionar(
+    rutas: list[str],
+    carpeta_salida: str,
+    *,
+    porcentaje: float | None = None,
+    ancho: int | None = None,
+    alto: int | None = None,
+    preset_key: str | None = None,
+    mantener_ratio: bool = True,
+    sufijo: str = '_redim',
+) -> dict:
+    errores = 0
+    for ruta in rutas:
+        try:
+            p = Path(ruta)
+            salida = str(Path(carpeta_salida) / (p.stem + sufijo + p.suffix))
+            redimensionar(
+                ruta, salida,
+                porcentaje=porcentaje,
+                ancho=ancho,
+                alto=alto,
+                preset_key=preset_key,
+                mantener_ratio=mantener_ratio,
+            )
+        except Exception:
+            errores += 1
+    return {'ok': len(rutas) - errores, 'errores': errores}
+
+
+def batch_recortar(
+    rutas: list[str],
+    carpeta_salida: str,
+    *,
+    ratio: str | None = None,
+    sufijo: str = '_crop',
+) -> dict:
+    errores = 0
+    for ruta in rutas:
+        try:
+            p = Path(ruta)
+            salida = str(Path(carpeta_salida) / (p.stem + sufijo + p.suffix))
+            recortar(ruta, salida, ratio=ratio)
+        except Exception:
+            errores += 1
+    return {'ok': len(rutas) - errores, 'errores': errores}
+
+
+def batch_canvas(
+    rutas: list[str],
+    carpeta_salida: str,
+    *,
+    ancho: int,
+    alto: int,
+    color_fondo: tuple[int, int, int] | None,
+    sufijo: str = '_canvas',
+) -> dict:
+    errores = 0
+    for ruta in rutas:
+        try:
+            p = Path(ruta)
+            salida = str(Path(carpeta_salida) / (p.stem + sufijo + p.suffix))
+            agregar_canvas(ruta, salida, ancho, alto, color_fondo=color_fondo)
+        except Exception:
+            errores += 1
+    return {'ok': len(rutas) - errores, 'errores': errores}

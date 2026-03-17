@@ -2,7 +2,19 @@
 Módulo de extracción de paleta de colores.
 """
 
+from pathlib import Path
 from PIL import Image
+
+
+def cargar_preview(ruta: str, size: tuple[int, int] = (80, 80)) -> tuple[Image.Image, int, int, str]:
+    """Carga imagen, genera preview y devuelve metadata básica."""
+    with Image.open(ruta) as img:
+        w, h = img.size
+        img = img.convert('RGB')
+        img.thumbnail(size, Image.Resampling.LANCZOS)
+        preview = img.copy()
+    ext = Path(ruta).suffix.upper().lstrip(".")
+    return preview, w, h, ext
 
 
 def extraer_paleta(ruta: str, n_colores: int = 6) -> list[tuple[int, int, int]]:
@@ -10,35 +22,36 @@ def extraer_paleta(ruta: str, n_colores: int = 6) -> list[tuple[int, int, int]]:
     Extrae los N colores dominantes de una imagen.
     Retorna lista de tuplas (R, G, B).
     """
-    img = Image.open(ruta).convert('RGB')
+    with Image.open(ruta) as img:
+        img = img.convert('RGB')
 
-    # Reducir para acelerar el análisis
-    img.thumbnail((400, 400), Image.Resampling.LANCZOS)
+        # Reducir para acelerar el análisis
+        img.thumbnail((400, 400), Image.Resampling.LANCZOS)
 
-    # Quantizar a N colores y extraer la paleta
-    img_p = img.quantize(colors=n_colores, method=Image.Quantize.MEDIANCUT)
-    paleta_raw = img_p.getpalette()
+        # Quantizar a N colores y extraer la paleta
+        img_p = img.quantize(colors=n_colores, method=Image.Quantize.MEDIANCUT)
+        paleta_raw = img_p.getpalette()
 
-    if not paleta_raw:
-        return []
+        if not paleta_raw:
+            return []
 
-    # Contar frecuencia de cada color en la imagen quantizada
-    pixels = list(img_p.getdata()) # type: ignore
-    frecuencias = {}
-    for px in pixels:
-        frecuencias[px] = frecuencias.get(px, 0) + 1
+        # Contar frecuencia de cada color en la imagen quantizada
+        pixels = list(img_p.getdata()) # type: ignore
+        frecuencias = {}
+        for px in pixels:
+            frecuencias[px] = frecuencias.get(px, 0) + 1
 
-    # Ordenar índices por frecuencia descendente
-    indices_ordenados = sorted(frecuencias, key=lambda i: frecuencias[i], reverse=True)
+        # Ordenar índices por frecuencia descendente
+        indices_ordenados = sorted(frecuencias, key=lambda i: frecuencias[i], reverse=True)
 
-    colores = []
-    for idx in indices_ordenados[:n_colores]:
-        r = paleta_raw[idx * 3]
-        g = paleta_raw[idx * 3 + 1]
-        b = paleta_raw[idx * 3 + 2]
-        colores.append((r, g, b))
+        colores = []
+        for idx in indices_ordenados[:n_colores]:
+            r = paleta_raw[idx * 3]
+            g = paleta_raw[idx * 3 + 1]
+            b = paleta_raw[idx * 3 + 2]
+            colores.append((r, g, b))
 
-    return colores
+        return colores
 
 
 def rgb_a_hex(rgb: tuple[int, int, int]) -> str:
@@ -139,3 +152,11 @@ def exportar_paleta_imagen(
 
     img.save(ruta_salida, 'PNG', optimize=True)
     return ruta_salida
+
+
+def extraer_paleta_safe(ruta: str, n_colores: int = 6) -> tuple[list[tuple[int, int, int]], str | None]:
+    """Wrapper seguro que devuelve (paleta, error)."""
+    try:
+        return extraer_paleta(ruta, n_colores), None
+    except Exception as exc:
+        return [], str(exc)

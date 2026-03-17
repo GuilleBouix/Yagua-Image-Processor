@@ -1,9 +1,11 @@
-"""
-UI Frames - Módulos de interfaz de usuario.
+﻿"""
+UI Frames - Modulos de interfaz de usuario.
 """
 
-from ui.frames.compress_frame import CompressFrame
-from ui.frames.convert_frame import ConvertFrame
-from ui.frames.metadata_frame import MetadataFrame
-from ui.frames.palette_frame import PaletteFrame
+from ui.frames.compress import CompressFrame
+from ui.frames.convert import ConvertFrame
+from ui.frames.metadata import MetadataFrame
+from ui.frames.palette import PaletteFrame
 from ui.frames.placeholder_frame import PlaceholderFrame
+from ui.frames.resize import ResizeFrame
+from ui.frames.settings import SettingsFrame

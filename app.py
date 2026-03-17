@@ -4,7 +4,6 @@ Contiene la clase principal que inicializa la ventana y componentes.
 """
 
 import logging
-import os
 import sys
 from pathlib import Path
 

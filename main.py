@@ -3,8 +3,6 @@ Punto de entrada principal de la aplicación Yagua.
 Configura el tema de CustomTkinter e inicia la aplicación.
 """
 
-import sys
-
 import customtkinter as ctk
 
 from app import YaguaApp

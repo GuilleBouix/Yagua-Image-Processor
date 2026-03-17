@@ -85,10 +85,10 @@ def comprimir_imagen(
     fmt = _formato_desde_ruta(ruta_entrada)
     tam_original = Path(ruta_entrada).stat().st_size
 
-    img = Image.open(ruta_entrada)
-    img = _preparar_imagen(img, fmt)
-    kwargs = _kwargs_guardado(img, fmt, calidad, quitar_exif)
-    img.save(ruta_salida, fmt, **kwargs)
+    with Image.open(ruta_entrada) as img:
+        img = _preparar_imagen(img, fmt)
+        kwargs = _kwargs_guardado(img, fmt, calidad, quitar_exif)
+        img.save(ruta_salida, fmt, **kwargs)
 
     tam_comprimido = Path(ruta_salida).stat().st_size
 
@@ -107,21 +107,54 @@ def comprimir_imagen(
 
 def estimar_tamano(ruta_entrada: str, calidad: int) -> int:
     fmt = _formato_desde_ruta(ruta_entrada)
-    img = Image.open(ruta_entrada)
+    with Image.open(ruta_entrada) as img:
+        if fmt == 'JPEG':
+            img.draft('RGB', (200, 200))
 
-    if fmt == 'JPEG':
-        img.draft('RGB', (200, 200))
+        img.load()  # fuerza lectura del draft — sin reasignar
 
-    img.load()  # fuerza lectura del draft — sin reasignar
-
-    img = _preparar_imagen(img, fmt)
-    buf = io.BytesIO()
-    kwargs = _kwargs_guardado(img, fmt, calidad, quitar_exif=True)
-    img.save(buf, fmt, **kwargs)
-    return buf.tell()
+        img = _preparar_imagen(img, fmt)
+        buf = io.BytesIO()
+        kwargs = _kwargs_guardado(img, fmt, calidad, quitar_exif=True)
+        img.save(buf, fmt, **kwargs)
+        return buf.tell()
 
 
 def formatear_bytes(bytes_val: int) -> str:
     if bytes_val < 1024 * 1024:
         return f"{bytes_val / 1024:.1f} KB"
     return f"{bytes_val / (1024 * 1024):.2f} MB"
+
+
+def batch_comprimir(
+    rutas: list[str],
+    carpeta_salida: str,
+    calidad: int = 85,
+    quitar_exif: bool = True,
+    sufijo: str = '_comprimido',
+) -> dict:
+    resultados = []
+    errores = 0
+    for ruta in rutas:
+        try:
+            p = Path(ruta)
+            salida = str(Path(carpeta_salida) / (p.stem + sufijo + p.suffix))
+            res = comprimir_imagen(
+                ruta, salida,
+                calidad=calidad,
+                quitar_exif=quitar_exif
+            )
+            resultados.append(res)
+        except Exception:
+            errores += 1
+
+    total_orig = sum(r['tam_original'] for r in resultados) or 0
+    total_comp = sum(r['tam_comprimido'] for r in resultados) or 0
+    reduccion = round((1 - total_comp / total_orig) * 100, 1) if total_orig else 0
+    return {
+        'ok': len(resultados),
+        'errores': errores,
+        'total_original': total_orig,
+        'total_comprimido': total_comp,
+        'reduccion_pct': reduccion,
+    }

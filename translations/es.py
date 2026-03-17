@@ -62,6 +62,7 @@ TRANSLATIONS = {
     'save_palette_first': 'Primero cargá una imagen.',
     'saved_as': 'Guardada como',
     'saving': 'Guardando...',
+    'error_generic': 'Error',
     
     # Metadata
     'metadata_title': 'Metadatos EXIF',
@@ -73,8 +74,11 @@ TRANSLATIONS = {
     'select_images_clean': 'Seleccioná imágenes para limpiar EXIF',
     'no_metadata': 'Sin metadatos — cargá una imagen',
     'no_metadata_image': 'Esta imagen no tiene metadatos EXIF',
+    'view_on_maps': 'Ver en Maps',
     'export_txt': 'Exportar .txt',
     'export_json': 'Exportar .json',
+    'export_metadata': 'Exportar metadatos',
+    'reading_metadata': 'Leyendo metadatos...',
     'fields_found': 'campos encontrados',
     'export_metadata_first': 'Primero cargá una imagen.',
     'exported_as': 'Exportado como',
@@ -110,6 +114,7 @@ TRANSLATIONS = {
     'maintain_aspect': 'Mantener relación de aspecto',
     'width': 'Ancho',
     'height': 'Alto',
+    'size': 'Tamaño',
     'background': 'Fondo',
     'white': 'Blanco',
     'black': 'Negro',

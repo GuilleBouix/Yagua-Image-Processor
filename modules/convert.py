@@ -90,6 +90,10 @@ def _kwargs_para(fmt: str, calidad: int) -> dict:
     return {}
 
 
+def formato_soporta_calidad(fmt: str) -> bool:
+    return fmt.upper() not in {'PNG', 'ICO', 'BMP', 'GIF'}
+
+
 def convertir_imagen(
     ruta_entrada: str,
     fmt_destino: str,
@@ -101,16 +105,18 @@ def convertir_imagen(
     Returns dict con rutas, formatos y tamaños.
     """
     fmt = fmt_destino.upper()
+    if fmt not in _FMT_A_EXT:
+        raise ValueError(f'Formato destino no soportado: {fmt}')
     ext = _FMT_A_EXT[fmt]
     p = Path(ruta_entrada)
     ruta_salida = str(Path(carpeta_salida) / (p.stem + ext))
 
-    img = Image.open(ruta_entrada)
-    fmt_origen = _EXT_A_FMT.get(p.suffix.lower(), 'JPEG')
+    with Image.open(ruta_entrada) as img:
+        fmt_origen = _EXT_A_FMT.get(p.suffix.lower(), 'JPEG')
 
-    img = _preparar_para(img, fmt)
-    kwargs = _kwargs_para(fmt, calidad)
-    img.save(ruta_salida, fmt, **kwargs)
+        img = _preparar_para(img, fmt)
+        kwargs = _kwargs_para(fmt, calidad)
+        img.save(ruta_salida, fmt, **kwargs)
 
     return {
         'ruta_entrada': ruta_entrada,
@@ -136,3 +142,24 @@ def batch_convertir(
         if progress_cb:
             progress_cb(i + 1, len(rutas))
     return resultados
+
+
+def batch_convertir_safe(
+    rutas: list[str],
+    fmt_destino: str,
+    carpeta_salida: str,
+    calidad: int = 90,
+) -> dict:
+    resultados = []
+    errores = 0
+    for ruta in rutas:
+        try:
+            res = convertir_imagen(ruta, fmt_destino, carpeta_salida, calidad)
+            resultados.append(res)
+        except Exception:
+            errores += 1
+    return {
+        'ok': len(resultados),
+        'errores': errores,
+        'fmt_destino': fmt_destino.upper(),
+    }

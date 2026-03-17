@@ -3,6 +3,7 @@ Barra lateral de navegación de la aplicación.
 Contiene el menú de módulos disponibles.
 """
 
+import logging
 import webbrowser
 from pathlib import Path
 from PIL import Image
@@ -10,22 +11,11 @@ import customtkinter as ctk
 from ui import colors, fonts
 from utils import tintar_icono
 from translations import t
+from ui.module_registry import iter_enabled_modules
+
+logger = logging.getLogger(__name__)
 
 GITHUB_URL = 'https://github.com/GuilleBouix'
-
-MENU_ITEMS = [
-    ('compress', 'compress', 'assets/icons/compress.png'),
-    ('convert', 'convert', 'assets/icons/convert.png'),
-    ('remove_bg', 'remove_bg', 'assets/icons/remove_background.png'),
-    ('resize', 'resize', 'assets/icons/resize.png'),
-    ('rename', 'rename', 'assets/icons/rename.png'),
-    ('palette', 'palette', 'assets/icons/palette.png'),
-    ('watermark', 'watermark', 'assets/icons/watermark.png'),
-    ('metadata', 'metadata', 'assets/icons/metadata.png'),
-    ('lqip', 'lqip', 'assets/icons/lqip.png'),
-    ('optimizer', 'optimizer', 'assets/icons/optimizer.png'),
-    ('settings', 'settings', 'assets/icons/settings.png'),
-]
 
 LOGO_SIZE = 135
 
@@ -46,22 +36,28 @@ class Sidebar(ctk.CTkFrame):
     def _build(self):
         """Construye los elementos de la barra lateral."""
 
-        ruta_icono = Path('assets/icon.png')
-        imagen = Image.open(ruta_icono).convert('RGBA')
+        ruta_icono = Path('assets/icon_2.png')
+        try:
+            imagen = Image.open(ruta_icono).convert('RGBA')
+        except Exception as exc:
+            logger.warning("No se pudo cargar el logo: %s", exc)
+            imagen = None
         
-        w, h = imagen.size
-        if w > h:
-            new_size = (LOGO_SIZE, int(h * LOGO_SIZE / w))
+        if imagen:
+            w, h = imagen.size
+            if w > h:
+                new_size = (LOGO_SIZE, int(h * LOGO_SIZE / w))
+            else:
+                new_size = (int(w * LOGO_SIZE / h), LOGO_SIZE)
+            
+            imagen_ctk = ctk.CTkImage(
+                light_image=imagen,
+                dark_image=imagen,
+                size=new_size
+            )
+            logo = ctk.CTkLabel(self, image=imagen_ctk, text='')
         else:
-            new_size = (int(w * LOGO_SIZE / h), LOGO_SIZE)
-        
-        imagen_ctk = ctk.CTkImage(
-            light_image=imagen,
-            dark_image=imagen,
-            size=new_size
-        )
-        
-        logo = ctk.CTkLabel(self, image=imagen_ctk, text='')
+            logo = ctk.CTkLabel(self, text='')
         logo.pack(pady=(20, 10))
 
         separador = ctk.CTkFrame(
@@ -71,9 +67,9 @@ class Sidebar(ctk.CTkFrame):
         )
         separador.pack(fill='x', padx=20, pady=(10, 20))
 
-        for key, translate_key, icon_path in MENU_ITEMS:
-            icon_ctk = tintar_icono(icon_path, colors.ICON_COLOR)
-            label = t(translate_key)
+        for spec in iter_enabled_modules():
+            icon_ctk = tintar_icono(spec.icon_path, colors.ICON_COLOR)
+            label = t(spec.label_key)
             
             btn = ctk.CTkButton(
                 self,
@@ -86,11 +82,11 @@ class Sidebar(ctk.CTkFrame):
                 text_color=colors.TEXT_COLOR,
                 anchor='w',
                 font=fonts.FUENTE_BASE,
-                command=lambda k=key: self.on_select(k)
+                command=lambda k=spec.key: self.on_select(k)
             )
             btn.pack(pady=3, padx=10, fill='x')
             
-            self.buttons[key] = {'btn': btn, 'icon_path': icon_path}
+            self.buttons[spec.key] = {'btn': btn, 'icon_path': spec.icon_path}
 
         # Developed by - enlace al final
         self._frame_footer = ctk.CTkFrame(self, fg_color='transparent')

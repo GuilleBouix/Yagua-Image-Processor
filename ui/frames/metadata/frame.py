@@ -1,7 +1,9 @@
+﻿"""
+UI para el modulo Metadatos EXIF.
+Tabs: Ver - Editar - Limpiar
 """
-Frame del módulo Metadatos EXIF.
-Tabs: Ver · Editar · Limpiar
-"""
+
+from __future__ import annotations
 
 import threading
 from pathlib import Path
@@ -9,66 +11,38 @@ from tkinter import filedialog
 import webbrowser
 
 import customtkinter as ctk
-from PIL import Image
 
-from modules.metadata import (
-    leer_metadatos, limpiar_exif, editar_exif,
-    exportar_txt, exportar_json, CAMPOS_EDITABLES
-)
-from modules.compress import formatear_bytes
 from ui import colors, fonts
+from translations import t
 from utils import tintar_icono
+from ui.file_list import build_file_list, load_thumbs_async
+from ui.frames.base import BaseFrame
+from ui.frames.metadata.services import (
+    leer_metadatos_safe,
+    editar_exif,
+    exportar_metadatos,
+    preparar_campos_exif,
+    CAMPOS_EDITABLES,
+    batch_limpiar_exif,
+)
+from ui.frames.metadata.state import MetadataState
 
 
-class MetadataFrame(ctk.CTkFrame):
-
+class MetadataFrame(BaseFrame):
     def __init__(self, parent):
-        super().__init__(parent, corner_radius=0, fg_color=colors.FRAMES_BG)
-        self._ruta: str | None = None
-        self._imagenes_lote: list[str] = []
-        self._metadatos: dict[str, str] = {}
+        self._state = MetadataState()
         self._preview_img: ctk.CTkImage | None = None
         self._thumbs: list[ctk.CTkImage] = []
         self._filas_lote: list[ctk.CTkLabel] = []
         self._campos_edit: dict[str, ctk.CTkEntry] = {}
-        self._build()
+        super().__init__(parent, t('metadata_title'))
 
-    # ─── BUILD ────────────────────────────────────────────────────────────────
-
-    def _build(self):
+    def _build_content(self):
         self.grid_columnconfigure(0, weight=1)
-
-        # Título
-        fila_titulo = ctk.CTkFrame(self, fg_color='transparent')
-        fila_titulo.grid(row=0, column=0, padx=28, pady=(26, 8), sticky='ew')
-        fila_titulo.grid_columnconfigure(0, weight=1)
-
-        ctk.CTkLabel(
-            fila_titulo,
-            text='Metadatos EXIF',
-            font=fonts.FUENTE_TITULO,
-            text_color=colors.TEXT_COLOR,
-            anchor='w'
-        ).grid(row=0, column=0, sticky='w')
-
-        self._btn_limpiar_sel = ctk.CTkButton(
-            fila_titulo,
-            text='Limpiar',
-            width=80, height=30,
-            corner_radius=8,
-            font=fonts.FUENTE_CHICA,
-            fg_color='#FFFFFF',
-            text_color='#1A1A1A',
-            hover_color='#EEEEEE',
-            border_width=0,
-            command=self._limpiar_todo
-        )
-        self._btn_limpiar_sel.grid(row=0, column=1, sticky='e')
-
         # Tabs
         self._tab = ctk.CTkSegmentedButton(
             self,
-            values=['Ver', 'Editar', 'Limpiar lote'],
+            values=[t('view'), t('edit'), t('clean_batch')],
             font=fonts.FUENTE_BASE,
             selected_color='#949494',
             selected_hover_color='#949494',
@@ -77,7 +51,7 @@ class MetadataFrame(ctk.CTkFrame):
             text_color=colors.TEXT_COLOR,
             command=self._cambiar_tab
         )
-        self._tab.set('Ver')
+        self._tab.set(t('view'))
         self._tab.grid(row=1, column=0, padx=28, pady=(0, 8), sticky='ew')
 
         # Contenedor de tabs
@@ -86,30 +60,20 @@ class MetadataFrame(ctk.CTkFrame):
         self._contenedor.grid_columnconfigure(0, weight=1)
 
         self._frames: dict[str, ctk.CTkFrame] = {}
-        self._frames['Ver']          = self._build_tab_ver()
-        self._frames['Editar']       = self._build_tab_editar()
-        self._frames['Limpiar lote'] = self._build_tab_limpiar()
+        self._frames[t('view')] = self._build_tab_ver()
+        self._frames[t('edit')] = self._build_tab_editar()
+        self._frames[t('clean_batch')] = self._build_tab_limpiar()
 
         for f in self._frames.values():
             f.grid(row=0, column=0, sticky='nsew')
 
-        # Info
-        self._lbl_info = ctk.CTkLabel(
-            self, text='',
-            font=fonts.FUENTE_CHICA,
-            text_color=colors.TEXT_GRAY
-        )
-        self._lbl_info.grid(row=3, column=0, pady=(0, 4))
-
-        self._cambiar_tab('Ver')
-
-    # ─── TAB VER ──────────────────────────────────────────────────────────────
+        self._cambiar_tab(t('view'))
 
     def _build_tab_ver(self) -> ctk.CTkFrame:
         f = ctk.CTkFrame(self._contenedor, fg_color='transparent')
         f.grid_columnconfigure(0, weight=1)
 
-        btn = self._crear_boton_seleccionar(f, 'Seleccionar imagen', self._explorar_ver)
+        btn = self._crear_boton_seleccionar(f, t('select_image_view'), self._explorar_ver)
         btn.grid(row=0, column=0, padx=28, pady=8, sticky='ew')
         self._dz_ver = btn
 
@@ -133,7 +97,7 @@ class MetadataFrame(ctk.CTkFrame):
 
         ctk.CTkLabel(
             self._scroll_meta,
-            text='Sin metadatos — cargá una imagen',
+            text=t('no_metadata'),
             font=fonts.FUENTE_CHICA,
             text_color=colors.TEXT_GRAY
         ).grid(row=0, column=0, columnspan=2, pady=20)
@@ -145,7 +109,7 @@ class MetadataFrame(ctk.CTkFrame):
 
         ctk.CTkButton(
             fila_exp,
-            text='Exportar .txt',
+            text=t('export_txt'),
             height=36, corner_radius=8,
             font=fonts.FUENTE_BASE,
             fg_color=colors.PANEL_BG,
@@ -158,7 +122,7 @@ class MetadataFrame(ctk.CTkFrame):
 
         ctk.CTkButton(
             fila_exp,
-            text='Exportar .json',
+            text=t('export_json'),
             height=36, corner_radius=8,
             font=fonts.FUENTE_BASE,
             fg_color=colors.PANEL_BG,
@@ -171,13 +135,11 @@ class MetadataFrame(ctk.CTkFrame):
 
         return f
 
-    # ─── TAB EDITAR ───────────────────────────────────────────────────────────
-
     def _build_tab_editar(self) -> ctk.CTkFrame:
         f = ctk.CTkFrame(self._contenedor, fg_color='transparent')
         f.grid_columnconfigure(0, weight=1)
 
-        btn = self._crear_boton_seleccionar(f, 'Seleccionar imagen', self._explorar_editar)
+        btn = self._crear_boton_seleccionar(f, t('select_image_edit'), self._explorar_editar)
         btn.grid(row=0, column=0, padx=28, pady=8, sticky='ew')
 
         panel = ctk.CTkFrame(
@@ -189,9 +151,16 @@ class MetadataFrame(ctk.CTkFrame):
         panel.grid(row=1, column=0, padx=28, pady=8, sticky='ew')
         panel.grid_columnconfigure(1, weight=1)
 
+        _label_map = {
+            'Artist': 'artist',
+            'Copyright': 'copyright',
+            'Software': 'software',
+            'DateTime': 'datetime',
+        }
         for i, (campo, etiqueta) in enumerate(CAMPOS_EDITABLES.items()):
+            etiqueta_trad = t(_label_map.get(campo, '')) if campo in _label_map else etiqueta
             ctk.CTkLabel(
-                panel, text=etiqueta,
+                panel, text=etiqueta_trad,
                 font=fonts.FUENTE_BASE,
                 text_color=colors.TEXT_GRAY, anchor='w'
             ).grid(row=i, column=0, padx=(16, 12), pady=8, sticky='w')
@@ -202,7 +171,7 @@ class MetadataFrame(ctk.CTkFrame):
                 fg_color=colors.FRAMES_BG,
                 border_color=colors.SIDEBAR_SEPARATOR,
                 text_color=colors.TEXT_COLOR,
-                placeholder_text=f'Ingresá {etiqueta.lower()}...',
+                placeholder_text=t('enter_field').format(etiqueta_trad.lower()),
                 placeholder_text_color=colors.TEXT_GRAY
             )
             entry.grid(row=i, column=1, padx=(0, 16), pady=8, sticky='ew')
@@ -210,7 +179,7 @@ class MetadataFrame(ctk.CTkFrame):
 
         self._btn_guardar_edit = ctk.CTkButton(
             panel,
-            text='Guardar cambios',
+            text=t('save_changes'),
             height=40, corner_radius=8,
             font=fonts.FUENTE_BASE,
             fg_color=colors.ACENTO,
@@ -225,13 +194,11 @@ class MetadataFrame(ctk.CTkFrame):
 
         return f
 
-    # ─── TAB LIMPIAR ──────────────────────────────────────────────────────────
-
     def _build_tab_limpiar(self) -> ctk.CTkFrame:
         f = ctk.CTkFrame(self._contenedor, fg_color='transparent')
         f.grid_columnconfigure(0, weight=1)
 
-        btn = self._crear_boton_seleccionar(f, 'Seleccionar imágenes', self._explorar_lote)
+        btn = self._crear_boton_seleccionar(f, t('select_images_clean'), self._explorar_lote)
         btn.grid(row=0, column=0, padx=28, pady=8, sticky='ew')
 
         self._lista_lote = ctk.CTkScrollableFrame(
@@ -247,7 +214,7 @@ class MetadataFrame(ctk.CTkFrame):
 
         self._lbl_lote_vacio = ctk.CTkLabel(
             self._lista_lote,
-            text='Sin imágenes cargadas',
+            text=t('no_images'),
             font=fonts.FUENTE_CHICA,
             text_color=colors.TEXT_GRAY
         )
@@ -264,7 +231,7 @@ class MetadataFrame(ctk.CTkFrame):
 
         self._btn_limpiar_exif = ctk.CTkButton(
             panel_opc,
-            text='Limpiar EXIF',
+            text=t('clean_exif'),
             height=40, corner_radius=8,
             font=fonts.FUENTE_BASE,
             fg_color=colors.ACENTO,
@@ -275,8 +242,6 @@ class MetadataFrame(ctk.CTkFrame):
         self._btn_limpiar_exif.grid(row=0, column=0, padx=16, pady=16, sticky='ew')
 
         return f
-
-    # ─── HELPERS ──────────────────────────────────────────────────────────────
 
     def _crear_boton_seleccionar(self, parent, texto: str, comando) -> ctk.CTkButton:
         return ctk.CTkButton(
@@ -302,7 +267,7 @@ class MetadataFrame(ctk.CTkFrame):
         if not metadatos:
             ctk.CTkLabel(
                 self._scroll_meta,
-                text='Esta imagen no tiene metadatos EXIF',
+                text=t('no_metadata_image'),
                 font=fonts.FUENTE_CHICA,
                 text_color=colors.TEXT_GRAY
             ).grid(row=0, column=0, columnspan=2, pady=20)
@@ -320,11 +285,11 @@ class MetadataFrame(ctk.CTkFrame):
                 text_color=colors.TEXT_GRAY, anchor='w'
             ).grid(row=i, column=0, padx=(8, 4), pady=3, sticky='w')
 
-            # Si es GPS y hay coordenadas → link clickeable
+            # Si es GPS y hay coordenadas -> link clickeable
             if 'GPS' in k and gps:
                 url = f'https://maps.google.com/?q={gps}'
                 lbl = ctk.CTkLabel(
-                    self._scroll_meta, text=f'{v}  →  Ver en Maps',
+                    self._scroll_meta, text=f'{v}  ->  {t("view_on_maps")}',
                     font=fonts.FUENTE_CHICA,
                     text_color=colors.ACENTO, anchor='w',
                     cursor='hand2'
@@ -338,219 +303,150 @@ class MetadataFrame(ctk.CTkFrame):
                     text_color=colors.TEXT_COLOR, anchor='w'
                 ).grid(row=i, column=1, padx=(4, 8), pady=3, sticky='w')
 
-    # ─── LÓGICA VER ───────────────────────────────────────────────────────────
-
     def _explorar_ver(self):
         archivo = filedialog.askopenfilename(
-            title='Seleccioná una imagen',
-            filetypes=[('Imágenes', '*.jpg *.jpeg *.png *.tiff *.webp')]
+            title=t('select_image_view'),
+            filetypes=[('Imagenes', '*.jpg *.jpeg *.png *.tiff *.webp')]
         )
         if not archivo:
             return
-        self._ruta = archivo
-        self._lbl_info.configure(text='Leyendo metadatos...')
+        self._state.ruta = archivo
+        self._lbl_info.configure(text=t('reading_metadata'))
         threading.Thread(target=self._leer, daemon=True).start()
 
     def _leer(self):
-        meta = leer_metadatos(self._ruta)  # type: ignore
+        meta, err = leer_metadatos_safe(self._state.ruta)  # type: ignore
+        if err:
+            self.after(0, lambda: self._lbl_info.configure(text=f'{t("error_generic")}: {err}'))
+            return
         self.after(0, lambda: self._aplicar_metadatos(meta))
 
     def _aplicar_metadatos(self, meta: dict[str, str]):
-        self._metadatos = meta
+        self._state.metadatos = meta
         self._renderizar_metadatos(meta)
         n = len([k for k in meta if not k.startswith('__')])
         self._lbl_info.configure(
-            text=f'{n} campos encontrados — {Path(self._ruta).name}' if self._ruta else ''
+            text=f'{n} {t("fields_found")} - {Path(self._state.ruta).name}' if self._state.ruta else ''
         )
 
     def _exportar(self, fmt: str):
-        if not self._metadatos:
-            self._lbl_info.configure(text='Primero cargá una imagen.')
+        if not self._state.metadatos:
+            self._lbl_info.configure(text=t('export_metadata_first'))
             return
         ext = f'.{fmt}'
         ruta = filedialog.asksaveasfilename(
-            title='Exportar metadatos',
+            title=t('export_metadata'),
             defaultextension=ext,
             filetypes=[(fmt.upper(), f'*{ext}')],
             initialfile=f'metadatos{ext}'
         )
         if not ruta:
             return
-        if fmt == 'txt':
-            exportar_txt(self._metadatos, ruta)
-        else:
-            exportar_json(self._metadatos, ruta)
-        self._lbl_info.configure(text=f'Exportado como {Path(ruta).name}')
-
-    # ─── LÓGICA EDITAR ────────────────────────────────────────────────────────
+        exportar_metadatos(self._state.metadatos, ruta, fmt)
+        self._lbl_info.configure(text=f'{t("exported_as")} {Path(ruta).name}')
 
     def _explorar_editar(self):
         archivo = filedialog.askopenfilename(
-            title='Seleccioná una imagen',
-            filetypes=[('Imágenes', '*.jpg *.jpeg *.tiff')]
+            title=t('select_image_edit'),
+            filetypes=[('Imagenes', '*.jpg *.jpeg *.tiff')]
         )
         if not archivo:
             return
-        self._ruta = archivo
+        self._state.ruta = archivo
         # Precargar valores existentes
-        meta = leer_metadatos(archivo)
-        mapa_inv = {v: k for k, v in CAMPOS_EDITABLES.items()}
+        meta, _ = leer_metadatos_safe(archivo)
         for etiqueta, entry in zip(CAMPOS_EDITABLES.values(), self._campos_edit.values()):
             entry.delete(0, 'end')
             if etiqueta in meta:
                 entry.insert(0, meta[etiqueta])
-        self._lbl_info.configure(text=f'Editando: {Path(archivo).name}')
+        self._lbl_info.configure(text=f'{t("editing")} {Path(archivo).name}')
 
     def _guardar_edicion(self):
-        if not self._ruta:
-            self._lbl_info.configure(text='Primero cargá una imagen.')
+        if not self._state.ruta:
+            self._lbl_info.configure(text=t('export_metadata_first'))
             return
 
-        campos = {
-            campo: entry.get()
-            for campo, entry in self._campos_edit.items()
-            if entry.get().strip()
-        }
-        if not campos:
-            self._lbl_info.configure(text='Ingresá al menos un campo para editar.')
+        campos_raw = {campo: entry.get() for campo, entry in self._campos_edit.items()}
+        campos, err = preparar_campos_exif(campos_raw)
+        if err:
+            self._lbl_info.configure(text=t('enter_at_least_one'))
             return
 
         ruta = filedialog.asksaveasfilename(
-            title='Guardar imagen editada',
-            defaultextension=Path(self._ruta).suffix,
+            title=t('select_output_save'),
+            defaultextension=Path(self._state.ruta).suffix,
             filetypes=[('JPEG', '*.jpg'), ('TIFF', '*.tiff')],
-            initialfile=Path(self._ruta).stem + '_editado' + Path(self._ruta).suffix
+            initialfile=Path(self._state.ruta).stem + '_editado' + Path(self._state.ruta).suffix
         )
         if not ruta:
             return
 
-        self._btn_guardar_edit.configure(state='disabled', text='Guardando...')
+        self._btn_guardar_edit.configure(state='disabled', text=t('saving_changes'))
 
         def _proc():
-            ok = editar_exif(self._ruta, ruta, campos)  # type: ignore
+            ok = editar_exif(self._state.ruta, ruta, campos)  # type: ignore
             self.after(0, lambda: self._btn_guardar_edit.configure(
-                state='normal', text='Guardar cambios'
+                state='normal', text=t('save_changes')
             ))
-            msg = f'Guardado: {Path(ruta).name}' if ok else 'Error al guardar'
+            msg = f'{t("saved_as_file")} {Path(ruta).name}' if ok else t('error_saving')
             self.after(0, lambda: self._lbl_info.configure(text=msg))
 
         threading.Thread(target=_proc, daemon=True).start()
 
-    # ─── LÓGICA LIMPIAR LOTE ──────────────────────────────────────────────────
-
     def _explorar_lote(self):
         archivos = filedialog.askopenfilenames(
-            title='Seleccioná imágenes',
-            filetypes=[('Imágenes', '*.jpg *.jpeg *.png *.tiff *.webp')]
+            title=t('select_images_clean'),
+            filetypes=[('Imagenes', '*.jpg *.jpeg *.png *.tiff *.webp')]
         )
         if archivos:
             self._cargar_lote(list(archivos))
 
     def _cargar_lote(self, rutas: list[str]):
-        self._imagenes_lote = rutas
-        self._thumbs.clear()
-        self._filas_lote.clear()
-
-        for w in self._lista_lote.winfo_children():
-            w.destroy()
-
-        for ruta in rutas:
-            p = Path(ruta)
-            fila = ctk.CTkFrame(
-                self._lista_lote, fg_color=colors.SIDEBAR_BG, corner_radius=8
-            )
-            fila.pack(fill='x', pady=3, padx=2)
-            fila.grid_columnconfigure(1, weight=1)
-
-            lbl_thumb = ctk.CTkLabel(
-                fila, text='', width=40, height=40, fg_color='transparent'
-            )
-            lbl_thumb.grid(row=0, column=0, padx=(8, 0), pady=6)
-            self._filas_lote.append(lbl_thumb)
-
-            info = ctk.CTkFrame(fila, fg_color='transparent')
-            info.grid(row=0, column=1, padx=(10, 8), pady=6, sticky='w')
-
-            nombre = p.name if len(p.name) <= 32 else p.name[:29] + '...'
-            ctk.CTkLabel(
-                info, text=nombre,
-                font=fonts.FUENTE_BASE,
-                text_color=colors.TEXT_COLOR, anchor='w'
-            ).pack(anchor='w')
-            ctk.CTkLabel(
-                info, text=formatear_bytes(p.stat().st_size),
-                font=fonts.FUENTE_CHICA,
-                text_color=colors.TEXT_GRAY, anchor='w'
-            ).pack(anchor='w')
-
-        threading.Thread(
-            target=self._cargar_thumbs_lote, args=(rutas,), daemon=True
-        ).start()
+        self._state.imagenes_lote = rutas
+        build_file_list(
+            self._lista_lote, rutas, self._filas_lote, self._thumbs,
+            thumb_size=40, show_ext=False
+        )
+        load_thumbs_async(rutas, self._filas_lote, self._thumbs, self.after, thumb_size=40)
         n = len(rutas)
         self._lbl_info.configure(
-            text=f'{n} imagen{"es" if n > 1 else ""} listas para limpiar'
+            text=f'{n} {t("images_ready_clean")}'
         )
 
-    def _cargar_thumbs_lote(self, rutas: list[str]):
-        thumbs = []
-        for ruta in rutas:
-            try:
-                img = Image.open(ruta)
-                img.thumbnail((40, 40), Image.Resampling.LANCZOS)
-                thumb = ctk.CTkImage(light_image=img, dark_image=img, size=(40, 40))
-            except Exception:
-                thumb = None
-            thumbs.append(thumb)
-        self.after(0, lambda: self._aplicar_thumbs(thumbs))
-
-    def _aplicar_thumbs(self, thumbs):
-        for i, thumb in enumerate(thumbs):
-            if thumb and i < len(self._filas_lote):
-                self._filas_lote[i].configure(image=thumb)
-        self._thumbs = [t for t in thumbs if t]
-
     def _limpiar_lote(self):
-        if not self._imagenes_lote:
-            self._lbl_info.configure(text='Primero cargá imágenes.')
+        if not self._state.imagenes_lote:
+            self._lbl_info.configure(text=t('load_images_first_clean'))
             return
-        carpeta = filedialog.askdirectory(title='Carpeta de salida')
+        carpeta = filedialog.askdirectory(title=t('select_output_folder_clean'))
         if not carpeta:
             return
-        self._btn_limpiar_exif.configure(state='disabled', text='Limpiando...')
+        self._btn_limpiar_exif.configure(state='disabled', text=t('cleaning'))
         threading.Thread(
             target=self._proceso_limpiar, args=(carpeta,), daemon=True
         ).start()
 
     def _proceso_limpiar(self, carpeta: str):
-        errores = 0
-        for ruta in self._imagenes_lote:
-            try:
-                p = Path(ruta)
-                salida = str(Path(carpeta) / (p.stem + '_sinexif' + p.suffix))
-                limpiar_exif(ruta, salida)
-            except Exception:
-                errores += 1
-        n = len(self._imagenes_lote)
-        ok = n - errores
+        res = batch_limpiar_exif(self._state.imagenes_lote, carpeta)
         self.after(0, lambda: self._btn_limpiar_exif.configure(
-            state='normal', text='Limpiar EXIF'
+            state='normal', text=t('clean_exif')
         ))
-        msg = f'{ok} imagen{"es" if ok != 1 else ""} limpiadas'
-        if errores:
-            msg += f'  ·  {errores} con error'
+        msg = f'{res["ok"]} {t("cleaned")}'
+        if res['errores']:
+            msg += f'  -  {res["errores"]} {t("error_occurred")}'
         self.after(0, lambda: self._lbl_info.configure(text=msg))
-
-    # ─── CAMBIO DE TAB ────────────────────────────────────────────────────────
 
     def _cambiar_tab(self, tab: str):
         for nombre, frame in self._frames.items():
             if nombre == tab:
                 frame.tkraise()
-            
+
+    def _limpiar(self):
+        self._limpiar_todo()
+
     def _limpiar_todo(self):
-        self._ruta = None
-        self._imagenes_lote = []
-        self._metadatos = {}
+        self._state.ruta = None
+        self._state.imagenes_lote = []
+        self._state.metadatos = {}
         self._thumbs.clear()
         self._filas_lote.clear()
 
@@ -558,7 +454,7 @@ class MetadataFrame(ctk.CTkFrame):
             w.destroy()
         ctk.CTkLabel(
             self._scroll_meta,
-            text='Sin metadatos — cargá una imagen',
+            text=t('no_metadata'),
             font=fonts.FUENTE_CHICA,
             text_color=colors.TEXT_GRAY
         ).grid(row=0, column=0, columnspan=2, pady=20)
@@ -570,7 +466,7 @@ class MetadataFrame(ctk.CTkFrame):
             w.destroy()
         ctk.CTkLabel(
             self._lista_lote,
-            text='Sin imágenes cargadas',
+            text=t('no_images'),
             font=fonts.FUENTE_CHICA,
             text_color=colors.TEXT_GRAY
         ).pack(pady=12)

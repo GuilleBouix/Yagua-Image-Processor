@@ -4,9 +4,12 @@ Ver, editar, limpiar y exportar metadatos de imágenes.
 """
 
 import json
+import logging
 from pathlib import Path
 from PIL import Image, ImageOps
 import piexif
+
+logger = logging.getLogger(__name__)
 
 
 # Campos EXIF legibles con etiquetas amigables
@@ -92,8 +95,8 @@ def leer_metadatos(ruta: str) -> dict[str, str]:
     resultado: dict[str, str] = {}
 
     try:
-        img = Image.open(ruta)
-        info = img._getexif()  # type: ignore
+        with Image.open(ruta) as img:
+            info = img.getexif()
         if not info:
             return resultado
 
@@ -118,10 +121,17 @@ def leer_metadatos(ruta: str) -> dict[str, str]:
             except Exception:
                 pass
 
-    except Exception:
-        pass
+    except Exception as exc:
+        logger.warning("Error al leer EXIF en %s: %s", ruta, exc)
 
     return resultado
+
+
+def leer_metadatos_safe(ruta: str) -> tuple[dict[str, str], str | None]:
+    try:
+        return leer_metadatos(ruta), None
+    except Exception as exc:
+        return {}, str(exc)
 
 
 def _gps_a_decimal(coords, ref: str) -> float | None:
@@ -141,13 +151,13 @@ def _gps_a_decimal(coords, ref: str) -> float | None:
 
 def limpiar_exif(ruta_entrada: str, ruta_salida: str) -> dict:
     """Guarda la imagen sin ningún metadato EXIF."""
-    img = Image.open(ruta_entrada)
-    img = ImageOps.exif_transpose(img)
-    tam_original = Path(ruta_entrada).stat().st_size
+    with Image.open(ruta_entrada) as img:
+        img = ImageOps.exif_transpose(img)
+        tam_original = Path(ruta_entrada).stat().st_size
 
-    fmt = img.format or 'JPEG'
-    img_limpia = Image.new(img.mode, img.size)
-    img_limpia.paste(img)
+        fmt = img.format or 'JPEG'
+        img_limpia = Image.new(img.mode, img.size)
+        img_limpia.paste(img)
 
     kwargs: dict = {}
     if fmt == 'JPEG':
@@ -171,36 +181,37 @@ def editar_exif(ruta_entrada: str, ruta_salida: str, campos: dict[str, str]) -> 
     campos: dict con nombre_campo → nuevo_valor
     """
     try:
-        img = Image.open(ruta_entrada)
-        fmt = img.format or 'JPEG'
+        with Image.open(ruta_entrada) as img:
+            fmt = img.format or 'JPEG'
 
-        if fmt not in ('JPEG', 'TIFF'):
-            # PNG y otros no soportan EXIF editable via piexif
-            img.save(ruta_salida, fmt)
-            return False
+            if fmt not in ('JPEG', 'TIFF'):
+                # PNG y otros no soportan EXIF editable via piexif
+                img.save(ruta_salida, fmt)
+                return False
 
-        try:
-            exif_dict = piexif.load(ruta_entrada)
-        except Exception:
-            exif_dict = {'0th': {}, 'Exif': {}, 'GPS': {}, '1st': {}}
+            try:
+                exif_dict = piexif.load(ruta_entrada)
+            except Exception:
+                exif_dict = {'0th': {}, 'Exif': {}, 'GPS': {}, '1st': {}}
 
-        _PIEXIF_MAP = {
-            'Artist':    (piexif.ImageIFD.Artist,    '0th'),
-            'Copyright': (piexif.ImageIFD.Copyright, '0th'),
-            'Software':  (piexif.ImageIFD.Software,  '0th'),
-            'DateTime':  (piexif.ImageIFD.DateTime,  '0th'),
-        }
+            _PIEXIF_MAP = {
+                'Artist':    (piexif.ImageIFD.Artist,    '0th'),
+                'Copyright': (piexif.ImageIFD.Copyright, '0th'),
+                'Software':  (piexif.ImageIFD.Software,  '0th'),
+                'DateTime':  (piexif.ImageIFD.DateTime,  '0th'),
+            }
 
-        for campo, valor in campos.items():
-            if campo in _PIEXIF_MAP:
-                tag, ifd = _PIEXIF_MAP[campo]
-                exif_dict[ifd][tag] = valor.encode('utf-8')
+            for campo, valor in campos.items():
+                if campo in _PIEXIF_MAP:
+                    tag, ifd = _PIEXIF_MAP[campo]
+                    exif_dict[ifd][tag] = valor.encode('utf-8')
 
-        exif_bytes = piexif.dump(exif_dict)
-        img.save(ruta_salida, fmt, exif=exif_bytes, quality=95)
-        return True
+            exif_bytes = piexif.dump(exif_dict)
+            img.save(ruta_salida, fmt, exif=exif_bytes, quality=95)
+            return True
 
-    except Exception:
+    except Exception as exc:
+        logger.warning("Error al editar EXIF en %s: %s", ruta_entrada, exc)
         return False
 
 
@@ -221,3 +232,35 @@ def exportar_json(metadatos: dict[str, str], ruta: str):
         json.dumps(datos, ensure_ascii=False, indent=2),
         encoding='utf-8'
     )
+
+
+def exportar_metadatos(metadatos: dict[str, str], ruta: str, fmt: str) -> None:
+    if fmt == 'txt':
+        exportar_txt(metadatos, ruta)
+    else:
+        exportar_json(metadatos, ruta)
+
+
+def preparar_campos_exif(
+    campos_edit: dict[str, str],
+) -> tuple[dict[str, str], str | None]:
+    campos = {k: v for k, v in campos_edit.items() if v.strip()}
+    if not campos:
+        return {}, 'empty'
+    return campos, None
+
+
+def batch_limpiar_exif(
+    rutas: list[str],
+    carpeta_salida: str,
+    sufijo: str = '_sinexif',
+) -> dict:
+    errores = 0
+    for ruta in rutas:
+        try:
+            p = Path(ruta)
+            salida = str(Path(carpeta_salida) / (p.stem + sufijo + p.suffix))
+            limpiar_exif(ruta, salida)
+        except Exception:
+            errores += 1
+    return {'ok': len(rutas) - errores, 'errores': errores}
