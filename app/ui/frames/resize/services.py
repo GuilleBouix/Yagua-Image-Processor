@@ -1,4 +1,11 @@
-﻿"""Services UI-agnosticos para Resize/Crop/Canvas."""
+"""Servicios UI-agnosticos para redimension, recorte y canvas.
+
+Proporciona acceso a las funciones de negocio del modulo resize
+sin dependencias de la interfaz grafica.
+
+Relaciones:
+    - Logica de negocio: app.modules.resize
+"""
 
 from app.modules.resize import (
     batch_redimensionar,

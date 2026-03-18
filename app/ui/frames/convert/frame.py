@@ -1,5 +1,12 @@
-﻿"""
-UI para el modulo Convertir.
+"""
+UI para el modulo de conversion de imagenes.
+Permite convertir imagenes entre diferentes formatos.
+
+Relacionado con:
+    - app/ui/frames/base.py: Clase base de la que hereda.
+    - app/ui/frames/convert/state.py: Estado de la interfaz.
+    - app/ui/frames/convert/services.py: Servicios de conversion.
+    - app/translations/__init__.py: Traducciones de la UI.
 """
 
 from __future__ import annotations
@@ -21,24 +28,45 @@ from app.ui.frames.convert.state import ConvertState
 
 
 class ConvertFrame(BaseFrame):
+    """
+    Frame del modulo de conversion de formatos.
+    
+    Permite seleccionar imagenes, elegir formato de destino,
+    configurar calidad y convertir las imagenes.
+    """
+    
     def __init__(self, parent):
+        """
+        Inicializa el frame de conversion.
+        
+        Args:
+            parent: Widget padre.
+        """
         self._state = ConvertState()
         super().__init__(parent, t('convert_title'))
 
     def _build_content(self):
-        # Boton seleccionar imagenes
+        """
+        Construye el contenido especifico del modulo.
+        
+        Incluye boton de seleccion, lista de archivos,
+        panel de opciones con selector de formato y
+        boton de convertir.
+        """
+        # Boton para seleccionar imagenes
         self._btn_seleccionar = self._crear_boton_seleccionar(self)
         self._btn_seleccionar.grid(row=1, column=0, padx=28, pady=8, sticky='ew')
 
-        # Lista de archivos
+        # Lista de archivos seleccionados
         self._lista_frame = self._crear_lista_archivos(self, height=200)
         self._lista_frame.grid(row=2, column=0, padx=28, pady=8, sticky='ew')
         self._lista_frame.grid_columnconfigure(0, weight=1)
 
+        # Label de lista vacia
         self._lbl_lista_vacia = self._crear_lista_vacia(self._lista_frame)
         self._lbl_lista_vacia.pack(pady=12)
 
-        # Panel opciones
+        # Panel de opciones de conversion
         self._panel_opciones = ctk.CTkFrame(
             self,
             corner_radius=12,
@@ -51,14 +79,22 @@ class ConvertFrame(BaseFrame):
         self._construir_opciones()
 
     def _construir_opciones(self):
+        """
+        Construye los controles del panel de opciones.
+        
+        Incluye selector de formato, slider de calidad
+        y boton de convertir.
+        """
         p = self._panel_opciones
 
+        # Label de formato destino
         ctk.CTkLabel(
             p, text=t('convert_to'),
             font=fonts.FUENTE_BASE,
             text_color=colors.TEXT_GRAY, anchor='w'
         ).grid(row=0, column=0, padx=(16, 12), pady=(16, 8), sticky='w')
 
+        # Selector segmented de formato
         self._seg_formato = ctk.CTkSegmentedButton(
             p,
             values=FORMATOS_DESTINO,
@@ -74,6 +110,7 @@ class ConvertFrame(BaseFrame):
         )
         self._seg_formato.grid(row=0, column=1, padx=(0, 16), pady=(16, 8), sticky='w')
 
+        # Label de calidad (se muestra/oculta segun formato)
         self._lbl_calidad_label = ctk.CTkLabel(
             p, text=t('quality'),
             font=fonts.FUENTE_BASE,
@@ -81,10 +118,12 @@ class ConvertFrame(BaseFrame):
         )
         self._lbl_calidad_label.grid(row=1, column=0, padx=(16, 12), pady=8, sticky='w')
 
+        # Fila con slider y valor de calidad
         fila_cal = ctk.CTkFrame(p, fg_color='transparent')
         fila_cal.grid(row=1, column=1, padx=(0, 16), pady=8, sticky='ew')
         fila_cal.grid_columnconfigure(0, weight=1)
 
+        # Slider de calidad
         self._slider = ctk.CTkSlider(
             fila_cal,
             from_=10, to=100,
@@ -97,6 +136,7 @@ class ConvertFrame(BaseFrame):
         )
         self._slider.grid(row=0, column=0, sticky='ew', padx=(0, 10))
 
+        # Label del valor de calidad
         self._lbl_calidad = ctk.CTkLabel(
             fila_cal, text=str(self._state.calidad.get()),
             font=fonts.FUENTE_BASE,
@@ -106,6 +146,7 @@ class ConvertFrame(BaseFrame):
         )
         self._lbl_calidad.grid(row=0, column=1)
 
+        # Boton de convertir
         self._btn_convertir = ctk.CTkButton(
             p,
             text=t('convert_btn'),
@@ -124,40 +165,75 @@ class ConvertFrame(BaseFrame):
 
         self._actualizar_info()
 
-    def _cargar_imagenes(self, rutas: list[str]):
+    def _cargar_imagenes(self, rutas):
+        """
+        Carga las imagenes seleccionadas.
+        
+        Args:
+            rutas: Lista de rutas de archivos a cargar.
+        """
         super()._cargar_imagenes(rutas)
         self._state.imagenes = list(rutas)
         self._actualizar_info()
 
     def _actualizar_calidad(self, val):
+        """
+        Actualiza el label de calidad.
+        
+        Args:
+            val: Nuevo valor del slider.
+        """
         self._lbl_calidad.configure(text=str(int(val)))
 
-    def _actualizar_info(self, *_):
+    def _actualizar_info(self, *args):
+        """
+        Actualiza el estado de la UI segun el formato seleccionado.
+        
+        Muestra/oculta el slider de calidad segun si el
+        formato soporta calidad.
+        """
         fmt = self._state.fmt_destino.get()
         tiene_calidad = formato_soporta_calidad(fmt)
+        
+        # Habilitar/deshabilitar slider de calidad
         self._slider.configure(state='normal' if tiene_calidad else 'disabled')
+        
+        # Cambiar color de labels segun disponibilidad
         self._lbl_calidad_label.configure(
             text_color=colors.TEXT_GRAY if tiene_calidad else colors.ACENTO_DIMMED
         )
         self._lbl_calidad.configure(
             text_color=colors.ACENTO if tiene_calidad else colors.ACENTO_DIMMED
         )
+        
+        # Mostrar cantidad de imagenes
         if self._imagenes:
             n = len(self._imagenes)
             suffix = t('images_loaded') if n > 1 else t('image_loaded')
             self._lbl_info.configure(text=f'{n} {suffix} -> {fmt}')
 
     def _convertir(self):
+        """
+        Inicia el proceso de conversion en segundo plano.
+        """
         if not self._imagenes:
             self._lbl_info.configure(text=t('load_images_first_convert'))
             return
+        
         carpeta = filedialog.askdirectory(title=t('select_output_folder'))
         if not carpeta:
             return
+        
         self._btn_convertir.configure(state='disabled', text=t('converting'))
         threading.Thread(target=self._proceso, args=(carpeta,), daemon=True).start()
 
-    def _proceso(self, carpeta: str):
+    def _proceso(self, carpeta):
+        """
+        Ejecuta la conversion en segundo plano.
+        
+        Args:
+            carpeta: Ruta de la carpeta de salida.
+        """
         res = batch_convertir_safe(
             self._imagenes,
             fmt_destino=self._state.fmt_destino.get(),
@@ -167,6 +243,14 @@ class ConvertFrame(BaseFrame):
         self.after(0, lambda: self._finalizar(res['ok'], res['errores'], res['fmt_destino']))
 
     def _finalizar(self, ok, errores, fmt):
+        """
+        Muestra el resultado final de la conversion.
+        
+        Args:
+            ok: Cantidad de imagenes procesadas.
+            errores: Cantidad de errores.
+            fmt: Formato de destino.
+        """
         self._btn_convertir.configure(state='normal', text=t('convert_btn'))
         msg = f'{ok} imagen{"es" if ok != 1 else ""} {t("converted_to" if ok == 1 else "converted_to_plural")} {fmt}'
         if errores:

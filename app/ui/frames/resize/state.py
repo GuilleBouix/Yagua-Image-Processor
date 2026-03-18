@@ -1,4 +1,11 @@
-﻿"""Estado UI para Resize/Crop/Canvas."""
+"""Estado de la interfaz para el modulo de Redimensionar, Recortar y Canvas.
+
+Gestiona las variables de estado de la interfaz grafica:
+    - Modo de redimension (porcentaje, pixeles o preset)
+    - Configuracion de aspecto y proporciones
+    - Color de fondo para canvas
+    - Lista de imagenes seleccionadas
+"""
 
 from __future__ import annotations
 
@@ -8,6 +15,8 @@ from app.modules.resize import PRESETS_LISTA
 
 
 class ResizeState:
+    """Almacena el estado reactivo de la interfaz de redimension."""
+
     def __init__(self):
         self.imagenes: list[str] = []
         self.modo_resize: ctk.StringVar = ctk.StringVar(value=t('percentage'))

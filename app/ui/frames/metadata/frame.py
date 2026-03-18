@@ -1,6 +1,19 @@
-﻿"""
-UI para el modulo Metadatos EXIF.
-Tabs: Ver - Editar - Limpiar
+"""Interfaz grafica para gestionar metadatos EXIF de imagenes.
+
+Permite:
+    - Ver: Leer y visualizar metadatos de una imagen
+    - Editar: Modificar campos editables (autor, copyright, software, fecha)
+    - Limpiar: Eliminar todos los metadatos EXIF de multiples imagenes
+
+Relaciones:
+    - BaseFrame: app.ui.frames.base.BaseFrame
+    - Traducciones: app.translations
+    - Colores: app.ui.colors
+    - Fuentes: app.ui.fonts
+    - Utilidades: app.utils (tintar_icono)
+    - Lista de archivos: app.ui.file_list
+    - Servicios: app.ui.frames.metadata.services
+    - Estado: app.ui.frames.metadata.state
 """
 
 from __future__ import annotations
@@ -29,6 +42,8 @@ from app.ui.frames.metadata.state import MetadataState
 
 
 class MetadataFrame(BaseFrame):
+    """Frame principal del modulo de gestion de metadatos EXIF."""
+
     def __init__(self, parent):
         self._state = MetadataState()
         self._preview_img: ctk.CTkImage | None = None
@@ -38,8 +53,9 @@ class MetadataFrame(BaseFrame):
         super().__init__(parent, t('metadata_title'))
 
     def _build_content(self):
+        """Construir el contenido principal con tabs Ver, Editar y Limpiar."""
         self.grid_columnconfigure(0, weight=1)
-        # Tabs
+
         self._tab = ctk.CTkSegmentedButton(
             self,
             values=[t('view'), t('edit'), t('clean_batch')],
@@ -54,7 +70,6 @@ class MetadataFrame(BaseFrame):
         self._tab.set(t('view'))
         self._tab.grid(row=1, column=0, padx=28, pady=(0, 8), sticky='ew')
 
-        # Contenedor de tabs
         self._contenedor = ctk.CTkFrame(self, fg_color='transparent')
         self._contenedor.grid(row=2, column=0, sticky='nsew')
         self._contenedor.grid_columnconfigure(0, weight=1)
@@ -70,6 +85,7 @@ class MetadataFrame(BaseFrame):
         self._cambiar_tab(t('view'))
 
     def _build_tab_ver(self) -> ctk.CTkFrame:
+        """Construir el tab de visualizacion de metadatos."""
         f = ctk.CTkFrame(self._contenedor, fg_color='transparent')
         f.grid_columnconfigure(0, weight=1)
 
@@ -77,7 +93,6 @@ class MetadataFrame(BaseFrame):
         btn.grid(row=0, column=0, padx=28, pady=8, sticky='ew')
         self._dz_ver = btn
 
-        # Panel de metadatos
         panel = ctk.CTkFrame(
             f, corner_radius=12,
             fg_color=colors.PANEL_BG,
@@ -102,7 +117,6 @@ class MetadataFrame(BaseFrame):
             text_color=colors.TEXT_GRAY
         ).grid(row=0, column=0, columnspan=2, pady=20)
 
-        # Botones exportar
         fila_exp = ctk.CTkFrame(panel, fg_color='transparent')
         fila_exp.grid(row=1, column=0, padx=16, pady=(0, 16), sticky='ew')
         fila_exp.grid_columnconfigure((0, 1), weight=1)
@@ -136,6 +150,7 @@ class MetadataFrame(BaseFrame):
         return f
 
     def _build_tab_editar(self) -> ctk.CTkFrame:
+        """Construir el tab de edicion de metadatos."""
         f = ctk.CTkFrame(self._contenedor, fg_color='transparent')
         f.grid_columnconfigure(0, weight=1)
 
@@ -195,6 +210,7 @@ class MetadataFrame(BaseFrame):
         return f
 
     def _build_tab_limpiar(self) -> ctk.CTkFrame:
+        """Construir el tab de limpieza de metadatos en lote."""
         f = ctk.CTkFrame(self._contenedor, fg_color='transparent')
         f.grid_columnconfigure(0, weight=1)
 
@@ -244,6 +260,16 @@ class MetadataFrame(BaseFrame):
         return f
 
     def _crear_boton_seleccionar(self, parent, texto: str, comando) -> ctk.CTkButton:
+        """Crear boton de seleccion con icono.
+
+        Args:
+            parent: Widget padre
+            texto: Texto del boton
+            comando: Funcion de callback
+
+        Returns:
+            Boton CTk configurado
+        """
         return ctk.CTkButton(
             parent,
             text=texto,
@@ -261,6 +287,11 @@ class MetadataFrame(BaseFrame):
         )
 
     def _renderizar_metadatos(self, metadatos: dict[str, str]):
+        """Renderizar metadatos en el area de scroll.
+
+        Args:
+            metadatos: Diccionario con pares clave-valor de metadatos
+        """
         for w in self._scroll_meta.winfo_children():
             w.destroy()
 
@@ -285,7 +316,6 @@ class MetadataFrame(BaseFrame):
                 text_color=colors.TEXT_GRAY, anchor='w'
             ).grid(row=i, column=0, padx=(8, 4), pady=3, sticky='w')
 
-            # Si es GPS y hay coordenadas -> link clickeable
             if 'GPS' in k and gps:
                 url = f'https://maps.google.com/?q={gps}'
                 lbl = ctk.CTkLabel(
@@ -304,6 +334,7 @@ class MetadataFrame(BaseFrame):
                 ).grid(row=i, column=1, padx=(4, 8), pady=3, sticky='w')
 
     def _explorar_ver(self):
+        """Abrir dialogo para seleccionar imagen y leer sus metadatos."""
         archivo = filedialog.askopenfilename(
             title=t('select_image_view'),
             filetypes=[('Imagenes', '*.jpg *.jpeg *.png *.tiff *.webp')]
@@ -315,6 +346,7 @@ class MetadataFrame(BaseFrame):
         threading.Thread(target=self._leer, daemon=True).start()
 
     def _leer(self):
+        """Leer metadatos en hilo separado."""
         meta, err = leer_metadatos_safe(self._state.ruta)  # type: ignore
         if err:
             self.after(0, lambda: self._lbl_info.configure(text=f'{t("error_generic")}: {err}'))
@@ -322,6 +354,11 @@ class MetadataFrame(BaseFrame):
         self.after(0, lambda: self._aplicar_metadatos(meta))
 
     def _aplicar_metadatos(self, meta: dict[str, str]):
+        """Aplicar metadatos leidos a la interfaz.
+
+        Args:
+            meta: Diccionario con los metadatos leidos
+        """
         self._state.metadatos = meta
         self._renderizar_metadatos(meta)
         n = len([k for k in meta if not k.startswith('__')])
@@ -330,6 +367,11 @@ class MetadataFrame(BaseFrame):
         )
 
     def _exportar(self, fmt: str):
+        """Exportar metadatos al formato seleccionado.
+
+        Args:
+            fmt: Formato de exportacion ('txt' o 'json')
+        """
         if not self._state.metadatos:
             self._lbl_info.configure(text=t('export_metadata_first'))
             return
@@ -346,6 +388,7 @@ class MetadataFrame(BaseFrame):
         self._lbl_info.configure(text=f'{t("exported_as")} {Path(ruta).name}')
 
     def _explorar_editar(self):
+        """Abrir dialogo para seleccionar imagen y precargar campos editables."""
         archivo = filedialog.askopenfilename(
             title=t('select_image_edit'),
             filetypes=[('Imagenes', '*.jpg *.jpeg *.tiff')]
@@ -353,7 +396,6 @@ class MetadataFrame(BaseFrame):
         if not archivo:
             return
         self._state.ruta = archivo
-        # Precargar valores existentes
         meta, _ = leer_metadatos_safe(archivo)
         for etiqueta, entry in zip(CAMPOS_EDITABLES.values(), self._campos_edit.values()):
             entry.delete(0, 'end')
@@ -362,6 +404,7 @@ class MetadataFrame(BaseFrame):
         self._lbl_info.configure(text=f'{t("editing")} {Path(archivo).name}')
 
     def _guardar_edicion(self):
+        """Guardar los cambios de metadatos editados."""
         if not self._state.ruta:
             self._lbl_info.configure(text=t('export_metadata_first'))
             return
@@ -394,6 +437,7 @@ class MetadataFrame(BaseFrame):
         threading.Thread(target=_proc, daemon=True).start()
 
     def _explorar_lote(self):
+        """Abrir dialogo para seleccionar multiples imagenes a limpiar."""
         archivos = filedialog.askopenfilenames(
             title=t('select_images_clean'),
             filetypes=[('Imagenes', '*.jpg *.jpeg *.png *.tiff *.webp')]
@@ -402,6 +446,11 @@ class MetadataFrame(BaseFrame):
             self._cargar_lote(list(archivos))
 
     def _cargar_lote(self, rutas: list[str]):
+        """Cargar lista de imagenes para procesamiento en lote.
+
+        Args:
+            rutas: Lista de rutas de archivos seleccionados
+        """
         self._state.imagenes_lote = rutas
         build_file_list(
             self._lista_lote, rutas, self._filas_lote, self._thumbs,
@@ -414,6 +463,7 @@ class MetadataFrame(BaseFrame):
         )
 
     def _limpiar_lote(self):
+        """Iniciar proceso de limpieza de metadatos en lote."""
         if not self._state.imagenes_lote:
             self._lbl_info.configure(text=t('load_images_first_clean'))
             return
@@ -426,6 +476,11 @@ class MetadataFrame(BaseFrame):
         ).start()
 
     def _proceso_limpiar(self, carpeta: str):
+        """Ejecutar limpieza de metadatos en hilo separado.
+
+        Args:
+            carpeta: Ruta de la carpeta de salida
+        """
         res = batch_limpiar_exif(self._state.imagenes_lote, carpeta)
         self.after(0, lambda: self._btn_limpiar_exif.configure(
             state='normal', text=t('clean_exif')
@@ -436,14 +491,21 @@ class MetadataFrame(BaseFrame):
         self.after(0, lambda: self._lbl_info.configure(text=msg))
 
     def _cambiar_tab(self, tab: str):
+        """Cambiar el tab visible en el contenedor.
+
+        Args:
+            tab: Nombre del tab a mostrar
+        """
         for nombre, frame in self._frames.items():
             if nombre == tab:
                 frame.tkraise()
 
     def _limpiar(self):
+        """Limpiar todo el estado y reiniciar la interfaz."""
         self._limpiar_todo()
 
     def _limpiar_todo(self):
+        """Restaurar estado inicial de todos los componentes."""
         self._state.ruta = None
         self._state.imagenes_lote = []
         self._state.metadatos = {}

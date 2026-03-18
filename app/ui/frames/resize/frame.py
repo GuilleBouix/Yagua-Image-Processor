@@ -1,5 +1,17 @@
-﻿"""
-UI para el modulo Redimensionar / Recortar / Canvas.
+"""Interfaz grafica para redimensionar, recortar y ajustar canvas.
+
+Permite procesar imagenes de tres formas:
+    - Redimension: ajustar tamano por porcentaje, pixeles o preset
+    - Recortar: cortar imagenes manteniendo una proporcion
+    - Canvas: colocar imagenes sobre un fondo solido o transparente
+
+Relaciones:
+    - BaseFrame: app.ui.frames.base.BaseFrame
+    - Traducciones: app.translations
+    - Colores: app.ui.colors
+    - Fuentes: app.ui.fonts
+    - Servicios: app.ui.frames.resize.services
+    - Estado: app.ui.frames.resize.state
 """
 
 from __future__ import annotations
@@ -26,12 +38,14 @@ from app.ui.frames.resize.state import ResizeState
 
 
 class ResizeFrame(BaseFrame):
+    """Frame principal del modulo de redimension, recorte y canvas."""
+
     def __init__(self, parent):
         self._state = ResizeState()
         super().__init__(parent, t('resize_title'))
 
     def _build_content(self):
-        # Tabs
+        """Construir el contenido principal del frame con tabs."""
         self._tab = ctk.CTkSegmentedButton(
             self,
             values=[t('resize_tab'), t('crop_tab'), t('canvas_tab')],
@@ -46,11 +60,9 @@ class ResizeFrame(BaseFrame):
         self._tab.set(t('resize_tab'))
         self._tab.grid(row=1, column=0, padx=28, pady=(0, 8), sticky='ew')
 
-        # Boton seleccionar imagenes
         self._btn_seleccionar = self._crear_boton_seleccionar(self)
         self._btn_seleccionar.grid(row=2, column=0, padx=28, pady=(0, 8), sticky='ew')
 
-        # Lista de archivos
         self._lista_frame = self._crear_lista_archivos(self, height=120)
         self._lista_frame.grid(row=3, column=0, padx=28, pady=(0, 8), sticky='ew')
         self._lista_frame.grid_columnconfigure(0, weight=1)
@@ -63,7 +75,6 @@ class ResizeFrame(BaseFrame):
         )
         self._lbl_lista_vacia.pack(pady=12)
 
-        # Contenedor de tabs
         self._contenedor = ctk.CTkFrame(self, fg_color='transparent')
         self._contenedor.grid(row=4, column=0, padx=28, sticky='ew')
         self._contenedor.grid_columnconfigure(0, weight=1)
@@ -79,6 +90,7 @@ class ResizeFrame(BaseFrame):
         self._cambiar_tab(t('resize_tab'))
 
     def _build_tab_resize(self) -> ctk.CTkFrame:
+        """Construir el tab de redimension con controles de modo."""
         f = ctk.CTkFrame(self._contenedor, fg_color='transparent')
         f.grid_columnconfigure(0, weight=1)
 
@@ -143,6 +155,11 @@ class ResizeFrame(BaseFrame):
         return f
 
     def _actualizar_modo_resize(self, modo: str):
+        """Actualizar controles segun el modo de redimension seleccionado.
+
+        Args:
+            modo: Modo actual (porcentaje, pixels o preset)
+        """
         for w in self._frame_controles_resize.winfo_children():
             w.destroy()
 
@@ -228,6 +245,7 @@ class ResizeFrame(BaseFrame):
             ).grid(row=0, column=0, sticky='ew')
 
     def _build_tab_crop(self) -> ctk.CTkFrame:
+        """Construir el tab de recorte con selector de proporcion."""
         f = ctk.CTkFrame(self._contenedor, fg_color='transparent')
         f.grid_columnconfigure(0, weight=1)
 
@@ -276,6 +294,7 @@ class ResizeFrame(BaseFrame):
         return f
 
     def _build_tab_canvas(self) -> ctk.CTkFrame:
+        """Construir el tab de canvas con entradas de tamano y color de fondo."""
         f = ctk.CTkFrame(self._contenedor, fg_color='transparent')
         f.grid_columnconfigure(0, weight=1)
 
@@ -358,6 +377,11 @@ class ResizeFrame(BaseFrame):
         return f
 
     def _cargar_imagenes(self, rutas: list[str]):
+        """Cargar imagenes seleccionadas y actualizar la interfaz.
+
+        Args:
+            rutas: Lista de rutas de archivos seleccionados
+        """
         super()._cargar_imagenes(rutas)
         self._state.imagenes = list(rutas)
         n = len(self._imagenes)
@@ -365,6 +389,11 @@ class ResizeFrame(BaseFrame):
         self._lbl_info.configure(text=f'{n} {suffix}')
 
     def _cambiar_tab(self, tab: str):
+        """Cambiar el tab visible en el contenedor.
+
+        Args:
+            tab: Nombre del tab a mostrar
+        """
         for nombre, frame in self._frames.items():
             if nombre == tab:
                 frame.grid()
@@ -373,6 +402,7 @@ class ResizeFrame(BaseFrame):
                 frame.grid_remove()
 
     def _ejecutar_resize(self):
+        """Ejecutar redimension en hilo separado para no bloquear la UI."""
         if not self._imagenes:
             self._lbl_info.configure(text=t('load_images_first_resize'))
             return
@@ -421,6 +451,7 @@ class ResizeFrame(BaseFrame):
         threading.Thread(target=_proc, daemon=True).start()
 
     def _ejecutar_crop(self):
+        """Ejecutar recorte en hilo separado para no bloquear la UI."""
         if not self._imagenes:
             self._lbl_info.configure(text=t('load_images_first_resize'))
             return
@@ -445,6 +476,7 @@ class ResizeFrame(BaseFrame):
         threading.Thread(target=_proc, daemon=True).start()
 
     def _ejecutar_canvas(self):
+        """Ejecutar canvas en hilo separado para no bloquear la UI."""
         if not self._imagenes:
             self._lbl_info.configure(text=t('load_images_first_resize'))
             return
@@ -478,6 +510,14 @@ class ResizeFrame(BaseFrame):
         threading.Thread(target=_proc, daemon=True).start()
 
     def _finalizar(self, btn: ctk.CTkButton, texto: str, ok: int, errores: int):
+        """Restaurar estado del boton y mostrar mensaje de resultado.
+
+        Args:
+            btn: Boton a restaurar
+            texto: Texto original del boton
+            ok: Numero de imagenes procesadas correctamente
+            errores: Numero de errores ocurridos
+        """
         btn.configure(state='normal', text=texto)
         msg = f'{ok} imagen{"es" if ok != 1 else ""} {t("processed" if ok != 1 else "processed_singular")}'
         if errores:
@@ -485,6 +525,7 @@ class ResizeFrame(BaseFrame):
         self._lbl_info.configure(text=msg)
 
     def _limpiar(self):
+        """Limpiar todas las imagenes y reiniciar el estado del frame."""
         self._imagenes = []
         self._thumbs.clear()
         self._filas_lista.clear()
@@ -499,7 +540,11 @@ class ResizeFrame(BaseFrame):
         self._lbl_info.configure(text='')
 
     def _actualizar_fondo_opciones(self, valor: str):
-        """Muestra aviso si se elige Transparente con imagenes que no lo soportan."""
+        """Mostrar aviso si se elige transparencia con imagenes incompatibles.
+
+        Args:
+            valor: Color de fondo seleccionado por el usuario
+        """
         choice_key = self._state.canvas_choice_map.get(valor, 'white')
         if choice_key == 'transparent' and self._imagenes:
             soporta_transparencia = any_supports_transparency(self._imagenes)

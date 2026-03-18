@@ -1,27 +1,33 @@
-﻿"""
-MÃ³dulo de metadatos EXIF.
-Ver, editar, limpiar y exportar metadatos de imÃ¡genes.
+"""
+Modulo de metadatos EXIF.
+Ver, editar, limpiar y exportar metadatos de imagenes.
+
+Relacionado con:
+    - app/core/__init__.py: Re-exporta las funciones de este modulo.
+    - app/ui/frames/metadata/services.py: Usa las funciones de este modulo.
 """
 
 import json
 import logging
 from pathlib import Path
+
 from PIL import Image, ImageOps
 import piexif
+
 
 logger = logging.getLogger(__name__)
 
 
 # Campos EXIF legibles con etiquetas amigables
 _CAMPOS_LEGIBLES = {
-    'Make':             'CÃ¡mara (marca)',
-    'Model':            'CÃ¡mara (modelo)',
+    'Make':             'Camara (marca)',
+    'Model':            'Camara (modelo)',
     'LensModel':        'Lente',
     'DateTime':         'Fecha y hora',
     'DateTimeOriginal': 'Fecha original',
     'ISO':              'ISO',
     'FNumber':          'Apertura',
-    'ExposureTime':     'Velocidad obturaciÃ³n',
+    'ExposureTime':     'Velocidad obturacion',
     'FocalLength':      'Focal',
     'Flash':            'Flash',
     'Software':         'Software',
@@ -42,75 +48,111 @@ CAMPOS_EDITABLES = {
 }
 
 
-def _fraccion_a_float(val) -> float:
-    """Convierte tupla (numerador, denominador) a float."""
+def _fraccion_a_float(val):
+    """
+    Convierte una fraccion (numerador, denominador) a float.
+    
+    Args:
+        val: Tupla (numerador, denominador) o numero directo.
+        
+    Returns:
+        Valor como float.
+    """
     if isinstance(val, tuple) and len(val) == 2:
-        num, den = val
-        if isinstance(num, (int, float)) and isinstance(den, (int, float)) and den != 0:
-            return float(num) / float(den)
+        numerator, denominator = val
+        if isinstance(numerator, (int, float)) and isinstance(denominator, (int, float)) and denominator != 0:
+            return float(numerator) / float(denominator)
+        
         return 0.0
     if isinstance(val, (int, float)):
         return float(val)
+    
     return 0.0
 
 
-def _formatear_valor(tag: str, val) -> str:
-    """Convierte valores EXIF a string legible."""
+def _formatear_valor(nombre_tag, val):
+    """
+    Convierte valores EXIF a strings legibles.
+    
+    Formatea valores especiales como fracciones, coordenadas
+    GPS y otros tipos de datos EXIF.
+    
+    Args:
+        nombre_tag: Nombre del tag EXIF.
+        val: Valor a formatear.
+        
+    Returns:
+        Cadena legible con el valor formateado.
+    """
+    # Decodificar bytes como UTF-8
     if isinstance(val, bytes):
         try:
             return val.decode('utf-8').strip('\x00')
         except Exception:
             return val.hex()
 
-    if tag == 'FNumber':
+    # Formatear numero f/ para apertura
+    if nombre_tag == 'FNumber':
         return f'f/{_fraccion_a_float(val):.1f}'
 
-    if tag == 'ExposureTime':
+    # Formatear tiempo de exposicion
+    if nombre_tag == 'ExposureTime':
         f = _fraccion_a_float(val)
         if f < 1:
             return f'1/{int(round(1/f))}s'
         return f'{f:.1f}s'
 
-    if tag == 'FocalLength':
+    # Formatear distancia focal
+    if nombre_tag == 'FocalLength':
         return f'{_fraccion_a_float(val):.0f}mm'
 
-    if tag in ('GPSLatitude', 'GPSLongitude'):
+    # Formatear coordenadas GPS
+    if nombre_tag in ('GPSLatitude', 'GPSLongitude'):
         if isinstance(val, (list, tuple)) and len(val) == 3:
-            d = _fraccion_a_float(val[0])
-            m = _fraccion_a_float(val[1])
-            s = _fraccion_a_float(val[2])
-            return f'{d:.0f}Â° {m:.0f}\' {s:.2f}"'
+            grados = _fraccion_a_float(val[0])
+            minutos = _fraccion_a_float(val[1])
+            segundos = _fraccion_a_float(val[2])
+            return f'{grados:.0f}° {minutos:.0f}\' {segundos:.2f}"'
 
+    # Formatear tuplas genericas
     if isinstance(val, tuple):
         return str(val[0]) if len(val) == 2 and val[1] == 1 else str(val)
 
     return str(val)
 
 
-def leer_metadatos(ruta: str) -> dict[str, str]:
+def leer_metadatos(ruta):
     """
     Lee los metadatos EXIF de una imagen.
-    Retorna dict con etiqueta legible â†’ valor formateado.
+    
+    Args:
+        ruta: Ruta de la imagen.
+        
+    Returns:
+        Diccionario con etiqueta legible como clave y valor formateado.
+        Incluye clave especial '__gps_decimal__' para coordenadas GPS.
     """
-    resultado: dict[str, str] = {}
+    resultado = {}
 
     try:
+        # Abrir imagen y obtener datos EXIF
         with Image.open(ruta) as img:
             info = img.getexif()
         if not info:
             return resultado
 
-        # Mapa inverso: valor numÃ©rico â†’ nombre de tag
+        # Obtener mapa de tags numericos a nombres
         from PIL.ExifTags import TAGS
         tags_num = {v: k for k, v in TAGS.items()}
 
+        # Extraer cada campo definido
         for nombre, etiqueta in _CAMPOS_LEGIBLES.items():
             num = tags_num.get(nombre)
             if num and num in info:
                 val = info[num]
                 resultado[etiqueta] = _formatear_valor(nombre, val)
 
-        # GPS coordinadas completas para Google Maps
+        # Extraer coordenadas GPS para Google Maps
         gps_info = info.get(34853)  # GPSInfo tag
         if gps_info:
             try:
@@ -127,45 +169,84 @@ def leer_metadatos(ruta: str) -> dict[str, str]:
     return resultado
 
 
-def leer_metadatos_safe(ruta: str) -> tuple[dict[str, str], str | None]:
+def leer_metadatos_safe(ruta):
+    """
+    Wrapper seguro para leer_metadatos que maneja errores.
+    
+    Args:
+        ruta: Ruta de la imagen.
+        
+    Returns:
+        Tupla (diccionario, mensaje_error). Si hay exito, error es None.
+    """
     try:
         return leer_metadatos(ruta), None
     except Exception as exc:
         return {}, str(exc)
 
 
-def _gps_a_decimal(coords, ref: str) -> float | None:
-    if not coords or not isinstance(coords, (list, tuple)) or len(coords) < 3:
+def _gps_a_decimal(coordenadas, referencia_gps):
+    """
+    Convierte coordenadas GPS a formato decimal.
+    
+    Args:
+        coordenadas: Tupla (grados, minutos, segundos).
+        referencia_gps: Referencia 'N', 'S', 'E' o 'W'.
+        
+    Returns:
+        Coordenada en grados decimales o None si falla.
+    """
+    if not coordenadas or not isinstance(coordenadas, (list, tuple)) or len(coordenadas) < 3:
         return None
     try:
-        d = _fraccion_a_float(coords[0])
-        m = _fraccion_a_float(coords[1])
-        s = _fraccion_a_float(coords[2])
+        grados = _fraccion_a_float(coordenadas[0])
+        minutos = _fraccion_a_float(coordenadas[1])
+        segundos = _fraccion_a_float(coordenadas[2])
     except Exception:
         return None
-    decimal = d + m / 60 + s / 3600
-    if ref in ('S', 'W'):
+    
+    # Convertir a grados decimales
+    decimal = grados + minutos / 60 + segundos / 3600
+    
+    # Aplicar signo negativo para sur y oeste
+    if referencia_gps in ('S', 'W'):
         decimal = -decimal
+    
     return round(decimal, 6)
 
 
-def limpiar_exif(ruta_entrada: str, ruta_salida: str) -> dict:
-    """Guarda la imagen sin ningÃºn metadato EXIF."""
-    with Image.open(ruta_entrada) as img:
-        img = ImageOps.exif_transpose(img)
+def limpiar_exif(ruta_entrada, ruta_salida):
+    """
+    Guarda la imagen sin ningun metadato EXIF.
+    
+    Crea una nueva imagen copiando solo los datos de pixel
+    sin ninguna metadata.
+    
+    Args:
+        ruta_entrada: Ruta de la imagen original.
+        ruta_salida: Ruta donde guardar la imagen limpia.
+        
+    Returns:
+        Diccionario con tamanos original y final.
+    """
+    with Image.open(ruta_entrada) as imagen:
+        imagen = ImageOps.exif_transpose(imagen)
         tam_original = Path(ruta_entrada).stat().st_size
 
-        fmt = img.format or 'JPEG'
-        img_limpia = Image.new(img.mode, img.size)
-        img_limpia.paste(img)
+        formato = imagen.format or 'JPEG'
+        
+        # Crear nueva imagen copiando solo los pixeles
+        img_limpia = Image.new(imagen.mode, imagen.size)
+        img_limpia.paste(imagen)
 
-    kwargs: dict = {}
-    if fmt == 'JPEG':
-        kwargs = {'quality': 95, 'optimize': True}
-    elif fmt == 'PNG':
-        kwargs = {'optimize': True}
+    # Guardar sin EXIF
+    argumentos_guardado = {}
+    if formato == 'JPEG':
+        argumentos_guardado = {'quality': 95, 'optimize': True}
+    elif formato == 'PNG':
+        argumentos_guardado = {'optimize': True}
 
-    img_limpia.save(ruta_salida, fmt, **kwargs)
+    img_limpia.save(ruta_salida, formato, **argumentos_guardado)
     tam_final = Path(ruta_salida).stat().st_size
 
     return {
@@ -175,25 +256,36 @@ def limpiar_exif(ruta_entrada: str, ruta_salida: str) -> dict:
     }
 
 
-def editar_exif(ruta_entrada: str, ruta_salida: str, campos: dict[str, str]) -> bool:
+def editar_exif(ruta_entrada, ruta_salida, campos):
     """
-    Edita campos EXIF especÃ­ficos y guarda la imagen.
-    campos: dict con nombre_campo â†’ nuevo_valor
+    Edita campos EXIF especificos y guarda la imagen.
+    
+    Solo soporta JPEG y TIFF que tienen soporte EXIF real.
+    
+    Args:
+        ruta_entrada: Ruta de la imagen original.
+        ruta_salida: Ruta donde guardar la imagen editada.
+        campos: Diccionario con nombre_campo como clave y nuevo_valor.
+        
+    Returns:
+        True si se edito exitosamente, False si fallo o no es soportado.
     """
     try:
-        with Image.open(ruta_entrada) as img:
-            fmt = img.format or 'JPEG'
+        with Image.open(ruta_entrada) as imagen:
+            formato = imagen.format or 'JPEG'
 
-            if fmt not in ('JPEG', 'TIFF'):
-                # PNG y otros no soportan EXIF editable via piexif
-                img.save(ruta_salida, fmt)
+            # Solo JPEG y TIFF soportan EXIF editable
+            if formato not in ('JPEG', 'TIFF'):
+                imagen.save(ruta_salida, formato)
                 return False
 
             try:
                 exif_dict = piexif.load(ruta_entrada)
             except Exception:
+                # Crear estructura EXIF vacia si falla la lectura
                 exif_dict = {'0th': {}, 'Exif': {}, 'GPS': {}, '1st': {}}
 
+            # Mapa de campos a tags de piexif
             _PIEXIF_MAP = {
                 'Artist':    (piexif.ImageIFD.Artist,    '0th'),
                 'Copyright': (piexif.ImageIFD.Copyright, '0th'),
@@ -201,13 +293,15 @@ def editar_exif(ruta_entrada: str, ruta_salida: str, campos: dict[str, str]) -> 
                 'DateTime':  (piexif.ImageIFD.DateTime,  '0th'),
             }
 
+            # Aplicar cada campo
             for campo, valor in campos.items():
                 if campo in _PIEXIF_MAP:
-                    tag, ifd = _PIEXIF_MAP[campo]
-                    exif_dict[ifd][tag] = valor.encode('utf-8')
+                    nombre_tag, ifd = _PIEXIF_MAP[campo]
+                    exif_dict[ifd][nombre_tag] = valor.encode('utf-8')
 
+            # Guardar con EXIF modificado
             exif_bytes = piexif.dump(exif_dict)
-            img.save(ruta_salida, fmt, exif=exif_bytes, quality=95)
+            imagen.save(ruta_salida, formato, exif=exif_bytes, quality=95)
             return True
 
     except Exception as exc:
@@ -215,18 +309,32 @@ def editar_exif(ruta_entrada: str, ruta_salida: str, campos: dict[str, str]) -> 
         return False
 
 
-def exportar_txt(metadatos: dict[str, str], ruta: str):
-    """Exporta metadatos a archivo .txt legible."""
+def exportar_txt(metadatos, ruta):
+    """
+    Exporta metadatos a archivo de texto legible.
+    
+    Args:
+        metadatos: Diccionario de metadatos.
+        ruta: Ruta del archivo .txt a crear.
+    """
     lineas = ['METADATOS EXIF\n', '=' * 40 + '\n']
     for k, v in metadatos.items():
+        # Ignorar campos internos (los que empiezan con __)
         if k.startswith('__'):
             continue
         lineas.append(f'{k:<25} {v}\n')
     Path(ruta).write_text(''.join(lineas), encoding='utf-8')
 
 
-def exportar_json(metadatos: dict[str, str], ruta: str):
-    """Exporta metadatos a archivo .json."""
+def exportar_json(metadatos, ruta):
+    """
+    Exporta metadatos a archivo JSON.
+    
+    Args:
+        metadatos: Diccionario de metadatos.
+        ruta: Ruta del archivo .json a crear.
+    """
+    # Filtrar campos internos
     datos = {k: v for k, v in metadatos.items() if not k.startswith('__')}
     Path(ruta).write_text(
         json.dumps(datos, ensure_ascii=False, indent=2),
@@ -234,32 +342,56 @@ def exportar_json(metadatos: dict[str, str], ruta: str):
     )
 
 
-def exportar_metadatos(metadatos: dict[str, str], ruta: str, fmt: str) -> None:
-    if fmt == 'txt':
+def exportar_metadatos(metadatos, ruta, formato):
+    """
+    Exporta metadatos al formato especificado.
+    
+    Args:
+        metadatos: Diccionario de metadatos.
+        ruta: Ruta del archivo a crear.
+        formato: Formato de exportacion ('txt' o 'json').
+    """
+    if formato == 'txt':
         exportar_txt(metadatos, ruta)
     else:
         exportar_json(metadatos, ruta)
 
 
-def preparar_campos_exif(
-    campos_edit: dict[str, str],
-) -> tuple[dict[str, str], str | None]:
+def preparar_campos_exif(campos_edit):
+    """
+    Prepara los campos editados para guardar.
+    
+    Filtra campos vacios y valida que haya algo que guardar.
+    
+    Args:
+        campos_edit: Diccionario con campos a editar.
+        
+    Returns:
+        Tupla (campos_filtrados, error). Si error es None, exito.
+    """
     campos = {k: v for k, v in campos_edit.items() if v.strip()}
     if not campos:
         return {}, 'empty'
     return campos, None
 
 
-def batch_limpiar_exif(
-    rutas: list[str],
-    carpeta_salida: str,
-    sufijo: str = '_sinexif',
-) -> dict:
+def batch_limpiar_exif(rutas, carpeta_salida, sufijo='_sinexif'):
+    """
+    Limpia metadatos EXIF de multiples imagenes.
+    
+    Args:
+        rutas: Lista de rutas de imagenes.
+        carpeta_salida: Carpeta donde guardar las imagenes.
+        sufijo: Sufijo para agregar al nombre de archivo.
+        
+    Returns:
+        Diccionario con exitos y errores.
+    """
     errores = 0
     for ruta in rutas:
         try:
-            p = Path(ruta)
-            salida = str(Path(carpeta_salida) / (p.stem + sufijo + p.suffix))
+            ruta_archivo = Path(ruta)
+            salida = str(Path(carpeta_salida) / (ruta_archivo.stem + sufijo + ruta_archivo.suffix))
             limpiar_exif(ruta, salida)
         except Exception:
             errores += 1

@@ -1,4 +1,13 @@
-﻿"""Services UI-agnosticos para Settings."""
+"""Servicios UI-agnosticos para gestion de ajustes de la aplicacion.
+
+Proporciona funciones para persistir y aplicar configuraciones:
+    - Cambio de idioma con reinicio de la aplicacion
+    - Cambio de tema con reinicio de la aplicacion
+    - Lectura y escritura de archivo de configuracion
+
+Relaciones:
+    - Traducciones: app.translations
+"""
 
 import json
 import sys
@@ -9,10 +18,16 @@ from app.translations import set_language
 
 
 def _settings_path() -> Path:
+    """Obtener ruta del archivo de configuracion de usuario."""
     return Path(__file__).resolve().parents[3] / 'user_settings.json'
 
 
 def _load_settings() -> dict:
+    """Cargar configuracion desde el archivo JSON.
+
+    Returns:
+        Diccionario con la configuracion guardada o vacio si no existe
+    """
     path = _settings_path()
     if not path.exists():
         return {}
@@ -23,11 +38,17 @@ def _load_settings() -> dict:
 
 
 def _save_settings(settings: dict) -> None:
+    """Guardar configuracion en el archivo JSON.
+
+    Args:
+        settings: Diccionario con la configuracion a guardar
+    """
     path = _settings_path()
     path.write_text(json.dumps(settings, indent=2, ensure_ascii=False), encoding='utf-8')
 
 
 def restart_app() -> None:
+    """Reiniciar la aplicacion con los mismos argumentos."""
     python = sys.executable
     script = sys.argv[0]
     subprocess.Popen([python, script])
@@ -35,11 +56,21 @@ def restart_app() -> None:
 
 
 def set_language_and_restart(lang: str) -> None:
+    """Cambiar idioma y reiniciar la aplicacion.
+
+    Args:
+        lang: Codigo de idioma a establecer
+    """
     set_language(lang)
     restart_app()
 
 
 def set_theme_and_restart(theme: str) -> None:
+    """Cambiar tema y reiniciar la aplicacion.
+
+    Args:
+        theme: Nombre del tema a establecer
+    """
     settings = _load_settings()
     settings['theme'] = theme
     _save_settings(settings)

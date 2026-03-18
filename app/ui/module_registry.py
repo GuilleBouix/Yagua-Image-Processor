@@ -1,6 +1,10 @@
-﻿"""
-Registry central de mÃ³dulos para sidebar y navegaciÃ³n.
+"""
+Registry central de modulos para sidebar y navegacion.
 Evita desincronizaciones y permite lazy-load de frames.
+
+Relacionado con:
+    - app/ui/sidebar.py: Usa este registry para construir los botones.
+    - app/ui/main_window.py: Usa este registry para cargar frames.
 """
 
 from __future__ import annotations
@@ -14,6 +18,19 @@ import customtkinter as ctk
 
 @dataclass(frozen=True)
 class ModuleSpec:
+    """
+    Especificacion de un modulo de la aplicacion.
+    
+    Define la informacion necesaria para crear el boton
+    en la sidebar y cargar el frame correspondiente.
+    
+    Attributes:
+        key: Identificador unico del modulo.
+        label_key: Clave de traduccion para el label.
+        icon_path: Ruta al archivo de icono.
+        frame_import: Ruta de importacion del frame (modulo:Clase).
+        enabled: Si el modulo esta habilitado.
+    """
     key: str
     label_key: str
     icon_path: str
@@ -21,7 +38,8 @@ class ModuleSpec:
     enabled: bool = True
 
 
-_MODULE_SPECS: list[ModuleSpec] = [
+# Registro de todos los modulos disponibles
+_MODULE_SPECS = [
     ModuleSpec('compress', 'compress', 'assets/icons/compress.png', 'app.ui.frames.compress.frame:CompressFrame'),
     ModuleSpec('convert', 'convert', 'assets/icons/convert.png', 'app.ui.frames.convert.frame:ConvertFrame'),
     ModuleSpec('remove_bg', 'remove_bg', 'assets/icons/remove_background.png', 'app.ui.frames.remove_bg_frame:RemoveBgFrame'),
@@ -34,19 +52,50 @@ _MODULE_SPECS: list[ModuleSpec] = [
 ]
 
 
-def iter_enabled_modules() -> Iterable[ModuleSpec]:
+def iter_enabled_modules():
+    """
+    Itera sobre los modulos habilitados.
+    
+    Yields:
+        ModuleSpec para cada modulo con enabled=True.
+    """
     return (m for m in _MODULE_SPECS if m.enabled)
 
 
-def get_module_spec(key: str) -> ModuleSpec | None:
+def get_module_spec(key):
+    """
+    Obtiene la especificacion de un modulo por su key.
+    
+    Args:
+        key: Identificador del modulo.
+        
+    Returns:
+        ModuleSpec del modulo o None si no existe.
+    """
     for m in _MODULE_SPECS:
         if m.key == key:
             return m
     return None
 
 
-def load_frame_class(spec: ModuleSpec) -> type[ctk.CTkFrame]:
-    """Importa el frame bajo demanda."""
+def load_frame_class(spec):
+    """
+    Importa la clase del frame bajo demanda.
+    
+    Usa importlib para cargar el modulo y obtener la clase
+    sin necesidad de importarlo al inicio de la aplicacion.
+    
+    Args:
+        spec: ModuleSpec con la informacion de importacion.
+        
+    Returns:
+        Clase del frame lista para instanciar.
+    """
+    # Separar nombre del modulo y nombre de la clase
     module_name, class_name = spec.frame_import.split(':', 1)
+    
+    # Importar el modulo dinámicamente
     mod = importlib.import_module(module_name)
+    
+    # Obtener y retornar la clase
     return getattr(mod, class_name)

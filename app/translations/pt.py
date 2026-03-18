@@ -1,5 +1,22 @@
 """
 Traducoes em Portugues.
+Dicionario de textos para a interface em idioma portugues.
+
+Relacionado com:
+    - app/translations/__init__.py: Sistema de traducoes.
+    - app/translations/es.py: Traducoes em espanhol.
+    - app/translations/en.py: Traducoes em ingles.
+
+Este arquivo contem todas as chaves de traducao usadas
+na aplicacao organizadas por secao:
+    - App: Titulo geral da aplicacao.
+    - Sidebar: Labels de navegacao.
+    - Compress: Modulo de compressao.
+    - Convert: Modulo de conversao.
+    - Palette: Modulo de paleta de cores.
+    - Metadata: Modulo de metadados EXIF.
+    - Resize: Modulo de redimensionamento.
+    - Settings: Modulo de configuracoes.
 """
 
 TRANSLATIONS = {

@@ -1,5 +1,15 @@
-﻿"""
-UI para el modulo Extraer Paleta de Colores.
+"""Interfaz grafica para extraer paleta de colores de una imagen.
+
+Permite seleccionar una imagen, extraer los N colores dominantes
+y copiar cada color en distintos formatos (HEX, RGB, HSL).
+
+Relaciones:
+    - BaseFrame: app.ui.frames.base.BaseFrame
+    - Traducciones: app.translations
+    - Colores: app.ui.colors
+    - Fuentes: app.ui.fonts
+    - Servicios: app.ui.frames.palette.services
+    - Estado: app.ui.frames.palette.state
 """
 
 from __future__ import annotations
@@ -25,21 +35,22 @@ from app.ui.frames.palette.state import PaletteState
 
 
 class PaletteFrame(BaseFrame):
+    """Frame principal del modulo de extraccion de paleta de colores."""
+
     def __init__(self, parent):
         self._state = PaletteState()
         self._preview_img: ctk.CTkImage | None = None
         super().__init__(parent, t('palette_title'))
 
     def _build_content(self):
+        """Construir el contenido principal del frame."""
         self.grid_columnconfigure(0, weight=1)
 
-        # Zona de carga
         self._btn_seleccionar = self._crear_boton_seleccionar(
             self, t('select_image_for_palette'), self._explorar
         )
         self._btn_seleccionar.grid(row=1, column=0, padx=28, pady=8, sticky='ew')
 
-        # Preview de imagen cargada
         self._frame_preview = ctk.CTkFrame(
             self,
             height=110,
@@ -78,7 +89,6 @@ class PaletteFrame(BaseFrame):
 
         self._mostrar_vacio()
 
-        # Panel de paleta
         self._panel_paleta = ctk.CTkFrame(
             self,
             corner_radius=12,
@@ -91,9 +101,9 @@ class PaletteFrame(BaseFrame):
         self._construir_panel_paleta()
 
     def _construir_panel_paleta(self):
+        """Construir el panel con selector de cantidad y swatches de color."""
         p = self._panel_paleta
 
-        # Selector de cantidad de colores
         fila_top = ctk.CTkFrame(p, fg_color='transparent')
         fila_top.grid(row=0, column=0, padx=16, pady=(14, 8), sticky='ew')
         fila_top.grid_columnconfigure(1, weight=1)
@@ -118,7 +128,6 @@ class PaletteFrame(BaseFrame):
         self._seg_n.set('6')
         self._seg_n.grid(row=0, column=1, sticky='e')
 
-        # Contenedor de swatches
         self._swatches_frame = ctk.CTkFrame(p, fg_color='transparent')
         self._swatches_frame.grid(row=1, column=0, padx=16, pady=(0, 8), sticky='ew')
 
@@ -129,7 +138,6 @@ class PaletteFrame(BaseFrame):
             text_color=colors.TEXT_GRAY
         ).pack(pady=20)
 
-        # Boton - guarda la paleta como imagen PNG
         self._btn_guardar = ctk.CTkButton(
             p,
             text=t('save_palette_btn'),
@@ -144,12 +152,18 @@ class PaletteFrame(BaseFrame):
         self._btn_guardar.grid(row=2, column=0, padx=16, pady=(0, 16), sticky='ew')
 
     def _mostrar_vacio(self):
+        """Mostrar estado inicial sin imagen cargada."""
         self._frame_preview.configure(border_color=colors.ACENTO_DIMMED)
         self._lbl_preview.configure(image=None)
         self._lbl_nombre.configure(text=t('no_image_selected'))
         self._lbl_meta.configure(text=t('select_image_for_palette'))
 
     def _mostrar_cargado(self, ruta: str):
+        """Actualizar preview con la imagen cargada.
+
+        Args:
+            ruta: Ruta del archivo de imagen
+        """
         self._frame_preview.configure(border_color=colors.ACENTO)
         preview, w, h, ext = cargar_preview(ruta, (80, 80))
         self._preview_img = ctk.CTkImage(
@@ -164,6 +178,11 @@ class PaletteFrame(BaseFrame):
         self._lbl_meta.configure(text=f'{w} x {h} px  -  {ext}')
 
     def _renderizar_paleta(self, paleta: list[tuple[int, int, int]]):
+        """Renderizar los swatches de color en el panel.
+
+        Args:
+            paleta: Lista de tuplas RGB con los colores extraidos
+        """
         for w in self._swatches_frame.winfo_children():
             w.destroy()
 
@@ -209,6 +228,11 @@ class PaletteFrame(BaseFrame):
                 ).grid(row=col.grid_size()[1], column=0, pady=1, sticky='ew')
 
     def _copiar(self, valor: str):
+        """Copiar valor al portapapeles y mostrar confirmacion.
+
+        Args:
+            valor: Texto a copiar al portapapeles
+        """
         self.clipboard_clear()
         self.clipboard_append(valor)
         self._lbl_info.configure(text=f'{t("copied")} {valor}')
@@ -217,6 +241,7 @@ class PaletteFrame(BaseFrame):
         ))
 
     def _explorar(self):
+        """Abrir dialogo para seleccionar una imagen."""
         archivo = filedialog.askopenfilename(
             title=t('select_image_for_palette'),
             filetypes=[('Imagenes', '*.jpg *.jpeg *.png *.webp *.bmp *.tiff *.avif')]
@@ -226,18 +251,26 @@ class PaletteFrame(BaseFrame):
         self._state.ruta = archivo
         self._state.paleta = []
         self._mostrar_cargado(archivo)
-        # Extraer automaticamente al cargar
         n = int(self._seg_n.get())
         threading.Thread(target=self._proceso_extraccion, args=(n,), daemon=True).start()
 
     def _auto_extraer(self, *_):
-        """Se llama al cambiar N, re-extrae si hay imagen cargada."""
+        """Re-extraer paleta al cambiar la cantidad de colores.
+
+        Args:
+            *_: Argumentos ignorados del callback del segmented button
+        """
         if not self._state.ruta:
             return
         n = int(self._seg_n.get())
         threading.Thread(target=self._proceso_extraccion, args=(n,), daemon=True).start()
 
     def _proceso_extraccion(self, n: int):
+        """Ejecutar extraccion de paleta en hilo separado.
+
+        Args:
+            n: Numero de colores a extraer
+        """
         paleta, err = extraer_paleta_safe(self._state.ruta, n)  # type: ignore
         if err:
             self.after(0, lambda: self._lbl_info.configure(text=f'{t("error_generic")}: {err}'))
@@ -245,6 +278,11 @@ class PaletteFrame(BaseFrame):
         self.after(0, lambda: self._aplicar_paleta(paleta))
 
     def _aplicar_paleta(self, paleta: list[tuple[int, int, int]]):
+        """Aplicar la paleta extraida a la interfaz.
+
+        Args:
+            paleta: Lista de tuplas RGB con los colores extraidos
+        """
         self._state.paleta = paleta
         self._renderizar_paleta(paleta)
         self._lbl_info.configure(
@@ -252,6 +290,7 @@ class PaletteFrame(BaseFrame):
         )
 
     def _guardar_imagen(self):
+        """Guardar la paleta como imagen PNG."""
         if not self._state.paleta:
             self._lbl_info.configure(text=t('save_palette_first'))
             return
@@ -277,6 +316,7 @@ class PaletteFrame(BaseFrame):
         threading.Thread(target=_proceso, daemon=True).start()
 
     def _limpiar(self):
+        """Limpiar estado y reiniciar la interfaz."""
         self._state.ruta = None
         self._state.paleta = []
         self._preview_img = None

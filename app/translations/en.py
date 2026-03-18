@@ -1,5 +1,22 @@
 """
 English Translations.
+Dictionary of texts for the interface in English language.
+
+Related:
+    - app/translations/__init__.py: Translation system.
+    - app/translations/es.py: Spanish translations.
+    - app/translations/pt.py: Portuguese translations.
+
+This file contains all translation keys used in the application
+organized by section:
+    - App: General application title.
+    - Sidebar: Navigation labels.
+    - Compress: Compression module.
+    - Convert: Conversion module.
+    - Palette: Color palette module.
+    - Metadata: EXIF metadata module.
+    - Resize: Resize module.
+    - Settings: Settings module.
 """
 
 TRANSLATIONS = {

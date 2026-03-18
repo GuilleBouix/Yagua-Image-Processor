@@ -1,6 +1,18 @@
-﻿"""
-UI para el modulo Ajustes / Settings.
-Permite cambiar el idioma y otras configuraciones.
+"""Interfaz grafica para configurar ajustes de la aplicacion.
+
+Permite cambiar:
+    - Idioma de la interfaz
+    - Tema visual de la aplicacion
+
+Ambos cambios requieren reiniciar la aplicacion para aplicarse.
+
+Relaciones:
+    - BaseFrame: app.ui.frames.base.BaseFrame
+    - Traducciones: app.translations
+    - Colores: app.ui.colors
+    - Fuentes: app.ui.fonts
+    - Servicios: app.ui.frames.settings.services
+    - Estado: app.ui.frames.settings.state
 """
 
 from __future__ import annotations
@@ -15,14 +27,16 @@ from app.ui.frames.settings.state import SettingsState
 
 
 class SettingsFrame(BaseFrame):
+    """Frame principal del modulo de ajustes de la aplicacion."""
+
     def __init__(self, parent):
         self._state = SettingsState()
         super().__init__(parent, t('settings_title'))
 
     def _build_content(self):
+        """Construir el contenido principal con paneles de idioma y tema."""
         self.grid_columnconfigure(0, weight=1)
 
-        # Panel de idioma
         panel_idioma = ctk.CTkFrame(
             self,
             corner_radius=12,
@@ -57,7 +71,6 @@ class SettingsFrame(BaseFrame):
         )
         self._selector_idioma.grid(row=0, column=1, padx=(0, 16), pady=16, sticky='w')
 
-        # Panel de tema
         panel_tema = ctk.CTkFrame(
             self,
             corner_radius=12,
@@ -92,15 +105,22 @@ class SettingsFrame(BaseFrame):
         )
         self._selector_tema.grid(row=0, column=1, padx=(0, 16), pady=16, sticky='w')
 
-        # Oculta boton Limpiar del BaseFrame en settings
         self._btn_limpiar.grid_remove()
 
     def _cambiar_idioma(self, lang: str):
-        """Cambia el idioma y reinicia la app."""
+        """Cambiar el idioma y reiniciar la aplicacion.
+
+        Args:
+            lang: Codigo de idioma seleccionado
+        """
         self._lbl_info.configure(text=t('restart_required'))
         self.after(1500, lambda: set_language_and_restart(lang))
 
     def _cambiar_tema(self, theme: str):
-        """Cambia el tema y reinicia la app."""
+        """Cambiar el tema y reiniciar la aplicacion.
+
+        Args:
+            theme: Nombre del tema seleccionado
+        """
         self._lbl_info.configure(text=t('restart_required'))
         self.after(1500, lambda: set_theme_and_restart(theme))

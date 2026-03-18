@@ -1,5 +1,22 @@
 """
 Traducciones al Espanol.
+Diccionario de textos para la interfaz en idioma espanol.
+
+Relacionado con:
+    - app/translations/__init__.py: Sistema de traducciones.
+    - app/translations/en.py: Traducciones en ingles (referencia).
+    - app/translations/pt.py: Traducciones en portugues.
+
+Este archivo contiene todas las claves de traduccion usadas
+en la aplicacion organizadas por seccion:
+    - App: Titulo general de la aplicacion.
+    - Sidebar: Labels de navegacion.
+    - Comprimir: Modulo de compresion.
+    - Convert: Modulo de conversion.
+    - Palette: Modulo de paleta de colores.
+    - Metadata: Modulo de metadatos EXIF.
+    - Resize: Modulo de redimensionado.
+    - Settings: Modulo de configuracion.
 """
 
 TRANSLATIONS = {
@@ -30,7 +47,7 @@ TRANSLATIONS = {
     'compress_btn': 'Comprimir',
     'clean': 'Limpiar',
     'compressing': 'Comprimiendo...',
-    'load_images_first': 'Primero carga al menos una imagen.',
+    'load_images_first': 'Carga al menos una imagen.',
     'select_output_folder': 'Elegi carpeta de salida',
     'estimated': 'estimado',
     'images_loaded': 'imagenes',
@@ -46,7 +63,7 @@ TRANSLATIONS = {
     'converting': 'Convirtiendo...',
     'converted_to': 'convertida a',
     'converted_to_plural': 'convertidas a',
-    'load_images_first_convert': 'Primero carga al menos una imagen.',
+    'load_images_first_convert': 'Carga al menos una imagen.',
     
     # Palette
     'palette_title': 'Paleta de colores',
@@ -55,11 +72,11 @@ TRANSLATIONS = {
     'save_palette': 'Guardar paleta como imagen',
     'save_palette_btn': 'Guardar Paleta de Colores',
     'no_image_selected': 'Sin imagen seleccionada',
-    'select_image_for_palette': 'Selecciona una imagen para ver la paleta',
+    'select_image_for_palette': 'Selecciona una Imagen',
     'colors_extracted': 'colores extraidos',
     'click_format_to_copy': 'haz clic en un formato para copiar',
     'copied': 'Copiado:',
-    'save_palette_first': 'Primero carga una imagen.',
+    'save_palette_first': 'Carga una imagen primero',
     'saved_as': 'Guardada como',
     'saving': 'Guardando...',
     'error_generic': 'Error',
@@ -75,12 +92,12 @@ TRANSLATIONS = {
     'no_metadata': 'Sin metadatos - carga una imagen',
     'no_metadata_image': 'Esta imagen no tiene metadatos EXIF',
     'view_on_maps': 'Ver en Maps',
-    'export_txt': 'Exportar .txt',
-    'export_json': 'Exportar .json',
+    'export_txt': 'Exportar en .txt',
+    'export_json': 'Exportar en .json',
     'export_metadata': 'Exportar metadatos',
     'reading_metadata': 'Leyendo metadatos...',
     'fields_found': 'campos encontrados',
-    'export_metadata_first': 'Primero carga una imagen.',
+    'export_metadata_first': 'Carga una imagen primero',
     'exported_as': 'Exportado como',
     'artist': 'Autor',
     'copyright': 'Copyright',
@@ -114,20 +131,20 @@ TRANSLATIONS = {
     'maintain_aspect': 'Mantener relacion de aspecto',
     'width': 'Ancho',
     'height': 'Alto',
-    'size': 'Tamano',
+    'size': 'Tamaño',
     'background': 'Fondo',
     'white': 'Blanco',
     'black': 'Negro',
     'transparent': 'Transparente',
-    'apply_canvas': 'Aplicar canvas',
+    'apply_canvas': 'Aplicar Canvas',
     'processing': 'Procesando...',
     'images_loaded_resize': 'imagenes cargadas',
     'image_loaded_resize': 'imagen cargada',
     'processed': 'procesadas',
     'processed_singular': 'procesada',
-    'load_images_first_resize': 'Primero carga imagenes.',
+    'load_images_first_resize': 'Carga una imagen primero',
     'invalid_dimensions': 'Ingresa ancho y alto validos.',
-    'warning_transparency': 'Advertencia: JPG/BMP no soportan transparencia - se usara negro.',
+    'warning_transparency': 'Advertencia: JPG/BMP no soportan transparencia - se usara el color negro.',
     'crop_centered': 'Recorte centrado - la imagen se recorta desde el centro.',
     'redim': 'redim',
     'crop': 'crop',
@@ -143,5 +160,5 @@ TRANSLATIONS = {
     'dark': 'Oscuro',
     'light': 'Claro',
     'system': 'Sistema',
-    'restart_required': 'Reinicia la aplicacion para aplicar el idioma.',
+    'restart_required': 'Reiniciando aplicacion para aplicar el idioma...',
 }
