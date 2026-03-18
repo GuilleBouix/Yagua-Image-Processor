@@ -1,5 +1,5 @@
 ﻿"""
-DefiniciÃ³n de fuentes personalizadas para la aplicaciÃ³n.
+DefiniciÃ³n de fuentes personalizadas para la aplicación.
 Carga la fuente Inter y define variables globales reutilizables.
 """
 

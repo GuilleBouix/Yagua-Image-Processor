@@ -51,9 +51,9 @@ class BaseFrame(ctk.CTkFrame):
             height=30,
             corner_radius=8,
             font=fonts.FUENTE_CHICA,
-            fg_color='#FFFFFF',
-            text_color='#1A1A1A',
-            hover_color='#EEEEEE',
+            fg_color=colors.BTN_CLEAR_BG,
+            text_color=colors.BTN_CLEAR_TEXT,
+            hover_color=colors.BTN_CLEAR_HOVER,
             border_width=0,
             command=self._limpiar
         )

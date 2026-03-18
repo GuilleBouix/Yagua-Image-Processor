@@ -1,6 +1,6 @@
 ﻿"""
-Punto de entrada principal de la aplicaciÃ³n Yagua.
-Configura el tema de CustomTkinter e inicia la aplicaciÃ³n.
+Punto de entrada principal de la aplicación Yagua.
+Configura el tema de CustomTkinter e inicia la aplicación.
 """
 
 import customtkinter as ctk
@@ -9,7 +9,7 @@ from app.app import YaguaApp
 
 
 def main():
-    """Inicializa y ejecuta la aplicaciÃ³n principal."""
+    """Inicializa y ejecuta la aplicación principal."""
     ctk.set_appearance_mode('dark')
     ctk.set_default_color_theme('blue')
     

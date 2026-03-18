@@ -139,6 +139,7 @@ TRANSLATIONS = {
     'select_language': 'Select language',
     'appearance': 'Appearance',
     'theme': 'Theme',
+    'ui_theme': 'UI theme',
     'dark': 'Dark',
     'light': 'Light',
     'system': 'System',

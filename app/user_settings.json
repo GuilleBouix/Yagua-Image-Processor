@@ -1,3 +1,23 @@
 {
-  "language": "Espanol"
+  "language": "Espanol",
+  "colors": {
+    "FRAMES_BG": "#0A0A0B",
+    "SIDEBAR_BG": "#121214",
+    "PANEL_BG": "#1C1C1E",
+    "SIDEBAR_SEPARATOR": "#2C2C2E",
+    "SIDEBAR_HOVER": "#2C2C2E",
+    "SIDEBAR_ACTIVE": "#FFFFFF",
+    "DROPZONE_BORDER": "#3A3A3C",
+    "DROPZONE_BG": "#0F0F11",
+    "TEXT_COLOR": "#F2F2F7",
+    "TEXT_GRAY": "#8E8E93",
+    "TEXT_HOVER": "#000000",
+    "TEXT_ACTIVE": "#000000",
+    "ICON_COLOR": "#E5E5EA",
+    "ICON_COLOR_ACTIVE": "#000000",
+    "ACENTO": "#FFFFFF",
+    "ACENTO_HOVER": "#D1D1D6",
+    "ACENTO_DIMMED": "#48484A"
+  },
+  "theme": "Dracula"
 }

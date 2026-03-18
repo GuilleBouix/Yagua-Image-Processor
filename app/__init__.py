@@ -1,1 +1,1 @@
-﻿"""Yagua app package."""
+﻿

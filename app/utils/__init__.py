@@ -1,5 +1,5 @@
 ﻿"""
-Utils - Funciones helper de la aplicaciÃ³n.
+Utils - Funciones helper de la aplicación.
 """
 
 import logging
@@ -16,7 +16,7 @@ def tintar_icono(ruta_icono: str, color_hex: str) -> Optional[ctk.CTkImage]:
     try:
         img = Image.open(ruta_icono).convert('RGBA')
     except Exception as exc:
-        logger.warning("No se pudo cargar el Ã­cono %s: %s", ruta_icono, exc)
+        logger.warning("No se pudo cargar el i­cono %s: %s", ruta_icono, exc)
         return None
     
     if color_hex:

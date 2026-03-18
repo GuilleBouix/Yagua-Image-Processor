@@ -28,10 +28,8 @@ _MODULE_SPECS: list[ModuleSpec] = [
     ModuleSpec('resize', 'resize', 'assets/icons/resize.png', 'app.ui.frames.resize.frame:ResizeFrame'),
     ModuleSpec('rename', 'rename', 'assets/icons/rename.png', 'app.ui.frames.rename_frame:RenameFrame'),
     ModuleSpec('palette', 'palette', 'assets/icons/palette.png', 'app.ui.frames.palette.frame:PaletteFrame'),
-    ModuleSpec('watermark', 'watermark', 'assets/icons/watermark.png', 'app.ui.frames.watermark_frame:WatermarkFrame'),
     ModuleSpec('metadata', 'metadata', 'assets/icons/metadata.png', 'app.ui.frames.metadata.frame:MetadataFrame'),
     ModuleSpec('lqip', 'lqip', 'assets/icons/lqip.png', 'app.ui.frames.lqip_frame:LQIPFrame'),
-    ModuleSpec('optimizer', 'optimizer', 'assets/icons/optimizer.png', 'app.ui.frames.optimizer_frame:OptimizerFrame'),
     ModuleSpec('settings', 'settings', 'assets/icons/settings.png', 'app.ui.frames.settings.frame:SettingsFrame'),
 ]
 

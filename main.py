@@ -1,5 +1,5 @@
 ﻿"""
-Compat entrypoint: delega a app.main para mantener compatibilidad.
+Ejecutar aplicación
 """
 
 from app.main import main

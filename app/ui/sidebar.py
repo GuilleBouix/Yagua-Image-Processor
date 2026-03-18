@@ -113,7 +113,7 @@ class Sidebar(ctk.CTkFrame):
         lbl_link.bind('<Button-1>', lambda _: webbrowser.open(GITHUB_URL))
 
     def set_active(self, key):
-        """Marca el botÃ³n activo segÃºn el mÃ³dulo seleccionado."""
+        """Marca el boton activo segun el modulo seleccionado."""
         for k, data in self.buttons.items():
             btn = data['btn']
             icon_path = data['icon_path']
@@ -122,7 +122,7 @@ class Sidebar(ctk.CTkFrame):
                 icon_ctk = tintar_icono(icon_path, colors.ICON_COLOR_ACTIVE)
                 btn.configure(
                     fg_color=colors.SIDEBAR_ACTIVE,
-                    hover_color='#E5E5EA',  
+                    hover_color=colors.SIDEBAR_ACTIVE_HOVER,
                     text_color=colors.TEXT_ACTIVE,
                     image=icon_ctk
                 )

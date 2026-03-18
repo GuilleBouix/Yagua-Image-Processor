@@ -1,5 +1,5 @@
 ﻿"""
-AplicaciÃ³n principal Yagua.
+Aplicación principal Yagua.
 Contiene la clase principal que inicializa la ventana y componentes.
 """
 
@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 class YaguaApp(ctk.CTk):
-    """Ventana principal de la aplicaciÃ³n Yagua."""
+    """Ventana principal de la aplicación Yagua."""
     
     def __init__(self):
         super().__init__()

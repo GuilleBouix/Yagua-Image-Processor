@@ -1,6 +1,6 @@
 ﻿"""
 Ventana principal de la interfaz de usuario.
-Contiene la estructura base con barra lateral y Ã¡rea de contenido.
+Contiene la estructura base con barra lateral y area de contenido.
 """
 
 import customtkinter as ctk
@@ -8,7 +8,7 @@ from app.ui.sidebar import Sidebar
 from app.ui.module_registry import get_module_spec, iter_enabled_modules, load_frame_class
 
 class MainWindow(ctk.CTkFrame):
-    """Marco principal que contiene la barra lateral y el Ã¡rea de contenido."""
+    """Marco principal que contiene la barra lateral y el area de contenido."""
     
     def __init__(self, parent):
         super().__init__(parent, corner_radius=0)
@@ -28,7 +28,7 @@ class MainWindow(ctk.CTkFrame):
         self.show_module('compress')
     
     def show_module(self, key):
-        """Muestra el mÃ³dulo seleccionado."""
+        """Muestra el modulo seleccionado."""
         if key not in self.frames:
             return
         if self.frames[key] is None:
