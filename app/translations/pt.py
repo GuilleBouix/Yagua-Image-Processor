@@ -1,5 +1,5 @@
-﻿"""
-TraduÃ§Ãµes em PortuguÃªs.
+"""
+Traducoes em Portugues.
 """
 
 TRANSLATIONS = {
@@ -13,11 +13,11 @@ TRANSLATIONS = {
     'resize': 'Redimensionar',
     'rename': 'Renomear Lote',
     'palette': 'Extrair Paleta',
-    'watermark': 'Marca d\'Ãgua',
+    'watermark': 'Marca d\'Agua',
     'metadata': 'Metadados EXIF',
     'lqip': 'LQIP / Base64',
     'optimizer': 'Otimizador',
-    'settings': 'ConfiguraÃ§Ãµes',
+    'settings': 'Configuracoes',
     'developed_by': 'Developed by ',
     'github': '@bouix.dev',
     
@@ -31,13 +31,13 @@ TRANSLATIONS = {
     'clean': 'Limpar',
     'compressing': 'Comprimindo...',
     'load_images_first': 'Carregue pelo menos uma imagem.',
-    'select_output_folder': 'Selecione a pasta de saÃ­da',
+    'select_output_folder': 'Selecione a pasta de saida',
     'estimated': 'estimado',
     'images_loaded': 'imagens',
     'image_loaded': 'imagem',
     'compressed': 'menor',
     'error_occurred': 'com erro',
-    'size_reduction': 'reduÃ§Ã£o',
+    'size_reduction': 'reducao',
     
     # Convert
     'convert_title': 'Converter',
@@ -56,7 +56,7 @@ TRANSLATIONS = {
     'save_palette_btn': 'Salvar Paleta de Cores',
     'no_image_selected': 'Nenhuma imagem selecionada',
     'select_image_for_palette': 'Selecione uma imagem para ver a paleta',
-    'colors_extracted': 'cores extraÃ­das',
+    'colors_extracted': 'cores extraidas',
     'click_format_to_copy': 'clique em um formato para copiar',
     'copied': 'Copiado:',
     'save_palette_first': 'Carregue uma imagem primeiro.',
@@ -72,8 +72,8 @@ TRANSLATIONS = {
     'select_image_view': 'Selecione uma imagem para ver seus metadados',
     'select_image_edit': 'Selecione uma imagem para editar seus metadados',
     'select_images_clean': 'Selecione imagens para limpar EXIF',
-    'no_metadata': 'Sem metadados â€” carregue uma imagem',
-    'no_metadata_image': 'Esta imagem nÃ£o tem metadados EXIF',
+    'no_metadata': 'Sem metadados - carregue uma imagem',
+    'no_metadata_image': 'Esta imagem nao tem metadados EXIF',
     'view_on_maps': 'Ver no Maps',
     'export_txt': 'Exportar .txt',
     'export_json': 'Exportar .json',
@@ -87,7 +87,7 @@ TRANSLATIONS = {
     'software': 'Software',
     'datetime': 'Data e hora',
     'enter_field': 'Digite {}...',
-    'save_changes': 'Salvar alteraÃ§Ãµes',
+    'save_changes': 'Salvar alteracoes',
     'saving_changes': 'Salvando...',
     'saved_as_file': 'Salvo:',
     'error_saving': 'Erro ao salvar',
@@ -99,7 +99,7 @@ TRANSLATIONS = {
     'cleaning': 'Limpando...',
     'cleaned': 'imagens limpas',
     'load_images_first_clean': 'Carregue imagens primeiro.',
-    'select_output_folder_clean': 'Pasta de saÃ­da',
+    'select_output_folder_clean': 'Pasta de saida',
     'without_exif': 'semexif',
     
     # Resize
@@ -109,9 +109,9 @@ TRANSLATIONS = {
     'canvas_tab': 'Canvas',
     'mode': 'Modo',
     'percentage': 'Porcentagem',
-    'pixels': 'PÃ­xeis',
+    'pixels': 'Pixeis',
     'preset': 'Preset',
-    'maintain_aspect': 'Manter proporÃ§Ã£o',
+    'maintain_aspect': 'Manter proporcao',
     'width': 'Largura',
     'height': 'Altura',
     'size': 'Tamanho',
@@ -126,21 +126,21 @@ TRANSLATIONS = {
     'processed': 'processadas',
     'processed_singular': 'processada',
     'load_images_first_resize': 'Carregue imagens primeiro.',
-    'invalid_dimensions': 'Digite largura e altura vÃ¡lidas.',
-    'warning_transparency': 'Aviso: JPG/BMP nÃ£o suportam transparÃªncia â€” preto serÃ¡ usado.',
-    'crop_centered': 'Corte centralizado â€” a imagem Ã© cortada do centro.',
+    'invalid_dimensions': 'Digite largura e altura validas.',
+    'warning_transparency': 'Aviso: JPG/BMP nao suportam transparencia - preto sera usado.',
+    'crop_centered': 'Corte centralizado - a imagem e cortada do centro.',
     'redim': 'redim',
     'crop': 'cortada',
     'canvas': 'canvas',
     
     # Settings
-    'settings_title': 'ConfiguraÃ§Ãµes',
+    'settings_title': 'Configuracoes',
     'language': 'Idioma',
     'select_language': 'Selecionar idioma',
-    'appearance': 'AparÃªncia',
+    'appearance': 'Aparencia',
     'theme': 'Tema',
     'dark': 'Escuro',
     'light': 'Claro',
     'system': 'Sistema',
-    'restart_required': 'Reiniciando o aplicativo para aplicar o idioma...',
+    'restart_required': 'Reinicie o aplicativo para aplicar o idioma.',
 }

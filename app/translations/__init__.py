@@ -1,6 +1,6 @@
-﻿"""
+"""
 Sistema de traducciones multiidioma.
-Provee funciÃ³n t() para obtener textos traducidos.
+Provee funcion t() para obtener textos traducidos.
 """
 
 from typing import Optional
@@ -9,9 +9,9 @@ from pathlib import Path
 
 # Idiomas disponibles
 AVAILABLE_LANGUAGES = {
-    'EspaÃ±ol': 'EspaÃ±ol',
+    'Espanol': 'Espanol',
     'English': 'English',
-    'PortuguÃªs': 'PortuguÃªs',
+    'Portugues': 'Portugues',
 }
 
 # Idioma por defecto
@@ -22,7 +22,7 @@ _current_lang: Optional[str] = None
 
 
 def _load_settings() -> dict:
-    """Carga la configuraciÃ³n de usuario."""
+    """Carga la configuracion de usuario."""
     settings_path = Path(__file__).resolve().parents[1] / 'user_settings.json'
     if settings_path.exists():
         try:
@@ -33,7 +33,7 @@ def _load_settings() -> dict:
 
 
 def _save_settings(settings: dict):
-    """Guarda la configuraciÃ³n de usuario."""
+    """Guarda la configuracion de usuario."""
     settings_path = Path(__file__).resolve().parents[1] / 'user_settings.json'
     settings_path.write_text(json.dumps(settings, indent=2, ensure_ascii=False), encoding='utf-8')
 
@@ -62,11 +62,11 @@ def get_translations(lang: Optional[str] = None) -> dict:
     if lang is None:
         lang = get_language()
     
-    if lang == 'EspaÃ±ol':
+    if lang == 'Espanol':
         from app.translations.es import TRANSLATIONS
     elif lang == 'English':
         from app.translations.en import TRANSLATIONS
-    elif lang == 'PortuguÃªs':
+    elif lang == 'Portugues':
         from app.translations.pt import TRANSLATIONS
     else:
         from app.translations.en import TRANSLATIONS
@@ -76,10 +76,10 @@ def get_translations(lang: Optional[str] = None) -> dict:
 
 def t(key: str, lang: Optional[str] = None) -> str:
     """
-    Obtiene la traducciÃ³n para una clave.
+    Obtiene la traduccion para una clave.
     
     Args:
-        key: Clave de traducciÃ³n (ej: 'compress_title')
+        key: Clave de traduccion (ej: 'compress_title')
         lang: Idioma opcional (usa el actual si no se especifica)
     
     Returns:

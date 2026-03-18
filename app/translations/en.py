@@ -1,4 +1,4 @@
-﻿"""
+"""
 English Translations.
 """
 
@@ -72,7 +72,7 @@ TRANSLATIONS = {
     'select_image_view': 'Select an image to view its metadata',
     'select_image_edit': 'Select an image to edit its metadata',
     'select_images_clean': 'Select images to clean EXIF',
-    'no_metadata': 'No metadata â€” load an image',
+    'no_metadata': 'No metadata - load an image',
     'no_metadata_image': 'This image has no EXIF metadata',
     'view_on_maps': 'View on Maps',
     'export_txt': 'Export .txt',
@@ -127,8 +127,8 @@ TRANSLATIONS = {
     'processed_singular': 'processed',
     'load_images_first_resize': 'Load images first.',
     'invalid_dimensions': 'Enter valid width and height.',
-    'warning_transparency': 'Warning: JPG/BMP do not support transparency â€” black will be used.',
-    'crop_centered': 'Centered crop â€” the image is cropped from the center.',
+    'warning_transparency': 'Warning: JPG/BMP do not support transparency - black will be used.',
+    'crop_centered': 'Centered crop - the image is cropped from the center.',
     'redim': 'resized',
     'crop': 'cropped',
     'canvas': 'canvas',
@@ -142,5 +142,5 @@ TRANSLATIONS = {
     'dark': 'Dark',
     'light': 'Light',
     'system': 'System',
-    'restart_required': 'Restart the application to apply the language...',
+    'restart_required': 'Restart the application to apply the language.',
 }
