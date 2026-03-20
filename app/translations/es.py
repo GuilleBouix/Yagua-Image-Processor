@@ -71,12 +71,17 @@ TRANSLATIONS = {
     'bg_transparent':         'Transparente',
     'bg_white':               'Blanco',
     'bg_black':               'Negro',
+    'bg_custom':              'Custom',
+    'custom_color':           'Color',
+    'pick_color':             'Elegir',
     'transparency_png_only':  'Transparente exporta como PNG.',
     'remove_bg_btn':          'Quitar fondo',
     'processing':             'Procesando...',
     'processed':              'procesadas',
     'rembg_not_installed':    'rembg no está instalado.\nEjecutá este comando en tu terminal:',
-    'model_first_download':   'Primera vez: el modelo U2Net (~170MB) se descargará automáticamente. Luego funciona sin internet.',
+    'model_first_download':   'Modelo u2netp descargado automáticamente al procesar.',
+    'output_format':         'Formato de salida',
+    'remove_bg_description': 'Elimina el fondo y exporta con transparencia.',
 
     # Palette
     'palette_title': 'Paleta de colores',
@@ -94,6 +99,39 @@ TRANSLATIONS = {
     'saving': 'Guardando...',
     'error_generic': 'Error',
     
+    # Renombrar
+    'rename_title':        'Renombrar Lote',
+    'rename_numbering':    'Prefijo + numeración  (foto_001, foto_002...)',
+    'rename_prefix':       'Prefijo',
+    'rename_start':        'Inicio',
+    'rename_replace':      'Reemplazar texto',
+    'rename_search':       'Buscar',
+    'rename_search_ph':    'texto a buscar',
+    'rename_replace_with': 'Reemplazar por',
+    'rename_replace_ph':   'texto nuevo',
+    'rename_date':         'Agregar fecha',
+    'rename_date_position':'Posición',
+    'rename_prefix_pos':   'Prefijo',
+    'rename_suffix_pos':   'Sufijo',
+    'rename_date_format':  'Formato',
+    'rename_case':         'Capitalización',
+    'rename_case_none':    'Normal',
+    'rename_case_lower':   'minúsc.',
+    'rename_case_upper':   'MAYÚSC.',
+    'rename_clean':        'Quitar espacios y caracteres especiales',
+    'rename_preview':      'Preview',
+    'rename_btn':          'Renombrar',
+    'rename_col_original': 'Nombre original',
+    'rename_col_nuevo':    'Nombre nuevo',
+    'rename_preview_empty':'Cargá archivos para ver el preview',
+    'files_loaded':        'archivos cargados',
+    'file_loaded':         'archivo cargado',
+    'load_files_first':    'Primero cargá archivos.',
+    'renaming':            'Renombrando...',
+    'renamed':             'renombrados',
+    'rename_conflicts':    'conflictos omitidos',
+    
+
     # Metadata
     'metadata_title': 'Metadatos EXIF',
     'view': 'Ver',
@@ -162,7 +200,7 @@ TRANSLATIONS = {
     'redim': 'redim',
     'crop': 'crop',
     'canvas': 'canvas',
-    
+
     # Settings
     'settings_title': 'Ajustes',
     'language': 'Idioma',

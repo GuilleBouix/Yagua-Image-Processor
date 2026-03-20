@@ -1,0 +1,13 @@
+{
+  "include": ["app"],
+  "exclude": ["**/__pycache__"],
+  "typeCheckingMode": "basic",
+  "reportArgumentType": false,
+  "reportAttributeAccessIssue": false,
+  "reportCallIssue": false,
+  "reportReturnType": false,
+  "reportUnknownMemberType": false,
+  "reportUnknownVariableType": false,
+  "pythonVersion": "3.13",
+  "stubPath": "./typings"
+}

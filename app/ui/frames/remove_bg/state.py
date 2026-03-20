@@ -1,6 +1,5 @@
 """
 Estado UI para el modulo de eliminacion de fondo.
-Maneja las variables de estado especificas del modulo.
 
 Relacionado con:
     - app/ui/frames/remove_bg/frame.py: Usa este estado.
@@ -43,9 +42,9 @@ class RemoveBgState:
         elif modo == 'custom':
             hex_color = self.color_custom.get().lstrip('#')
             try:
-                red = int(hex_color[0:2], 16)
+                red   = int(hex_color[0:2], 16)
                 green = int(hex_color[2:4], 16)
-                blue = int(hex_color[4:6], 16)
+                blue  = int(hex_color[4:6], 16)
                 return (red, green, blue)
             except (ValueError, IndexError):
                 return (255, 255, 255)
