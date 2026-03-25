@@ -2,11 +2,13 @@ attrs==26.1.0
 certifi==2026.2.25
 charset-normalizer==3.4.6
 colorama==0.4.6
+coverage==7.13.5
 customtkinter==5.2.2
 darkdetect==0.8.0
 flatbuffers==25.12.19
 idna==3.11
 ImageIO==2.37.3
+iniconfig==2.3.0
 jsonschema==4.26.0
 jsonschema-specifications==2025.9.1
 lazy-loader==0.5
@@ -20,9 +22,13 @@ packaging==26.0
 piexif==1.1.3
 pillow==12.1.1
 platformdirs==4.9.4
+pluggy==1.6.0
 pooch==1.9.0
 protobuf==7.34.0
+Pygments==2.19.2
 PyMatting==1.1.15
+pytest==9.0.2
+pytest-cov==7.1.0
 referencing==0.37.0
 rembg==2.0.73
 requests==2.32.5
