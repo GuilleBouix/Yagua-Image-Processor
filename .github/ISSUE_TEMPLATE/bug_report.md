@@ -22,7 +22,7 @@ What happened? What did you expect to happen?
 
 ## Logs
 If applicable, include relevant lines from:
-`%APPDATA%\\Yagua\\yagua.log`
+`%APPDATA%\Yagua\yagua.log`
 
 ## Screenshots
 If applicable, add screenshots to help explain the problem.
