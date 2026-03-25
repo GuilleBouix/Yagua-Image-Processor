@@ -17,6 +17,7 @@ import customtkinter as ctk
 from PIL import Image, ImageTk
 
 from app.ui import fonts
+from app.utils.paths import resource_path
 from app.ui.main_window import MainWindow
 from app.translations import t
 
@@ -76,8 +77,8 @@ class YaguaApp(ctk.CTk):
         Registra warnings si los iconos no se encuentran.
         """
         # Rutas de los archivos de icono
-        icon_ico = Path('assets/icon.ico')
-        icon_png = Path('assets/icon.png')
+        icon_ico = resource_path('assets/icon.ico')
+        icon_png = resource_path('assets/icon.png')
         
         # Configuracion especifica para Windows
         if sys.platform == 'win32':

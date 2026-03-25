@@ -178,6 +178,8 @@ def convertir_imagen(ruta_entrada, fmt_destino, carpeta_salida, calidad=90):
             - tam_original: Tamano original en bytes.
             - tam_resultado: Tamano convertido en bytes.
     """
+
+    logger.info("Convertir: %s -> %s (fmt=%s, calidad=%s)", ruta_entrada, carpeta_salida, fmt_destino, calidad)
     formato = fmt_destino.upper()
     
     # Validar formato
@@ -258,6 +260,8 @@ def batch_convertir_safe(rutas, fmt_destino, carpeta_salida, calidad=90):
             - fmt_destino: Formato de destino.
             - conflictos: Cantidad de archivos renombrados por colision.
     """
+
+    logger.info("Batch convertir: %s archivos -> %s (%s)", len(rutas), carpeta_salida, fmt_destino)
     resultados = []
     errores = 0
     

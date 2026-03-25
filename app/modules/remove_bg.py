@@ -119,12 +119,27 @@ def batch_quitar_fondo(rutas, carpeta_salida, formato_salida='PNG'):
     }
 
 
+def ensure_model():
+    """
+    Fuerza la descarga/carga del modelo si no existe aun.
+
+    Usa new_session(MODELO) para que rembg gestione la descarga.
+    """
+    try:
+        from rembg import new_session
+    except ImportError:
+        raise ImportError('rembg no está instalado.')
+
+    new_session(MODELO)
+
+
 def rembg_disponible():
     """Verifica si rembg esta instalado."""
     try:
         import rembg  # noqa: F401
         return True
-    except ImportError:
+    except Exception as exc:
+        logger.warning("rembg no disponible: %s", exc)
         return False
 
 

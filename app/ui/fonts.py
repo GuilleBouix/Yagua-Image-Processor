@@ -13,6 +13,7 @@ import tkinter.font as tkfont
 
 import customtkinter as ctk
 
+from app.utils.paths import resource_path
 
 def cargar_fuente(ruta_fuente):
     """
@@ -53,7 +54,7 @@ def inicializar_fuentes():
     global FUENTE_BASE, FUENTE_TITULO, FUENTE_CHICA
     
     # Cargar fuente Inter
-    fuente = cargar_fuente(RUTA_FUENTE_INTER)
+    fuente = cargar_fuente(str(resource_path(RUTA_FUENTE_INTER)))
     
     # Obtener nombre de la fuente cargada
     nombre_fuente = fuente.actual()['family']

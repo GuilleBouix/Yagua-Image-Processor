@@ -13,6 +13,7 @@ from typing import Optional
 import customtkinter as ctk
 from PIL import Image
 
+from app.utils.paths import resource_path
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +35,8 @@ def tintar_icono(ruta_icono, color_hex):
     """
     try:
         # Abrir imagen y convertir a RGBA para manejar transparencia
-        img = Image.open(ruta_icono).convert('RGBA')
+        ruta = resource_path(str(ruta_icono))
+        img = Image.open(ruta).convert('RGBA')
     except Exception as exc:
         # Registrar warning si no se puede cargar el icono
         logger.warning("No se pudo cargar el icono %s: %s", ruta_icono, exc)

@@ -23,6 +23,7 @@ TRANSLATIONS = {
     # App
     'app_title': 'Yagua - Image Processor',
     'loading_model': 'Loading model...',
+    'downloading_model': 'Downloading model...',
     
     # Sidebar
     'compress': 'Compress',

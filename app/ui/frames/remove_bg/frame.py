@@ -21,6 +21,7 @@ from app.translations import t
 from app.ui.frames.base import BaseFrame
 from app.ui.frames.remove_bg.services import (
     batch_quitar_fondo,
+    ensure_model,
     rembg_disponible,
     modelo_descargado,
     FORMATOS_SALIDA,
@@ -53,11 +54,13 @@ class RemoveBgFrame(BaseFrame):
         def _worker():
             try:
                 disponible = rembg_disponible()
-            except Exception:
+            except Exception as exc:
+                self.logger.warning("Error al verificar rembg: %s", exc)
                 disponible = False
             try:
                 modelo_ok = modelo_descargado() if disponible else False
-            except Exception:
+            except Exception as exc:
+                self.logger.warning("Error al verificar modelo: %s", exc)
                 modelo_ok = False
             self.after(0, lambda: self._build_content_ready(disponible, modelo_ok))
 
@@ -296,12 +299,16 @@ class RemoveBgFrame(BaseFrame):
             return
 
         self._btn_procesar.configure(state='disabled', text=t('processing'))
-        self._show_overlay(t('processing'))
+        self._show_overlay(t('loading_model'))
         threading.Thread(target=self._proceso, args=(carpeta,), daemon=True).start()
 
     def _proceso(self, carpeta):
         """Ejecuta la eliminacion de fondo."""
         try:
+            if not modelo_descargado():
+                self.after(0, lambda: self._show_overlay(t('downloading_model')))
+                ensure_model()
+                self.after(0, lambda: self._show_overlay(t('loading_model')))
             res = batch_quitar_fondo(
                 self._imagenes,
                 carpeta,

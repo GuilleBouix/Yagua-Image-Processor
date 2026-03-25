@@ -133,6 +133,8 @@ def leer_metadatos(ruta):
         Diccionario con etiqueta legible como clave y valor formateado.
         Incluye clave especial '__gps_decimal__' para coordenadas GPS.
     """
+
+    logger.info("Leer metadatos: %s", ruta)
     resultado = {}
 
     try:
@@ -230,6 +232,8 @@ def limpiar_exif(ruta_entrada, ruta_salida):
     Returns:
         Diccionario con tamanos original y final.
     """
+
+    logger.info("Limpiar EXIF: %s -> %s", ruta_entrada, ruta_salida)
     with Image.open(ruta_entrada) as imagen:
         imagen = ImageOps.exif_transpose(imagen)
         tam_original = Path(ruta_entrada).stat().st_size
@@ -272,6 +276,8 @@ def editar_exif(ruta_entrada, ruta_salida, campos):
         Tupla (ok, warning). Si ok es True pero warning no es None, la
         imagen se guardo sin EXIF por formato no compatible.
     """
+
+    logger.info("Editar EXIF: %s -> %s", ruta_entrada, ruta_salida)
     try:
         with Image.open(ruta_entrada) as imagen:
             formato = imagen.format or 'JPEG'
@@ -389,6 +395,8 @@ def batch_limpiar_exif(rutas, carpeta_salida, sufijo='_sinexif'):
     Returns:
         Diccionario con exitos, errores y conflictos.
     """
+
+    logger.info("Batch limpiar EXIF: %s archivos -> %s", len(rutas), carpeta_salida)
     errores = 0
     conflictos = 0
     for ruta in rutas:

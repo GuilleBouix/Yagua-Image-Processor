@@ -20,6 +20,7 @@ import customtkinter as ctk
 
 from app.ui import colors, fonts
 from app.utils import tintar_icono
+from app.utils.paths import resource_path
 from app.translations import t
 from app.ui.module_registry import iter_enabled_modules
 
@@ -73,7 +74,7 @@ class Sidebar(ctk.CTkFrame):
         y footer con enlace a GitHub.
         """
         # Cargar imagen del logo
-        ruta_icono = Path('assets/icon.png')
+        ruta_icono = resource_path('assets/icon.png')
         try:
             imagen = Image.open(ruta_icono).convert('RGBA')
         except Exception as exc:

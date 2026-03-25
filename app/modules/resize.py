@@ -127,6 +127,8 @@ def redimensionar(ruta_entrada, ruta_salida, ancho=None, alto=None,
     Returns:
         Diccionario con dimensiones originales y resultantes.
     """
+
+    logger.info("Redimensionar: %s -> %s", ruta_entrada, ruta_salida)
     with Image.open(ruta_entrada) as imagen:
         imagen = normalize_common(imagen)
         ancho_original, alto_original = imagen.size
@@ -194,6 +196,8 @@ def recortar(ruta_entrada, ruta_salida, ratio=None,
     Returns:
         Diccionario con dimensiones originales y recortadas.
     """
+
+    logger.info("Recortar: %s -> %s", ruta_entrada, ruta_salida)
     with Image.open(ruta_entrada) as imagen:
         imagen = normalize_common(imagen)
         ancho, alto = imagen.size
@@ -250,6 +254,8 @@ def agregar_canvas(ruta_entrada, ruta_salida, ancho_final, alto_final,
     Returns:
         Diccionario con dimensiones originales y finales.
     """
+
+    logger.info("Canvas: %s -> %s", ruta_entrada, ruta_salida)
     with Image.open(ruta_entrada) as imagen:
         imagen = normalize_common(imagen)
         ancho, alto = imagen.size
@@ -394,6 +400,8 @@ def batch_redimensionar(rutas, carpeta_salida, *,
     Returns:
         Diccionario con exitos, errores y conflictos.
     """
+
+    logger.info("Batch redimensionar: %s archivos -> %s", len(rutas), carpeta_salida)
     errores = 0
     conflictos = 0
     
@@ -433,6 +441,8 @@ def batch_recortar(rutas, carpeta_salida, *, ratio=None, sufijo='_crop'):
     Returns:
         Diccionario con exitos, errores y conflictos.
     """
+
+    logger.info("Batch recortar: %s archivos -> %s", len(rutas), carpeta_salida)
     errores = 0
     conflictos = 0
     
@@ -467,6 +477,8 @@ def batch_canvas(rutas, carpeta_salida, *, ancho, alto, color_fondo, sufijo='_ca
     Returns:
         Diccionario con exitos, errores y conflictos.
     """
+
+    logger.info("Batch canvas: %s archivos -> %s", len(rutas), carpeta_salida)
     errores = 0
     conflictos = 0
     

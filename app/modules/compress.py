@@ -150,6 +150,8 @@ def comprimir_imagen(ruta_entrada, ruta_salida, calidad=85, quitar_exif=True):
             - reduccion_pct: Porcentaje de reduccion.
             - formato: Formato de la imagen.
     """
+
+    logger.info("Comprimir: %s -> %s (calidad=%s, exif=%s)", ruta_entrada, ruta_salida, calidad, quitar_exif)
     # Determinar formato original
     formato = _formato_desde_ruta(ruta_entrada)
     
@@ -252,6 +254,8 @@ def batch_comprimir(rutas, carpeta_salida, calidad=85, quitar_exif=True, sufijo=
             - reduccion_pct: Porcentaje de reduccion total.
             - conflictos: Cantidad de archivos renombrados por colision.
     """
+
+    logger.info("Batch comprimir: %s archivos -> %s", len(rutas), carpeta_salida)
     resultados = []
     errores = 0
     conflictos = 0

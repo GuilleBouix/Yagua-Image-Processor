@@ -91,6 +91,8 @@ def renombrar_archivos(rutas, opciones):
     Returns:
         Diccionario con ok, errores, conflictos.
     """
+
+    logger.info("Renombrar: %s archivos", len(rutas))
     ok = 0
     errores = 0
     conflictos = 0

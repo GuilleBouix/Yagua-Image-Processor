@@ -7,10 +7,14 @@ Relacionado con:
     - app/ui/frames/palette/services.py: Usa las funciones de este modulo.
 """
 
+import logging
 from pathlib import Path
 
 from PIL import Image
 
+from app.utils.paths import resource_path
+
+logger = logging.getLogger(__name__)
 
 def cargar_preview(ruta, size=(80, 80)):
     """
@@ -46,6 +50,8 @@ def extraer_paleta(ruta, n_colores=6):
     Returns:
         Lista de tuplas (red, green, blue) con los colores dominantes.
     """
+
+    logger.info("Extraer paleta: %s (n=%s)", ruta, n_colores)
     with Image.open(ruta) as imagen:
         imagen = imagen.convert('RGB')
 
@@ -182,6 +188,8 @@ def exportar_paleta_imagen(paleta, ruta_salida, ancho_swatch=120,
     Returns:
         Ruta del archivo guardado.
     """
+
+    logger.info("Exportar paleta -> %s", ruta_salida)
     from PIL import ImageDraw, ImageFont
 
     n = len(paleta)
@@ -195,7 +203,7 @@ def exportar_paleta_imagen(paleta, ruta_salida, ancho_swatch=120,
 
     # Cargar fuente Inter o usar default si no existe
     try:
-        fuente = ImageFont.truetype('assets/fonts/Inter.ttf', 14)
+        fuente = ImageFont.truetype(str(resource_path('assets/fonts/Inter.ttf')), 14)
     except Exception:
         fuente = ImageFont.load_default()
 
@@ -239,6 +247,8 @@ def extraer_paleta_safe(ruta, n_colores=6):
     Returns:
         Tupla (paleta, mensaje_error). Si hay exito, error es None.
     """
+
+    logger.info("Extraer paleta safe: %s", ruta)
     try:
         return extraer_paleta(ruta, n_colores), None
     except Exception as exc:

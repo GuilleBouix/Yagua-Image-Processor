@@ -115,6 +115,8 @@ def batch_procesar(rutas, modo='lqip', ancho=20, blur=2.0, calidad_lqip=40, cali
     Returns:
         Diccionario con resultados, ok, errores.
     """
+
+    logger.info("Batch LQIP: %s archivos (modo=%s)", len(rutas), modo)
     resultados = []
     errores = 0
 
@@ -145,6 +147,8 @@ def exportar_txt(resultados, ruta_salida, campo='data_uri'):
         ruta_salida: Ruta del archivo de salida.
         campo: Campo a exportar ('data_uri', 'html_tag', 'css_bg').
     """
+
+    logger.info("Exportar LQIP TXT: %s resultados -> %s", len(resultados), ruta_salida)
     lineas = []
     for res in resultados:
         lineas.append(f'/* {res["nombre"]} */')
@@ -162,6 +166,8 @@ def exportar_json(resultados, ruta_salida):
         resultados: Lista de diccionarios de resultados.
         ruta_salida: Ruta del archivo de salida.
     """
+
+    logger.info("Exportar LQIP JSON: %s resultados -> %s", len(resultados), ruta_salida)
     datos = [
         {
             'nombre':   r['nombre'],
