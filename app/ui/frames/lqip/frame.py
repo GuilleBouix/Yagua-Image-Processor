@@ -57,7 +57,7 @@ class LqipFrame(BaseFrame):
         self._construir_opciones(panel)
 
     def _construir_opciones(self, p):
-        # ── Fila 1: modo + descripcion en la misma fila ───────────────────────
+        # Fila 1: modo + descripcion
         fila_modo = ctk.CTkFrame(p, fg_color='transparent')
         fila_modo.grid(row=0, column=0, padx=16, pady=(12, 0), sticky='ew')
         fila_modo.grid_columnconfigure(1, weight=1)
@@ -102,7 +102,7 @@ class LqipFrame(BaseFrame):
             row=1, column=0, padx=16, pady=(8, 4), sticky='ew'
         )
 
-        # ── Opciones especificas del modo ─────────────────────────────────────
+        # Opciones especificas del modo
         self._frame_opciones_modo = ctk.CTkFrame(p, fg_color='transparent')
         self._frame_opciones_modo.grid(row=2, column=0, padx=16, pady=(6, 0), sticky='ew')
         self._frame_opciones_modo.grid_columnconfigure((0, 1, 2), weight=1)
@@ -113,7 +113,7 @@ class LqipFrame(BaseFrame):
             row=3, column=0, padx=16, pady=(8, 4), sticky='ew'
         )
 
-        # ── Exportar: todo en una sola fila ───────────────────────────────────
+        # Exportar
         fila_export = ctk.CTkFrame(p, fg_color='transparent')
         fila_export.grid(row=4, column=0, padx=16, pady=(4, 12), sticky='ew')
         fila_export.grid_columnconfigure(1, weight=1)

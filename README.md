@@ -236,14 +236,6 @@ El proyecto sigue una arquitectura **MVC simplificada** con separación clara de
 - Soporte para JPEG, PNG, WEBP, AVIF, ICO, BMP, TIFF, GIF
 - Vista previa de imágenes cargadas
 
-**Funciones públicas:**
-
-```python
-comprimir_imagen(ruta_entrada, ruta_salida, calidad=85, quitar_exif=True) -> dict
-estimar_tamano(ruta_entrada, calidad) -> int
-formatear_bytes(bytes_val) -> str
-```
-
 ### 2. Conversión (`convert.py`)
 
 **Funcionalidades:**
@@ -256,13 +248,6 @@ formatear_bytes(bytes_val) -> str
 
 **Formatos soportados:** JPEG, PNG, WEBP, AVIF, ICO, BMP, TIFF, GIF
 
-**Funciones públicas:**
-
-```python
-convertir_imagen(ruta_entrada, fmt_destino, carpeta_salida, calidad=90) -> dict
-batch_convertir(rutas, fmt_destino, carpeta_salida, calidad=90, progress_cb=None) -> list
-```
-
 ### 3. Paleta de Colores (`palette.py`)
 
 **Funcionalidades:**
@@ -272,17 +257,6 @@ batch_convertir(rutas, fmt_destino, carpeta_salida, calidad=90, progress_cb=None
 - Exportación de paleta como imagen PNG
 - Detección de luminosidad para texto legible
 - Copiar color al portapapeles en diferentes formatos
-
-**Funciones públicas:**
-
-```python
-extraer_paleta(ruta, n_colores=6) -> list[tuple[int, int, int]]
-rgb_a_hex(rgb) -> str
-rgb_a_hsl(rgb) -> tuple[int, int, int]
-es_color_claro(rgb) -> bool
-formatos_color(rgb) -> dict[str, str]
-exportar_paleta_imagen(paleta, ruta_salida, ...) -> str
-```
 
 ### 4. Metadatos EXIF (`metadata.py`)
 
@@ -294,16 +268,6 @@ exportar_paleta_imagen(paleta, ruta_salida, ...) -> str
 - Exportación a TXT y JSON
 - Coordenadas GPS con enlace a Google Maps
 - Soporte para JPEG y TIFF
-
-**Funciones públicas:**
-
-```python
-leer_metadatos(ruta) -> dict[str, str]
-limpiar_exif(ruta_entrada, ruta_salida) -> dict
-editar_exif(ruta_entrada, ruta_salida, campos) -> bool
-exportar_txt(metadatos, ruta)
-exportar_json(metadatos, ruta)
-```
 
 ### 5. Redimensionar (`resize.py`)
 
@@ -357,6 +321,7 @@ exportar_json(metadatos, ruta)
 **Funcionalidades:**
 
 - Cambio de idioma (Español, English, Português)
+- Cambio de tema de la UI
 - Reinicio automático de la app al cambiar idioma
 
 ### Roadmap
@@ -430,14 +395,6 @@ El título de la ventana también es traducible (`app_title`):
 3. Registrar en `app/ui/module_registry.py` (label, ícono, frame_import)
 4. Agregar ícono en `assets/icons/`
 5. Agregar traducciones en `app/translations/es.py`, `en.py`, `pt.py`
-
-### Testing
-
-Para probar un módulo específico:
-
-```bash
-python -c "from app.modules.compress import comprimir_imagen; print(comprimir_imagen('input.jpg', 'output.jpg'))"
-```
 
 ---
 
