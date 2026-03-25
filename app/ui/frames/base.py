@@ -307,7 +307,7 @@ class BaseFrame(ctk.CTkFrame):
         # Label del tamano y extension
         ctk.CTkLabel(
             info,
-            text=f'{formatear_bytes(p.stat().st_size)}  ·  {p.suffix.upper().lstrip(".")}',
+            text=f'{formatear_bytes(p.stat().st_size)}  -  {p.suffix.upper().lstrip(".")}',
             font=fonts.FUENTE_CHICA,
             text_color=colors.TEXT_GRAY, anchor='w'
         ).pack(anchor='w')

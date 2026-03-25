@@ -11,6 +11,7 @@ Relacionado con:
 
 from __future__ import annotations
 
+import logging
 import threading
 from tkinter import filedialog
 
@@ -26,6 +27,7 @@ from app.ui.frames.compress.services import (
 )
 from app.ui.frames.compress.state import CompressState
 
+logger = logging.getLogger(__name__)
 
 class CompressFrame(BaseFrame):
     """
@@ -180,7 +182,8 @@ class CompressFrame(BaseFrame):
         for ruta in rutas:
             try:
                 estimado += estimar_tamano(ruta, self._state.calidad.get())
-            except Exception:
+            except Exception as exc:
+                logger.warning("Error al estimar tamano %s: %s", ruta, exc)
                 continue
         self.after(0, lambda: self._aplicar_carga(estimado, len(rutas)))
 
@@ -222,8 +225,8 @@ class CompressFrame(BaseFrame):
             self._lbl_info.configure(
                 text=f'{n} {suffix} - {t("estimated")} {formatear_bytes(estimado)}'
             )
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.warning("Error al actualizar estimado: %s", exc)
 
     def _comprimir(self):
         """
@@ -254,10 +257,15 @@ class CompressFrame(BaseFrame):
             quitar_exif=self._state.quitar_exif.get(),
         )
         self.after(0, lambda: self._finalizar(
-            res['ok'], res['total_original'], res['total_comprimido'], res['reduccion_pct'], res['errores']
+            res['ok'],
+            res['total_original'],
+            res['total_comprimido'],
+            res['reduccion_pct'],
+            res['errores'],
+            res.get('conflictos', 0),
         ))
 
-    def _finalizar(self, n, orig, comp, reduccion, errores=0):
+    def _finalizar(self, n, orig, comp, reduccion, errores=0, conflictos=0):
         """
         Muestra el resultado final de la compresion.
         
@@ -277,4 +285,6 @@ class CompressFrame(BaseFrame):
         )
         if errores:
             msg += f'  -  {errores} {t("error_occurred")}'
+        if conflictos:
+            msg += f'  -  {conflictos} {t("conflicts_renamed")}'
         self._lbl_info.configure(text=msg)

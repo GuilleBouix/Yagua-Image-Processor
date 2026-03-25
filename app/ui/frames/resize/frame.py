@@ -257,7 +257,7 @@ class ResizeFrame(BaseFrame):
         panel.grid_columnconfigure(1, weight=1)
 
         ctk.CTkLabel(
-            panel, text='Ratio', font=fonts.FUENTE_BASE,
+            panel, text=t('ratio'), font=fonts.FUENTE_BASE,
             text_color=colors.TEXT_GRAY, anchor='w'
         ).grid(row=0, column=0, padx=(16, 12), pady=(16, 8), sticky='w')
 
@@ -324,7 +324,7 @@ class ResizeFrame(BaseFrame):
         self._canvas_ancho.pack(side='left', padx=(0, 8))
 
         ctk.CTkLabel(
-            fila_dim, text='x', font=fonts.FUENTE_BASE,
+            fila_dim, text=t('x_symbol'), font=fonts.FUENTE_BASE,
             text_color=colors.TEXT_GRAY
         ).pack(side='left', padx=(0, 8))
 
@@ -444,8 +444,9 @@ class ResizeFrame(BaseFrame):
                 )
             ok = res['ok']
             errores = res['errores']
+            conflictos = res.get('conflictos', 0)
             self.after(0, lambda: self._finalizar(
-                self._btn_resize, t('resize_tab'), ok, errores
+                self._btn_resize, t('resize_tab'), ok, errores, conflictos
             ))
 
         threading.Thread(target=_proc, daemon=True).start()
@@ -469,8 +470,9 @@ class ResizeFrame(BaseFrame):
             )
             ok = res['ok']
             errores = res['errores']
+            conflictos = res.get('conflictos', 0)
             self.after(0, lambda: self._finalizar(
-                self._btn_crop, t('crop_tab'), ok, errores
+                self._btn_crop, t('crop_tab'), ok, errores, conflictos
             ))
 
         threading.Thread(target=_proc, daemon=True).start()
@@ -503,13 +505,14 @@ class ResizeFrame(BaseFrame):
             )
             ok = res['ok']
             errores = res['errores']
+            conflictos = res.get('conflictos', 0)
             self.after(0, lambda: self._finalizar(
-                self._btn_canvas, t('apply_canvas'), ok, errores
+                self._btn_canvas, t('apply_canvas'), ok, errores, conflictos
             ))
 
         threading.Thread(target=_proc, daemon=True).start()
 
-    def _finalizar(self, btn: ctk.CTkButton, texto: str, ok: int, errores: int):
+    def _finalizar(self, btn: ctk.CTkButton, texto: str, ok: int, errores: int, conflictos: int = 0):
         """Restaurar estado del boton y mostrar mensaje de resultado.
 
         Args:
@@ -522,6 +525,8 @@ class ResizeFrame(BaseFrame):
         msg = f'{ok} imagen{"es" if ok != 1 else ""} {t("processed" if ok != 1 else "processed_singular")}'
         if errores:
             msg += f'  -  {errores} {t("error_occurred")}'
+        if conflictos:
+            msg += f'  -  {conflictos} {t("conflicts_renamed")}'
         self._lbl_info.configure(text=msg)
 
     def _limpiar(self):

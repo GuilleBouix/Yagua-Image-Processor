@@ -7,9 +7,15 @@ Relacionado con:
     - app/ui/frames/convert/services.py: Usa las funciones de este modulo.
 """
 
+import logging
 from pathlib import Path
 
-from PIL import Image, ImageOps
+from PIL import Image
+
+from app.modules.image_utils import normalize_common, ensure_rgb_for_jpeg
+from app.modules.output import unique_output_path
+
+logger = logging.getLogger(__name__)
 
 
 # Lista de formatos de destino disponibles
@@ -57,21 +63,15 @@ def _preparar_para(imagen, fmt_destino):
         Imagen convertida al modo apropiado.
     """
     # Corregir rotacion de camara usando datos EXIF
-    imagen = ImageOps.exif_transpose(imagen)
-
-    # Convertir CMYK a RGB siempre (modo impresion no compatible)
-    if imagen.mode == 'CMYK':
-        imagen = imagen.convert('RGB')
+    imagen = normalize_common(imagen)
 
     # JPEG no soporta transparencia - usar fondo blanco
     if fmt_destino == 'JPEG':
         if imagen.mode in ('RGBA', 'LA', 'P'):
             if imagen.mode == 'P':
                 imagen = imagen.convert('RGBA')
-            fondo = Image.new('RGB', imagen.size, (255, 255, 255))
-            fondo.paste(imagen, mask=imagen.split()[-1] if imagen.mode == 'RGBA' else None)
-            return fondo
-        return imagen.convert('RGB')
+            return ensure_rgb_for_jpeg(imagen)
+        return ensure_rgb_for_jpeg(imagen)
 
     # PNG soporta todo - normalizar solo si tiene paleta
     if fmt_destino == 'PNG':
@@ -188,9 +188,12 @@ def convertir_imagen(ruta_entrada, fmt_destino, carpeta_salida, calidad=90):
     extension = _FMT_A_EXT[formato]
     
     ruta_archivo = Path(ruta_entrada)
-    
-    # Construir ruta de salida
-    ruta_salida = str(Path(carpeta_salida) / (ruta_archivo.stem + extension))
+
+    # Construir ruta de salida sin sobrescribir
+    ruta_salida_path, conflicto = unique_output_path(
+        carpeta_salida, ruta_entrada, extension=extension
+    )
+    ruta_salida = str(ruta_salida_path)
 
     # Abrir y convertir imagen
     with Image.open(ruta_entrada) as imagen:
@@ -207,6 +210,7 @@ def convertir_imagen(ruta_entrada, fmt_destino, carpeta_salida, calidad=90):
         'fmt_destino': formato,
         'tam_original': ruta_archivo.stat().st_size,
         'tam_resultado': Path(ruta_salida).stat().st_size,
+        'conflicto': conflicto,
     }
 
 
@@ -252,19 +256,26 @@ def batch_convertir_safe(rutas, fmt_destino, carpeta_salida, calidad=90):
             - ok: Cantidad de conversiones exitosas.
             - errores: Cantidad de errores.
             - fmt_destino: Formato de destino.
+            - conflictos: Cantidad de archivos renombrados por colision.
     """
     resultados = []
     errores = 0
     
+    conflictos = 0
+
     for ruta in rutas:
         try:
             res = convertir_imagen(ruta, fmt_destino, carpeta_salida, calidad)
             resultados.append(res)
+            if res.get('conflicto'):
+                conflictos += 1
         except Exception:
+            logger.warning("Error al convertir %s", ruta, exc_info=True)
             errores += 1
     
     return {
         'ok': len(resultados),
         'errores': errores,
         'fmt_destino': fmt_destino.upper(),
+        'conflictos': conflictos,
     }

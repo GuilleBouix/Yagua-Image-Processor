@@ -10,6 +10,7 @@ Relacionado con:
 
 from __future__ import annotations
 
+import logging
 import threading
 
 import customtkinter as ctk
@@ -30,9 +31,13 @@ FORMATOS_FECHA = {
 class RenameFrame(BaseFrame):
     """Frame del modulo de renombrado en lote."""
 
+    logger = logging.getLogger(__name__)
     def __init__(self, parent):
         """Inicializa el frame."""
         self._state = RenameState()
+        self._formato_fecha_label = ctk.StringVar(value='AAAAMMDD')
+        self._posicion_fecha_label = ctk.StringVar(value=t('rename_prefix_pos'))
+        self._caso_label = ctk.StringVar(value=t('rename_case_lower'))
         super().__init__(parent, t('rename_title'))
 
     def _build_content(self):
@@ -49,7 +54,7 @@ class RenameFrame(BaseFrame):
             border_width=1,
             border_color=colors.SIDEBAR_SEPARATOR
         )
-        panel.grid(row=2, column=0, padx=28, pady=8, sticky='ew')
+        panel.grid(row=2, column=0, padx=28, pady=6, sticky='ew')
         panel.grid_columnconfigure(1, weight=1)
         self._construir_opciones(panel)
 
@@ -61,12 +66,13 @@ class RenameFrame(BaseFrame):
             border_width=1,
             border_color=colors.SIDEBAR_SEPARATOR
         )
-        panel_prev.grid(row=3, column=0, padx=28, pady=(0, 8), sticky='ew')
+        panel_prev.grid(row=3, column=0, padx=28, pady=(0, 6), sticky='ew')
         panel_prev.grid_columnconfigure(0, weight=1)
         self._construir_preview(panel_prev)
 
         # Vincular todas las variables al preview
         self._vincular_variables()
+        self._sync_display_vars()
 
     def _construir_opciones(self, p):
         """
@@ -75,9 +81,19 @@ class RenameFrame(BaseFrame):
         Args:
             p: Frame padre del panel.
         """
-        # ── Prefijo + numeración ──────────────────────────────────────────────
-        ctk.CTkCheckBox(
+        # Seccion: Prefijo + numeracion
+        card_num = ctk.CTkFrame(
             p,
+            fg_color=colors.SIDEBAR_BG,
+            corner_radius=8,
+            border_width=1,
+            border_color=colors.SIDEBAR_SEPARATOR
+        )
+        card_num.grid(row=0, column=0, columnspan=2, padx=12, pady=(12, 6), sticky='ew')
+        card_num.grid_columnconfigure(1, weight=1)
+
+        ctk.CTkCheckBox(
+            card_num,
             text=t('rename_numbering'),
             variable=self._state.numeracion_activa,
             font=fonts.FUENTE_BASE,
@@ -86,10 +102,10 @@ class RenameFrame(BaseFrame):
             hover_color=colors.ACENTO_HOVER,
             border_color=colors.SIDEBAR_SEPARATOR,
             checkmark_color=colors.TEXT_ACTIVE,
-        ).grid(row=0, column=0, padx=(16, 8), pady=(14, 8), sticky='w')
+        ).grid(row=0, column=0, padx=(12, 8), pady=10, sticky='w')
 
-        fila_num = ctk.CTkFrame(p, fg_color='transparent')
-        fila_num.grid(row=0, column=1, padx=(0, 16), pady=(14, 8), sticky='w')
+        fila_num = ctk.CTkFrame(card_num, fg_color='transparent')
+        fila_num.grid(row=0, column=1, padx=(0, 12), pady=10, sticky='w')
 
         ctk.CTkLabel(
             fila_num, text=t('rename_prefix'),
@@ -104,9 +120,9 @@ class RenameFrame(BaseFrame):
             fg_color=colors.FRAMES_BG,
             border_color=colors.SIDEBAR_SEPARATOR,
             text_color=colors.TEXT_COLOR,
-            placeholder_text='foto',
+            placeholder_text=t('rename_placeholder'),
             placeholder_text_color=colors.TEXT_GRAY,
-            width=100
+            width=140
         ).pack(side='left', padx=(0, 16))
 
         ctk.CTkLabel(
@@ -125,14 +141,19 @@ class RenameFrame(BaseFrame):
             width=52
         ).pack(side='left')
 
-        # Separador
-        ctk.CTkFrame(p, height=1, fg_color=colors.SIDEBAR_SEPARATOR).grid(
-            row=1, column=0, columnspan=2, padx=16, pady=2, sticky='ew'
-        )
-
-        # ── Agregar fecha ─────────────────────────────────────────────────────
-        ctk.CTkCheckBox(
+        # Seccion: Agregar fecha
+        card_fecha = ctk.CTkFrame(
             p,
+            fg_color=colors.SIDEBAR_BG,
+            corner_radius=8,
+            border_width=1,
+            border_color=colors.SIDEBAR_SEPARATOR
+        )
+        card_fecha.grid(row=1, column=0, columnspan=2, padx=12, pady=6, sticky='ew')
+        card_fecha.grid_columnconfigure(1, weight=1)
+
+        ctk.CTkCheckBox(
+            card_fecha,
             text=t('rename_date'),
             variable=self._state.fecha_activa,
             font=fonts.FUENTE_BASE,
@@ -141,28 +162,28 @@ class RenameFrame(BaseFrame):
             hover_color=colors.ACENTO_HOVER,
             border_color=colors.SIDEBAR_SEPARATOR,
             checkmark_color=colors.TEXT_ACTIVE,
-        ).grid(row=2, column=0, padx=(16, 8), pady=(8, 8), sticky='w')
+        ).grid(row=0, column=0, padx=(12, 8), pady=10, sticky='w')
 
-        fila_fecha = ctk.CTkFrame(p, fg_color='transparent')
-        fila_fecha.grid(row=2, column=1, padx=(0, 16), pady=(8, 8), sticky='w')
+        fila_fecha = ctk.CTkFrame(card_fecha, fg_color='transparent')
+        fila_fecha.grid(row=0, column=1, padx=(0, 12), pady=10, sticky='w')
 
         ctk.CTkSegmentedButton(
             fila_fecha,
-            values=['Prefijo', 'Sufijo'],
-            variable=self._state.posicion_fecha,
+            values=[t('rename_prefix_pos'), t('rename_suffix_pos')],
+            variable=self._posicion_fecha_label,
             font=fonts.FUENTE_CHICA,
-            selected_color=colors.ACENTO,
-            selected_hover_color=colors.ACENTO_HOVER,
+            selected_color=colors.SEGMENT_SELECTED,
+            selected_hover_color=colors.SEGMENT_SELECTED_HOVER,
             unselected_color=colors.SIDEBAR_BG,
             unselected_hover_color=colors.SIDEBAR_HOVER,
             text_color=colors.TEXT_COLOR,
-            command=lambda _: self._actualizar_preview()
+            command=self._on_posicion_fecha_change
         ).pack(side='left', padx=(0, 16))
 
         ctk.CTkOptionMenu(
             fila_fecha,
             values=list(FORMATOS_FECHA.keys()),
-            variable=self._state.formato_fecha,
+            variable=self._formato_fecha_label,
             font=fonts.FUENTE_BASE,
             fg_color=colors.SIDEBAR_BG,
             button_color=colors.ACENTO,
@@ -171,36 +192,38 @@ class RenameFrame(BaseFrame):
             dropdown_fg_color=colors.PANEL_BG,
             dropdown_text_color=colors.TEXT_COLOR,
             dropdown_hover_color=colors.SIDEBAR_HOVER,
-            command=lambda v: (
-                self._state.formato_fecha.set(FORMATOS_FECHA[v]),
-                self._actualizar_preview()
-            )
+            command=self._on_formato_fecha_change
         ).pack(side='left')
 
-        # Separador
-        ctk.CTkFrame(p, height=1, fg_color=colors.SIDEBAR_SEPARATOR).grid(
-            row=3, column=0, columnspan=2, padx=16, pady=2, sticky='ew'
+        # Seccion: Capitalizacion
+        card_case = ctk.CTkFrame(
+            p,
+            fg_color=colors.SIDEBAR_BG,
+            corner_radius=8,
+            border_width=1,
+            border_color=colors.SIDEBAR_SEPARATOR
         )
+        card_case.grid(row=2, column=0, columnspan=2, padx=12, pady=(6, 12), sticky='ew')
+        card_case.grid_columnconfigure(1, weight=1)
 
-        # ── Capitalización ────────────────────────────────────────────────────
         ctk.CTkLabel(
-            p, text=t('rename_case'),
+            card_case, text=t('rename_case'),
             font=fonts.FUENTE_BASE,
             text_color=colors.TEXT_COLOR, anchor='w'
-        ).grid(row=4, column=0, padx=(16, 8), pady=(8, 14), sticky='w')
+        ).grid(row=0, column=0, padx=(12, 8), pady=10, sticky='w')
 
         ctk.CTkSegmentedButton(
-            p,
-            values=['Minusculas', 'Mayusculas'],
-            variable=self._state.caso,
+            card_case,
+            values=[t('rename_case_lower'), t('rename_case_upper')],
+            variable=self._caso_label,
             font=fonts.FUENTE_CHICA,
-            selected_color=colors.ACENTO,
-            selected_hover_color=colors.ACENTO_HOVER,
+            selected_color=colors.SEGMENT_SELECTED,
+            selected_hover_color=colors.SEGMENT_SELECTED_HOVER,
             unselected_color=colors.SIDEBAR_BG,
             unselected_hover_color=colors.SIDEBAR_HOVER,
             text_color=colors.TEXT_COLOR,
             command=self._aplicar_capitalizacion
-        ).grid(row=4, column=1, padx=(0, 16), pady=(8, 14), sticky='w')
+        ).grid(row=0, column=1, padx=(0, 12), pady=10, sticky='w')
 
     def _construir_preview(self, p):
         """
@@ -211,7 +234,7 @@ class RenameFrame(BaseFrame):
         """
         # Header
         header = ctk.CTkFrame(p, fg_color='transparent')
-        header.grid(row=0, column=0, padx=16, pady=(12, 6), sticky='ew')
+        header.grid(row=0, column=0, padx=16, pady=(10, 4), sticky='ew')
         header.grid_columnconfigure(0, weight=1)
 
         ctk.CTkLabel(
@@ -255,11 +278,11 @@ class RenameFrame(BaseFrame):
             p,
             fg_color='transparent',
             border_width=0,
-            height=140,
+            height=120,
             scrollbar_button_color=colors.SIDEBAR_SEPARATOR,
             scrollbar_button_hover_color=colors.ACENTO_DIMMED,
         )
-        self._lista_preview.grid(row=2, column=0, padx=16, pady=(0, 12), sticky='ew')
+        self._lista_preview.grid(row=2, column=0, padx=16, pady=(0, 10), sticky='ew')
         self._lista_preview.grid_columnconfigure((0, 1), weight=1)
 
         # Placeholder inicial
@@ -277,6 +300,9 @@ class RenameFrame(BaseFrame):
             self._state.posicion_fecha,
             self._state.formato_fecha,
             self._state.caso,
+            self._posicion_fecha_label,
+            self._formato_fecha_label,
+            self._caso_label,
         ):
             var.trace_add('write', lambda *_: self._actualizar_preview())
 
@@ -308,8 +334,8 @@ class RenameFrame(BaseFrame):
             opciones = self._state.obtener_opciones()
             preview = generar_nombres_preview(self._imagenes, opciones)
             self.after(0, lambda: self._renderizar_preview(preview))
-        except Exception:
-            pass
+        except Exception as exc:
+            self.logger.warning("Error al generar preview: %s", exc)
 
     def _renderizar_preview(self, preview):
         """
@@ -371,9 +397,9 @@ class RenameFrame(BaseFrame):
         suffix = t('files_loaded') if ok > 1 else t('file_loaded')
         msg = f'{ok} {suffix} {t("renamed")}'
         if conflictos:
-            msg += f'  ·  {conflictos} {t("rename_conflicts")}'
+            msg += f'  -  {conflictos} {t("rename_conflicts")}'
         if errores:
-            msg += f'  ·  {errores} {t("error_occurred")}'
+            msg += f'  -  {errores} {t("error_occurred")}'
         self._lbl_info.configure(text=msg)
 
         # Limpiar despues de renombrar exitoso
@@ -387,16 +413,58 @@ class RenameFrame(BaseFrame):
         para forzar actualizacion del preview via trace.
 
         Args:
-            caso: 'sin_cambio', 'minusculas' o 'mayusculas'.
+            caso: Valor traduzido del optionmenu ('minúsc.', 'MAYÚSC.', etc.)
         """
         prefijo_actual = self._state.prefijo.get()
+        
+        # Comparar contra valores traduzidos para determinar accion
+        es_minusculas = caso == t('rename_case_lower')
+        es_mayusculas = caso == t('rename_case_upper')
+        
         if not prefijo_actual:
+            if es_minusculas:
+                self._state.caso.set('minusculas')
+            elif es_mayusculas:
+                self._state.caso.set('mayusculas')
             self._actualizar_preview()
             return
 
-        if caso == 'minusculas':
+        if es_minusculas:
+            self._state.caso.set('minusculas')
             self._state.prefijo.set(prefijo_actual.lower())
-        elif caso == 'mayusculas':
+        elif es_mayusculas:
+            self._state.caso.set('mayusculas')
             self._state.prefijo.set(prefijo_actual.upper())
         else:
             self._actualizar_preview()
+
+    def _on_posicion_fecha_change(self, valor):
+        """Actualizar posicion de fecha en el estado."""
+        # Comparar contra valores traduzidos
+        if valor == t('rename_suffix_pos'):
+            self._state.posicion_fecha.set('sufijo')
+        elif valor == t('rename_prefix_pos'):
+            self._state.posicion_fecha.set('prefijo')
+        self._actualizar_preview()
+
+    def _on_formato_fecha_change(self, valor):
+        """Actualizar formato de fecha en el estado."""
+        self._state.formato_fecha.set(FORMATOS_FECHA.get(valor, '%Y%m%d'))
+        self._actualizar_preview()
+
+    def _sync_display_vars(self):
+        """Sincroniza labels visibles con el estado interno."""
+        if self._state.posicion_fecha.get() == 'sufijo':
+            self._posicion_fecha_label.set(t('rename_suffix_pos'))
+        else:
+            self._posicion_fecha_label.set(t('rename_prefix_pos'))
+
+        for label, fmt in FORMATOS_FECHA.items():
+            if fmt == self._state.formato_fecha.get():
+                self._formato_fecha_label.set(label)
+                break
+
+        if self._state.caso.get() == 'mayusculas':
+            self._caso_label.set(t('rename_case_upper'))
+        else:
+            self._caso_label.set(t('rename_case_lower'))

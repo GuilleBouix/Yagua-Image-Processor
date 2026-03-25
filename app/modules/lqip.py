@@ -9,10 +9,12 @@ Relacionado con:
 import base64
 import io
 import json
+import logging
 from pathlib import Path
 
 from PIL import Image, ImageFilter
 
+logger = logging.getLogger(__name__)
 
 def imagen_a_base64(ruta, calidad=85):
     """
@@ -70,7 +72,7 @@ def generar_lqip(ruta, ancho=20, blur=2.0, calidad=40):
 
     resultado = _construir_resultado(datos, Path(ruta).name)
     resultado['bytes'] = len(buffer.getvalue())
-    resultado['dimensiones'] = f'{ancho}×{alto}px'
+    resultado['dimensiones'] = f'{ancho}x{alto}px'
 
     return resultado
 
@@ -123,7 +125,8 @@ def batch_procesar(rutas, modo='lqip', ancho=20, blur=2.0, calidad_lqip=40, cali
             else:
                 res = imagen_a_base64(ruta, calidad=calidad_b64)
             resultados.append(res)
-        except Exception:
+        except Exception as exc:
+            logger.warning("Error al procesar LQIP %s: %s", ruta, exc)
             errores += 1
 
     return {

@@ -15,7 +15,8 @@ Relacionado con:
 from __future__ import annotations
 
 import json
-from pathlib import Path
+
+from app.utils.settings import settings_path
 
 
 # Tema por defecto al iniciar la aplicacion
@@ -193,7 +194,7 @@ def _settings_path():
     Returns:
         Path al archivo user_settings.json en el directorio app/.
     """
-    return Path(__file__).resolve().parents[1] / 'user_settings.json'
+    return settings_path()
 
 
 def _load_theme():

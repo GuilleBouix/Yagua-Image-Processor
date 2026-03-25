@@ -6,9 +6,11 @@ Relacionado con:
     - app/ui/frames/rename/: UI relacionada.
 """
 
+import logging
 from datetime import datetime
 from pathlib import Path
 
+logger = logging.getLogger(__name__)
 
 def generar_nombres_preview(rutas, opciones):
     """
@@ -34,8 +36,8 @@ def generar_nombres_preview(rutas, opciones):
 def _aplicar_transformaciones(nombre, indice, opciones):
     """
     Aplica transformaciones en este orden:
-    1. Capitalización (sobre el nombre original)
-    2. Numeración con prefijo (reemplaza o agrega número)
+    1. Capitalizacion (sobre el nombre original)
+    2. Numeracion con prefijo (reemplaza o agrega numero)
     3. Fecha (siempre envuelve el resultado final)
     """
     try:
@@ -45,7 +47,7 @@ def _aplicar_transformaciones(nombre, indice, opciones):
 
     nombre_resultado = nombre
 
-    # Paso 1 — Prefijo + numeración
+    # Paso 1 - Prefijo + numeracion
     if opciones.get('numeracion_activa'):
         prefijo = opciones.get('prefijo', '').strip()
         numero = str(indice + inicio).zfill(3)
@@ -54,7 +56,7 @@ def _aplicar_transformaciones(nombre, indice, opciones):
         else:
             nombre_resultado = f'{nombre_resultado}_{numero}'
 
-    # Paso 2 — Fecha
+    # Paso 2 - Fecha
     if opciones.get('fecha_activa'):
         formato = opciones.get('formato_fecha', '%Y%m%d')
         try:
@@ -62,13 +64,14 @@ def _aplicar_transformaciones(nombre, indice, opciones):
         except Exception:
             fecha = datetime.now().strftime('%Y%m%d')
 
-        if opciones.get('posicion_fecha') == 'sufijo':
+        posicion = str(opciones.get('posicion_fecha', 'prefijo')).lower()
+        if posicion == 'sufijo':
             nombre_resultado = f'{nombre_resultado}_{fecha}'
         else:
             nombre_resultado = f'{fecha}_{nombre_resultado}'
 
-    # Paso 3 — Capitalización al final sobre todo el resultado
-    caso = opciones.get('caso', 'sin_cambio')
+    # Paso 3 - Capitalizacion al final sobre todo el resultado
+    caso = str(opciones.get('caso', 'sin_cambio')).lower()
     if caso == 'minusculas':
         nombre_resultado = nombre_resultado.lower()
     elif caso == 'mayusculas':
@@ -112,7 +115,8 @@ def renombrar_archivos(rutas, opciones):
             ruta_archivo.rename(ruta_nueva)
             ok += 1
 
-        except Exception:
+        except Exception as exc:
+            logger.warning("Error al renombrar %s: %s", ruta, exc)
             errores += 1
 
     return {

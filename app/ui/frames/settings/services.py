@@ -15,11 +15,12 @@ import subprocess
 from pathlib import Path
 
 from app.translations import set_language
+from app.utils.settings import settings_path
 
 
 def _settings_path() -> Path:
     """Obtener ruta del archivo de configuracion de usuario."""
-    return Path(__file__).resolve().parents[3] / 'user_settings.json'
+    return settings_path()
 
 
 def _load_settings() -> dict:

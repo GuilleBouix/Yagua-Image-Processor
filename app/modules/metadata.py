@@ -14,6 +14,7 @@ from pathlib import Path
 from PIL import Image, ImageOps
 import piexif
 
+from app.modules.output import unique_output_path
 
 logger = logging.getLogger(__name__)
 
@@ -268,7 +269,8 @@ def editar_exif(ruta_entrada, ruta_salida, campos):
         campos: Diccionario con nombre_campo como clave y nuevo_valor.
         
     Returns:
-        True si se edito exitosamente, False si fallo o no es soportado.
+        Tupla (ok, warning). Si ok es True pero warning no es None, la
+        imagen se guardo sin EXIF por formato no compatible.
     """
     try:
         with Image.open(ruta_entrada) as imagen:
@@ -277,7 +279,7 @@ def editar_exif(ruta_entrada, ruta_salida, campos):
             # Solo JPEG y TIFF soportan EXIF editable
             if formato not in ('JPEG', 'TIFF'):
                 imagen.save(ruta_salida, formato)
-                return False
+                return True, 'no_exif'
 
             try:
                 exif_dict = piexif.load(ruta_entrada)
@@ -302,11 +304,11 @@ def editar_exif(ruta_entrada, ruta_salida, campos):
             # Guardar con EXIF modificado
             exif_bytes = piexif.dump(exif_dict)
             imagen.save(ruta_salida, formato, exif=exif_bytes, quality=95)
-            return True
+            return True, None
 
     except Exception as exc:
         logger.warning("Error al editar EXIF en %s: %s", ruta_entrada, exc)
-        return False
+        return False, 'error'
 
 
 def exportar_txt(metadatos, ruta):
@@ -385,14 +387,20 @@ def batch_limpiar_exif(rutas, carpeta_salida, sufijo='_sinexif'):
         sufijo: Sufijo para agregar al nombre de archivo.
         
     Returns:
-        Diccionario con exitos y errores.
+        Diccionario con exitos, errores y conflictos.
     """
     errores = 0
+    conflictos = 0
     for ruta in rutas:
         try:
-            ruta_archivo = Path(ruta)
-            salida = str(Path(carpeta_salida) / (ruta_archivo.stem + sufijo + ruta_archivo.suffix))
+            salida_path, conflicto = unique_output_path(
+                carpeta_salida, ruta, sufijo=sufijo
+            )
+            salida = str(salida_path)
+            if conflicto:
+                conflictos += 1
             limpiar_exif(ruta, salida)
-        except Exception:
+        except Exception as exc:
+            logger.warning("Error al limpiar EXIF %s: %s", ruta, exc)
             errores += 1
-    return {'ok': len(rutas) - errores, 'errores': errores}
+    return {'ok': len(rutas) - errores, 'errores': errores, 'conflictos': conflictos}

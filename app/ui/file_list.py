@@ -89,7 +89,7 @@ def add_file_row(container, ruta, filas, *, name_max=32, thumb_size=44, show_ext
     # Construir texto de metadatos
     if show_ext:
         ext = p.suffix.upper().lstrip(".")
-        meta_txt = f'{size_txt}  ·  {ext}'
+        meta_txt = f'{size_txt}  -  {ext}'
     else:
         meta_txt = size_txt
     

@@ -22,6 +22,7 @@ organized by section:
 TRANSLATIONS = {
     # App
     'app_title': 'Yagua - Image Processor',
+    'loading_model': 'Loading model...',
     
     # Sidebar
     'compress': 'Compress',
@@ -36,7 +37,7 @@ TRANSLATIONS = {
     'optimizer': 'Optimizer',
     'settings': 'Settings',
     'developed_by': 'Developed by ',
-    'github': '@bouix.dev',
+    'github': '@guillebouix.dev',
     
     # Compress
     'compress_title': 'Compress',
@@ -54,6 +55,7 @@ TRANSLATIONS = {
     'image_loaded': 'image',
     'compressed': 'smaller',
     'error_occurred': 'with error',
+    'conflicts_renamed': 'renamed conflicts',
     'size_reduction': 'reduction',
     
     # Convert
@@ -64,6 +66,24 @@ TRANSLATIONS = {
     'converted_to': 'converted to',
     'converted_to_plural': 'converted to',
     'load_images_first_convert': 'Load at least one image first.',
+
+    # Remove Background
+    'remove_bg_title': 'Remove Background',
+    'background_type': 'Output background',
+    'bg_transparent': 'Transparent',
+    'bg_white': 'White',
+    'bg_black': 'Black',
+    'bg_custom': 'Custom',
+    'custom_color': 'Color',
+    'pick_color': 'Pick',
+    'transparency_png_only': 'Transparent exports as PNG.',
+    'remove_bg_btn': 'Remove background',
+    'processing': 'Processing...',
+    'processed': 'processed',
+    'rembg_not_installed': 'rembg is not installed.\nRun this command in your terminal:',
+    'model_first_download': 'u2netp model downloaded automatically when processing.',
+    'output_format': 'Output format',
+    'remove_bg_description': 'Removes the background and exports with transparency.',
     
     # Palette
     'palette_title': 'Color Palette',
@@ -80,6 +100,39 @@ TRANSLATIONS = {
     'saved_as': 'Saved as',
     'saving': 'Saving...',
     'error_generic': 'Error',
+
+    # Rename
+    'rename_title': 'Batch Rename',
+    'rename_numbering': 'Prefix + Numbering',
+    'rename_prefix': 'Prefix',
+    'rename_start': 'Start',
+    'rename_replace': 'Replace text',
+    'rename_search': 'Search',
+    'rename_search_ph': 'text to search',
+    'rename_placeholder': 'photo',
+    'rename_replace_with': 'Replace with',
+    'rename_replace_ph': 'new text',
+    'rename_date': 'Add date',
+    'rename_date_position': 'Position',
+    'rename_prefix_pos': 'Prefix',
+    'rename_suffix_pos': 'Suffix',
+    'rename_date_format': 'Format',
+    'rename_case': 'Capitalization',
+    'rename_case_none': 'Normal',
+    'rename_case_lower': 'lowercase',
+    'rename_case_upper': 'UPPERCASE',
+    'rename_clean': 'Remove spaces and special characters',
+    'rename_preview': 'Preview',
+    'rename_btn': 'Rename',
+    'rename_col_original': 'Original name',
+    'rename_col_nuevo': 'New name',
+    'rename_preview_empty': 'Load files to see preview',
+    'files_loaded': 'files loaded',
+    'file_loaded': 'file loaded',
+    'load_files_first': 'Load files first.',
+    'renaming': 'Renaming...',
+    'renamed': 'renamed',
+    'rename_conflicts': 'conflicts skipped',
     
     # Metadata
     'metadata_title': 'EXIF Metadata',
@@ -107,6 +160,7 @@ TRANSLATIONS = {
     'save_changes': 'Save changes',
     'saving_changes': 'Saving...',
     'saved_as_file': 'Saved:',
+    'saved_without_exif': 'saved without EXIF',
     'error_saving': 'Error saving',
     'enter_at_least_one': 'Enter at least one field to edit.',
     'editing': 'Editing:',
@@ -146,9 +200,38 @@ TRANSLATIONS = {
     'invalid_dimensions': 'Enter valid width and height.',
     'warning_transparency': 'Warning: JPG/BMP do not support transparency - black will be used.',
     'crop_centered': 'Centered crop - the image is cropped from the center.',
+    'ratio': 'Ratio',
+    'x_symbol': 'x',
     'redim': 'resized',
     'crop': 'cropped',
     'canvas': 'canvas',
+
+    # LQIP
+    'lqip_title': 'Low Quality Image Placeholders / Base64',
+    'lqip_mode': 'Mode',
+    'lqip_mode_lqip': 'LQIP',
+    'lqip_mode_b64': 'Base64',
+    'lqip_mode_lqip_desc': 'Generates a tiny, blurry version of the image.',
+    'lqip_mode_b64_desc': 'Converts the full image to base64.',
+    'lqip_width': 'Width (px)',
+    'lqip_blur': 'Blur',
+    'lqip_quality': 'Quality',
+    'lqip_export': 'Export result',
+    'lqip_export_field': 'Field to export',
+    'lqip_field_data_uri': 'Data URI',
+    'lqip_field_html_tag': 'HTML Tag',
+    'lqip_field_css_bg': 'CSS Background',
+    'file_txt': 'Text',
+    'file_json': 'JSON',
+    'lqip_actions': 'Actions',
+    'lqip_btn_process': 'Generate',
+    'lqip_btn_copy': 'Copy',
+    'lqip_btn_save': 'Save',
+    'lqip_ready_to_export': 'ready to export',
+    'lqip_process_first': 'Generate the result first.',
+    'lqip_copied': 'Copied to clipboard.',
+    'lqip_save_title': 'Save result',
+    'lqip_saved_as': 'Saved as',
     
     # Settings
     'settings_title': 'Settings',
@@ -160,5 +243,5 @@ TRANSLATIONS = {
     'dark': 'Dark',
     'light': 'Light',
     'system': 'System',
-    'restart_required': 'Restart the application to apply the language.',
+    'restart_required': 'Restarting application to apply the language...',
 }

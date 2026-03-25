@@ -7,11 +7,17 @@ Relacionado con:
     - app/ui/frames/resize/services.py: Usa las funciones de este modulo.
 """
 
+import logging
 from pathlib import Path
 
-from PIL import Image, ImageOps
+from PIL import Image
+
+from app.modules.image_utils import normalize_common
+from app.modules.output import unique_output_path
 
 from math import gcd
+
+logger = logging.getLogger(__name__)
 
 
 # Presets de redimensionado por plataforma y uso
@@ -62,7 +68,7 @@ PRESETS = {
 
 # Lista plana de presets para mostrar en dropdown
 PRESETS_LISTA = [
-    f'{cat} · {nombre}'
+    f'{cat} - {nombre}'
     for cat, items in PRESETS.items()
     for nombre in items
 ]
@@ -88,14 +94,14 @@ def preset_a_dimensiones(key):
     Convierte una key de preset a dimensiones en pixeles.
     
     Args:
-        key: String en formato 'Categoria · Nombre' (ej: 'Instagram · Post cuadrado  1:1').
+        key: String en formato 'Categoria - Nombre' (ej: 'Instagram - Post cuadrado  1:1').
         
     Returns:
         Tupla (ancho, alto) o None si no se encuentra.
     """
-    if ' · ' not in key:
+    if ' - ' not in key:
         return None
-    cat, nombre = key.split(' · ', 1)
+    cat, nombre = key.split(' - ', 1)
     return PRESETS.get(cat, {}).get(nombre)
 
 
@@ -122,8 +128,7 @@ def redimensionar(ruta_entrada, ruta_salida, ancho=None, alto=None,
         Diccionario con dimensiones originales y resultantes.
     """
     with Image.open(ruta_entrada) as imagen:
-        # Corregir rotacion EXIF
-        imagen = ImageOps.exif_transpose(imagen)
+        imagen = normalize_common(imagen)
         ancho_original, alto_original = imagen.size
 
         # Si hay preset, usar sus dimensiones
@@ -190,8 +195,7 @@ def recortar(ruta_entrada, ruta_salida, ratio=None,
         Diccionario con dimensiones originales y recortadas.
     """
     with Image.open(ruta_entrada) as imagen:
-        # Corregir rotacion EXIF
-        imagen = ImageOps.exif_transpose(imagen)
+        imagen = normalize_common(imagen)
         ancho, alto = imagen.size
 
         # Calcular recortes si hay ratio especificado
@@ -247,8 +251,7 @@ def agregar_canvas(ruta_entrada, ruta_salida, ancho_final, alto_final,
         Diccionario con dimensiones originales y finales.
     """
     with Image.open(ruta_entrada) as imagen:
-        # Corregir rotacion EXIF
-        imagen = ImageOps.exif_transpose(imagen)
+        imagen = normalize_common(imagen)
         ancho, alto = imagen.size
 
         # Reducir imagen si es mas grande que el canvas
@@ -389,14 +392,19 @@ def batch_redimensionar(rutas, carpeta_salida, *,
         sufijo: Sufijo para el nombre del archivo.
         
     Returns:
-        Diccionario con exitos y errores.
+        Diccionario con exitos, errores y conflictos.
     """
     errores = 0
+    conflictos = 0
     
     for ruta in rutas:
         try:
-            ruta_archivo = Path(ruta)
-            salida = str(Path(carpeta_salida) / (ruta_archivo.stem + sufijo + ruta_archivo.suffix))
+            salida_path, conflicto = unique_output_path(
+                carpeta_salida, ruta, sufijo=sufijo
+            )
+            salida = str(salida_path)
+            if conflicto:
+                conflictos += 1
             redimensionar(
                 ruta, salida,
                 porcentaje=porcentaje,
@@ -405,10 +413,11 @@ def batch_redimensionar(rutas, carpeta_salida, *,
                 preset_key=preset_key,
                 mantener_ratio=mantener_ratio,
             )
-        except Exception:
+        except Exception as exc:
+            logger.warning("Error al redimensionar %s: %s", ruta, exc)
             errores += 1
     
-    return {'ok': len(rutas) - errores, 'errores': errores}
+    return {'ok': len(rutas) - errores, 'errores': errores, 'conflictos': conflictos}
 
 
 def batch_recortar(rutas, carpeta_salida, *, ratio=None, sufijo='_crop'):
@@ -422,19 +431,25 @@ def batch_recortar(rutas, carpeta_salida, *, ratio=None, sufijo='_crop'):
         sufijo: Sufijo para el nombre del archivo.
         
     Returns:
-        Diccionario con exitos y errores.
+        Diccionario con exitos, errores y conflictos.
     """
     errores = 0
+    conflictos = 0
     
     for ruta in rutas:
         try:
-            ruta_archivo = Path(ruta)
-            salida = str(Path(carpeta_salida) / (ruta_archivo.stem + sufijo + ruta_archivo.suffix))
+            salida_path, conflicto = unique_output_path(
+                carpeta_salida, ruta, sufijo=sufijo
+            )
+            salida = str(salida_path)
+            if conflicto:
+                conflictos += 1
             recortar(ruta, salida, ratio=ratio)
-        except Exception:
+        except Exception as exc:
+            logger.warning("Error al recortar %s: %s", ruta, exc)
             errores += 1
     
-    return {'ok': len(rutas) - errores, 'errores': errores}
+    return {'ok': len(rutas) - errores, 'errores': errores, 'conflictos': conflictos}
 
 
 def batch_canvas(rutas, carpeta_salida, *, ancho, alto, color_fondo, sufijo='_canvas'):
@@ -450,16 +465,22 @@ def batch_canvas(rutas, carpeta_salida, *, ancho, alto, color_fondo, sufijo='_ca
         sufijo: Sufijo para el nombre del archivo.
         
     Returns:
-        Diccionario con exitos y errores.
+        Diccionario con exitos, errores y conflictos.
     """
     errores = 0
+    conflictos = 0
     
     for ruta in rutas:
         try:
-            ruta_archivo = Path(ruta)
-            salida = str(Path(carpeta_salida) / (ruta_archivo.stem + sufijo + ruta_archivo.suffix))
+            salida_path, conflicto = unique_output_path(
+                carpeta_salida, ruta, sufijo=sufijo
+            )
+            salida = str(salida_path)
+            if conflicto:
+                conflictos += 1
             agregar_canvas(ruta, salida, ancho, alto, color_fondo=color_fondo)
-        except Exception:
+        except Exception as exc:
+            logger.warning("Error al aplicar canvas %s: %s", ruta, exc)
             errores += 1
     
-    return {'ok': len(rutas) - errores, 'errores': errores}
+    return {'ok': len(rutas) - errores, 'errores': errores, 'conflictos': conflictos}

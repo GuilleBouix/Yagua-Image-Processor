@@ -143,7 +143,7 @@ class Sidebar(ctk.CTkFrame):
         # Label "Developed by"
         ctk.CTkLabel(
             self._frame_footer,
-            text=t('developed_by'), # type: ignore
+            text=t('developed_by'),
             font=fonts.FUENTE_CHICA,
             text_color=colors.TEXT_GRAY,
             anchor='e'
@@ -152,7 +152,7 @@ class Sidebar(ctk.CTkFrame):
         # Label clickeable de GitHub
         lbl_link = ctk.CTkLabel(
             self._frame_footer,
-            text=t('github'), # type: ignore
+            text=t('github'),
             font=fonts.FUENTE_CHICA,
             text_color=colors.ACENTO,
             cursor='hand2',

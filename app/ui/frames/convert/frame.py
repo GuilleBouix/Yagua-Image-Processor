@@ -240,9 +240,14 @@ class ConvertFrame(BaseFrame):
             carpeta_salida=carpeta,
             calidad=self._state.calidad.get(),
         )
-        self.after(0, lambda: self._finalizar(res['ok'], res['errores'], res['fmt_destino']))
+        self.after(0, lambda: self._finalizar(
+            res['ok'],
+            res['errores'],
+            res['fmt_destino'],
+            res.get('conflictos', 0),
+        ))
 
-    def _finalizar(self, ok, errores, fmt):
+    def _finalizar(self, ok, errores, fmt, conflictos=0):
         """
         Muestra el resultado final de la conversion.
         
@@ -255,4 +260,6 @@ class ConvertFrame(BaseFrame):
         msg = f'{ok} imagen{"es" if ok != 1 else ""} {t("converted_to" if ok == 1 else "converted_to_plural")} {fmt}'
         if errores:
             msg += f'  -  {errores} {t("error_occurred")}'
+        if conflictos:
+            msg += f'  -  {conflictos} {t("conflicts_renamed")}'
         self._lbl_info.configure(text=msg)

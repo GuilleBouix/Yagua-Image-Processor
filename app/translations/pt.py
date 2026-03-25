@@ -1,27 +1,28 @@
 """
-Traducoes em Portugues.
-Dicionario de textos para a interface em idioma portugues.
+Traduções em Português.
+Dicionário de textos para a interface em idioma português.
 
 Relacionado com:
-    - app/translations/__init__.py: Sistema de traducoes.
-    - app/translations/es.py: Traducoes em espanhol.
-    - app/translations/en.py: Traducoes em ingles.
+    - app/translations/__init__.py: Sistema de traduções.
+    - app/translations/es.py: Traduções em espanhol.
+    - app/translations/en.py: Traduções em inglês.
 
-Este arquivo contem todas as chaves de traducao usadas
-na aplicacao organizadas por secao:
-    - App: Titulo geral da aplicacao.
-    - Sidebar: Labels de navegacao.
-    - Compress: Modulo de compressao.
-    - Convert: Modulo de conversao.
-    - Palette: Modulo de paleta de cores.
-    - Metadata: Modulo de metadados EXIF.
-    - Resize: Modulo de redimensionamento.
-    - Settings: Modulo de configuracoes.
+Este arquivo contêm todas as chaves de tradução usadas
+na aplicação organizadas por seção:
+    - App: Título geral da aplicação.
+    - Sidebar: Labels de navegação.
+    - Compress: Módulo de compressão.
+    - Convert: Módulo de conversão.
+    - Palette: Módulo de paleta de cores.
+    - Metadata: Módulo de metadados EXIF.
+    - Resize: Módulo de redimensionamento.
+    - Settings: Módulo de configurações.
 """
 
 TRANSLATIONS = {
     # App
     'app_title': 'Yagua - Processador de Imagem',
+    'loading_model': 'Carregando modelo...',
     
     # Sidebar
     'compress': 'Comprimir',
@@ -34,9 +35,9 @@ TRANSLATIONS = {
     'metadata': 'Metadados EXIF',
     'lqip': 'LQIP / Base64',
     'optimizer': 'Otimizador',
-    'settings': 'Configuracoes',
-    'developed_by': 'Developed by ',
-    'github': '@bouix.dev',
+    'settings': 'Configurações',
+    'developed_by': 'Desenvolvido por ',
+    'github': '@guillebouix.dev',
     
     # Comprimir
     'compress_title': 'Comprimir',
@@ -48,13 +49,14 @@ TRANSLATIONS = {
     'clean': 'Limpar',
     'compressing': 'Comprimindo...',
     'load_images_first': 'Carregue pelo menos uma imagem.',
-    'select_output_folder': 'Selecione a pasta de saida',
+    'select_output_folder': 'Selecione a pasta de saída',
     'estimated': 'estimado',
     'images_loaded': 'imagens',
     'image_loaded': 'imagem',
     'compressed': 'menor',
     'error_occurred': 'com erro',
-    'size_reduction': 'reducao',
+    'conflicts_renamed': 'conflitos renomeados',
+    'size_reduction': 'redução',
     
     # Convert
     'convert_title': 'Converter',
@@ -64,6 +66,24 @@ TRANSLATIONS = {
     'converted_to': 'convertida para',
     'converted_to_plural': 'convertidas para',
     'load_images_first_convert': 'Carregue pelo menos uma imagem.',
+
+    # Remover Fundo
+    'remove_bg_title': 'Remover Fundo',
+    'background_type': 'Fundo de saída',
+    'bg_transparent': 'Transparente',
+    'bg_white': 'Branco',
+    'bg_black': 'Preto',
+    'bg_custom': 'Personalizado',
+    'custom_color': 'Cor',
+    'pick_color': 'Escolher',
+    'transparency_png_only': 'Transparente exporta como PNG.',
+    'remove_bg_btn': 'Remover fundo',
+    'processing': 'Processando...',
+    'processed': 'processadas',
+    'rembg_not_installed': 'rembg não está instalado.\nExecute este comando no seu terminal:',
+    'model_first_download': 'Modelo u2netp baixado automaticamente ao processar.',
+    'output_format': 'Formato de saída',
+    'remove_bg_description': 'Remove o fundo e exporta com transparência.',
     
     # Palette
     'palette_title': 'Paleta de Cores',
@@ -73,13 +93,46 @@ TRANSLATIONS = {
     'save_palette_btn': 'Salvar Paleta de Cores',
     'no_image_selected': 'Nenhuma imagem selecionada',
     'select_image_for_palette': 'Selecione uma imagem para ver a paleta',
-    'colors_extracted': 'cores extraidas',
+    'colors_extracted': 'cores extraídas',
     'click_format_to_copy': 'clique em um formato para copiar',
     'copied': 'Copiado:',
     'save_palette_first': 'Carregue uma imagem primeiro.',
     'saved_as': 'Salvo como',
     'saving': 'Salvando...',
     'error_generic': 'Erro',
+
+    # Rename
+    'rename_title': 'Renomear Lote',
+    'rename_numbering': 'Prefixo + Numeração',
+    'rename_prefix': 'Prefixo',
+    'rename_start': 'Início',
+    'rename_replace': 'Substituir texto',
+    'rename_search': 'Buscar',
+    'rename_search_ph': 'texto a buscar',
+    'rename_placeholder': 'foto',
+    'rename_replace_with': 'Substituir por',
+    'rename_replace_ph': 'novo texto',
+    'rename_date': 'Adicionar data',
+    'rename_date_position': 'Posição',
+    'rename_prefix_pos': 'Prefixo',
+    'rename_suffix_pos': 'Sufixo',
+    'rename_date_format': 'Formato',
+    'rename_case': 'Capitalização',
+    'rename_case_none': 'Normal',
+    'rename_case_lower': 'minúsc.',
+    'rename_case_upper': 'MAIÚSC.',
+    'rename_clean': 'Remover espaços e caracteres especiais',
+    'rename_preview': 'Preview',
+    'rename_btn': 'Renomear',
+    'rename_col_original': 'Nome original',
+    'rename_col_nuevo': 'Nome novo',
+    'rename_preview_empty': 'Carregue arquivos para ver o preview',
+    'files_loaded': 'arquivos carregados',
+    'file_loaded': 'arquivo carregado',
+    'load_files_first': 'Carregue arquivos primeiro.',
+    'renaming': 'Renomeando...',
+    'renamed': 'renomeados',
+    'rename_conflicts': 'conflitos ignorados',
     
     # Metadata
     'metadata_title': 'Metadados EXIF',
@@ -90,7 +143,7 @@ TRANSLATIONS = {
     'select_image_edit': 'Selecione uma imagem para editar seus metadados',
     'select_images_clean': 'Selecione imagens para limpar EXIF',
     'no_metadata': 'Sem metadados - carregue uma imagem',
-    'no_metadata_image': 'Esta imagem nao tem metadados EXIF',
+    'no_metadata_image': 'Esta imagem não tem metadados EXIF',
     'view_on_maps': 'Ver no Maps',
     'export_txt': 'Exportar .txt',
     'export_json': 'Exportar .json',
@@ -104,9 +157,10 @@ TRANSLATIONS = {
     'software': 'Software',
     'datetime': 'Data e hora',
     'enter_field': 'Digite {}...',
-    'save_changes': 'Salvar alteracoes',
+    'save_changes': 'Salvar alterações',
     'saving_changes': 'Salvando...',
     'saved_as_file': 'Salvo:',
+    'saved_without_exif': 'salvo sem EXIF',
     'error_saving': 'Erro ao salvar',
     'enter_at_least_one': 'Digite pelo menos um campo para editar.',
     'editing': 'Editando:',
@@ -116,7 +170,7 @@ TRANSLATIONS = {
     'cleaning': 'Limpando...',
     'cleaned': 'imagens limpas',
     'load_images_first_clean': 'Carregue imagens primeiro.',
-    'select_output_folder_clean': 'Pasta de saida',
+    'select_output_folder_clean': 'Pasta de saída',
     'without_exif': 'semexif',
     
     # Resize
@@ -126,9 +180,9 @@ TRANSLATIONS = {
     'canvas_tab': 'Canvas',
     'mode': 'Modo',
     'percentage': 'Porcentagem',
-    'pixels': 'Pixeis',
+    'pixels': 'Pixels',
     'preset': 'Preset',
-    'maintain_aspect': 'Manter proporcao',
+    'maintain_aspect': 'Manter proporção',
     'width': 'Largura',
     'height': 'Altura',
     'size': 'Tamanho',
@@ -143,22 +197,51 @@ TRANSLATIONS = {
     'processed': 'processadas',
     'processed_singular': 'processada',
     'load_images_first_resize': 'Carregue imagens primeiro.',
-    'invalid_dimensions': 'Digite largura e altura validas.',
-    'warning_transparency': 'Aviso: JPG/BMP nao suportam transparencia - preto sera usado.',
+    'invalid_dimensions': 'Digite largura e altura válidas.',
+    'warning_transparency': 'Aviso: JPG/BMP não suportam transparência - preto será usado.',
     'crop_centered': 'Corte centralizado - a imagem e cortada do centro.',
+    'ratio': 'Ratio',
+    'x_symbol': 'x',
     'redim': 'redim',
     'crop': 'cortada',
     'canvas': 'canvas',
+
+    # LQIP
+    'lqip_title': 'Low Quality Image Placeholders / Base64',
+    'lqip_mode': 'Modo',
+    'lqip_mode_lqip': 'LQIP',
+    'lqip_mode_b64': 'Base64',
+    'lqip_mode_lqip_desc': 'Gera uma versão tiny e borrada da imagem.',
+    'lqip_mode_b64_desc': 'Converte a imagem completa para base64.',
+    'lqip_width': 'Largura (px)',
+    'lqip_blur': 'Desfoque',
+    'lqip_quality': 'Qualidade',
+    'lqip_export': 'Exportar resultado',
+    'lqip_export_field': 'Campo a exportar',
+    'lqip_field_data_uri': 'Data URI',
+    'lqip_field_html_tag': 'HTML Tag',
+    'lqip_field_css_bg': 'CSS Background',
+    'file_txt': 'Texto',
+    'file_json': 'JSON',
+    'lqip_actions': 'Ações',
+    'lqip_btn_process': 'Gerar',
+    'lqip_btn_copy': 'Copiar',
+    'lqip_btn_save': 'Salvar',
+    'lqip_ready_to_export': 'pronto para exportar',
+    'lqip_process_first': 'Gere o resultado primeiro.',
+    'lqip_copied': 'Copiado para a área de transferência.',
+    'lqip_save_title': 'Salvar resultado',
+    'lqip_saved_as': 'Salvo como',
     
     # Settings
-    'settings_title': 'Configuracoes',
+    'settings_title': 'Configurações',
     'language': 'Idioma',
     'select_language': 'Selecionar idioma',
-    'appearance': 'Aparencia',
+    'appearance': 'Aparência',
     'theme': 'Tema',
     'ui_theme': 'Tema da interface',
     'dark': 'Escuro',
     'light': 'Claro',
     'system': 'Sistema',
-    'restart_required': 'Reinicie o aplicativo para aplicar o idioma.',
+    'restart_required': 'Reiniciando o aplicativo para aplicar o idioma...',
 }

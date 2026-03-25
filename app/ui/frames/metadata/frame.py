@@ -126,11 +126,9 @@ class MetadataFrame(BaseFrame):
             text=t('export_txt'),
             height=36, corner_radius=8,
             font=fonts.FUENTE_BASE,
-            fg_color=colors.PANEL_BG,
-            border_width=1,
-            border_color=colors.SIDEBAR_SEPARATOR,
-            text_color=colors.TEXT_COLOR,
-            hover_color=colors.SIDEBAR_HOVER,
+            fg_color=colors.ACENTO,
+            text_color=colors.TEXT_ACTIVE,
+            hover_color=colors.ACENTO_HOVER,
             command=lambda: self._exportar('txt')
         ).grid(row=0, column=0, padx=(0, 6), sticky='ew')
 
@@ -139,11 +137,9 @@ class MetadataFrame(BaseFrame):
             text=t('export_json'),
             height=36, corner_radius=8,
             font=fonts.FUENTE_BASE,
-            fg_color=colors.PANEL_BG,
-            border_width=1,
-            border_color=colors.SIDEBAR_SEPARATOR,
-            text_color=colors.TEXT_COLOR,
-            hover_color=colors.SIDEBAR_HOVER,
+            fg_color=colors.ACENTO,
+            text_color=colors.TEXT_ACTIVE,
+            hover_color=colors.ACENTO_HOVER,
             command=lambda: self._exportar('json')
         ).grid(row=0, column=1, padx=(6, 0), sticky='ew')
 
@@ -396,12 +392,22 @@ class MetadataFrame(BaseFrame):
         if not archivo:
             return
         self._state.ruta = archivo
-        meta, _ = leer_metadatos_safe(archivo)
+        self._lbl_info.configure(text=t('reading_metadata'))
+
+        def _proc():
+            meta, _ = leer_metadatos_safe(archivo)
+            self.after(0, lambda: self._aplicar_campos_edit(meta))
+
+        threading.Thread(target=_proc, daemon=True).start()
+
+    def _aplicar_campos_edit(self, meta: dict):
+        """Aplicar metadatos a los campos editables."""
         for etiqueta, entry in zip(CAMPOS_EDITABLES.values(), self._campos_edit.values()):
             entry.delete(0, 'end')
             if etiqueta in meta:
                 entry.insert(0, meta[etiqueta])
-        self._lbl_info.configure(text=f'{t("editing")} {Path(archivo).name}')
+        if self._state.ruta:
+            self._lbl_info.configure(text=f'{t("editing")} {Path(self._state.ruta).name}')
 
     def _guardar_edicion(self):
         """Guardar los cambios de metadatos editados."""
@@ -427,11 +433,16 @@ class MetadataFrame(BaseFrame):
         self._btn_guardar_edit.configure(state='disabled', text=t('saving_changes'))
 
         def _proc():
-            ok = editar_exif(self._state.ruta, ruta, campos)  # type: ignore
+            ok, warning = editar_exif(self._state.ruta, ruta, campos)  # type: ignore
             self.after(0, lambda: self._btn_guardar_edit.configure(
                 state='normal', text=t('save_changes')
             ))
-            msg = f'{t("saved_as_file")} {Path(ruta).name}' if ok else t('error_saving')
+            if ok:
+                msg = f'{t("saved_as_file")} {Path(ruta).name}'
+                if warning == 'no_exif':
+                    msg += f'  -  {t("saved_without_exif")}'
+            else:
+                msg = t('error_saving')
             self.after(0, lambda: self._lbl_info.configure(text=msg))
 
         threading.Thread(target=_proc, daemon=True).start()
@@ -488,6 +499,8 @@ class MetadataFrame(BaseFrame):
         msg = f'{res["ok"]} {t("cleaned")}'
         if res['errores']:
             msg += f'  -  {res["errores"]} {t("error_occurred")}'
+        if res.get('conflictos'):
+            msg += f'  -  {res["conflictos"]} {t("conflicts_renamed")}'
         self.after(0, lambda: self._lbl_info.configure(text=msg))
 
     def _cambiar_tab(self, tab: str):

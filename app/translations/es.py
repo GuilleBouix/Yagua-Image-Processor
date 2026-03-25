@@ -1,27 +1,28 @@
 """
-Traducciones al Espanol.
-Diccionario de textos para la interfaz en idioma espanol.
+Traducciones al Español.
+Diccionario de textos para la interfaz en idioma español.
 
 Relacionado con:
     - app/translations/__init__.py: Sistema de traducciones.
-    - app/translations/en.py: Traducciones en ingles (referencia).
-    - app/translations/pt.py: Traducciones en portugues.
+    - app/translations/en.py: Traducciones en inglés (referencia).
+    - app/translations/pt.py: Traducciones en portugués.
 
-Este archivo contiene todas las claves de traduccion usadas
-en la aplicacion organizadas por seccion:
-    - App: Titulo general de la aplicacion.
-    - Sidebar: Labels de navegacion.
-    - Comprimir: Modulo de compresion.
-    - Convert: Modulo de conversion.
-    - Palette: Modulo de paleta de colores.
-    - Metadata: Modulo de metadatos EXIF.
-    - Resize: Modulo de redimensionado.
-    - Settings: Modulo de configuracion.
+Este archivo contiene todas las claves de traducción usadas
+en la aplicación organizadas por seccion:
+    - App: Título general de la aplicación.
+    - Sidebar: Labels de navegación.
+    - Comprimir: Módulo de compresión.
+    - Convert: Módulo de conversión.
+    - Palette: Módulo de paleta de colores.
+    - Metadata: Módulo de metadatos EXIF.
+    - Resize: Módulo de redimensionado.
+    - Settings: Módulo de configuración.
 """
 
 TRANSLATIONS = {
     # App
-    'app_title': 'Yagua - Procesador de Imagenes',
+    'app_title': 'Yagua - Procesador de Imágenes',
+    'loading_model': 'Cargando modelo...',
     
     # Sidebar
     'compress': 'Comprimir',
@@ -35,26 +36,27 @@ TRANSLATIONS = {
     'lqip': 'LQIP / Base64',
     'optimizer': 'Optimizador',
     'settings': 'Ajustes',
-    'developed_by': 'Developed by ',
-    'github': '@bouix.dev',
+    'developed_by': 'Desarrollado por ',
+    'github': '@guillebouix.dev',
     
     # Comprimir
     'compress_title': 'Comprimir',
-    'select_images': 'Seleccionar imagenes',
-    'no_images': 'Sin imagenes cargadas',
+    'select_images': 'Seleccionar imágenes',
+    'no_images': 'Sin imágenes cargadas',
     'quality': 'Calidad',
     'remove_exif': 'Quitar EXIF',
     'compress_btn': 'Comprimir',
     'clean': 'Limpiar',
     'compressing': 'Comprimiendo...',
     'load_images_first': 'Carga al menos una imagen.',
-    'select_output_folder': 'Elegi carpeta de salida',
+    'select_output_folder': 'Elegí carpeta de salida',
     'estimated': 'estimado',
-    'images_loaded': 'imagenes',
+    'images_loaded': 'imágenes',
     'image_loaded': 'imagen',
-    'compressed': 'mas pequeno',
+    'compressed': 'más pequeño',
     'error_occurred': 'con error',
-    'size_reduction': 'reduccion',
+    'conflicts_renamed': 'conflictos renombrados',
+    'size_reduction': 'reducción',
     
     # Convertir
     'convert_title': 'Convertir',
@@ -91,7 +93,7 @@ TRANSLATIONS = {
     'save_palette_btn': 'Guardar Paleta de Colores',
     'no_image_selected': 'Sin imagen seleccionada',
     'select_image_for_palette': 'Selecciona una Imagen',
-    'colors_extracted': 'colores extraidos',
+    'colors_extracted': 'colores extraídos',
     'click_format_to_copy': 'haz clic en un formato para copiar',
     'copied': 'Copiado:',
     'save_palette_first': 'Carga una imagen primero',
@@ -106,7 +108,8 @@ TRANSLATIONS = {
     'rename_start':        'Inicio',
     'rename_replace':      'Reemplazar texto',
     'rename_search':       'Buscar',
-    'rename_search_ph':    'texto a buscar',
+    'rename_search_ph':       'texto a buscar',
+    'rename_placeholder':     'foto',
     'rename_replace_with': 'Reemplazar por',
     'rename_replace_ph':   'texto nuevo',
     'rename_date':         'Agregar fecha',
@@ -139,7 +142,7 @@ TRANSLATIONS = {
     'clean_batch': 'Limpiar lote',
     'select_image_view': 'Selecciona una imagen para ver sus metadatos',
     'select_image_edit': 'Selecciona una imagen para editar sus metadatos',
-    'select_images_clean': 'Selecciona imagenes para limpiar EXIF',
+    'select_images_clean': 'Selecciona imágenes para limpiar EXIF',
     'no_metadata': 'Sin metadatos - carga una imagen',
     'no_metadata_image': 'Esta imagen no tiene metadatos EXIF',
     'view_on_maps': 'Ver en Maps',
@@ -158,15 +161,16 @@ TRANSLATIONS = {
     'save_changes': 'Guardar cambios',
     'saving_changes': 'Guardando...',
     'saved_as_file': 'Guardado:',
+    'saved_without_exif': 'guardado sin EXIF',
     'error_saving': 'Error al guardar',
     'enter_at_least_one': 'Ingresa al menos un campo para editar.',
     'editing': 'Editando:',
     'select_output_save': 'Guardar imagen editada',
-    'images_ready_clean': 'imagenes listas para limpiar',
+    'images_ready_clean': 'imágenes listas para limpiar',
     'clean_exif': 'Limpiar EXIF',
     'cleaning': 'Limpiando...',
-    'cleaned': 'imagenes limpiadas',
-    'load_images_first_clean': 'Primero carga imagenes.',
+    'cleaned': 'imágenes limpiadas',
+    'load_images_first_clean': 'Primero carga imágenes.',
     'select_output_folder_clean': 'Carpeta de salida',
     'without_exif': 'sinexif',
     
@@ -177,9 +181,9 @@ TRANSLATIONS = {
     'canvas_tab': 'Canvas',
     'mode': 'Modo',
     'percentage': 'Porcentaje',
-    'pixels': 'Pixeles',
+    'pixels': 'Píxeles',
     'preset': 'Preset',
-    'maintain_aspect': 'Mantener relacion de aspecto',
+    'maintain_aspect': 'Mantener relación de aspecto',
     'width': 'Ancho',
     'height': 'Alto',
     'size': 'Tamaño',
@@ -189,14 +193,16 @@ TRANSLATIONS = {
     'transparent': 'Transparente',
     'apply_canvas': 'Aplicar Canvas',
     'processing': 'Procesando...',
-    'images_loaded_resize': 'imagenes cargadas',
+    'images_loaded_resize': 'imágenes cargadas',
     'image_loaded_resize': 'imagen cargada',
     'processed': 'procesadas',
     'processed_singular': 'procesada',
     'load_images_first_resize': 'Carga una imagen primero',
-    'invalid_dimensions': 'Ingresa ancho y alto validos.',
-    'warning_transparency': 'Advertencia: JPG/BMP no soportan transparencia - se usara el color negro.',
+    'invalid_dimensions': 'Ingresa ancho y alto válidos.',
+    'warning_transparency': 'Advertencia: JPG/BMP no soportan transparencia - se usará el color negro.',
     'crop_centered': 'Recorte centrado - la imagen se recorta desde el centro.',
+    'ratio': 'Ratio',
+    'x_symbol': 'x',
     'redim': 'redim',
     'crop': 'crop',
     'canvas': 'canvas',
@@ -204,6 +210,8 @@ TRANSLATIONS = {
     # LQIP
     'lqip_title':             'Low Quality Image Placeholders / Base64',
     'lqip_mode':              'Modo',
+    'lqip_mode_lqip':         'LQIP',
+    'lqip_mode_b64':          'Base64',
     'lqip_mode_lqip_desc':    'Genera una versión tiny y borrosa de la imagen.',
     'lqip_mode_b64_desc':     'Convierte la imagen completa a base64.',
     'lqip_width':             'Ancho (px)',
@@ -211,6 +219,11 @@ TRANSLATIONS = {
     'lqip_quality':           'Calidad',
     'lqip_export':            'Exportar resultado',
     'lqip_export_field':      'Campo a exportar',
+    'lqip_field_data_uri':    'Data URI',
+    'lqip_field_html_tag':    'HTML Tag',
+    'lqip_field_css_bg':      'CSS Background',
+    'file_txt':               'Texto',
+    'file_json':              'JSON',
     'lqip_actions':           'Acciones',
     'lqip_btn_process':       'Generar',
     'lqip_btn_copy':          'Copiar',
@@ -231,5 +244,5 @@ TRANSLATIONS = {
     'dark': 'Oscuro',
     'light': 'Claro',
     'system': 'Sistema',
-    'restart_required': 'Reiniciando aplicacion para aplicar el idioma...',
+    'restart_required': 'Reiniciando aplicación para aplicar el idioma...',
 }

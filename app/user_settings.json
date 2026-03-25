@@ -1,5 +1,5 @@
 {
-  "language": "Espanol",
+  "language": "Español",
   "colors": {
     "FRAMES_BG": "#0A0A0B",
     "SIDEBAR_BG": "#121214",
@@ -19,5 +19,5 @@
     "ACENTO_HOVER": "#D1D1D6",
     "ACENTO_DIMMED": "#48484A"
   },
-  "theme": "Default"
+  "theme": "Nord"
 }

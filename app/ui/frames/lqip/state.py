@@ -16,7 +16,7 @@ class LqipState:
         self.imagenes = []
         self.resultados = []
 
-        # Modo de procesamiento
+        # Modo de procesamiento (valores internos, no traducidos)
         self.modo = ctk.StringVar(value='lqip')
 
         # Opciones LQIP

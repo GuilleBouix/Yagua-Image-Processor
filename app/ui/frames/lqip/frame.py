@@ -38,7 +38,7 @@ class LqipFrame(BaseFrame):
         self._btn_seleccionar.grid(row=1, column=0, padx=28, pady=(8, 0), sticky='ew')
 
         # Lista de archivos — más chica
-        self._lista_frame = self._crear_lista_archivos(self, height=100)
+        self._lista_frame = self._crear_lista_archivos(self, height=90)
         self._lista_frame.grid(row=2, column=0, padx=28, pady=8, sticky='ew')
         self._lista_frame.grid_columnconfigure(0, weight=1)
         self._lbl_lista_vacia = self._crear_lista_vacia(self._lista_frame)
@@ -52,14 +52,14 @@ class LqipFrame(BaseFrame):
             border_width=1,
             border_color=colors.SIDEBAR_SEPARATOR
         )
-        panel.grid(row=3, column=0, padx=28, pady=(0, 8), sticky='ew')
+        panel.grid(row=3, column=0, padx=28, pady=(0, 6), sticky='ew')
         panel.grid_columnconfigure(0, weight=1)
         self._construir_opciones(panel)
 
     def _construir_opciones(self, p):
         # ── Fila 1: modo + descripcion en la misma fila ───────────────────────
         fila_modo = ctk.CTkFrame(p, fg_color='transparent')
-        fila_modo.grid(row=0, column=0, padx=16, pady=(14, 0), sticky='ew')
+        fila_modo.grid(row=0, column=0, padx=16, pady=(12, 0), sticky='ew')
         fila_modo.grid_columnconfigure(1, weight=1)
 
         ctk.CTkLabel(
@@ -68,13 +68,19 @@ class LqipFrame(BaseFrame):
             text_color=colors.TEXT_COLOR, anchor='w'
         ).grid(row=0, column=0, padx=(0, 12), sticky='w')
 
+        # Mapa de valores traduzidos a internos
+        self._modo_a_interno = {
+            t('lqip_mode_lqip'): 'lqip',
+            t('lqip_mode_b64'): 'base64',
+        }
+        
         self._seg_modo = ctk.CTkSegmentedButton(
             fila_modo,
-            values=['LQIP', 'Base64'],
+            values=[t('lqip_mode_lqip'), t('lqip_mode_b64')],
             variable=self._state.modo,
             font=fonts.FUENTE_CHICA,
-            selected_color=colors.ACENTO,
-            selected_hover_color=colors.ACENTO_HOVER,
+            selected_color=colors.SEGMENT_SELECTED,
+            selected_hover_color=colors.SEGMENT_SELECTED_HOVER,
             unselected_color=colors.SIDEBAR_BG,
             unselected_hover_color=colors.SIDEBAR_HOVER,
             text_color=colors.TEXT_COLOR,
@@ -87,13 +93,13 @@ class LqipFrame(BaseFrame):
             text=t('lqip_mode_lqip_desc'),
             font=fonts.FUENTE_CHICA,
             text_color=colors.TEXT_GRAY,
-            anchor='w', wraplength=320
+            anchor='w', wraplength=300
         )
         self._lbl_descripcion.grid(row=0, column=2, padx=(16, 0), sticky='w')
 
         # Separador
         ctk.CTkFrame(p, height=1, fg_color=colors.SIDEBAR_SEPARATOR).grid(
-            row=1, column=0, padx=16, pady=(10, 4), sticky='ew'
+            row=1, column=0, padx=16, pady=(8, 4), sticky='ew'
         )
 
         # ── Opciones especificas del modo ─────────────────────────────────────
@@ -104,12 +110,12 @@ class LqipFrame(BaseFrame):
 
         # Separador
         ctk.CTkFrame(p, height=1, fg_color=colors.SIDEBAR_SEPARATOR).grid(
-            row=3, column=0, padx=16, pady=(10, 4), sticky='ew'
+            row=3, column=0, padx=16, pady=(8, 4), sticky='ew'
         )
 
         # ── Exportar: todo en una sola fila ───────────────────────────────────
         fila_export = ctk.CTkFrame(p, fg_color='transparent')
-        fila_export.grid(row=4, column=0, padx=16, pady=(6, 14), sticky='ew')
+        fila_export.grid(row=4, column=0, padx=16, pady=(4, 12), sticky='ew')
         fila_export.grid_columnconfigure(1, weight=1)
 
         ctk.CTkLabel(
@@ -124,10 +130,10 @@ class LqipFrame(BaseFrame):
             text_color=colors.TEXT_GRAY, anchor='w'
         ).grid(row=0, column=1, columnspan=3, sticky='w', pady=(0, 4), padx=(12, 0))
 
-        self._campo_export = ctk.StringVar(value='data_uri')
+        self._campo_export = ctk.StringVar(value='DATA_URI')
         ctk.CTkOptionMenu(
             fila_export,
-            values=['data_uri', 'html_tag', 'css_bg'],
+            values=[t('DATA_URI'), t('HTML_TAG'), t('CSS_BG')],
             variable=self._campo_export,
             font=fonts.FUENTE_BASE,
             fg_color=colors.SIDEBAR_BG,
@@ -137,13 +143,13 @@ class LqipFrame(BaseFrame):
             dropdown_fg_color=colors.PANEL_BG,
             dropdown_text_color=colors.TEXT_COLOR,
             dropdown_hover_color=colors.SIDEBAR_HOVER,
-            width=130
+            width=120
         ).grid(row=1, column=0, sticky='w', padx=(0, 12))
 
         self._btn_procesar = ctk.CTkButton(
             fila_export,
             text=t('lqip_btn_process'),
-            height=36, corner_radius=8,
+            height=34, corner_radius=8,
             font=fonts.FUENTE_BASE,
             fg_color=colors.ACENTO,
             text_color=colors.TEXT_ACTIVE,
@@ -155,7 +161,7 @@ class LqipFrame(BaseFrame):
         ctk.CTkButton(
             fila_export,
             text=t('lqip_btn_copy'),
-            height=36, corner_radius=8,
+            height=34, corner_radius=8,
             font=fonts.FUENTE_BASE,
             fg_color=colors.PANEL_BG,
             border_width=1,
@@ -168,7 +174,7 @@ class LqipFrame(BaseFrame):
         ctk.CTkButton(
             fila_export,
             text=t('lqip_btn_save'),
-            height=36, corner_radius=8,
+            height=34, corner_radius=8,
             font=fonts.FUENTE_BASE,
             fg_color=colors.PANEL_BG,
             border_width=1,
@@ -289,7 +295,13 @@ class LqipFrame(BaseFrame):
 
     def _cambiar_modo(self, modo):
         """Cambia controles y descripcion segun el modo."""
-        if modo == 'LQIP':
+        # Convertir valor traduzido a interno
+        modo_interno = self._modo_a_interno.get(modo, 'lqip')
+        self._state.modo.set(modo_interno)
+        
+        modo_lqip = t('lqip_mode_lqip')
+        
+        if modo == modo_lqip:
             self._lbl_descripcion.configure(text=t('lqip_mode_lqip_desc'))
             self._construir_opciones_lqip()
         else:
@@ -334,9 +346,9 @@ class LqipFrame(BaseFrame):
         """Muestra el resultado del procesamiento."""
         self._btn_procesar.configure(state='normal', text=t('lqip_btn_process'))
         suffix = t('images_loaded') if ok > 1 else t('image_loaded')
-        msg = f'{ok} {suffix} {t("processed")}  ·  {t("lqip_ready_to_export")}'
+        msg = f'{ok} {suffix} {t("processed")}  -  {t("lqip_ready_to_export")}'
         if errores:
-            msg += f'  ·  {errores} {t("error_occurred")}'
+            msg += f'  -  {errores} {t("error_occurred")}'
         self._lbl_info.configure(text=msg)
 
     def _copiar(self):
@@ -366,8 +378,8 @@ class LqipFrame(BaseFrame):
             title=t('lqip_save_title'),
             defaultextension='.txt',
             filetypes=[
-                ('Texto', '*.txt'),
-                ('JSON', '*.json'),
+                (t('file_txt'), '*.txt'),
+                (t('file_json'), '*.json'),
             ],
             initialfile='lqip_output'
         )

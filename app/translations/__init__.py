@@ -9,7 +9,7 @@ Relacionado con:
     - app/app.py: Usa t() para el titulo de la ventana.
     - app/ui/sidebar.py: Usa t() para labels de menu.
     - app/ui/frames/*: Usa t() para todos los textos de UI.
-    - app/translations/es.py: Traducciones al espanol.
+    - app/translations/es.py: Traducciones al español.
     - app/translations/en.py: Traducciones al ingles.
     - app/translations/pt.py: Traducciones al portugues.
     - app/user_settings.json: Guarda el idioma seleccionado.
@@ -17,18 +17,19 @@ Relacionado con:
 
 from typing import Optional
 import json
-from pathlib import Path
+
+from app.utils.settings import settings_path
 
 
 # Idiomas disponibles en la aplicacion
 AVAILABLE_LANGUAGES = {
-    'Espanol': 'Espanol',
+    'Español': 'Español',
     'English': 'English',
     'Portugues': 'Portugues',
 }
 
 # Idioma por defecto cuando no hay configuracion guardada
-DEFAULT_LANGUAGE = 'English'
+DEFAULT_LANGUAGE = 'Español'
 
 # Idioma actual (se carga desde settings al inicio)
 _current_lang: Optional[str] = None
@@ -45,11 +46,11 @@ def _load_settings():
         Diccionario con la configuracion o vacio si no existe.
     """
     # Construir ruta al archivo de settings
-    settings_path = Path(__file__).resolve().parents[1] / 'user_settings.json'
+    path = settings_path()
     
-    if settings_path.exists():
+    if path.exists():
         try:
-            return json.loads(settings_path.read_text(encoding='utf-8'))
+            return json.loads(path.read_text(encoding='utf-8'))
         except Exception:
             pass
     
@@ -63,8 +64,8 @@ def _save_settings(settings):
     Args:
         settings: Diccionario con la configuracion a guardar.
     """
-    settings_path = Path(__file__).resolve().parents[1] / 'user_settings.json'
-    settings_path.write_text(json.dumps(settings, indent=2, ensure_ascii=False), encoding='utf-8')
+    path = settings_path()
+    path.write_text(json.dumps(settings, indent=2, ensure_ascii=False), encoding='utf-8')
 
 
 def get_language():
@@ -75,7 +76,7 @@ def get_language():
     Si no hay settings, usa el idioma por defecto.
     
     Returns:
-        Nombre del idioma actual (ej: 'Espanol', 'English', 'Portugues').
+        Nombre del idioma actual (ej: 'Español', 'English', 'Portugues').
     """
     global _current_lang
     
@@ -123,7 +124,7 @@ def get_translations(lang=None):
         lang = get_language()
     
     # Importar el modulo de traducciones correspondiente
-    if lang == 'Espanol':
+    if lang == 'Español':
         from app.translations.es import TRANSLATIONS
     elif lang == 'English':
         from app.translations.en import TRANSLATIONS

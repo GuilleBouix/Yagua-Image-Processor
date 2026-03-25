@@ -6,10 +6,14 @@ Relacionado con:
     - app/ui/frames/remove_bg/: UI relacionada.
 """
 
+import logging
 from pathlib import Path
 
 from PIL import Image, ImageOps
 
+from app.modules.output import unique_output_path
+
+logger = logging.getLogger(__name__)
 
 MODELO = 'u2netp'
 FORMATOS_SALIDA = ['PNG', 'WEBP', 'TIFF']
@@ -44,14 +48,16 @@ def quitar_fondo(ruta_entrada, ruta_salida, formato_salida='PNG'):
     formato = formato_salida.upper()
     extension = _FMT_A_EXT.get(formato, '.png')
 
-    ruta_archivo = Path(ruta_entrada)
-    ruta_final = Path(ruta_salida) / (ruta_archivo.stem + '_sinFondo' + extension)
+    ruta_final, conflicto = unique_output_path(
+        ruta_salida, ruta_entrada, sufijo='_sinFondo', extension=extension
+    )
     resultado.save(str(ruta_final), formato)
 
     return {
         'ruta_salida': str(ruta_final),
         'tam_original': tam_original,
         'tam_resultado': ruta_final.stat().st_size,
+        'conflicto': conflicto,
     }
 
 
@@ -66,7 +72,7 @@ def batch_quitar_fondo(rutas, carpeta_salida, formato_salida='PNG'):
         formato_salida: Formato de exportacion (PNG, WEBP, TIFF).
 
     Returns:
-        Diccionario con ok, errores, resultados.
+        Diccionario con ok, errores, resultados y conflictos.
     """
     try:
         from rembg import remove as rembg_remove, new_session
@@ -78,6 +84,7 @@ def batch_quitar_fondo(rutas, carpeta_salida, formato_salida='PNG'):
     extension = _FMT_A_EXT.get(formato, '.png')
     resultados = []
     errores = 0
+    conflictos = 0
 
     for ruta in rutas:
         try:
@@ -88,8 +95,11 @@ def batch_quitar_fondo(rutas, carpeta_salida, formato_salida='PNG'):
             resultado_raw = rembg_remove(imagen, session=sesion)
             resultado: Image.Image = resultado_raw if isinstance(resultado_raw, Image.Image) else Image.fromarray(resultado_raw)  # type: ignore
 
-            ruta_archivo = Path(ruta)
-            ruta_final = Path(carpeta_salida) / (ruta_archivo.stem + '_sinFondo' + extension)
+            ruta_final, conflicto = unique_output_path(
+                carpeta_salida, ruta, sufijo='_sinFondo', extension=extension
+            )
+            if conflicto:
+                conflictos += 1
             resultado.save(str(ruta_final), formato)
 
             resultados.append({
@@ -97,13 +107,15 @@ def batch_quitar_fondo(rutas, carpeta_salida, formato_salida='PNG'):
                 'tam_original': tam_original,
                 'tam_resultado': ruta_final.stat().st_size,
             })
-        except Exception:
+        except Exception as exc:
+            logger.warning("Error al quitar fondo %s: %s", ruta, exc)
             errores += 1
 
     return {
         'ok': len(resultados),
         'errores': errores,
         'resultados': resultados,
+        'conflictos': conflictos,
     }
 
 

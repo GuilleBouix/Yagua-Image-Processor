@@ -9,11 +9,16 @@ Relacionado con:
 """
 
 import io
+import logging
 import shutil
 from pathlib import Path
 
-from PIL import Image, ImageOps
+from PIL import Image
 
+from app.modules.image_utils import normalize_common, ensure_rgb_for_jpeg
+from app.modules.output import unique_output_path
+
+logger = logging.getLogger(__name__)
 
 # Mapeo de extensiones de archivo a nombres de formato PIL
 _EXT_A_FMT = {
@@ -59,25 +64,12 @@ def _preparar_imagen(imagen, formato):
         Imagen preparada lista para guardar.
     """
     # Corregir rotacion automatica de camaras y moviles usando datos EXIF
-    imagen = ImageOps.exif_transpose(imagen)
-
-    # Convertir CMYK a RGB (modo impresion no sirve en web/desktop)
-    if imagen.mode == 'CMYK':
-        imagen = imagen.convert('RGB')
+    imagen = normalize_common(imagen)
 
     # Manejo especial para JPEG
     if formato == 'JPEG':
         # JPEG no soporta transparencia, convertir a RGB con fondo blanco
-        if imagen.mode in ('RGBA', 'LA', 'P'):
-            if imagen.mode == 'P':
-                imagen = imagen.convert('RGBA')
-            
-            # Crear fondo blanco y pegar la imagen
-            fondo = Image.new('RGB', imagen.size, (255, 255, 255))
-            fondo.paste(imagen, mask=imagen.split()[-1] if imagen.mode == 'RGBA' else None)
-            
-            return fondo
-        return imagen.convert('RGB')
+        return ensure_rgb_for_jpeg(imagen)
 
     # Manejo especial para PNG - reducir a paleta de 256 colores
     if formato == 'PNG':
@@ -258,17 +250,21 @@ def batch_comprimir(rutas, carpeta_salida, calidad=85, quitar_exif=True, sufijo=
             - total_original: Suma de tamanos originales.
             - total_comprimido: Suma de tamanos comprimidos.
             - reduccion_pct: Porcentaje de reduccion total.
+            - conflictos: Cantidad de archivos renombrados por colision.
     """
     resultados = []
     errores = 0
+    conflictos = 0
     
     # Procesar cada imagen
     for ruta in rutas:
         try:
-            ruta_archivo = Path(ruta)
-            
-            # Construir ruta de salida con sufijo
-            salida = str(Path(carpeta_salida) / (ruta_archivo.stem + sufijo + ruta_archivo.suffix))
+            salida_path, conflicto = unique_output_path(
+                carpeta_salida, ruta, sufijo=sufijo
+            )
+            salida = str(salida_path)
+            if conflicto:
+                conflictos += 1
             
             # Comprimir imagen
             res = comprimir_imagen(
@@ -277,7 +273,8 @@ def batch_comprimir(rutas, carpeta_salida, calidad=85, quitar_exif=True, sufijo=
                 quitar_exif=quitar_exif
             )
             resultados.append(res)
-        except Exception:
+        except Exception as exc:
+            logger.warning("Error al comprimir %s: %s", ruta, exc)
             errores += 1
 
     # Calcular estadisticas del batch
@@ -291,4 +288,5 @@ def batch_comprimir(rutas, carpeta_salida, calidad=85, quitar_exif=True, sufijo=
         'total_original': total_orig,
         'total_comprimido': total_comp,
         'reduccion_pct': reduccion,
+        'conflictos': conflictos,
     }
