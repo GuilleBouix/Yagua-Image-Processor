@@ -36,21 +36,21 @@ Yagua integra en una sola interfaz features orientadas al flujo de trabajo web m
 ## 🖼️ Galería
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/5f4274b6-dec6-434c-82b3-81b8135287a9" width="250"/>
-  <img src="https://github.com/user-attachments/assets/a1cbc413-d3e5-4165-a0e6-63a61a4ab012" width="250"/>
-  <img src="https://github.com/user-attachments/assets/880d2642-dbb1-41d1-b0da-131f1de007f2" width="250"/>
+  <img src="https://github.com/user-attachments/assets/f8f57bbb-4cdf-4c5f-8d06-a04b2c3dc1b1" width="250" alt="1"/>
+  <img src="https://github.com/user-attachments/assets/903c897e-eb48-4b6b-b941-2fbfffb234ce" width="250" alt="2"/>
+  <img src="https://github.com/user-attachments/assets/ed7081e4-d106-47db-9744-927be0db9d5d" width="250" alt="3"/>
 </p>
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/7d182d3e-cdf0-4876-868b-ce124b135aeb" width="250"/>
-  <img src="https://github.com/user-attachments/assets/7db92616-d5cf-48fd-94fc-d619b3567295" width="250"/>
-  <img src="https://github.com/user-attachments/assets/ad0f3d3a-59c9-4644-a0ea-38286e7b316d" width="250"/>
+  <img src="https://github.com/user-attachments/assets/381c1f71-debd-47a0-837b-fb8f84e41790" width="250" alt="4"/>
+  <img src="https://github.com/user-attachments/assets/dfe2dd77-f792-4092-a6d7-82b5e96aa104" width="250" alt="5"/>
+  <img src="https://github.com/user-attachments/assets/e3a8f766-84e5-412d-bbaf-acb5936c0380" width="250" alt="6"/>
 </p>
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/9117f968-0048-444e-ab9d-a74f7894f45d" width="250"/>
-  <img src="https://github.com/user-attachments/assets/7c55eb50-8472-4072-9cd3-b97a905273b7" width="250"/>
-  <img src="https://github.com/user-attachments/assets/650b1519-77aa-4c3a-9863-c1a8cb0c9613" width="250"/>
+  <img src="https://github.com/user-attachments/assets/235fce12-9796-4304-9252-f9e016edf483" width="250" alt="7"/>
+  <img src="https://github.com/user-attachments/assets/8e8824a4-0bdf-44d8-b82f-7e0c2e1fcfe5" width="250" alt="8"/>
+  <img src="https://github.com/user-attachments/assets/29131d50-2ea2-40c5-9549-d5878d89119a" width="250" alt="9"/>
 </p>
 
 ## ⚙️ Instalación
