@@ -174,11 +174,11 @@ class Sidebar(ctk.CTkFrame):
         Args:
             key: Identificador del modulo activo.
         """
-        for k, data in self.buttons.items():
+        for module_key, data in self.buttons.items():
             btn = data['btn']
             icon_path = data['icon_path']
             
-            if k == key:
+            if module_key == key:
                 # Estilo para boton activo
                 icon_ctk = tintar_icono(icon_path, colors.ICON_COLOR_ACTIVE)
                 btn.configure(

@@ -177,9 +177,9 @@ def load_thumbs_async(rutas, filas, thumbs, after_fn, *, thumb_size=44):
             thumbs[:] = [t for t in local_thumbs if t]
             
             # Aplicar thumbnail a cada label
-            for i, thumb in enumerate(local_thumbs):
-                if thumb and i < len(filas):
-                    filas[i].configure(image=thumb)
+            for indice, thumb in enumerate(local_thumbs):
+                if thumb and indice < len(filas):
+                    filas[indice].configure(image=thumb)
 
         # Programar aplicacion en hilo principal
         after_fn(0, _apply)

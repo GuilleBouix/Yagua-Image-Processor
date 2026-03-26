@@ -208,8 +208,8 @@ def exportar_paleta_imagen(paleta, ruta_salida, ancho_swatch=120,
         fuente = ImageFont.load_default()
 
     # Dibujar cada swatch de color
-    for i, rgb_tuple in enumerate(paleta):
-        coord_x = padding + i * (ancho_swatch + padding)
+    for indice, rgb_tuple in enumerate(paleta):
+        coord_x = padding + indice * (ancho_swatch + padding)
         coord_y = padding
 
         # Dibujar cuadrado redondeado con el color

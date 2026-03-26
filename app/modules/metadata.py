@@ -146,7 +146,7 @@ def leer_metadatos(ruta):
 
         # Obtener mapa de tags numericos a nombres
         from PIL.ExifTags import TAGS
-        tags_num = {v: k for k, v in TAGS.items()}
+        tags_num = {nombre: tag_id for tag_id, nombre in TAGS.items()}
 
         # Extraer cada campo definido
         for nombre, etiqueta in _CAMPOS_LEGIBLES.items():
@@ -326,11 +326,11 @@ def exportar_txt(metadatos, ruta):
         ruta: Ruta del archivo .txt a crear.
     """
     lineas = ['METADATOS EXIF\n', '=' * 40 + '\n']
-    for k, v in metadatos.items():
+    for clave, valor in metadatos.items():
         # Ignorar campos internos (los que empiezan con __)
-        if k.startswith('__'):
+        if clave.startswith('__'):
             continue
-        lineas.append(f'{k:<25} {v}\n')
+        lineas.append(f'{clave:<25} {valor}\n')
     Path(ruta).write_text(''.join(lineas), encoding='utf-8')
 
 
@@ -343,7 +343,11 @@ def exportar_json(metadatos, ruta):
         ruta: Ruta del archivo .json a crear.
     """
     # Filtrar campos internos
-    datos = {k: v for k, v in metadatos.items() if not k.startswith('__')}
+    datos = {
+        clave: valor
+        for clave, valor in metadatos.items()
+        if not clave.startswith('__')
+    }
     Path(ruta).write_text(
         json.dumps(datos, ensure_ascii=False, indent=2),
         encoding='utf-8'
@@ -377,7 +381,11 @@ def preparar_campos_exif(campos_edit):
     Returns:
         Tupla (campos_filtrados, error). Si error es None, exito.
     """
-    campos = {k: v for k, v in campos_edit.items() if v.strip()}
+    campos = {
+        clave: valor
+        for clave, valor in campos_edit.items()
+        if valor.strip()
+    }
     if not campos:
         return {}, 'empty'
     return campos, None

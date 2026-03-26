@@ -40,15 +40,60 @@ class ModuleSpec:
 
 # Registro de todos los modulos disponibles
 _MODULE_SPECS = [
-    ModuleSpec('compress', 'compress', 'assets/icons/compress.png', 'app.ui.frames.compress.frame:CompressFrame'),
-    ModuleSpec('convert', 'convert', 'assets/icons/convert.png', 'app.ui.frames.convert.frame:ConvertFrame'),
-    ModuleSpec('remove_bg', 'remove_bg', 'assets/icons/remove_background.png', 'app.ui.frames.remove_bg.frame:RemoveBgFrame'),
-    ModuleSpec('resize', 'resize', 'assets/icons/resize.png', 'app.ui.frames.resize.frame:ResizeFrame'),
-    ModuleSpec('palette', 'palette', 'assets/icons/palette.png', 'app.ui.frames.palette.frame:PaletteFrame'),
-    ModuleSpec('rename', 'rename', 'assets/icons/rename.png', 'app.ui.frames.rename.frame:RenameFrame'),
-    ModuleSpec('metadata', 'metadata', 'assets/icons/metadata.png', 'app.ui.frames.metadata.frame:MetadataFrame'),
-    ModuleSpec('lqip', 'lqip', 'assets/icons/lqip.png', 'app.ui.frames.lqip.frame:LqipFrame'),
-    ModuleSpec('settings', 'settings', 'assets/icons/settings.png', 'app.ui.frames.settings.frame:SettingsFrame'),
+    ModuleSpec(
+        'compress',
+        'compress',
+        'assets/icons/compress.png',
+        'app.ui.frames.compress.frame:CompressFrame',
+    ),
+    ModuleSpec(
+        'convert',
+        'convert',
+        'assets/icons/convert.png',
+        'app.ui.frames.convert.frame:ConvertFrame',
+    ),
+    ModuleSpec(
+        'remove_bg',
+        'remove_bg',
+        'assets/icons/remove_background.png',
+        'app.ui.frames.remove_bg.frame:RemoveBgFrame',
+    ),
+    ModuleSpec(
+        'resize',
+        'resize',
+        'assets/icons/resize.png',
+        'app.ui.frames.resize.frame:ResizeFrame',
+    ),
+    ModuleSpec(
+        'palette',
+        'palette',
+        'assets/icons/palette.png',
+        'app.ui.frames.palette.frame:PaletteFrame',
+    ),
+    ModuleSpec(
+        'rename',
+        'rename',
+        'assets/icons/rename.png',
+        'app.ui.frames.rename.frame:RenameFrame',
+    ),
+    ModuleSpec(
+        'metadata',
+        'metadata',
+        'assets/icons/metadata.png',
+        'app.ui.frames.metadata.frame:MetadataFrame',
+    ),
+    ModuleSpec(
+        'lqip',
+        'lqip',
+        'assets/icons/lqip.png',
+        'app.ui.frames.lqip.frame:LqipFrame',
+    ),
+    ModuleSpec(
+        'settings',
+        'settings',
+        'assets/icons/settings.png',
+        'app.ui.frames.settings.frame:SettingsFrame',
+    ),
 ]
 
 

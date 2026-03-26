@@ -232,13 +232,13 @@ def batch_convertir(rutas, fmt_destino, carpeta_salida, calidad=90, progress_cb=
     """
     resultados = []
     
-    for i, ruta in enumerate(rutas):
+    for indice, ruta in enumerate(rutas):
         res = convertir_imagen(ruta, fmt_destino, carpeta_salida, calidad)
         resultados.append(res)
         
         # Reportar progreso si hay callback
         if progress_cb:
-            progress_cb(i + 1, len(rutas))
+            progress_cb(indice + 1, len(rutas))
     
     return resultados
 

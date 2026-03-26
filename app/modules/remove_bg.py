@@ -43,7 +43,10 @@ def quitar_fondo(ruta_entrada, ruta_salida, formato_salida='PNG'):
 
     sesion = new_session(MODELO)
     resultado_raw = rembg_remove(imagen, session=sesion)
-    resultado: Image.Image = resultado_raw if isinstance(resultado_raw, Image.Image) else Image.fromarray(resultado_raw)  # type: ignore
+    if isinstance(resultado_raw, Image.Image):
+        resultado = resultado_raw
+    else:
+        resultado = Image.fromarray(resultado_raw)  # type: ignore
 
     formato = formato_salida.upper()
     extension = _FMT_A_EXT.get(formato, '.png')
@@ -93,7 +96,10 @@ def batch_quitar_fondo(rutas, carpeta_salida, formato_salida='PNG'):
             tam_original = Path(ruta).stat().st_size
 
             resultado_raw = rembg_remove(imagen, session=sesion)
-            resultado: Image.Image = resultado_raw if isinstance(resultado_raw, Image.Image) else Image.fromarray(resultado_raw)  # type: ignore
+            if isinstance(resultado_raw, Image.Image):
+                resultado = resultado_raw
+            else:
+                resultado = Image.fromarray(resultado_raw)  # type: ignore
 
             ruta_final, conflicto = unique_output_path(
                 carpeta_salida, ruta, sufijo='_sinFondo', extension=extension

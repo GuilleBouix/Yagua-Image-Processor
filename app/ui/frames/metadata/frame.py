@@ -168,13 +168,13 @@ class MetadataFrame(BaseFrame):
             'Software': 'software',
             'DateTime': 'datetime',
         }
-        for i, (campo, etiqueta) in enumerate(CAMPOS_EDITABLES.items()):
+        for indice, (campo, etiqueta) in enumerate(CAMPOS_EDITABLES.items()):
             etiqueta_trad = t(_label_map.get(campo, '')) if campo in _label_map else etiqueta
             ctk.CTkLabel(
                 panel, text=etiqueta_trad,
                 font=fonts.FUENTE_BASE,
                 text_color=colors.TEXT_GRAY, anchor='w'
-            ).grid(row=i, column=0, padx=(16, 12), pady=8, sticky='w')
+            ).grid(row=indice, column=0, padx=(16, 12), pady=8, sticky='w')
 
             entry = ctk.CTkEntry(
                 panel,
@@ -185,7 +185,7 @@ class MetadataFrame(BaseFrame):
                 placeholder_text=t('enter_field').format(etiqueta_trad.lower()),
                 placeholder_text_color=colors.TEXT_GRAY
             )
-            entry.grid(row=i, column=1, padx=(0, 16), pady=8, sticky='ew')
+            entry.grid(row=indice, column=1, padx=(0, 16), pady=8, sticky='ew')
             self._campos_edit[campo] = entry
 
         self._btn_guardar_edit = ctk.CTkButton(
@@ -302,32 +302,32 @@ class MetadataFrame(BaseFrame):
 
         gps = metadatos.get('__gps_decimal__')
 
-        for i, (k, v) in enumerate(metadatos.items()):
-            if k.startswith('__'):
+        for indice, (clave, valor) in enumerate(metadatos.items()):
+            if clave.startswith('__'):
                 continue
 
             ctk.CTkLabel(
-                self._scroll_meta, text=k,
+                self._scroll_meta, text=clave,
                 font=fonts.FUENTE_CHICA,
                 text_color=colors.TEXT_GRAY, anchor='w'
-            ).grid(row=i, column=0, padx=(8, 4), pady=3, sticky='w')
+            ).grid(row=indice, column=0, padx=(8, 4), pady=3, sticky='w')
 
-            if 'GPS' in k and gps:
+            if 'GPS' in clave and gps:
                 url = f'https://maps.google.com/?q={gps}'
                 lbl = ctk.CTkLabel(
-                    self._scroll_meta, text=f'{v}  ->  {t("view_on_maps")}',
+                    self._scroll_meta, text=f'{valor}  ->  {t("view_on_maps")}',
                     font=fonts.FUENTE_CHICA,
                     text_color=colors.ACENTO, anchor='w',
                     cursor='hand2'
                 )
-                lbl.grid(row=i, column=1, padx=(4, 8), pady=3, sticky='w')
+                lbl.grid(row=indice, column=1, padx=(4, 8), pady=3, sticky='w')
                 lbl.bind('<Button-1>', lambda _, u=url: webbrowser.open(u))
             else:
                 ctk.CTkLabel(
-                    self._scroll_meta, text=v,
+                    self._scroll_meta, text=valor,
                     font=fonts.FUENTE_CHICA,
                     text_color=colors.TEXT_COLOR, anchor='w'
-                ).grid(row=i, column=1, padx=(4, 8), pady=3, sticky='w')
+                ).grid(row=indice, column=1, padx=(4, 8), pady=3, sticky='w')
 
     def _explorar_ver(self):
         """Abrir dialogo para seleccionar imagen y leer sus metadatos."""

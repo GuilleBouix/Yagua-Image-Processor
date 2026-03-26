@@ -69,4 +69,5 @@ exports/
 
 *.pdf
 *.psd
-prompt.txt
+*.iss
+installer/

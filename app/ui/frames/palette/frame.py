@@ -191,13 +191,13 @@ class PaletteFrame(BaseFrame):
             tuple(range(n)), weight=1
         )
 
-        for i, rgb in enumerate(paleta):
-            hex_color = rgb_a_hex(rgb)
+        for indice, color_rgb in enumerate(paleta):
+            hex_color = rgb_a_hex(color_rgb)
 
             col = ctk.CTkFrame(
                 self._swatches_frame, corner_radius=10, fg_color='transparent'
             )
-            col.grid(row=0, column=i, padx=2, pady=(4, 8), sticky='nsew')
+            col.grid(row=0, column=indice, padx=2, pady=(4, 8), sticky='nsew')
             col.grid_columnconfigure(0, weight=1)
 
             canvas = tk.Canvas(
@@ -214,10 +214,10 @@ class PaletteFrame(BaseFrame):
                 fg_color='transparent'
             ).grid(row=1, column=0, pady=(3, 2))
 
-            for fmt, valor in formatos_color(rgb).items():
+            for formato, valor in formatos_color(color_rgb).items():
                 ctk.CTkButton(
                     col,
-                    text=fmt,
+                    text=formato,
                     width=50, height=20,
                     corner_radius=6,
                     font=ctk.CTkFont(size=9),

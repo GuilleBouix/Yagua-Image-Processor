@@ -354,9 +354,9 @@ class BaseFrame(ctk.CTkFrame):
         self._thumbs = [t for t in thumbs if t]
         
         # Asignar cada thumbnail a su label
-        for i, thumb in enumerate(thumbs):
-            if thumb and i < len(self._filas_lista):
-                self._filas_lista[i].configure(image=thumb)
+        for indice, thumb in enumerate(thumbs):
+            if thumb and indice < len(self._filas_lista):
+                self._filas_lista[indice].configure(image=thumb)
 
     def _limpiar(self):
         """

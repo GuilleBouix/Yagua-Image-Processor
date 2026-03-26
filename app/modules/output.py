@@ -41,9 +41,9 @@ def unique_output_path(
     if not ruta.exists():
         return ruta, False
 
-    i = 1
+    contador = 1
     while True:
-        ruta_alt = carpeta / f"{entrada.stem}{sufijo}_{i}{ext}"
+        ruta_alt = carpeta / f"{entrada.stem}{sufijo}_{contador}{ext}"
         if not ruta_alt.exists():
             return ruta_alt, True
-        i += 1
+        contador += 1
