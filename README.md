@@ -26,6 +26,7 @@ Yagua surgió como alternativa a las herramientas web de procesamiento de imáge
 Está pensada para desarrolladores web, diseñadores, fotógrafos y cualquier usuario que necesite procesar imágenes en lote sin depender de un navegador ni pagar una suscripción.
 
 Yagua integra en una sola interfaz features orientadas al flujo de trabajo web moderno: generación de LQIP y Base64, quitar fondo con IA (rembg, funciona offline una vez descargado el modelo), edición de metadatos EXIF y compresión/conversión en lote sin límite de archivos.
+
 ---
 
 ## ⚙️ Instalación
