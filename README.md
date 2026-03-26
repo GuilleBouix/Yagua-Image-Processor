@@ -58,8 +58,9 @@ Yagua integra en una sola interfaz features orientadas al flujo de trabajo web m
 ### ✅ Instalador (recomendado)
 
 1. Descarga el instalador de la última release.
-2. Ejecuta el `.exe` y sigue el asistente.
-3. Abre Yagua desde el escritorio o el menú inicio.
+2. Descomprime el archivo `.zip`
+3. Ejecuta el `.exe` y sigue el asistente.
+4. Abre Yagua desde el escritorio o el menú inicio.
 
 ### 🐍 Desde código (source)
 
