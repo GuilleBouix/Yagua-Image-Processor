@@ -79,7 +79,7 @@ Yagua integra en una sola interfaz features orientadas al flujo de trabajo web m
 3. Carga imágenes y procesa.
 4. Guarda los resultados en la carpeta de salida.
 
-ℹ️ Nota: Por el momento, solo está disponible para Windows.
+ℹ️ Nota: Próximamente compatibilidad para macOS.
 
 ## 🔧 Tecnologías Utilizadas
 
