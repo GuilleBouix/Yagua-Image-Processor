@@ -25,13 +25,16 @@ Yagua integra en una sola interfaz features orientadas al flujo de trabajo web m
 
 ## ✨ Features
 
-- Compresión y conversión de imágenes
-- Redimensionar, recortar y canvas
-- Renombrado por lotes con preview
-- Quitar fondo con IA (rembg)
-- Metadatos EXIF (ver, editar, limpiar)
-- LQIP / Base64
-- Multi-idioma (ES / EN / PT)
+- Compresión inteligente con control de calidad
+- Conversión entre múltiples formatos de imagen
+- Eliminación de fondo con IA (rembg)
+- Redimensionado, recorte y edición en canvas
+- Extracción automática de paleta de colores
+- Renombrado masivo con vista previa
+- Gestión de metadatos EXIF (visualizar, editar y limpiar)
+- Generación de LQIP y codificación Base64
+- Soporte multi-idioma (ES / EN / PT)
+- Temas oscuros predefinidos
 
 ## 🖼️ Galería
 
