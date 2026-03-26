@@ -80,7 +80,7 @@ Para que Yagua funcione de manera fluida, especialmente con lotes grandes (hasta
   - `libfuse2`
   - `libgl1`
   - `libglib2.0-0`
-### ✅ Límites de carga
+#### ✅ Límites de carga
 - 100 imágenes por lote (compresión, conversión, resize, rename, LQIP)
 - 10 imágenes por lote en Quitar Fondo
 - 100 imágenes en limpieza de metadatos (EXIF)
