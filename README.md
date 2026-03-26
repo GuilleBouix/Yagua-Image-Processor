@@ -57,13 +57,15 @@ A diferencia de tools como IrfanView o XnConvert, Yagua integra en una sola inte
 
 ## Tecnologías
 
-- Python 3.13+
-- CustomTkinter
-- Pillow
-- piexif
-- tkinterdnd2
-- rembg
-- Codex (asistencia de desarrollo)
+| Tecnología | Uso |
+|---|---|
+| Python 3.13+ | Lenguaje base |
+| CustomTkinter | Interfaz gráfica |
+| Pillow | Procesamiento de imágenes |
+| piexif | Lectura y edición de metadatos EXIF |
+| tkinterdnd2 | Drag & drop |
+| rembg | Eliminación de fondo con IA |
+| Codex | Asistencia de desarrollo |
 
 ---
 
