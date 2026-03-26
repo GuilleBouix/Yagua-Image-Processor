@@ -72,6 +72,25 @@ Yagua integra en una sola interfaz features orientadas al flujo de trabajo web m
 3. Instala dependencias con `pip install -r requirements.txt`.
 4. Ejecuta `python main.py`.
 
+## 🧩 Requisitos recomendados
+
+Para que Yagua funcione de manera fluida, especialmente con lotes grandes (hasta 100 imágenes):
+
+#### ✅ Sistema
+- Windows 10/11 o Linux x64
+- CPU: 4 núcleos o más recomendado
+- RAM: 8 GB mínimo
+- Disco: 500 MB libres + espacio para outputs
+#### ✅ Dependencias (Linux)
+- AppImage suele correr directo, pero puede requerir:
+  - `libfuse2`
+  - `libgl1`
+  - `libglib2.0-0`
+### ✅ Límites de carga
+- 100 imágenes por lote (compresión, conversión, resize, rename, LQIP)
+- 10 imágenes por lote en Quitar Fondo
+- 100 imágenes en limpieza de metadatos (EXIF)
+
 ## 🚀 Uso
 
 1. Abre la app.
