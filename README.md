@@ -34,15 +34,16 @@ A diferencia de tools como IrfanView o XnConvert, Yagua integra en una sola inte
 ### Instalador (recomendado)
 
 1. Descarga el instalador de la última release.
-2. Ejecuta el `.exe` y sigue el asistente.
-3. Abre Yagua desde el escritorio o el menú inicio.
+2. Descomprime el archivo `.zip`.
+3. Ejecuta el `.exe` y sigue el asistente.
+4. Abre Yagua desde el escritorio o el menú inicio.
 
 ### Desde código (source)
 
 1. Clona el repositorio.
 2. Crea y activa tu entorno virtual.
 3. Instala dependencias con `pip install -r requirements.txt`.
-4. Ejecuta `python -m app.main`.
+4. Ejecuta `python main.py`.
 
 ---
 
