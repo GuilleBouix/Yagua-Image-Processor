@@ -18,3 +18,12 @@ Todos los cambios notables del proyecto se documentan en este archivo.
 - Suites de tests de core y UI con pytest.
 - Limpieza PEP8 y mejoras de legibilidad en nombres.
 - README simplificado con instrucciones de instalación y uso más claras.
+
+## [1.1.1] - 2026-03-27
+
+- Sidebar configurable con selecci?n de m?dulos visibles desde Ajustes.
+- Bot?n "Aplicar" para evitar reinicios al cambiar opciones.
+- Sidebar con scroll solo si hay m?s de un m?dulo visible.
+- Loader interno en "Quitar fondo" (no bloquea la pantalla).
+- Botones de apoyo/donaci?n en sidebar y Ajustes (PayPal).
+- Logs mejorados para errores en "Quitar fondo".
