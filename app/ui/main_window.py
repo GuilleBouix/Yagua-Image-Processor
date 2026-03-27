@@ -55,11 +55,16 @@ class MainWindow(ctk.CTkFrame):
         self.content.pack(side='left', fill='both', expand=True)
         
         # Inicializar slots para frames lazy-loaded
+        first_key = None
         for spec in iter_enabled_modules():
             self.frames[spec.key] = None
-        
-        # Mostrar el modulo de compresion por defecto
-        self.show_module('compress')
+            if first_key is None:
+                first_key = spec.key
+
+        # Mostrar el primer modulo visible por defecto
+        if first_key is None:
+            first_key = 'settings'
+        self.show_module(first_key)
     
     def show_module(self, key):
         """

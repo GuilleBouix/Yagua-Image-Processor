@@ -87,6 +87,9 @@ class BaseFrame(ctk.CTkFrame):
         fila_titulo = ctk.CTkFrame(self, fg_color='transparent')
         fila_titulo.grid(row=0, column=0, padx=28, pady=(26, 8), sticky='ew')
         fila_titulo.grid_columnconfigure(0, weight=1)
+        fila_titulo.grid_columnconfigure(1, weight=0)
+        fila_titulo.grid_columnconfigure(2, weight=0)
+        self._title_row = fila_titulo
 
         # Label del titulo
         ctk.CTkLabel(

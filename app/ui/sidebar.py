@@ -24,6 +24,9 @@ from app.utils.paths import resource_path
 from app.translations import t
 from app.ui.module_registry import iter_enabled_modules
 
+# URL de donacion (PayPal)
+DONATION_URL = 'https://paypal.me/guillebouix?locale.x=es_XC&country.x=AR'
+
 
 logger = logging.getLogger(__name__)
 
@@ -109,8 +112,23 @@ class Sidebar(ctk.CTkFrame):
         )
         separador.pack(fill='x', padx=20, pady=(10, 20))
 
+        specs = list(iter_enabled_modules())
+        if len(specs) > 1:
+            # Contenedor scrollable solo si hay mas de un modulo
+            self._modules_container = ctk.CTkScrollableFrame(
+                self,
+                fg_color='transparent',
+                corner_radius=0,
+                scrollbar_fg_color=colors.SIDEBAR_BG,
+                scrollbar_button_color=colors.SIDEBAR_SEPARATOR,
+                scrollbar_button_hover_color=colors.SIDEBAR_HOVER
+            )
+        else:
+            self._modules_container = ctk.CTkFrame(self, fg_color='transparent', corner_radius=0)
+        self._modules_container.pack(fill='both', expand=True, padx=0, pady=(0, 10))
+
         # Crear botones para cada modulo habilitado
-        for spec in iter_enabled_modules():
+        for spec in specs:
             # Tintar icono con el color del tema
             icon_ctk = tintar_icono(spec.icon_path, colors.ICON_COLOR)
             
@@ -119,7 +137,7 @@ class Sidebar(ctk.CTkFrame):
             
             # Crear boton del modulo
             btn = ctk.CTkButton(
-                self,
+                self._modules_container,
                 text=f' {label}',
                 image=icon_ctk,
                 compound='left',
@@ -163,6 +181,26 @@ class Sidebar(ctk.CTkFrame):
         
         # Abrir GitHub al hacer clic
         lbl_link.bind('<Button-1>', lambda _: webbrowser.open(GITHUB_URL))
+
+        # Boton de donacion
+        icon_donar = tintar_icono('assets/icons/heart.png', '#FFFFFF')
+        btn_donar = ctk.CTkButton(
+            self._frame_footer,
+            text=t('donate'),
+            image=icon_donar,
+            compound='left',
+            width=120,
+            height=28,
+            corner_radius=8,
+            font=fonts.FUENTE_CHICA,
+            fg_color=colors.SIDEBAR_BG,
+            text_color=colors.TEXT_COLOR,
+            hover_color=colors.SIDEBAR_HOVER,
+            border_width=1,
+            border_color=colors.SIDEBAR_SEPARATOR,
+            command=lambda: webbrowser.open(DONATION_URL)
+        )
+        btn_donar.grid(row=1, column=0, columnspan=2, pady=(8, 0), sticky='ew')
 
     def set_active(self, key):
         """

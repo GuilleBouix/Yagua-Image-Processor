@@ -11,6 +11,7 @@ Relacionado con:
 
 from __future__ import annotations
 
+import logging
 import threading
 from tkinter import filedialog
 
@@ -27,6 +28,8 @@ from app.ui.frames.remove_bg.services import (
     FORMATOS_SALIDA,
 )
 
+logger = logging.getLogger(__name__)
+
 
 class RemoveBgFrame(BaseFrame):
     """
@@ -37,15 +40,47 @@ class RemoveBgFrame(BaseFrame):
     def __init__(self, parent):
         """Inicializa el frame."""
         self._formato_salida: ctk.StringVar = ctk.StringVar(value='PNG')
-        self._overlay = None
-        self._overlay_label = None
-        self._overlay_bar = None
-        self._overlay_bind_id = None
+        self._spinner_frame = None
+        self._spinner_label = None
+        self._spinner_bar = None
         super().__init__(parent, t('remove_bg_title'))
 
     def _build_content(self):
         """Construye el contenido del modulo."""
+        self._crear_spinner()
         self._inicializar_en_background()
+
+    def _crear_spinner(self):
+        """Crea un spinner dentro del modulo (no bloqueante)."""
+        self._spinner_frame = ctk.CTkFrame(
+            self,
+            corner_radius=10,
+            fg_color=colors.PANEL_BG,
+            border_width=1,
+            border_color=colors.SIDEBAR_SEPARATOR
+        )
+        self._spinner_frame.grid(row=1, column=0, padx=28, pady=(8, 6), sticky='ew')
+        self._spinner_frame.grid_columnconfigure(0, weight=1)
+
+        self._spinner_label = ctk.CTkLabel(
+            self._spinner_frame,
+            text=t('loading_model'),
+            font=fonts.FUENTE_BASE,
+            text_color=colors.TEXT_COLOR,
+            anchor='w'
+        )
+        self._spinner_label.grid(row=0, column=0, padx=16, pady=(12, 6), sticky='w')
+
+        self._spinner_bar = ctk.CTkProgressBar(
+            self._spinner_frame,
+            width=220,
+            height=10,
+            corner_radius=8,
+            fg_color=colors.SIDEBAR_SEPARATOR,
+            progress_color=colors.ACENTO,
+            mode='indeterminate'
+        )
+        self._spinner_bar.grid(row=1, column=0, padx=16, pady=(0, 12), sticky='w')
 
     def _inicializar_en_background(self):
         """Inicializa checks pesados sin bloquear la UI."""
@@ -55,12 +90,12 @@ class RemoveBgFrame(BaseFrame):
             try:
                 disponible = rembg_disponible()
             except Exception as exc:
-                self.logger.warning("Error al verificar rembg: %s", exc)
+                logger.warning("Error al verificar rembg: %s", exc)
                 disponible = False
             try:
                 modelo_ok = modelo_descargado() if disponible else False
             except Exception as exc:
-                self.logger.warning("Error al verificar modelo: %s", exc)
+                logger.warning("Error al verificar modelo: %s", exc)
                 modelo_ok = False
             self.after(0, lambda: self._build_content_ready(disponible, modelo_ok))
 
@@ -74,17 +109,21 @@ class RemoveBgFrame(BaseFrame):
             self._construir_aviso_dependencia()
             return
 
+        row = 2
         if not modelo_ok:
-            self._construir_aviso_primer_uso()
+            self._construir_aviso_primer_uso(row)
+            row += 1
 
         # Boton seleccionar
         self._btn_seleccionar = self._crear_boton_seleccionar(self)
-        self._btn_seleccionar.grid(row=1, column=0, padx=28, pady=8, sticky='ew')
+        self._btn_seleccionar.grid(row=row, column=0, padx=28, pady=8, sticky='ew')
+        row += 1
 
         # Lista de archivos
         self._lista_frame = self._crear_lista_archivos(self, height=200)
-        self._lista_frame.grid(row=2, column=0, padx=28, pady=8, sticky='ew')
+        self._lista_frame.grid(row=row, column=0, padx=28, pady=8, sticky='ew')
         self._lista_frame.grid_columnconfigure(0, weight=1)
+        row += 1
 
         self._lbl_lista_vacia = self._crear_lista_vacia(self._lista_frame)
         self._lbl_lista_vacia.pack(pady=12)
@@ -97,7 +136,7 @@ class RemoveBgFrame(BaseFrame):
             border_width=1,
             border_color=colors.SIDEBAR_SEPARATOR
         )
-        panel.grid(row=3, column=0, padx=28, pady=8, sticky='ew')
+        panel.grid(row=row, column=0, padx=28, pady=8, sticky='ew')
         panel.grid_columnconfigure(1, weight=1)
 
         # Descripcion
@@ -145,91 +184,26 @@ class RemoveBgFrame(BaseFrame):
             padx=16, pady=(0, 16), sticky='ew'
         )
 
-    def _sync_overlay_geometry(self):
-        """Ajusta el overlay al tamaño y posición de la ventana."""
-        if not self._overlay or not self._overlay.winfo_exists():
-            return
-        root = self.winfo_toplevel()
-        root.update_idletasks()
-        w = root.winfo_width()
-        h = root.winfo_height()
-        x = root.winfo_rootx()
-        y = root.winfo_rooty()
-        self._overlay.geometry(f'{w}x{h}+{x}+{y}')
-
     def _show_overlay(self, text: str):
-        """Muestra un overlay full-screen con spinner."""
-        if self._overlay and self._overlay.winfo_exists():
-            if self._overlay_label:
-                self._overlay_label.configure(text=text)
+        """Muestra spinner dentro del modulo (no bloqueante)."""
+        if not self._spinner_frame or not self._spinner_label or not self._spinner_bar:
             return
-
-        root = self.winfo_toplevel()
-        root.update_idletasks()
-
-        self._overlay = ctk.CTkToplevel(root)
-        self._overlay.overrideredirect(True)
-        self._overlay.attributes('-topmost', True)
+        self._spinner_label.configure(text=text)
+        self._spinner_frame.grid()
         try:
-            self._overlay.attributes('-alpha', 0.9)
+            self._spinner_bar.start()
         except Exception:
             pass
-
-        self._overlay.configure(fg_color=colors.FRAMES_BG)
-        self._sync_overlay_geometry()
-
-        base = ctk.CTkFrame(self._overlay, fg_color=colors.FRAMES_BG)
-        base.pack(fill='both', expand=True)
-
-        content = ctk.CTkFrame(base, fg_color='transparent')
-        content.place(relx=0.5, rely=0.5, anchor='center')
-
-        self._overlay_label = ctk.CTkLabel(
-            content,
-            text=text,
-            font=fonts.FUENTE_BASE,
-            text_color=colors.TEXT_COLOR
-        )
-        self._overlay_label.pack(pady=(0, 10))
-
-        self._overlay_bar = ctk.CTkProgressBar(
-            content,
-            width=240,
-            height=10,
-            corner_radius=8,
-            fg_color=colors.SIDEBAR_SEPARATOR,
-            progress_color=colors.ACENTO,
-            mode='indeterminate'
-        )
-        self._overlay_bar.pack()
-        self._overlay_bar.start()
-
-        self._overlay.grab_set()
-        self._overlay_bind_id = root.bind(
-            '<Configure>', lambda _e: self._sync_overlay_geometry(), add='+'
-        )
 
     def _hide_overlay(self):
-        """Oculta y destruye el overlay."""
-        if not self._overlay or not self._overlay.winfo_exists():
+        """Oculta el spinner interno."""
+        if not self._spinner_frame or not self._spinner_bar:
             return
         try:
-            if self._overlay_bar:
-                self._overlay_bar.stop()
-            self._overlay.grab_release()
+            self._spinner_bar.stop()
         except Exception:
             pass
-        root = self.winfo_toplevel()
-        if self._overlay_bind_id:
-            try:
-                root.unbind('<Configure>', self._overlay_bind_id)
-            except Exception:
-                pass
-            self._overlay_bind_id = None
-        self._overlay.destroy()
-        self._overlay = None
-        self._overlay_label = None
-        self._overlay_bar = None
+        self._spinner_frame.grid_remove()
 
     def _construir_aviso_dependencia(self):
         """Muestra panel de instalacion cuando rembg no esta disponible."""
@@ -260,7 +234,7 @@ class RemoveBgFrame(BaseFrame):
             corner_radius=6,
         ).grid(row=1, column=0, padx=16, pady=(0, 16), ipadx=12, ipady=6)
 
-    def _construir_aviso_primer_uso(self):
+    def _construir_aviso_primer_uso(self, row: int):
         """Muestra aviso de descarga automatica en el primer uso."""
         aviso = ctk.CTkFrame(
             self,
@@ -269,7 +243,7 @@ class RemoveBgFrame(BaseFrame):
             border_width=1,
             border_color=colors.ACENTO_DIMMED
         )
-        aviso.grid(row=0, column=0, padx=28, pady=(0, 4), sticky='ew')
+        aviso.grid(row=row, column=0, padx=28, pady=(0, 4), sticky='ew')
         aviso.grid_columnconfigure(0, weight=1)
 
         ctk.CTkLabel(
@@ -331,7 +305,11 @@ class RemoveBgFrame(BaseFrame):
                 res.get('conflictos', 0),
             ))
         except Exception as exc:
-            self.after(0, lambda: self._handle_error(str(exc)))
+            logger.exception("Error en proceso remove_bg")
+            msg = str(exc).strip()
+            if not msg or msg.lower() == 'none':
+                msg = type(exc).__name__
+            self.after(0, lambda: self._handle_error(msg))
 
     def _handle_error(self, msg: str):
         """Maneja errores y restaura el estado visual."""

@@ -48,6 +48,23 @@ def _save_settings(settings: dict) -> None:
     path.write_text(json.dumps(settings, indent=2, ensure_ascii=False), encoding='utf-8')
 
 
+def get_visible_modules() -> list[str] | None:
+    """Retornar la lista de modulos visibles guardada."""
+    settings = _load_settings()
+    visible = settings.get('visible_modules')
+    if not isinstance(visible, list):
+        return None
+    return [str(v) for v in visible]
+
+
+def set_visible_modules_and_restart(modules: list[str]) -> None:
+    """Guardar modulos visibles y reiniciar la aplicacion."""
+    settings = _load_settings()
+    settings['visible_modules'] = modules
+    _save_settings(settings)
+    restart_app()
+
+
 def restart_app() -> None:
     """Reiniciar la aplicacion con los mismos argumentos."""
     python = sys.executable
@@ -78,4 +95,10 @@ def set_theme_and_restart(theme: str) -> None:
     restart_app()
 
 
-__all__ = ['set_language_and_restart', 'set_theme_and_restart', 'restart_app']
+__all__ = [
+    'set_language_and_restart',
+    'set_theme_and_restart',
+    'get_visible_modules',
+    'set_visible_modules_and_restart',
+    'restart_app'
+]

@@ -11,7 +11,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import importlib
-from typing import Iterable
+import json
+from typing import Iterable, List, Optional
+
+from app.utils.settings import settings_path
 
 import customtkinter as ctk
 
@@ -104,7 +107,32 @@ def iter_enabled_modules():
     Yields:
         ModuleSpec para cada modulo con enabled=True.
     """
-    return (m for m in _MODULE_SPECS if m.enabled)
+    visible = _get_visible_modules()
+    if not visible:
+        return (m for m in _MODULE_SPECS if m.enabled)
+    visible_set = set(visible)
+    visible_set.add('settings')
+    return (m for m in _MODULE_SPECS if m.enabled and m.key in visible_set)
+
+
+def iter_all_modules() -> List[ModuleSpec]:
+    """Retorna la lista completa de modulos registrados."""
+    return list(_MODULE_SPECS)
+
+
+def _get_visible_modules() -> Optional[List[str]]:
+    """Lee visible_modules desde user_settings.json si existe."""
+    path = settings_path()
+    if not path.exists():
+        return None
+    try:
+        data = json.loads(path.read_text(encoding='utf-8'))
+    except Exception:
+        return None
+    visible = data.get('visible_modules')
+    if not isinstance(visible, list):
+        return None
+    return [str(v) for v in visible]
 
 
 def get_module_spec(key):

@@ -247,4 +247,11 @@ TRANSLATIONS = {
     'light': 'Claro',
     'system': 'Sistema',
     'restart_required': 'Reiniciando aplicación para aplicar el idioma...',
+    'visible_modules': 'Módulos visibles',
+    'visible_modules_hint': 'Elegí los módulos que querés ver en la barra lateral.',
+    'apply_changes': 'Aplicar',
+    'restart_required_generic': 'Reiniciando aplicación para aplicar cambios...',
+    'donate_paypal': 'Donar con PayPal',
+    'donate_paypal_btn': 'Apoyar con PayPal',
+    'donate': 'Apoyar el Proyecto',
 }

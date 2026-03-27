@@ -33,35 +33,39 @@ def quitar_fondo(ruta_entrada, ruta_salida, formato_salida='PNG'):
         Diccionario con ruta_salida, tam_original, tam_resultado.
     """
     try:
-        from rembg import remove as rembg_remove, new_session
-    except ImportError:
-        raise ImportError('rembg no está instalado. Ejecutá: pip install rembg')
+        try:
+            from rembg import remove as rembg_remove, new_session
+        except ImportError:
+            raise ImportError('rembg no est? instalado. Ejecut?: pip install rembg')
 
-    imagen = Image.open(ruta_entrada)
-    imagen = ImageOps.exif_transpose(imagen)
-    tam_original = Path(ruta_entrada).stat().st_size
+        imagen = Image.open(ruta_entrada)
+        imagen = ImageOps.exif_transpose(imagen)
+        tam_original = Path(ruta_entrada).stat().st_size
 
-    sesion = new_session(MODELO)
-    resultado_raw = rembg_remove(imagen, session=sesion)
-    if isinstance(resultado_raw, Image.Image):
-        resultado = resultado_raw
-    else:
-        resultado = Image.fromarray(resultado_raw)  # type: ignore
+        sesion = new_session(MODELO)
+        resultado_raw = rembg_remove(imagen, session=sesion)
+        if isinstance(resultado_raw, Image.Image):
+            resultado = resultado_raw
+        else:
+            resultado = Image.fromarray(resultado_raw)  # type: ignore
 
-    formato = formato_salida.upper()
-    extension = _FMT_A_EXT.get(formato, '.png')
+        formato = formato_salida.upper()
+        extension = _FMT_A_EXT.get(formato, '.png')
 
-    ruta_final, conflicto = unique_output_path(
-        ruta_salida, ruta_entrada, sufijo='_sinFondo', extension=extension
-    )
-    resultado.save(str(ruta_final), formato)
+        ruta_final, conflicto = unique_output_path(
+            ruta_salida, ruta_entrada, sufijo='_sinFondo', extension=extension
+        )
+        resultado.save(str(ruta_final), formato)
 
-    return {
-        'ruta_salida': str(ruta_final),
-        'tam_original': tam_original,
-        'tam_resultado': ruta_final.stat().st_size,
-        'conflicto': conflicto,
-    }
+        return {
+            'ruta_salida': str(ruta_final),
+            'tam_original': tam_original,
+            'tam_resultado': ruta_final.stat().st_size,
+            'conflicto': conflicto,
+        }
+    except Exception:
+        logger.exception("Error en quitar_fondo para %s", ruta_entrada)
+        raise
 
 
 def batch_quitar_fondo(rutas, carpeta_salida, formato_salida='PNG'):
@@ -114,7 +118,7 @@ def batch_quitar_fondo(rutas, carpeta_salida, formato_salida='PNG'):
                 'tam_resultado': ruta_final.stat().st_size,
             })
         except Exception as exc:
-            logger.warning("Error al quitar fondo %s: %s", ruta, exc)
+            logger.exception("Error al quitar fondo %s", ruta)
             errores += 1
 
     return {

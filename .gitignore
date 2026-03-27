@@ -72,3 +72,4 @@ exports/
 *.iss
 assets/installer/
 installer/
+notes/

@@ -246,4 +246,11 @@ TRANSLATIONS = {
     'light': 'Light',
     'system': 'System',
     'restart_required': 'Restarting application to apply the language...',
+    'visible_modules': 'Visible modules',
+    'visible_modules_hint': 'Select the modules you want to see in the sidebar.',
+    'apply_changes': 'Apply',
+    'restart_required_generic': 'Restarting application to apply changes...',
+    'donate_paypal': 'Donate with PayPal',
+    'donate_paypal_btn': 'Support with PayPal',
+    'donate': 'Support the Project',
 }
