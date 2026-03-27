@@ -56,8 +56,20 @@ class YaguaApp(ctk.CTk):
         # Actualizar para asegurar que la geometria se aplique antes de maximizar
         self.update()
         
-        # Maximizar ventana al iniciar (solo funciona en Windows)
-        self.state('zoomed')
+        # Maximizar ventana al iniciar (Windows/Linux)
+        try:
+            # Windows y algunos WM
+            self.state('zoomed')
+        except Exception:
+            try:
+                # Linux (algunos window managers)
+                self.attributes('-zoomed', True)
+            except Exception:
+                # Fallback: usar tamaño de pantalla
+                self.update_idletasks()
+                w = self.winfo_screenwidth()
+                h = self.winfo_screenheight()
+                self.geometry(f'{w}x{h}+0+0')
         
         # Establecer tamano minimo de la ventana
         self.minsize(900, 600)
