@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 MODELO = 'u2netp'
 FORMATOS_SALIDA = ['PNG', 'WEBP', 'TIFF']
 _FMT_A_EXT = {'PNG': '.png', 'WEBP': '.webp', 'TIFF': '.tiff'}
+INSTALL_COMMAND = 'pip install --upgrade rembg onnxruntime pymatting'
 
 
 def quitar_fondo(ruta_entrada, ruta_salida, formato_salida='PNG'):
@@ -36,7 +37,7 @@ def quitar_fondo(ruta_entrada, ruta_salida, formato_salida='PNG'):
         try:
             from rembg import remove as rembg_remove, new_session
         except ImportError:
-            raise ImportError('rembg no est? instalado. Ejecut?: pip install rembg')
+            raise ImportError(f'rembg no está disponible. Ejecutá: {INSTALL_COMMAND}')
 
         imagen = Image.open(ruta_entrada)
         imagen = ImageOps.exif_transpose(imagen)
@@ -84,7 +85,7 @@ def batch_quitar_fondo(rutas, carpeta_salida, formato_salida='PNG'):
     try:
         from rembg import remove as rembg_remove, new_session
     except ImportError:
-        raise ImportError('rembg no está instalado.')
+        raise ImportError(f'rembg no está disponible. Ejecutá: {INSTALL_COMMAND}')
 
     sesion = new_session(MODELO)
     formato = formato_salida.upper()
@@ -138,19 +139,26 @@ def ensure_model():
     try:
         from rembg import new_session
     except ImportError:
-        raise ImportError('rembg no está instalado.')
+        raise ImportError(f'rembg no está disponible. Ejecutá: {INSTALL_COMMAND}')
 
     new_session(MODELO)
 
 
-def rembg_disponible():
-    """Verifica si rembg esta instalado."""
+def estado_rembg():
+    """Verifica si rembg puede importarse y retorna detalle del error si falla."""
     try:
         import rembg  # noqa: F401
-        return True
+        return True, None
     except Exception as exc:
-        logger.warning("rembg no disponible: %s", exc)
-        return False
+        detalle = str(exc).strip() or type(exc).__name__
+        logger.warning("rembg no disponible: %s", detalle)
+        return False, detalle
+
+
+def rembg_disponible():
+    """Verifica si rembg esta disponible en el entorno actual."""
+    disponible, _ = estado_rembg()
+    return disponible
 
 
 def modelo_descargado():
