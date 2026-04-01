@@ -14,6 +14,7 @@ Relaciones:
 
 from __future__ import annotations
 
+import logging
 import threading
 from pathlib import Path
 from tkinter import filedialog
@@ -34,16 +35,21 @@ from app.ui.frames.palette.services import (
 from app.ui.frames.palette.state import PaletteState
 
 
+logger = logging.getLogger(__name__)
+
+
 class PaletteFrame(BaseFrame):
     """Frame principal del modulo de extraccion de paleta de colores."""
 
     def __init__(self, parent):
+        logger.info("palette.ui: init")
         self._state = PaletteState()
         self._preview_img: ctk.CTkImage | None = None
         super().__init__(parent, t('palette_title'))
 
     def _build_content(self):
         """Construir el contenido principal del frame."""
+        logger.info("palette.ui: build_content")
         self.grid_columnconfigure(0, weight=1)
 
         self._btn_seleccionar = self._crear_boton_seleccionar(
@@ -233,6 +239,7 @@ class PaletteFrame(BaseFrame):
         Args:
             valor: Texto a copiar al portapapeles
         """
+        logger.info("palette.ui: copiar_color (%s)", valor)
         self.clipboard_clear()
         self.clipboard_append(valor)
         self._lbl_info.configure(text=f'{t("copied")} {valor}')
@@ -242,16 +249,19 @@ class PaletteFrame(BaseFrame):
 
     def _explorar(self):
         """Abrir dialogo para seleccionar una imagen."""
+        logger.info("palette.ui: explorar_imagen")
         archivo = filedialog.askopenfilename(
             title=t('select_image_for_palette'),
-            filetypes=[('Imagenes', '*.jpg *.jpeg *.png *.webp *.bmp *.tiff *.avif')]
+            filetypes=[('Imagenes', '*.jpg *.jpeg *.png *.webp *.bmp *.tiff *.avif *.heic *.heif')]
         )
         if not archivo:
+            logger.info("palette.ui: explorar_cancelado")
             return
         self._state.ruta = archivo
         self._state.paleta = []
         self._mostrar_cargado(archivo)
         n = int(self._seg_n.get())
+        self._show_full_overlay(t('processing'))
         threading.Thread(target=self._proceso_extraccion, args=(n,), daemon=True).start()
 
     def _auto_extraer(self, *_):
@@ -262,7 +272,9 @@ class PaletteFrame(BaseFrame):
         """
         if not self._state.ruta:
             return
+        logger.info("palette.ui: auto_extraer")
         n = int(self._seg_n.get())
+        self._show_full_overlay(t('processing'))
         threading.Thread(target=self._proceso_extraccion, args=(n,), daemon=True).start()
 
     def _proceso_extraccion(self, n: int):
@@ -271,8 +283,11 @@ class PaletteFrame(BaseFrame):
         Args:
             n: Numero de colores a extraer
         """
+        logger.info("palette.ui: proceso_extraccion_inicio (n=%s)", n)
         paleta, err = extraer_paleta_safe(self._state.ruta, n)  # type: ignore
         if err:
+            logger.warning("palette.ui: proceso_extraccion_error (%s)", err)
+            self.after(0, self._hide_full_overlay)
             self.after(0, lambda: self._lbl_info.configure(text=f'{t("error_generic")}: {err}'))
             return
         self.after(0, lambda: self._aplicar_paleta(paleta))
@@ -285,12 +300,15 @@ class PaletteFrame(BaseFrame):
         """
         self._state.paleta = paleta
         self._renderizar_paleta(paleta)
+        logger.info("palette.ui: aplicar_paleta (n=%s)", len(paleta))
+        self._hide_full_overlay()
         self._lbl_info.configure(
             text=f'{len(paleta)} {t("colors_extracted")} - {t("click_format_to_copy")}'
         )
 
     def _guardar_imagen(self):
         """Guardar la paleta como imagen PNG."""
+        logger.info("palette.ui: guardar_imagen")
         if not self._state.paleta:
             self._lbl_info.configure(text=t('save_palette_first'))
             return
@@ -301,8 +319,10 @@ class PaletteFrame(BaseFrame):
             initialfile='paleta.png'
         )
         if not ruta:
+            logger.info("palette.ui: guardar_cancelado")
             return
         self._btn_guardar.configure(state='disabled', text=t('saving'))
+        self._show_full_overlay(t('processing'))
 
         def _proceso():
             exportar_paleta_imagen(self._state.paleta, ruta)
@@ -312,11 +332,13 @@ class PaletteFrame(BaseFrame):
             self.after(0, lambda: self._lbl_info.configure(
                 text=f'{t("saved_as")} {Path(ruta).name}'
             ))
+            self.after(0, self._hide_full_overlay)
 
         threading.Thread(target=_proceso, daemon=True).start()
 
     def _limpiar(self):
         """Limpiar estado y reiniciar la interfaz."""
+        logger.info("palette.ui: limpiar")
         self._state.ruta = None
         self._state.paleta = []
         self._preview_img = None

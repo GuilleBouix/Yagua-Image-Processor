@@ -18,9 +18,10 @@ Relaciones:
 
 from __future__ import annotations
 
+import logging
 import threading
 from pathlib import Path
-from tkinter import filedialog
+from tkinter import filedialog, messagebox
 import webbrowser
 
 import customtkinter as ctk
@@ -41,10 +42,14 @@ from app.ui.frames.metadata.services import (
 from app.ui.frames.metadata.state import MetadataState
 
 
+logger = logging.getLogger(__name__)
+
+
 class MetadataFrame(BaseFrame):
     """Frame principal del modulo de gestion de metadatos EXIF."""
 
     def __init__(self, parent):
+        logger.info("metadata.ui: init")
         self._state = MetadataState()
         self._preview_img: ctk.CTkImage | None = None
         self._thumbs: list[ctk.CTkImage] = []
@@ -54,6 +59,7 @@ class MetadataFrame(BaseFrame):
 
     def _build_content(self):
         """Construir el contenido principal con tabs Ver, Editar y Limpiar."""
+        logger.info("metadata.ui: build_content")
         self.grid_columnconfigure(0, weight=1)
 
         self._tab = ctk.CTkSegmentedButton(
@@ -168,6 +174,11 @@ class MetadataFrame(BaseFrame):
             'Software': 'software',
             'DateTime': 'datetime',
         }
+        _placeholder_map = {
+            'DateTime': t('datetime_format_placeholder'),
+            'DateTimeOriginal': t('datetime_format_placeholder'),
+            'DateTimeDigitized': t('datetime_format_placeholder'),
+        }
         for indice, (campo, etiqueta) in enumerate(CAMPOS_EDITABLES.items()):
             etiqueta_trad = t(_label_map.get(campo, '')) if campo in _label_map else etiqueta
             ctk.CTkLabel(
@@ -182,7 +193,9 @@ class MetadataFrame(BaseFrame):
                 fg_color=colors.FRAMES_BG,
                 border_color=colors.SIDEBAR_SEPARATOR,
                 text_color=colors.TEXT_COLOR,
-                placeholder_text=t('enter_field').format(etiqueta_trad.lower()),
+                placeholder_text=_placeholder_map.get(
+                    campo, t('enter_field').format(etiqueta_trad.lower())
+                ),
                 placeholder_text_color=colors.TEXT_GRAY
             )
             entry.grid(row=indice, column=1, padx=(0, 16), pady=8, sticky='ew')
@@ -331,20 +344,23 @@ class MetadataFrame(BaseFrame):
 
     def _explorar_ver(self):
         """Abrir dialogo para seleccionar imagen y leer sus metadatos."""
+        logger.info("metadata.ui: explorar_ver")
         archivo = filedialog.askopenfilename(
             title=t('select_image_view'),
-            filetypes=[('Imagenes', '*.jpg *.jpeg *.png *.tiff *.webp')]
+            filetypes=[('Imagenes', '*.jpg *.jpeg *.png *.tiff *.webp *.heic *.heif')]
         )
         if not archivo:
             return
         self._state.ruta = archivo
         self._lbl_info.configure(text=t('reading_metadata'))
+        self._show_full_overlay(t('processing'))
         threading.Thread(target=self._leer, daemon=True).start()
 
     def _leer(self):
         """Leer metadatos en hilo separado."""
         meta, err = leer_metadatos_safe(self._state.ruta)  # type: ignore
         if err:
+            self.after(0, self._hide_full_overlay)
             self.after(0, lambda: self._lbl_info.configure(text=f'{t("error_generic")}: {err}'))
             return
         self.after(0, lambda: self._aplicar_metadatos(meta))
@@ -357,6 +373,7 @@ class MetadataFrame(BaseFrame):
         """
         self._state.metadatos = meta
         self._renderizar_metadatos(meta)
+        self._hide_full_overlay()
         n = len([k for k in meta if not k.startswith('__')])
         self._lbl_info.configure(
             text=f'{n} {t("fields_found")} - {Path(self._state.ruta).name}' if self._state.ruta else ''
@@ -368,6 +385,7 @@ class MetadataFrame(BaseFrame):
         Args:
             fmt: Formato de exportacion ('txt' o 'json')
         """
+        logger.info("metadata.ui: exportar (fmt=%s)", fmt)
         if not self._state.metadatos:
             self._lbl_info.configure(text=t('export_metadata_first'))
             return
@@ -385,14 +403,16 @@ class MetadataFrame(BaseFrame):
 
     def _explorar_editar(self):
         """Abrir dialogo para seleccionar imagen y precargar campos editables."""
+        logger.info("metadata.ui: explorar_editar")
         archivo = filedialog.askopenfilename(
             title=t('select_image_edit'),
-            filetypes=[('Imagenes', '*.jpg *.jpeg *.tiff')]
+            filetypes=[('Imagenes', '*.jpg *.jpeg *.tiff *.heic *.heif')]
         )
         if not archivo:
             return
         self._state.ruta = archivo
         self._lbl_info.configure(text=t('reading_metadata'))
+        self._show_full_overlay(t('processing'))
 
         def _proc():
             meta, _ = leer_metadatos_safe(archivo)
@@ -408,9 +428,11 @@ class MetadataFrame(BaseFrame):
                 entry.insert(0, meta[etiqueta])
         if self._state.ruta:
             self._lbl_info.configure(text=f'{t("editing")} {Path(self._state.ruta).name}')
+        self._hide_full_overlay()
 
     def _guardar_edicion(self):
         """Guardar los cambios de metadatos editados."""
+        logger.info("metadata.ui: guardar_edicion")
         if not self._state.ruta:
             self._lbl_info.configure(text=t('export_metadata_first'))
             return
@@ -418,17 +440,19 @@ class MetadataFrame(BaseFrame):
         campos_raw = {campo: entry.get() for campo, entry in self._campos_edit.items()}
         campos, err = preparar_campos_exif(campos_raw)
         if err:
-            self._lbl_info.configure(text=t('enter_at_least_one'))
+            if err == 'invalid_date':
+                self._lbl_info.configure(text=t('invalid_date_format'))
+            else:
+                self._lbl_info.configure(text=t('enter_at_least_one'))
             return
 
-        ruta = filedialog.asksaveasfilename(
-            title=t('select_output_save'),
-            defaultextension=Path(self._state.ruta).suffix,
-            filetypes=[('JPEG', '*.jpg'), ('TIFF', '*.tiff')],
-            initialfile=Path(self._state.ruta).stem + '_editado' + Path(self._state.ruta).suffix
+        confirm = messagebox.askyesno(
+            title=t('confirm_overwrite_title'),
+            message=t('confirm_overwrite_msg')
         )
-        if not ruta:
+        if not confirm:
             return
+        ruta = self._state.ruta
 
         self._btn_guardar_edit.configure(state='disabled', text=t('saving_changes'))
 
@@ -449,9 +473,10 @@ class MetadataFrame(BaseFrame):
 
     def _explorar_lote(self):
         """Abrir dialogo para seleccionar multiples imagenes a limpiar."""
+        logger.info("metadata.ui: explorar_lote")
         archivos = filedialog.askopenfilenames(
             title=t('select_images_clean'),
-            filetypes=[('Imagenes', '*.jpg *.jpeg *.png *.tiff *.webp')]
+            filetypes=[('Imagenes', '*.jpg *.jpeg *.png *.tiff *.webp *.heic *.heif')]
         )
         if archivos:
             self._cargar_lote(list(archivos))
@@ -482,12 +507,15 @@ class MetadataFrame(BaseFrame):
 
     def _limpiar_lote(self):
         """Iniciar proceso de limpieza de metadatos en lote."""
+        logger.info("metadata.ui: limpiar_lote")
         if not self._state.imagenes_lote:
             self._lbl_info.configure(text=t('load_images_first_clean'))
             return
         carpeta = filedialog.askdirectory(title=t('select_output_folder_clean'))
         if not carpeta:
+            logger.info("metadata.ui: limpiar_lote_cancelado (sin_carpeta)")
             return
+        self._show_full_overlay(t('processing'))
         self._btn_limpiar_exif.configure(state='disabled', text=t('cleaning'))
         threading.Thread(
             target=self._proceso_limpiar, args=(carpeta,), daemon=True
@@ -499,6 +527,7 @@ class MetadataFrame(BaseFrame):
         Args:
             carpeta: Ruta de la carpeta de salida
         """
+        logger.info("metadata.ui: proceso_limpiar_inicio (imagenes=%s)", len(self._state.imagenes_lote))
         res = batch_limpiar_exif(self._state.imagenes_lote, carpeta)
         self.after(0, lambda: self._btn_limpiar_exif.configure(
             state='normal', text=t('clean_exif')
@@ -509,6 +538,8 @@ class MetadataFrame(BaseFrame):
         if res.get('conflictos'):
             msg += f'  -  {res["conflictos"]} {t("conflicts_renamed")}'
         self.after(0, lambda: self._lbl_info.configure(text=msg))
+        logger.info("metadata.ui: limpiar_lote_fin (ok=%s, errores=%s)", res.get("ok"), res.get("errores"))
+        self.after(0, self._hide_full_overlay)
 
     def _cambiar_tab(self, tab: str):
         """Cambiar el tab visible en el contenedor.
@@ -522,10 +553,12 @@ class MetadataFrame(BaseFrame):
 
     def _limpiar(self):
         """Limpiar todo el estado y reiniciar la interfaz."""
+        logger.info("metadata.ui: limpiar")
         self._limpiar_todo()
 
     def _limpiar_todo(self):
         """Restaurar estado inicial de todos los componentes."""
+        logger.info("metadata.ui: limpiar_todo")
         self._state.ruta = None
         self._state.imagenes_lote = []
         self._state.metadatos = {}

@@ -16,6 +16,7 @@ Relaciones:
 
 from __future__ import annotations
 
+import logging
 import threading
 from tkinter import filedialog
 
@@ -37,15 +38,20 @@ from app.ui.frames.resize.services import (
 from app.ui.frames.resize.state import ResizeState
 
 
+logger = logging.getLogger(__name__)
+
+
 class ResizeFrame(BaseFrame):
     """Frame principal del modulo de redimension, recorte y canvas."""
 
     def __init__(self, parent):
+        logger.info("resize.ui: init")
         self._state = ResizeState()
         super().__init__(parent, t('resize_title'))
 
     def _build_content(self):
         """Construir el contenido principal del frame con tabs."""
+        logger.info("resize.ui: build_content")
         self._tab = ctk.CTkSegmentedButton(
             self,
             values=[t('resize_tab'), t('crop_tab'), t('canvas_tab')],
@@ -160,6 +166,7 @@ class ResizeFrame(BaseFrame):
         Args:
             modo: Modo actual (porcentaje, pixels o preset)
         """
+        logger.info("resize.ui: actualizar_modo_resize (%s)", modo)
         for w in self._frame_controles_resize.winfo_children():
             w.destroy()
 
@@ -382,6 +389,7 @@ class ResizeFrame(BaseFrame):
         Args:
             rutas: Lista de rutas de archivos seleccionados
         """
+        logger.info("resize.ui: cargar_imagenes (total=%s)", len(rutas))
         limite = 100
         total = len(rutas)
         if total > limite:
@@ -398,6 +406,7 @@ class ResizeFrame(BaseFrame):
         if self._limite_msg:
             msg += f'  -  {self._limite_msg}'
         self._lbl_info.configure(text=msg)
+        logger.info("resize.ui: imagenes cargadas (mostradas=%s)", len(self._imagenes))
 
     def _cambiar_tab(self, tab: str):
         """Cambiar el tab visible en el contenedor.
@@ -405,6 +414,7 @@ class ResizeFrame(BaseFrame):
         Args:
             tab: Nombre del tab a mostrar
         """
+        logger.info("resize.ui: cambiar_tab (%s)", tab)
         for nombre, frame in self._frames.items():
             if nombre == tab:
                 frame.grid()
@@ -414,11 +424,13 @@ class ResizeFrame(BaseFrame):
 
     def _ejecutar_resize(self):
         """Ejecutar redimension en hilo separado para no bloquear la UI."""
+        logger.info("resize.ui: click_resize")
         if not self._imagenes:
             self._lbl_info.configure(text=t('load_images_first_resize'))
             return
         carpeta = filedialog.askdirectory(title=t('select_output_folder'))
         if not carpeta:
+            logger.info("resize.ui: resize_cancelado (sin_carpeta)")
             return
 
         modo = self._state.modo_resize.get()
@@ -433,6 +445,7 @@ class ResizeFrame(BaseFrame):
                 self._lbl_info.configure(text=t('invalid_dimensions'))
                 return
         self._btn_resize.configure(state='disabled', text=t('processing'))
+        self._show_full_overlay(t('processing'))
 
         def _proc():
             if modo == t('percentage'):
@@ -464,14 +477,17 @@ class ResizeFrame(BaseFrame):
 
     def _ejecutar_crop(self):
         """Ejecutar recorte en hilo separado para no bloquear la UI."""
+        logger.info("resize.ui: click_crop")
         if not self._imagenes:
             self._lbl_info.configure(text=t('load_images_first_resize'))
             return
         carpeta = filedialog.askdirectory(title=t('select_output_folder'))
         if not carpeta:
+            logger.info("resize.ui: crop_cancelado (sin_carpeta)")
             return
 
         self._btn_crop.configure(state='disabled', text=t('processing'))
+        self._show_full_overlay(t('processing'))
         ratio = self._state.ratio_var.get()
 
         def _proc():
@@ -490,6 +506,7 @@ class ResizeFrame(BaseFrame):
 
     def _ejecutar_canvas(self):
         """Ejecutar canvas en hilo separado para no bloquear la UI."""
+        logger.info("resize.ui: click_canvas")
         if not self._imagenes:
             self._lbl_info.configure(text=t('load_images_first_resize'))
             return
@@ -499,10 +516,12 @@ class ResizeFrame(BaseFrame):
             return
         carpeta = filedialog.askdirectory(title=t('select_output_folder'))
         if not carpeta:
+            logger.info("resize.ui: canvas_cancelado (sin_carpeta)")
             return
 
         fondo_elegido = self._state.color_fondo.get()
         self._btn_canvas.configure(state='disabled', text=t('processing'))
+        self._show_full_overlay(t('processing'))
 
         def _proc():
             choice_key = self._state.canvas_choice_map.get(fondo_elegido, 'white')
@@ -533,6 +552,8 @@ class ResizeFrame(BaseFrame):
             errores: Numero de errores ocurridos
         """
         btn.configure(state='normal', text=texto)
+        logger.info("resize.ui: finalizar_ok (ok=%s, errores=%s, conflictos=%s)", ok, errores, conflictos)
+        self._hide_full_overlay()
         msg = f'{ok} imagen{"es" if ok != 1 else ""} {t("processed" if ok != 1 else "processed_singular")}'
         if errores:
             msg += f'  -  {errores} {t("error_occurred")}'

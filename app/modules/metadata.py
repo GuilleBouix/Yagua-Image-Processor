@@ -26,6 +26,7 @@ _CAMPOS_LEGIBLES = {
     'LensModel':        'Lente',
     'DateTime':         'Fecha y hora',
     'DateTimeOriginal': 'Fecha original',
+    'DateTimeDigitized': 'Fecha digitalizada',
     'ISO':              'ISO',
     'FNumber':          'Apertura',
     'ExposureTime':     'Velocidad obturacion',
@@ -46,6 +47,8 @@ CAMPOS_EDITABLES = {
     'Copyright': 'Copyright',
     'Software':  'Software',
     'DateTime':  'Fecha y hora',
+    'DateTimeOriginal': 'Fecha original',
+    'DateTimeDigitized': 'Fecha digitalizada',
 }
 
 
@@ -299,6 +302,8 @@ def editar_exif(ruta_entrada, ruta_salida, campos):
                 'Copyright': (piexif.ImageIFD.Copyright, '0th'),
                 'Software':  (piexif.ImageIFD.Software,  '0th'),
                 'DateTime':  (piexif.ImageIFD.DateTime,  '0th'),
+                'DateTimeOriginal': (piexif.ExifIFD.DateTimeOriginal, 'Exif'),
+                'DateTimeDigitized': (piexif.ExifIFD.DateTimeDigitized, 'Exif'),
             }
 
             # Aplicar cada campo
@@ -388,6 +393,12 @@ def preparar_campos_exif(campos_edit):
     }
     if not campos:
         return {}, 'empty'
+    # Validar fechas EXIF
+    import re
+    patron = re.compile(r'^\d{4}:\d{2}:\d{2} \d{2}:\d{2}:\d{2}$')
+    for key in ('DateTime', 'DateTimeOriginal', 'DateTimeDigitized'):
+        if key in campos and not patron.match(campos[key]):
+            return {}, 'invalid_date'
     return campos, None
 
 

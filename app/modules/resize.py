@@ -86,7 +86,7 @@ RATIOS = {
 }
 
 # Extensiones que soportan transparencia
-TRANSPARENCY_EXTS = ('.png', '.webp', '.gif', '.tiff')
+TRANSPARENCY_EXTS = ('.png', '.webp', '.gif', '.tiff', '.heic', '.heif')
 
 
 def preset_a_dimensiones(key):
@@ -322,6 +322,8 @@ def _formato_desde_ruta(ruta):
         '.bmp': 'BMP',
         '.tiff': 'TIFF',
         '.gif': 'GIF',
+        '.heic': 'HEIF',
+        '.heif': 'HEIF',
     }.get(extension, 'JPEG')
 
 

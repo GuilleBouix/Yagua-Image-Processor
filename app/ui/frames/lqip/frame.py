@@ -12,6 +12,7 @@ Relacionado con:
 
 from __future__ import annotations
 
+import logging
 import threading
 from tkinter import filedialog
 
@@ -24,15 +25,20 @@ from app.ui.frames.lqip.services import batch_procesar, exportar_txt, exportar_j
 from app.ui.frames.lqip.state import LqipState
 
 
+logger = logging.getLogger(__name__)
+
+
 class LqipFrame(BaseFrame):
     """Frame del modulo LQIP / Base64."""
 
     def __init__(self, parent):
         """Inicializa el frame."""
+        logger.info("lqip.ui: init")
         self._state = LqipState()
         super().__init__(parent, t('lqip_title'))
 
     def _build_content(self):
+        logger.info("lqip.ui: build_content")
         # Boton seleccionar
         self._btn_seleccionar = self._crear_boton_seleccionar(self)
         self._btn_seleccionar.grid(row=1, column=0, padx=28, pady=(8, 0), sticky='ew')
@@ -295,6 +301,7 @@ class LqipFrame(BaseFrame):
 
     def _cambiar_modo(self, modo):
         """Cambia controles y descripcion segun el modo."""
+        logger.info("lqip.ui: cambiar_modo (%s)", modo)
         # Convertir valor traduzido a interno
         modo_interno = self._modo_a_interno.get(modo, 'lqip')
         self._state.modo.set(modo_interno)
@@ -310,6 +317,7 @@ class LqipFrame(BaseFrame):
 
     def _cargar_imagenes(self, rutas):
         """Carga archivos y limpia resultados anteriores."""
+        logger.info("lqip.ui: cargar_imagenes (total=%s)", len(rutas))
         limite = 100
         total = len(rutas)
         if total > limite:
@@ -327,14 +335,17 @@ class LqipFrame(BaseFrame):
         if self._limite_msg:
             msg += f'  -  {self._limite_msg}'
         self._lbl_info.configure(text=msg)
+        logger.info("lqip.ui: imagenes cargadas (mostradas=%s)", len(rutas))
 
     def _procesar(self):
         """Inicia el procesamiento en segundo plano."""
+        logger.info("lqip.ui: click_procesar")
         if not self._imagenes:
             self._lbl_info.configure(text=t('load_images_first'))
             return
 
         self._btn_procesar.configure(state='disabled', text=t('processing'))
+        self._show_full_overlay(t('processing'))
         opciones = self._state.obtener_opciones()
         threading.Thread(
             target=self._proceso, args=(opciones,), daemon=True
@@ -342,6 +353,7 @@ class LqipFrame(BaseFrame):
 
     def _proceso(self, opciones):
         """Ejecuta el procesamiento."""
+        logger.info("lqip.ui: proceso_interno_inicio (imagenes=%s, modo=%s)", len(self._imagenes), opciones.get('modo'))
         res = batch_procesar(
             self._imagenes,
             modo=opciones['modo'],
@@ -356,6 +368,8 @@ class LqipFrame(BaseFrame):
     def _finalizar(self, ok, errores):
         """Muestra el resultado del procesamiento."""
         self._btn_procesar.configure(state='normal', text=t('lqip_btn_process'))
+        logger.info("lqip.ui: finalizar_ok (ok=%s, errores=%s)", ok, errores)
+        self._hide_full_overlay()
         suffix = t('images_loaded') if ok > 1 else t('image_loaded')
         msg = f'{ok} {suffix} {t("processed")}  -  {t("lqip_ready_to_export")}'
         if errores:
@@ -364,6 +378,7 @@ class LqipFrame(BaseFrame):
 
     def _copiar(self):
         """Copia el campo seleccionado al portapapeles."""
+        logger.info("lqip.ui: copiar_resultado")
         if not self._state.resultados:
             self._lbl_info.configure(text=t('lqip_process_first'))
             return
@@ -381,6 +396,7 @@ class LqipFrame(BaseFrame):
 
     def _guardar(self):
         """Guarda los resultados en archivo .txt o .json."""
+        logger.info("lqip.ui: guardar_resultado")
         if not self._state.resultados:
             self._lbl_info.configure(text=t('lqip_process_first'))
             return
