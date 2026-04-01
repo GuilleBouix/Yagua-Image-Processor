@@ -7,6 +7,9 @@ Relacionado con:
 """
 
 import logging
+import io
+import os
+import sys
 from pathlib import Path
 
 from PIL import Image, ImageOps
@@ -19,6 +22,20 @@ MODELO = 'u2netp'
 FORMATOS_SALIDA = ['PNG', 'WEBP', 'TIFF']
 _FMT_A_EXT = {'PNG': '.png', 'WEBP': '.webp', 'TIFF': '.tiff'}
 INSTALL_COMMAND = 'pip install --upgrade rembg onnxruntime pymatting'
+_MODEL_READY = False
+
+
+def _ensure_stdio():
+    """Evita errores de tqdm cuando stdout/stderr no existen (apps GUI)."""
+    logger.debug("remove_bg: ensure_stdio")
+    if sys.stderr is None:
+        sys.stderr = io.StringIO()
+    if sys.stdout is None:
+        sys.stdout = io.StringIO()
+    if sys.stderr is not None and sys.stdout is not None:
+        return
+    # Fallback extra si el runtime reemplaza streams luego
+    os.environ.setdefault('TQDM_DISABLE', '1')
 
 
 def quitar_fondo(ruta_entrada, ruta_salida, formato_salida='PNG'):
@@ -39,10 +56,16 @@ def quitar_fondo(ruta_entrada, ruta_salida, formato_salida='PNG'):
         except ImportError:
             raise ImportError(f'rembg no está disponible. Ejecutá: {INSTALL_COMMAND}')
 
+        logger.info(
+            "remove_bg: quitar_fondo inicio (entrada=%s, salida=%s, formato=%s)",
+            ruta_entrada, ruta_salida, formato_salida
+        )
+        _ensure_stdio()
         imagen = Image.open(ruta_entrada)
         imagen = ImageOps.exif_transpose(imagen)
         tam_original = Path(ruta_entrada).stat().st_size
 
+        logger.info("remove_bg: crear_sesion (modelo=%s)", MODELO)
         sesion = new_session(MODELO)
         resultado_raw = rembg_remove(imagen, session=sesion)
         if isinstance(resultado_raw, Image.Image):
@@ -55,6 +78,10 @@ def quitar_fondo(ruta_entrada, ruta_salida, formato_salida='PNG'):
 
         ruta_final, conflicto = unique_output_path(
             ruta_salida, ruta_entrada, sufijo='_sinFondo', extension=extension
+        )
+        logger.info(
+            "remove_bg: guardar_resultado (ruta=%s, conflicto=%s)",
+            ruta_final, conflicto
         )
         resultado.save(str(ruta_final), formato)
 
@@ -87,6 +114,12 @@ def batch_quitar_fondo(rutas, carpeta_salida, formato_salida='PNG'):
     except ImportError:
         raise ImportError(f'rembg no está disponible. Ejecutá: {INSTALL_COMMAND}')
 
+    logger.info(
+        "remove_bg: batch_inicio (cantidad=%s, carpeta=%s, formato=%s)",
+        len(rutas), carpeta_salida, formato_salida
+    )
+    _ensure_stdio()
+    logger.info("remove_bg: crear_sesion (modelo=%s)", MODELO)
     sesion = new_session(MODELO)
     formato = formato_salida.upper()
     extension = _FMT_A_EXT.get(formato, '.png')
@@ -96,6 +129,7 @@ def batch_quitar_fondo(rutas, carpeta_salida, formato_salida='PNG'):
 
     for ruta in rutas:
         try:
+            logger.debug("remove_bg: procesar_imagen (ruta=%s)", ruta)
             imagen = Image.open(ruta)
             imagen = ImageOps.exif_transpose(imagen)
             tam_original = Path(ruta).stat().st_size
@@ -111,6 +145,10 @@ def batch_quitar_fondo(rutas, carpeta_salida, formato_salida='PNG'):
             )
             if conflicto:
                 conflictos += 1
+            logger.debug(
+                "remove_bg: guardar_resultado (ruta=%s, conflicto=%s)",
+                ruta_final, conflicto
+            )
             resultado.save(str(ruta_final), formato)
 
             resultados.append({
@@ -122,6 +160,10 @@ def batch_quitar_fondo(rutas, carpeta_salida, formato_salida='PNG'):
             logger.exception("Error al quitar fondo %s", ruta)
             errores += 1
 
+    logger.info(
+        "remove_bg: batch_fin (ok=%s, errores=%s, conflictos=%s)",
+        len(resultados), errores, conflictos
+    )
     return {
         'ok': len(resultados),
         'errores': errores,
@@ -136,12 +178,20 @@ def ensure_model():
 
     Usa new_session(MODELO) para que rembg gestione la descarga.
     """
+    global _MODEL_READY
+    if _MODEL_READY:
+        logger.info("remove_bg: ensure_model (ya_listo=True)")
+        return
     try:
         from rembg import new_session
     except ImportError:
-        raise ImportError(f'rembg no está disponible. Ejecutá: {INSTALL_COMMAND}')
+        raise ImportError('rembg no est? instalado.')
 
+    logger.info("remove_bg: ensure_model (descargar_si_falta, modelo=%s)", MODELO)
+    _ensure_stdio()
     new_session(MODELO)
+    _MODEL_READY = True
+    logger.info("remove_bg: ensure_model listo")
 
 
 def estado_rembg():
@@ -163,5 +213,10 @@ def rembg_disponible():
 
 def modelo_descargado():
     """Verifica si el modelo u2netp ya fue descargado."""
+    if _MODEL_READY:
+        logger.debug("remove_bg: modelo_descargado (cache=True)")
+        return True
     ruta_modelo = Path.home() / '.u2net' / f'{MODELO}.onnx'
-    return ruta_modelo.exists()
+    ok = ruta_modelo.exists()
+    logger.debug("remove_bg: modelo_descargado (archivo=%s, ok=%s)", ruta_modelo, ok)
+    return ok

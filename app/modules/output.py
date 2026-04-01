@@ -5,8 +5,12 @@ Uso compartido por modulos de procesamiento.
 
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 from typing import Tuple
+
+
+logger = logging.getLogger(__name__)
 
 
 def unique_output_path(
@@ -39,11 +43,13 @@ def unique_output_path(
     base = f"{entrada.stem}{sufijo}{ext}"
     ruta = carpeta / base
     if not ruta.exists():
+        logger.debug("output: unique_output_path ok (%s)", ruta)
         return ruta, False
 
     contador = 1
     while True:
         ruta_alt = carpeta / f"{entrada.stem}{sufijo}_{contador}{ext}"
         if not ruta_alt.exists():
+            logger.debug("output: unique_output_path conflicto (%s)", ruta_alt)
             return ruta_alt, True
         contador += 1

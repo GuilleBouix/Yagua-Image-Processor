@@ -11,6 +11,7 @@ Relacionado con:
 
 from __future__ import annotations
 
+import logging
 import threading
 from tkinter import filedialog
 
@@ -24,7 +25,11 @@ from app.ui.frames.convert.services import (
     FORMATOS_DESTINO,
     formato_soporta_calidad,
 )
+from app.modules.image_utils import heif_supported
 from app.ui.frames.convert.state import ConvertState
+
+
+logger = logging.getLogger(__name__)
 
 
 class ConvertFrame(BaseFrame):
@@ -42,6 +47,7 @@ class ConvertFrame(BaseFrame):
         Args:
             parent: Widget padre.
         """
+        logger.info("convert.ui: init")
         self._state = ConvertState()
         super().__init__(parent, t('convert_title'))
 
@@ -53,6 +59,7 @@ class ConvertFrame(BaseFrame):
         panel de opciones con selector de formato y
         boton de convertir.
         """
+        logger.info("convert.ui: build_content")
         # Boton para seleccionar imagenes
         self._btn_seleccionar = self._crear_boton_seleccionar(self)
         self._btn_seleccionar.grid(row=1, column=0, padx=28, pady=8, sticky='ew')
@@ -172,6 +179,7 @@ class ConvertFrame(BaseFrame):
         Args:
             rutas: Lista de rutas de archivos a cargar.
         """
+        logger.info("convert.ui: cargar_imagenes (total=%s)", len(rutas))
         limite = 100
         total = len(rutas)
         if total > limite:
@@ -183,6 +191,7 @@ class ConvertFrame(BaseFrame):
         super()._cargar_imagenes(rutas)
         self._state.imagenes = list(rutas)
         self._actualizar_info()
+        logger.info("convert.ui: imagenes cargadas (mostradas=%s)", len(rutas))
 
     def _actualizar_calidad(self, val):
         """
@@ -201,6 +210,12 @@ class ConvertFrame(BaseFrame):
         formato soporta calidad.
         """
         fmt = self._state.fmt_destino.get()
+        logger.debug("convert.ui: actualizar_info (fmt=%s)", fmt)
+        if fmt == 'HEIC' and not heif_supported():
+            self._btn_convertir.configure(state='disabled')
+            self._lbl_info.configure(text=t('heic_requires_plugin'))
+            return
+        self._btn_convertir.configure(state='normal')
         tiene_calidad = formato_soporta_calidad(fmt)
         
         # Habilitar/deshabilitar slider de calidad
@@ -227,15 +242,22 @@ class ConvertFrame(BaseFrame):
         """
         Inicia el proceso de conversion en segundo plano.
         """
+        logger.info("convert.ui: click_convertir")
         if not self._imagenes:
             self._lbl_info.configure(text=t('load_images_first_convert'))
+            return
+
+        if self._state.fmt_destino.get() == 'HEIC' and not heif_supported():
+            self._lbl_info.configure(text=t('heic_requires_plugin'))
             return
         
         carpeta = filedialog.askdirectory(title=t('select_output_folder'))
         if not carpeta:
+            logger.info("convert.ui: proceso_cancelado (sin_carpeta)")
             return
         
         self._btn_convertir.configure(state='disabled', text=t('converting'))
+        self._show_full_overlay(t('processing'))
         threading.Thread(target=self._proceso, args=(carpeta,), daemon=True).start()
 
     def _proceso(self, carpeta):
@@ -245,6 +267,7 @@ class ConvertFrame(BaseFrame):
         Args:
             carpeta: Ruta de la carpeta de salida.
         """
+        logger.info("convert.ui: proceso_interno_inicio (imagenes=%s, fmt=%s)", len(self._imagenes), self._state.fmt_destino.get())
         res = batch_convertir_safe(
             self._imagenes,
             fmt_destino=self._state.fmt_destino.get(),
@@ -268,6 +291,8 @@ class ConvertFrame(BaseFrame):
             fmt: Formato de destino.
         """
         self._btn_convertir.configure(state='normal', text=t('convert_btn'))
+        self._hide_full_overlay()
+        logger.info("convert.ui: finalizar_ok (ok=%s, errores=%s, conflictos=%s)", ok, errores, conflictos)
         msg = f'{ok} imagen{"es" if ok != 1 else ""} {t("converted_to" if ok == 1 else "converted_to_plural")} {fmt}'
         if errores:
             msg += f'  -  {errores} {t("error_occurred")}'

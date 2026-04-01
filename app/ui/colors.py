@@ -90,6 +90,46 @@ THEMES = {
         'SEGMENT_SELECTED': '#3B4261',
         'SEGMENT_SELECTED_HOVER': '#3B4261',
     },
+    'Vaporwave': {
+        # Fondos principales
+        'FRAMES_BG': '#241A38',
+        'SIDEBAR_BG': '#2C2142',
+        'PANEL_BG': '#31264A',
+        'SIDEBAR_SEPARATOR': '#3A2E56',
+
+        # Estados de interacción en sidebar
+        'SIDEBAR_HOVER': '#433366',
+        'SIDEBAR_ACTIVE': '#56407D',
+        'SIDEBAR_ACTIVE_HOVER': '#675091',
+
+        # Zona de drop
+        'DROPZONE_BORDER': '#7B6BB3',
+        'DROPZONE_BG': '#5D4C8A',
+
+        # Colores de texto
+        'TEXT_COLOR': '#F4EFFF',
+        'TEXT_GRAY': '#BBAEE0',
+        'TEXT_HOVER': '#FFD6F4',
+        'TEXT_ACTIVE': '#E7C7FF',
+
+        # Colores de iconos
+        'ICON_COLOR': '#C7AFFF',
+        'ICON_COLOR_ACTIVE': '#F5B8E6',
+
+        # Colores de acento
+        'ACENTO': '#D17BE8',
+        'ACENTO_HOVER': '#E29AF1',
+        'ACENTO_DIMMED': '#6E4D7F',
+
+        # Colores de botones
+        'BTN_CLEAR_BG': '#C7AFFF',
+        'BTN_CLEAR_TEXT': '#241A38',
+        'BTN_CLEAR_HOVER': '#D8BEFF',
+
+        # Colores de segmentos
+        'SEGMENT_SELECTED': '#B99BEA',
+        'SEGMENT_SELECTED_HOVER': '#C9A8F0',
+    },
     'Dracula': {
         # Fondos principales
         'FRAMES_BG': '#1E1F29',
@@ -156,6 +196,134 @@ THEMES = {
         'SEGMENT_SELECTED': '#4C566A',
         'SEGMENT_SELECTED_HOVER': '#4C566A',
     },
+    'Soft Graphite': {
+        'FRAMES_BG': '#16171A',
+        'SIDEBAR_BG': '#1C1D21',
+        'PANEL_BG': '#22242A',
+        'SIDEBAR_SEPARATOR': '#2C2F36',
+
+        'SIDEBAR_HOVER': '#2A2D34',
+        'SIDEBAR_ACTIVE': '#32353E',
+        'SIDEBAR_ACTIVE_HOVER': '#3A3E48',
+
+        'DROPZONE_BORDER': '#3A3E48',
+        'DROPZONE_BG': '#1A1B1F',
+
+        'TEXT_COLOR': '#F5F6F7',
+        'TEXT_GRAY': '#A0A4AB',
+        'TEXT_HOVER': '#FFFFFF',
+        'TEXT_ACTIVE': '#FFFFFF',
+
+        'ICON_COLOR': '#D6D8DC',
+        'ICON_COLOR_ACTIVE': '#FFFFFF',
+
+        'ACENTO': '#5A8DEE',            # azul suave → perfecto con texto blanco
+        'ACENTO_HOVER': '#6EA0FF',
+        'ACENTO_DIMMED': '#3A4C7A',
+
+        'BTN_CLEAR_BG': '#5A8DEE',
+        'BTN_CLEAR_TEXT': '#FFFFFF',
+        'BTN_CLEAR_HOVER': '#6EA0FF',
+
+        'SEGMENT_SELECTED': '#32353E',
+        'SEGMENT_SELECTED_HOVER': '#3A3E48',
+    },
+    'Muted Blue': {
+        'FRAMES_BG': '#151821',
+        'SIDEBAR_BG': '#1A1E29',
+        'PANEL_BG': '#202533',
+        'SIDEBAR_SEPARATOR': '#2C3445',
+
+        'SIDEBAR_HOVER': '#2A3244',
+        'SIDEBAR_ACTIVE': '#323B52',
+        'SIDEBAR_ACTIVE_HOVER': '#3B4560',
+
+        'DROPZONE_BORDER': '#3B4560',
+        'DROPZONE_BG': '#171A23',
+
+        'TEXT_COLOR': '#F2F5FF',
+        'TEXT_GRAY': '#9AA4C0',
+        'TEXT_HOVER': '#FFFFFF',
+        'TEXT_ACTIVE': '#FFFFFF',
+
+        'ICON_COLOR': '#C7D0E8',
+        'ICON_COLOR_ACTIVE': '#FFFFFF',
+
+        'ACENTO': '#4C7DFF',           # azul más controlado
+        'ACENTO_HOVER': '#5C8CFF',
+        'ACENTO_DIMMED': '#3A4C7A',
+
+        'BTN_CLEAR_BG': '#4C7DFF',
+        'BTN_CLEAR_TEXT': '#FFFFFF',
+        'BTN_CLEAR_HOVER': '#5C8CFF',
+
+        'SEGMENT_SELECTED': '#323B52',
+        'SEGMENT_SELECTED_HOVER': '#3B4560',
+    },
+    'Soft Purple': {
+        'FRAMES_BG': '#181622',
+        'SIDEBAR_BG': '#1E1B2A',
+        'PANEL_BG': '#252235',
+        'SIDEBAR_SEPARATOR': '#302C44',
+
+        'SIDEBAR_HOVER': '#2D2940',
+        'SIDEBAR_ACTIVE': '#363152',
+        'SIDEBAR_ACTIVE_HOVER': '#403B60',
+
+        'DROPZONE_BORDER': '#403B60',
+        'DROPZONE_BG': '#1A1826',
+
+        'TEXT_COLOR': '#F4F2FF',
+        'TEXT_GRAY': '#A8A3C7',
+        'TEXT_HOVER': '#FFFFFF',
+        'TEXT_ACTIVE': '#FFFFFF',
+
+        'ICON_COLOR': '#D4CEFF',
+        'ICON_COLOR_ACTIVE': '#FFFFFF',
+
+        'ACENTO': '#8B6CFF',          # violeta usable (no neon)
+        'ACENTO_HOVER': '#9C80FF',
+        'ACENTO_DIMMED': '#4B4275',
+
+        'BTN_CLEAR_BG': '#8B6CFF',
+        'BTN_CLEAR_TEXT': '#FFFFFF',
+        'BTN_CLEAR_HOVER': '#9C80FF',
+
+        'SEGMENT_SELECTED': '#363152',
+        'SEGMENT_SELECTED_HOVER': '#403B60',
+    },
+    'Slate Teal': {
+        'FRAMES_BG': '#151A1C',
+        'SIDEBAR_BG': '#1B2226',
+        'PANEL_BG': '#212A2F',
+        'SIDEBAR_SEPARATOR': '#2C373D',
+
+        'SIDEBAR_HOVER': '#2A343A',
+        'SIDEBAR_ACTIVE': '#313D44',
+        'SIDEBAR_ACTIVE_HOVER': '#394750',
+
+        'DROPZONE_BORDER': '#3E5963',
+        'DROPZONE_BG': '#182024',
+
+        'TEXT_COLOR': '#F2F7F8',
+        'TEXT_GRAY': '#9FB3BA',
+        'TEXT_HOVER': '#FFFFFF',
+        'TEXT_ACTIVE': '#FFFFFF',
+
+        'ICON_COLOR': '#C7D8DD',
+        'ICON_COLOR_ACTIVE': '#FFFFFF',
+
+        'ACENTO': '#3FA7A3',        # teal controlado (clave)
+        'ACENTO_HOVER': '#4FB8B4',
+        'ACENTO_DIMMED': '#2E5E5C',
+
+        'BTN_CLEAR_BG': '#3FA7A3',
+        'BTN_CLEAR_TEXT': '#FFFFFF',
+        'BTN_CLEAR_HOVER': '#4FB8B4',
+
+        'SEGMENT_SELECTED': '#313D44',
+        'SEGMENT_SELECTED_HOVER': '#394750',
+    }
 }
 
 # Tema actualmente seleccionado

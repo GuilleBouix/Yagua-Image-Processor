@@ -27,6 +27,8 @@ _EXT_A_FMT = {
     '.png': 'PNG',
     '.webp': 'WEBP',
     '.avif': 'AVIF',
+    '.heic': 'HEIF',
+    '.heif': 'HEIF',
     '.ico': 'ICO',
     '.bmp': 'BMP',
     '.tiff': 'TIFF',
@@ -115,8 +117,8 @@ def _kwargs_guardado(imagen, formato, calidad, quitar_exif):
     if formato == 'PNG':
         return {'optimize': True, 'compress_level': 9}
     
-    # AVIF: calidad
-    if formato == 'AVIF':
+    # AVIF/HEIF: calidad
+    if formato in ('AVIF', 'HEIF'):
         return {'quality': calidad}
     
     # ICO: generar multiple tamanos de icono

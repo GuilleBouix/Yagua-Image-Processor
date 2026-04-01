@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 # Lista de formatos de destino disponibles
-FORMATOS_DESTINO = ['JPEG', 'PNG', 'WEBP', 'AVIF', 'ICO', 'BMP', 'TIFF', 'GIF']
+FORMATOS_DESTINO = ['JPEG', 'PNG', 'WEBP', 'AVIF', 'HEIC', 'ICO', 'BMP', 'TIFF', 'GIF']
 
 # Mapeo de formato a extension de archivo
 _FMT_A_EXT = {
@@ -27,6 +27,7 @@ _FMT_A_EXT = {
     'PNG': '.png',
     'WEBP': '.webp',
     'AVIF': '.avif',
+    'HEIC': '.heic',
     'ICO': '.ico',
     'BMP': '.bmp',
     'TIFF': '.tiff',
@@ -40,6 +41,8 @@ _EXT_A_FMT = {
     '.png': 'PNG',
     '.webp': 'WEBP',
     '.avif': 'AVIF',
+    '.heic': 'HEIF',
+    '.heif': 'HEIF',
     '.ico': 'ICO',
     '.bmp': 'BMP',
     '.tiff': 'TIFF',
@@ -99,8 +102,8 @@ def _preparar_para(imagen, fmt_destino):
             return imagen.convert('RGB')
         return imagen
 
-    # AVIF soporta RGB y RGBA
-    if fmt_destino == 'AVIF':
+    # AVIF/HEIF soporta RGB y RGBA
+    if fmt_destino in ('AVIF', 'HEIF', 'HEIC'):
         if imagen.mode not in ('RGB', 'RGBA'):
             return imagen.convert('RGB')
         return imagen
@@ -131,8 +134,8 @@ def _kwargs_para(formato, calidad):
     if formato == 'PNG':
         return {'optimize': True, 'compress_level': 9}
     
-    # AVIF con calidad
-    if formato == 'AVIF':
+    # AVIF/HEIF con calidad
+    if formato in ('AVIF', 'HEIF', 'HEIC'):
         return {'quality': calidad}
     
     # ICO con multiples tamanos
@@ -202,8 +205,9 @@ def convertir_imagen(ruta_entrada, fmt_destino, carpeta_salida, calidad=90):
         fmt_origen = _EXT_A_FMT.get(ruta_archivo.suffix.lower(), 'JPEG')
 
         imagen = _preparar_para(imagen, formato)
+        formato_pil = 'HEIF' if formato == 'HEIC' else formato
         argumentos_guardado = _kwargs_para(formato, calidad)
-        imagen.save(ruta_salida, formato, **argumentos_guardado)
+        imagen.save(ruta_salida, formato_pil, **argumentos_guardado)
 
     return {
         'ruta_entrada': ruta_entrada,

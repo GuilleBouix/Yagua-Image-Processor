@@ -12,12 +12,15 @@ from __future__ import annotations
 from dataclasses import dataclass
 import importlib
 import json
+import logging
 from typing import Iterable, List, Optional
 
 from app.utils.settings import settings_path
 
 import customtkinter as ctk
 
+
+logger = logging.getLogger(__name__)
 
 @dataclass(frozen=True)
 class ModuleSpec:
@@ -74,6 +77,12 @@ _MODULE_SPECS = [
         'app.ui.frames.palette.frame:PaletteFrame',
     ),
     ModuleSpec(
+        'image_transform',
+        'image_transform_title',
+        'assets/icons/image_transform.png',
+        'app.ui.frames.image_transform.frame:ImageTransformFrame'
+    ),
+    ModuleSpec(
         'rename',
         'rename',
         'assets/icons/rename.png',
@@ -92,11 +101,29 @@ _MODULE_SPECS = [
         'app.ui.frames.lqip.frame:LqipFrame',
     ),
     ModuleSpec(
+        'ocr',
+        'ocr',
+        'assets/icons/ocr.png',
+        'app.ui.frames.ocr.frame:OcrFrame',
+    ),
+    ModuleSpec(
+        "vectorizar",
+        "vectorizar",
+        "assets/icons/vector.png",
+        "app.ui.frames.vectorizar.frame:VectorizarFrame",
+    ),
+    ModuleSpec(
+        "watermark",
+        "watermark",
+        "assets/icons/watermark.png",
+        "app.ui.frames.watermark.frame:WatermarkFrame",
+    ),
+    ModuleSpec(
         'settings',
         'settings',
         'assets/icons/settings.png',
         'app.ui.frames.settings.frame:SettingsFrame',
-    ),
+    )
 ]
 
 
@@ -167,8 +194,18 @@ def load_frame_class(spec):
     # Separar nombre del modulo y nombre de la clase
     module_name, class_name = spec.frame_import.split(':', 1)
     
-    # Importar el modulo dinámicamente
-    mod = importlib.import_module(module_name)
-    
-    # Obtener y retornar la clase
-    return getattr(mod, class_name)
+    try:
+        logger.info(
+            "module_registry: cargar_frame (key=%s, module=%s, class=%s)",
+            spec.key, module_name, class_name
+        )
+        # Importar el modulo dinámicamente
+        mod = importlib.import_module(module_name)
+        # Obtener y retornar la clase
+        return getattr(mod, class_name)
+    except Exception:
+        logger.exception(
+            "module_registry: error cargando frame (key=%s, module=%s, class=%s)",
+            spec.key, module_name, class_name
+        )
+        raise

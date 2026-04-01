@@ -20,6 +20,7 @@ from app.ui import fonts
 from app.utils.paths import resource_path
 from app.ui.main_window import MainWindow
 from app.translations import t
+from app.modules.image_utils import init_heif_support
 
 logger = logging.getLogger(__name__)
 
@@ -46,6 +47,9 @@ class YaguaApp(ctk.CTk):
         
         # Cargar fuentes personalizadas de la aplicacion
         fonts.inicializar_fuentes()
+
+        # Registrar soporte HEIF/HEIC si esta disponible
+        init_heif_support()
         
         # Establecer titulo de la ventana (traducible)
         self.title(t('app_title'))

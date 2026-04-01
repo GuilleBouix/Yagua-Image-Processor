@@ -44,6 +44,7 @@ class CompressFrame(BaseFrame):
         Args:
             parent: Widget padre.
         """
+        logger.info("compress.ui: init")
         self._state = CompressState()
         super().__init__(parent, t('compress_title'))
 
@@ -55,6 +56,7 @@ class CompressFrame(BaseFrame):
         panel de opciones con calidad y toggle de EXIF,
         y boton de comprimir.
         """
+        logger.info("compress.ui: build_content")
         # Boton para seleccionar imagenes
         self._btn_seleccionar = self._crear_boton_seleccionar(self)
         self._btn_seleccionar.grid(row=1, column=0, padx=28, pady=8, sticky='ew')
@@ -167,6 +169,7 @@ class CompressFrame(BaseFrame):
         Args:
             rutas: Lista de rutas de archivos a cargar.
         """
+        logger.info("compress.ui: cargar_imagenes (total=%s)", len(rutas))
         limite = 100
         total = len(rutas)
         if total > limite:
@@ -178,6 +181,7 @@ class CompressFrame(BaseFrame):
         super()._cargar_imagenes(rutas)
         self._state.imagenes = list(rutas)
         threading.Thread(target=self._procesar_carga, args=(rutas,), daemon=True).start()
+        logger.info("compress.ui: imagenes cargadas (mostradas=%s)", len(rutas))
 
     def _procesar_carga(self, rutas):
         """
@@ -186,6 +190,7 @@ class CompressFrame(BaseFrame):
         Args:
             rutas: Lista de rutas de archivos.
         """
+        logger.info("compress.ui: proceso_carga_inicio (imagenes=%s)", len(rutas))
         estimado = 0
         for ruta in rutas:
             try:
@@ -250,6 +255,7 @@ class CompressFrame(BaseFrame):
             return
         
         self._btn_comprimir.configure(state='disabled', text=t('compressing'))
+        self._show_full_overlay(t('processing'))
         threading.Thread(target=self._proceso, args=(carpeta,), daemon=True).start()
 
     def _proceso(self, carpeta):
@@ -286,6 +292,8 @@ class CompressFrame(BaseFrame):
             errores: Cantidad de errores.
         """
         self._btn_comprimir.configure(state='normal', text=t('compress_btn'))
+        logger.info("compress.ui: finalizar_ok (ok=%s, errores=%s, conflictos=%s)", n, errores, conflictos)
+        self._hide_full_overlay()
         suffix = t('images_loaded') if n > 1 else t('image_loaded')
         msg = (
             f'{n} {suffix} - '

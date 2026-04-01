@@ -34,6 +34,7 @@ class RenameFrame(BaseFrame):
     logger = logging.getLogger(__name__)
     def __init__(self, parent):
         """Inicializa el frame."""
+        self.logger.info("rename.ui: init")
         self._state = RenameState()
         self._formato_fecha_label = ctk.StringVar(value='AAAAMMDD')
         self._posicion_fecha_label = ctk.StringVar(value=t('rename_prefix_pos'))
@@ -42,6 +43,7 @@ class RenameFrame(BaseFrame):
 
     def _build_content(self):
         """Construye el contenido del modulo."""
+        self.logger.info("rename.ui: build_content")
         # Boton seleccionar
         self._btn_seleccionar = self._crear_boton_seleccionar(self)
         self._btn_seleccionar.grid(row=1, column=0, padx=28, pady=(8, 0), sticky='ew')
@@ -315,6 +317,7 @@ class RenameFrame(BaseFrame):
 
     def _cargar_imagenes(self, rutas):
         """Carga archivos y dispara el preview."""
+        self.logger.info("rename.ui: cargar_imagenes (total=%s)", len(rutas))
         limite = 100
         total = len(rutas)
         if total > limite:
@@ -332,6 +335,7 @@ class RenameFrame(BaseFrame):
             msg += f'  -  {self._limite_msg}'
         self._lbl_info.configure(text=msg)
         self._actualizar_preview()
+        self.logger.info("rename.ui: imagenes cargadas (mostradas=%s)", len(rutas))
 
     def _actualizar_preview(self, *args):
         """Lanza la generacion del preview en segundo plano."""
@@ -392,6 +396,7 @@ class RenameFrame(BaseFrame):
             self._lbl_info.configure(text=t('load_files_first'))
             return
         self._btn_renombrar.configure(state='disabled', text=t('renaming'))
+        self._show_full_overlay(t('processing'))
         threading.Thread(target=self._proceso, daemon=True).start()
 
     def _proceso(self):
@@ -405,6 +410,8 @@ class RenameFrame(BaseFrame):
     def _finalizar(self, ok, errores, conflictos):
         """Muestra el resultado y limpia la seleccion."""
         self._btn_renombrar.configure(state='normal', text=t('rename_btn'))
+        self.logger.info("rename.ui: finalizar_ok (ok=%s, errores=%s, conflictos=%s)", ok, errores, conflictos)
+        self._hide_full_overlay()
         suffix = t('files_loaded') if ok > 1 else t('file_loaded')
         msg = f'{ok} {suffix} {t("renamed")}'
         if conflictos:
@@ -426,6 +433,7 @@ class RenameFrame(BaseFrame):
         Args:
             caso: Valor traduzido del optionmenu ('minúsc.', 'MAYÚSC.', etc.)
         """
+        self.logger.info("rename.ui: aplicar_capitalizacion (%s)", caso)
         prefijo_actual = self._state.prefijo.get()
         
         # Comparar contra valores traduzidos para determinar accion

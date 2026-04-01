@@ -14,6 +14,7 @@ Relacionado con:
     - app/ui/frames/metadata/frame.py: Override de metodos especificos.
 """
 
+import logging
 import threading
 from pathlib import Path
 from tkinter import filedialog
@@ -25,6 +26,9 @@ from app.ui import colors, fonts
 from app.utils import tintar_icono
 from app.modules.compress import formatear_bytes
 from app.translations import t
+
+
+logger = logging.getLogger(__name__)
 
 
 class BaseFrame(ctk.CTkFrame):
@@ -57,6 +61,12 @@ class BaseFrame(ctk.CTkFrame):
         
         # Lista de labels de filas de la lista de archivos
         self._filas_lista = []
+
+        # Overlay full-frame reusable
+        self._full_overlay_frame = None
+        self._full_overlay_card = None
+        self._full_overlay_label = None
+        self._full_overlay_bar = None
         
         # Construir la estructura del frame
         self._build()
@@ -68,6 +78,8 @@ class BaseFrame(ctk.CTkFrame):
         Llama a los metodos de construccion en orden:
         header, contenido y footer.
         """
+        logger.info("%s: build", self.__class__.__name__)
+        self._show_full_overlay(t('processing'))
         # Configurar columna para ocupar todo el ancho
         self.grid_columnconfigure(0, weight=1)
         
@@ -75,6 +87,75 @@ class BaseFrame(ctk.CTkFrame):
         self._build_header()
         self._build_content()
         self._build_footer()
+        self._hide_full_overlay()
+
+    def _ensure_full_overlay(self):
+        """Crea overlay full-frame si no existe."""
+        if self._full_overlay_frame:
+            return
+        self._full_overlay_frame = ctk.CTkFrame(
+            self,
+            corner_radius=0,
+            fg_color=colors.SIDEBAR_BG,
+        )
+        # Bloquear interaccion
+        for ev in ("<Button-1>", "<ButtonRelease-1>", "<Motion>", "<MouseWheel>"):
+            self._full_overlay_frame.bind(ev, lambda e: "break")
+
+        self._full_overlay_card = ctk.CTkFrame(
+            self._full_overlay_frame,
+            corner_radius=12,
+            fg_color=colors.PANEL_BG,
+            border_width=1,
+            border_color=colors.SIDEBAR_SEPARATOR
+        )
+        self._full_overlay_label = ctk.CTkLabel(
+            self._full_overlay_card,
+            text=t('processing'),
+            font=fonts.FUENTE_BASE,
+            text_color=colors.TEXT_COLOR,
+        )
+        self._full_overlay_bar = ctk.CTkProgressBar(
+            self._full_overlay_card,
+            width=240,
+            height=12,
+            corner_radius=8,
+            fg_color=colors.SIDEBAR_SEPARATOR,
+            progress_color=colors.ACENTO,
+            mode='indeterminate'
+        )
+
+        self._full_overlay_card.place(relx=0.5, rely=0.5, anchor='center')
+        self._full_overlay_label.grid(row=0, column=0, padx=24, pady=(16, 8))
+        self._full_overlay_bar.grid(row=1, column=0, padx=24, pady=(0, 16))
+        self._full_overlay_frame.place_forget()
+
+    def _show_full_overlay(self, text: str | None = None):
+        """Muestra overlay full-frame bloqueando interaccion."""
+        self._ensure_full_overlay()
+        if self._full_overlay_label and text:
+            self._full_overlay_label.configure(text=text)
+        self._full_overlay_frame.place(relx=0, rely=0, relwidth=1, relheight=1)
+        try:
+            self._full_overlay_frame.lift()
+        except Exception:
+            pass
+        if self._full_overlay_bar:
+            try:
+                self._full_overlay_bar.start()
+            except Exception:
+                pass
+
+    def _hide_full_overlay(self):
+        """Oculta overlay full-frame."""
+        if not self._full_overlay_frame:
+            return
+        if self._full_overlay_bar:
+            try:
+                self._full_overlay_bar.stop()
+            except Exception:
+                pass
+        self._full_overlay_frame.place_forget()
 
     def _build_header(self):
         """
@@ -83,6 +164,7 @@ class BaseFrame(ctk.CTkFrame):
         Crea una fila en la parte superior con el titulo
         del modulo y un boton para limpiar la seleccion.
         """
+        logger.info("%s: build_header", self.__class__.__name__)
         # Frame transparente para la fila del titulo
         fila_titulo = ctk.CTkFrame(self, fg_color='transparent')
         fila_titulo.grid(row=0, column=0, padx=28, pady=(26, 8), sticky='ew')
@@ -132,6 +214,7 @@ class BaseFrame(ctk.CTkFrame):
         Crea un label donde se mostraran mensajes de estado
         o informacion adicional durante las operaciones.
         """
+        logger.info("%s: build_footer", self.__class__.__name__)
         self._lbl_info = ctk.CTkLabel(
             self, text='',
             font=fonts.FUENTE_CHICA,
@@ -222,6 +305,7 @@ class BaseFrame(ctk.CTkFrame):
             titulo: Titulo del dialogo (usa traduccion por defecto).
             multi: Si es True, permite seleccionar multiples archivos.
         """
+        logger.info("%s: explorar (multi=%s)", self.__class__.__name__, multi)
         # Usar titulo por defecto si no se especifica
         if titulo is None:
             titulo = t('select_images')
@@ -230,7 +314,7 @@ class BaseFrame(ctk.CTkFrame):
         if multi:
             archivos = filedialog.askopenfilenames(
                 title=titulo,
-                filetypes=[('Imagenes', '*.jpg *.jpeg *.png *.webp *.bmp *.tiff *.avif *.ico')]
+                filetypes=[('Imagenes', '*.jpg *.jpeg *.png *.webp *.bmp *.tiff *.avif *.heic *.heif *.ico')]
             )
             # Cargar las imagenes seleccionadas
             if archivos:
@@ -239,7 +323,7 @@ class BaseFrame(ctk.CTkFrame):
             # Seleccion de un solo archivo
             archivo = filedialog.askopenfilename(
                 title=titulo,
-                filetypes=[('Imagenes', '*.jpg *.jpeg *.png *.webp *.bmp *.tiff *.avif')]
+                filetypes=[('Imagenes', '*.jpg *.jpeg *.png *.webp *.bmp *.tiff *.avif *.heic *.heif')]
             )
             if archivo:
                 self._cargar_imagenes([archivo])
@@ -251,6 +335,7 @@ class BaseFrame(ctk.CTkFrame):
         Args:
             rutas: Lista de rutas de archivos a cargar.
         """
+        logger.info("%s: cargar_imagenes (total=%s)", self.__class__.__name__, len(rutas))
         # Actualizar lista de imagenes
         self._imagenes = rutas
         self._thumbs.clear()
@@ -327,6 +412,7 @@ class BaseFrame(ctk.CTkFrame):
         """
         thumbs = []
         
+        logger.info("%s: cargar_thumbs_en_background (total=%s)", self.__class__.__name__, len(rutas))
         # Generar thumbnail para cada archivo
         for ruta in rutas:
             try:
@@ -339,7 +425,8 @@ class BaseFrame(ctk.CTkFrame):
                 
                 # Crear CTkImage
                 thumb = ctk.CTkImage(light_image=img, dark_image=img, size=(44, 44))
-            except Exception:
+            except Exception as exc:
+                logger.warning("%s: error thumbnail %s", self.__class__.__name__, exc)
                 thumb = None
             thumbs.append(thumb)
         
@@ -368,6 +455,7 @@ class BaseFrame(ctk.CTkFrame):
         Elimina todas las imagenes cargadas y restaura
         el label de lista vacia si existe.
         """
+        logger.info("%s: limpiar", self.__class__.__name__)
         # Reiniciar listas
         self._imagenes = []
         self._thumbs.clear()
@@ -377,8 +465,8 @@ class BaseFrame(ctk.CTkFrame):
         for w in self._lista_frame.winfo_children():
             w.destroy()
         
-        # Mostrar label de lista vacia si existe
-        if hasattr(self, '_lbl_lista_vacia'):
+        # Mostrar label de lista vacia si existe y esta vivo
+        if hasattr(self, '_lbl_lista_vacia') and self._lbl_lista_vacia.winfo_exists():
             self._lbl_lista_vacia.pack(pady=12)
         
         # Limpiar label de informacion
