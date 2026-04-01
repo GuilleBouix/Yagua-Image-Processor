@@ -221,38 +221,55 @@ class RemoveBgFrame(BaseFrame):
         )
         panel.grid(row=1, column=0, padx=28, pady=8, sticky='ew')
         panel.grid_columnconfigure(0, weight=1)
-        detalle = detalle_error or t('error_generic')
+        resumen, detalle = self._resumir_error_dependencia(detalle_error)
 
         self._lbl_error_dependencia = ctk.CTkLabel(
             panel,
-            text=str(t('rembg_dependency_error')).format(error=detalle),
+            text=resumen,
             font=fonts.FUENTE_BASE,
             text_color=colors.TEXT_COLOR,
-            justify='center',
+            anchor='w',
+            justify='left',
             wraplength=620
         )
-        self._lbl_error_dependencia.grid(row=0, column=0, padx=16, pady=(16, 8))
+        self._lbl_error_dependencia.grid(row=0, column=0, padx=16, pady=(16, 6), sticky='w')
+
+        if detalle:
+            ctk.CTkLabel(
+                panel,
+                text=detalle,
+                font=fonts.FUENTE_CHICA,
+                text_color=colors.TEXT_GRAY,
+                anchor='w',
+                justify='left',
+                wraplength=620
+            ).grid(row=1, column=0, padx=16, pady=(0, 6), sticky='w')
+            row_reinstall = 2
+        else:
+            row_reinstall = 1
 
         ctk.CTkLabel(
             panel,
             text=t('rembg_reinstall_app'),
             font=fonts.FUENTE_CHICA,
             text_color=colors.TEXT_GRAY,
-            justify='center',
+            anchor='w',
+            justify='left',
             wraplength=620
-        ).grid(row=1, column=0, padx=16, pady=(0, 8))
+        ).grid(row=row_reinstall, column=0, padx=16, pady=(0, 8), sticky='w')
 
         ctk.CTkLabel(
             panel,
             text=t('rembg_install_from_source'),
             font=fonts.FUENTE_CHICA,
             text_color=colors.TEXT_GRAY,
-            justify='center',
+            anchor='w',
+            justify='left',
             wraplength=620
-        ).grid(row=2, column=0, padx=16, pady=(0, 8))
+        ).grid(row=row_reinstall + 1, column=0, padx=16, pady=(0, 8), sticky='w')
 
         fila_comando = ctk.CTkFrame(panel, fg_color='transparent')
-        fila_comando.grid(row=3, column=0, padx=16, pady=(0, 16), sticky='ew')
+        fila_comando.grid(row=row_reinstall + 2, column=0, padx=16, pady=(0, 16), sticky='ew')
         fila_comando.grid_columnconfigure(0, weight=1)
 
         self._entry_dependencia_cmd = ctk.CTkEntry(
@@ -261,7 +278,7 @@ class RemoveBgFrame(BaseFrame):
             text_color=colors.ACENTO,
             fg_color=colors.SIDEBAR_BG,
             border_color=colors.SIDEBAR_SEPARATOR,
-            justify='center'
+            justify='left'
         )
         self._entry_dependencia_cmd.grid(row=0, column=0, sticky='ew', padx=(0, 8))
         self._entry_dependencia_cmd.insert(0, INSTALL_COMMAND)
@@ -308,6 +325,22 @@ class RemoveBgFrame(BaseFrame):
         self.clipboard_clear()
         self.clipboard_append(INSTALL_COMMAND)
         self._lbl_info.configure(text=t('command_copied'))
+
+    def _resumir_error_dependencia(self, detalle_error: str | None) -> tuple[str, str | None]:
+        """Convierte errores tecnicos en mensajes breves para la UI."""
+        detalle = (detalle_error or '').strip()
+        detalle_lower = detalle.lower()
+
+        if 'pymatting' in detalle_lower:
+            return (
+                t('rembg_unavailable_short'),
+                str(t('rembg_missing_dependency')).format(dependency='pymatting'),
+            )
+
+        if detalle:
+            return t('rembg_unavailable_short'), str(t('rembg_error_detail')).format(error=detalle)
+
+        return t('rembg_unavailable_short'), None
 
     def _cargar_imagenes(self, rutas):
         """Carga las imagenes seleccionadas."""

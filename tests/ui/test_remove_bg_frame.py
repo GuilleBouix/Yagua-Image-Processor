@@ -25,7 +25,9 @@ def test_remove_bg_frame_muestra_error_real_y_comando_copiable(monkeypatch, ui_r
     ui_root.update_idletasks()
 
     assert hasattr(frame, "_lbl_error_dependencia")
-    assert "pymatting" in frame._lbl_error_dependencia.cget("text")
+    assert frame._lbl_error_dependencia.cget("text") == "No se pudo activar Quitar Fondo."
+    assert frame._lbl_error_dependencia.cget("justify") == "left"
     assert hasattr(frame, "_entry_dependencia_cmd")
     assert frame._entry_dependencia_cmd.get() == INSTALL_COMMAND
+    assert frame._entry_dependencia_cmd.cget("justify") == "left"
     assert hasattr(frame, "_btn_copiar_comando")

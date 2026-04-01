@@ -82,6 +82,10 @@ class YaguaApp(ctk.CTk):
         # Establecer tamano minimo de la ventana
         self.minsize(900, 600)
         
+        # En macOS, restaurar la ventana al hacer click en el icono del Dock
+        if sys.platform == 'darwin':
+            self._setup_dock_reopen()
+        
         # Configurar icono de la ventana segun plataforma
         self._setup_icon()
         
@@ -89,6 +93,19 @@ class YaguaApp(ctk.CTk):
         self.main_window = MainWindow(self)
         self.main_window.pack(fill='both', expand=True)
     
+    def _setup_dock_reopen(self):
+        """Registra el handler para restaurar la ventana desde el Dock en macOS."""
+        try:
+            self.createcommand('tk::mac::ReopenApplication', self._on_dock_click)
+        except Exception as e:
+            logger.debug("No se pudo registrar ReopenApplication: %s", e)
+
+    def _on_dock_click(self):
+        """Restaura la ventana cuando el usuario hace click en el icono del Dock."""
+        self.deiconify()
+        self.lift()
+        self.focus_force()
+
     def _setup_icon(self):
         """
         Configura el icono de la ventana segun la plataforma.
