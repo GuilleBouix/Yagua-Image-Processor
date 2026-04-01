@@ -16,7 +16,7 @@ Yagua es una app de escritorio gratuita y open source que corre todo localmente.
 - Compresion inteligente con control de calidad
 - Conversion entre multiples formatos (incluye HEIC/HEIF)
 - Eliminacion de fondo con IA (rembg)
-- Extracción de texto de imágenes (OCR)
+- OCR con EasyOCR
 - Marca de agua en lote con preview
 - Vectorizacion a SVG
 - Edicion/transformacion de imagenes
