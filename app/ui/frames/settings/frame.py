@@ -60,10 +60,13 @@ class SettingsFrame(BaseFrame):
         self._tabs_container.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(2, weight=1)
 
+        general_tab = GeneralTab(self._tabs_container, state=self._state, set_status=self._set_status)
         self._tabs = {
-            t('settings_tab'): GeneralTab(self._tabs_container, state=self._state, set_status=self._set_status),
+            t('settings_tab'): general_tab,
             t('updates_tab'): UpdatesTab(self._tabs_container),
         }
+        self._selector_idioma = general_tab._selector_idioma
+        self._selector_tema = general_tab._selector_tema
         for f in self._tabs.values():
             f.grid(row=0, column=0, sticky='nsew')
 
