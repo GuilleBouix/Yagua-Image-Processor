@@ -322,7 +322,7 @@ class LqipFrame(BaseFrame):
         total = len(rutas)
         if total > limite:
             rutas = rutas[:limite]
-            self._limite_msg = t('limit_reached').format(limit=limite, total=total)
+            self._limite_msg = t('limit_reached').format(limit=limite, total=total) # type: ignore
         else:
             self._limite_msg = None
 
