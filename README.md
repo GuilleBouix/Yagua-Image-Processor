@@ -105,7 +105,6 @@ Para que Yagua funcione de manera fluida, especialmente con lotes grandes (hasta
 | CustomTkinter     | 5.2.2   | UI moderna para escritorio         |
 | Pillow            | 12.1.1  | Procesamiento de imágenes          |
 | piexif            | 1.1.3   | Metadatos EXIF                     |
-| darkdetect        | 0.8.0   | Detección de tema del sistema      |
 | rembg             | 2.0.73  | Quitar fondo con IA                |
 | Codex             | N/A     | Asistencia de desarrollo           |
 
