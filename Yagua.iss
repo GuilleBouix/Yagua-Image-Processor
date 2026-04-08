@@ -4,8 +4,8 @@
 [Setup]
 AppId={{2A0F8C4B-6E0D-4E7B-9E92-9B8D3D34B6F1}}
 AppName=Yagua
-AppVersion=1.2.2
-AppVerName=Yagua 1.2.2
+AppVersion=1.2.3
+AppVerName=Yagua 1.2.3
 AppPublisher=GuilleBouix
 AppPublisherURL=https://github.com/GuilleBouix
 AppSupportURL=https://github.com/GuilleBouix
@@ -17,7 +17,7 @@ DefaultDirName={pf}\Yagua
 DefaultGroupName=Yagua
 UninstallDisplayIcon={app}\Yagua.exe
 OutputDir=installer
-OutputBaseFilename=Yagua_Setup_1.2.2
+OutputBaseFilename=Yagua_Setup_1.2.3
 Compression=lzma
 SolidCompression=yes
 ArchitecturesInstallIn64BitMode=x64

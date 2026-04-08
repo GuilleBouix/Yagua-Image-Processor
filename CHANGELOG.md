@@ -6,6 +6,11 @@ Todos los cambios notables del proyecto se documentan en este archivo.
 
 _Sin cambios documentados todavía._
 
+## [1.2.3] - 2026-04-08
+
+### Fixes
+- Re-release para asegurar distribución correcta de la v1.2.2 (idioma Alemán) y pruebas de auto-update.
+
 ## [1.2.2] - 2026-04-08
 
 ### UX / UI
