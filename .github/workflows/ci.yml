@@ -1,0 +1,32 @@
+name: CI (Windows)
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install deps
+        shell: pwsh
+        run: |
+          python -m pip install -U pip wheel setuptools
+          python -m pip install -r requirements.txt
+
+      - name: Pytest
+        shell: pwsh
+        run: |
+          python -m pytest -q
+

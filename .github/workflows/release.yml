@@ -1,0 +1,105 @@
+name: Release (Windows)
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version X.Y.Z (sin 'v')"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  build_release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Resolve version
+        id: ver
+        shell: pwsh
+        run: |
+          if ("${{ github.event_name }}" -eq "workflow_dispatch") {
+            $v = "${{ inputs.version }}".Trim()
+          } else {
+            $v = "${{ github.ref_name }}".Trim()
+            if ($v.StartsWith("v")) { $v = $v.Substring(1) }
+          }
+          echo "version=$v" >> $env:GITHUB_OUTPUT
+          Write-Host "Version=$v"
+
+      - name: Apply version to files (CI-only)
+        shell: pwsh
+        run: |
+          python scripts/ci/apply_version.py "${{ steps.ver.outputs.version }}"
+
+      - name: Install deps
+        shell: pwsh
+        run: |
+          python -m pip install -U pip wheel setuptools
+          python -m pip install -r requirements.txt
+
+      - name: Pytest
+        shell: pwsh
+        run: |
+          python -m pytest -q
+
+      - name: Build (PyInstaller)
+        shell: pwsh
+        run: |
+          python -m PyInstaller --clean --noconfirm Yagua.spec
+
+      - name: Install Inno Setup
+        shell: pwsh
+        run: |
+          choco install innosetup -y
+
+      - name: Build installer (Inno Setup)
+        shell: pwsh
+        run: |
+          iscc Yagua.iss
+
+      - name: Package portable zip + hashes
+        shell: pwsh
+        run: |
+          $ver = "${{ steps.ver.outputs.version }}"
+          $setup = "installer\\Yagua_Setup_$ver.exe"
+          if (-not (Test-Path $setup)) { throw "No se encontro instalador: $setup" }
+
+          $portable = "installer\\Yagua_Portable_$ver.zip"
+          if (Test-Path $portable) { Remove-Item -Force $portable }
+          Compress-Archive -Path "dist\\Yagua\\*" -DestinationPath $portable
+
+          $h1 = (Get-FileHash $setup -Algorithm SHA256).Hash.ToLower()
+          $h2 = (Get-FileHash $portable -Algorithm SHA256).Hash.ToLower()
+
+          "$h1  $(Split-Path -Leaf $setup)" | Out-File -Encoding ascii "$setup.sha256"
+          "$h2  $(Split-Path -Leaf $portable)" | Out-File -Encoding ascii "$portable.sha256"
+
+          python scripts/ci/make_latest_json.py $ver (Split-Path -Leaf $setup) $h1 (Split-Path -Leaf $portable) $h2 | Out-File -Encoding utf8 "installer\\latest.json"
+
+      - name: Release notes
+        shell: pwsh
+        run: |
+          python scripts/ci/extract_release_notes.py "${{ steps.ver.outputs.version }}" | Out-File -Encoding utf8 "release_notes.md"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: release_notes.md
+          files: |
+            installer/Yagua_Setup_${{ steps.ver.outputs.version }}.exe
+            installer/Yagua_Setup_${{ steps.ver.outputs.version }}.exe.sha256
+            installer/Yagua_Portable_${{ steps.ver.outputs.version }}.zip
+            installer/Yagua_Portable_${{ steps.ver.outputs.version }}.zip.sha256
+            installer/latest.json
+

@@ -4,6 +4,7 @@ import customtkinter as ctk
 
 from app.ui import colors, fonts
 from app.translations import t
+from app.version import __version__
 
 
 class UpdatesTab(ctk.CTkFrame):
@@ -35,7 +36,7 @@ class UpdatesTab(ctk.CTkFrame):
 
         self._lbl_version = ctk.CTkLabel(
             panel,
-            text=f"{t('current_version')}: v2.0.0",
+            text=f"{t('current_version')}: v{__version__}",
             font=fonts.FUENTE_CHICA,
             text_color=colors.TEXT_GRAY,
             anchor='w'
