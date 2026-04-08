@@ -49,8 +49,9 @@ class OcrFrame(BaseFrame):
         self._spinner_bar = None
         self._ocr_ready = False
         super().__init__(parent, t('ocr_title'))
+        # Mantener el boton "Limpiar" en el header, alineado a la derecha.
         try:
-            self._btn_limpiar.grid_configure(column=2, padx=(0, 28), sticky='e')
+            self._btn_limpiar.grid_configure(column=1, padx=(8, 0), sticky='e')
         except Exception:
             pass
 
@@ -58,63 +59,55 @@ class OcrFrame(BaseFrame):
         """
         Construye el contenido especifico del modulo.
 
-        Layout de dos columnas:
-        - Izquierda: seleccion, lista, opciones, acciones
-        - Derecha: textarea para texto extra?do
+        Layout:
+        - Header: titulo (izq) + limpiar (der) lo maneja BaseFrame
+        - Centro: 2 columnas (izq controles / der preview + acciones)
         """
         logger.info("ocr.ui: build_content")
-        self._crear_spinner()
-        # Configurar dos columnas: izquierda (1) y derecha (2)
-        self.grid_columnconfigure(0, weight=1, minsize=400)
-        self.grid_columnconfigure(1, weight=1, minsize=400)
+        # Loader: usamos overlay full-frame (no un componente que empuje el layout).
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(1, weight=1)
 
-        base_row = 2
+        cont = ctk.CTkFrame(self, fg_color="transparent")
+        cont.grid(row=1, column=0, padx=28, pady=(0, 10), sticky="nsew")
+        cont.grid_columnconfigure(0, weight=1, minsize=380)
+        cont.grid_columnconfigure(1, weight=1, minsize=380)
+        cont.grid_rowconfigure(0, weight=1)
+
         # ===== COLUMNA IZQUIERDA =====
+        col_izq = ctk.CTkFrame(cont, fg_color="transparent")
+        col_izq.grid(row=0, column=0, padx=(0, 10), sticky="nsew")
+        col_izq.grid_columnconfigure(0, weight=1)
+        col_izq.grid_rowconfigure(1, weight=1)
 
-        # Boton para seleccionar imagenes
-        self._btn_seleccionar = self._crear_boton_seleccionar(self, texto=t('select_images_ocr'))
-        self._btn_seleccionar.grid(row=base_row, column=0, padx=(28, 14), pady=(4, 3), sticky='ew')
+        self._btn_seleccionar = self._crear_boton_seleccionar(col_izq, texto=t("select_images_ocr"))
+        self._btn_seleccionar.grid(row=0, column=0, pady=(0, 6), sticky="ew")
 
-        # Lista de archivos seleccionados
-        self._lista_frame = self._crear_lista_archivos(self, height=120)
-        self._lista_frame.grid(row=base_row + 1, column=0, padx=(28, 14), pady=(0, 4), sticky='ew')
+        self._lista_frame = self._crear_lista_archivos(col_izq, height=150)
+        self._lista_frame.grid(row=1, column=0, pady=(0, 6), sticky="nsew")
         self._lista_frame.grid_columnconfigure(0, weight=1)
-
-        # Label de lista vacia
         self._lbl_lista_vacia = self._crear_lista_vacia(self._lista_frame)
-        self._lbl_lista_vacia.pack(pady=8)
+        self._lbl_lista_vacia.pack(pady=10)
 
-        # Panel de opciones de OCR
         self._panel_opciones = ctk.CTkFrame(
-            self,
+            col_izq,
             corner_radius=12,
             fg_color=colors.PANEL_BG,
             border_width=1,
-            border_color=colors.SIDEBAR_SEPARATOR
+            border_color=colors.SIDEBAR_SEPARATOR,
         )
-        self._panel_opciones.grid(row=base_row + 2, column=0, padx=(28, 14), pady=(0, 4), sticky='ew')
+        self._panel_opciones.grid(row=2, column=0, pady=(0, 0), sticky="ew")
         self._panel_opciones.grid_columnconfigure(1, weight=1)
         self._construir_opciones()
 
-        # Panel de acciones
-        self._panel_acciones = ctk.CTkFrame(
-            self,
-            corner_radius=12,
-            fg_color=colors.PANEL_BG,
-            border_width=1,
-            border_color=colors.SIDEBAR_SEPARATOR
-        )
-        self._panel_acciones.grid(row=base_row + 3, column=1, padx=(14, 28), pady=(0, 8), sticky='ew')
-        self._panel_acciones.grid_columnconfigure(0, weight=1)
-        self._panel_acciones.grid_columnconfigure(1, weight=1)
-        self._panel_acciones.grid_columnconfigure(2, weight=1)
-        self._construir_acciones()
-
         # ===== COLUMNA DERECHA =====
+        col_der = ctk.CTkFrame(cont, fg_color="transparent")
+        col_der.grid(row=0, column=1, padx=(10, 0), sticky="nsew")
+        col_der.grid_columnconfigure(0, weight=1)
+        col_der.grid_rowconfigure(0, weight=1)
 
-        # Textarea para texto extra?do
         self._textarea = ctk.CTkTextbox(
-            self,
+            col_der,
             corner_radius=12,
             fg_color=colors.PANEL_BG,
             border_width=1,
@@ -122,71 +115,70 @@ class OcrFrame(BaseFrame):
             font=fonts.FUENTE_BASE,
             text_color=colors.TEXT_COLOR,
         )
-        self._textarea.grid(row=base_row, column=1, rowspan=3, padx=(14, 28), pady=(6, 6), sticky='ewns')
-        self._textarea.insert('0.0', self._state.texto_extraido.get())
+        self._textarea.grid(row=0, column=0, pady=(0, 6), sticky="nsew")
+        self._textarea.insert("0.0", self._state.texto_extraido.get())
 
-        # Configurar weight de fila para que textarea crezca
-        self.grid_rowconfigure(base_row, weight=1)
-        self.grid_rowconfigure(base_row + 1, weight=1)
-        self.grid_rowconfigure(base_row + 2, weight=1)
-        self.grid_rowconfigure(base_row + 3, weight=0)
-
-        self._inicializar_en_background()
-
-    def _crear_spinner(self):
-        """Crea un spinner dentro del modulo (no bloqueante)."""
-        logger.debug("ocr.ui: crear_spinner")
-        self._spinner_frame = ctk.CTkFrame(
-            self,
-            corner_radius=10,
+        self._panel_acciones = ctk.CTkFrame(
+            col_der,
+            corner_radius=12,
             fg_color=colors.PANEL_BG,
             border_width=1,
-            border_color=colors.SIDEBAR_SEPARATOR
+            border_color=colors.SIDEBAR_SEPARATOR,
         )
-        self._spinner_frame.grid(row=1, column=0, columnspan=2, padx=28, pady=(4, 4), sticky='ew')
-        self._spinner_frame.grid_columnconfigure(0, weight=1)
+        self._panel_acciones.grid(row=1, column=0, sticky="ew")
+        self._panel_acciones.grid_columnconfigure(0, weight=1)
+        self._panel_acciones.grid_columnconfigure(1, weight=1)
+        self._construir_acciones()
 
-        self._spinner_label = ctk.CTkLabel(
-            self._spinner_frame,
-            text=t('ocr_model_loading'),
-            font=fonts.FUENTE_BASE,
-            text_color=colors.TEXT_COLOR,
-            anchor='w'
-        )
-        self._spinner_label.grid(row=0, column=0, padx=16, pady=(12, 6), sticky='w')
+        # Importante: diferir al siguiente tick para que BaseFrame no lo oculte al finalizar _build().
+        self.after(0, self._inicializar_en_background)
 
-        self._spinner_bar = ctk.CTkProgressBar(
-            self._spinner_frame,
-            width=220,
-            height=10,
-            corner_radius=8,
-            fg_color=colors.SIDEBAR_SEPARATOR,
-            progress_color=colors.ACENTO,
-            mode='indeterminate'
-        )
-        self._spinner_bar.grid(row=1, column=0, padx=16, pady=(0, 12), sticky='w')
-
-    def _show_overlay(self, text: str):
-        """Muestra spinner dentro del modulo (no bloqueante)."""
-        if not self._spinner_frame or not self._spinner_label or not self._spinner_bar:
-            return
-        self._spinner_label.configure(text=text)
-        self._spinner_frame.grid()
+    def _limpiar(self):
+        """Limpia imagenes y tambien el textarea."""
+        logger.info("ocr.ui: limpiar")
         try:
-            self._spinner_bar.start()
+            self._state.processing.set(False)
         except Exception:
             pass
+
+        try:
+            self._state.texto_extraido.set("")
+        except Exception:
+            pass
+
+        try:
+            self._state.imagenes = []
+        except Exception:
+            pass
+
+        if hasattr(self, "_textarea") and self._textarea.winfo_exists():
+            try:
+                self._textarea.delete("0.0", "end")
+            except Exception:
+                pass
+
+        self._hide_overlay()
+        super()._limpiar()
+
+        if hasattr(self, "_btn_procesar") and self._btn_procesar.winfo_exists():
+            try:
+                self._btn_procesar.configure(
+                    state="normal" if self._ocr_ready else "disabled",
+                    text=t("process_ocr"),
+                )
+            except Exception:
+                pass
+
+    def _crear_spinner(self):
+        """Deprecated: OCR usa overlay full-frame."""
+        return
+
+    def _show_overlay(self, text: str):
+        """Muestra overlay full-frame (bloquea interaccion)."""
         self._show_full_overlay(text)
 
     def _hide_overlay(self):
-        """Oculta el spinner interno."""
-        if not self._spinner_frame or not self._spinner_bar:
-            return
-        try:
-            self._spinner_bar.stop()
-        except Exception:
-            pass
-        self._spinner_frame.grid_remove()
+        """Oculta overlay full-frame."""
         self._hide_full_overlay()
 
     def _inicializar_en_background(self):
@@ -278,23 +270,9 @@ class OcrFrame(BaseFrame):
         """
         Construye los botones de acciones.
         
-        Incluye botones clear, copy, export.
+        Incluye botones copy y export.
         """
         p = self._panel_acciones
-
-        # Boton limpiar
-        self._btn_limpiar_texto = ctk.CTkButton(
-            p,
-            text=t('clear_text'),
-            height=32,
-            corner_radius=8,
-            font=fonts.FUENTE_CHICA,
-            fg_color=colors.BTN_CLEAR_BG,
-            text_color=colors.BTN_CLEAR_TEXT,
-            hover_color=colors.BTN_CLEAR_HOVER,
-            command=self._limpiar_texto
-        )
-        self._btn_limpiar_texto.grid(row=0, column=0, padx=16, pady=6, sticky='ew')
 
         # Boton copiar
         self._btn_copiar = ctk.CTkButton(
@@ -310,7 +288,7 @@ class OcrFrame(BaseFrame):
             hover_color=colors.SIDEBAR_HOVER,
             command=self._copiar_texto
         )
-        self._btn_copiar.grid(row=0, column=1, padx=8, pady=6, sticky='ew')
+        self._btn_copiar.grid(row=0, column=0, padx=(16, 8), pady=8, sticky='ew')
 
         # Boton exportar
         self._btn_exportar = ctk.CTkButton(
@@ -324,7 +302,7 @@ class OcrFrame(BaseFrame):
             hover_color=colors.ACENTO_HOVER,
             command=self._exportar
         )
-        self._btn_exportar.grid(row=0, column=2, padx=(8, 16), pady=6, sticky='ew')
+        self._btn_exportar.grid(row=0, column=1, padx=(8, 16), pady=8, sticky='ew')
 
     def _cargar_imagenes(self, rutas):
         """

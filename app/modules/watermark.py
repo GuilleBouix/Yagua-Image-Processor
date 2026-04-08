@@ -14,7 +14,7 @@ import os
 import cv2
 import numpy as np
 
-from app.modules.image_utils import load_cv_image_unchanged
+from app.utils.image_utils import load_cv_image_unchanged
 
 logger = logging.getLogger(__name__)
 

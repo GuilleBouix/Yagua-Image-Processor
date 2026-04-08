@@ -14,7 +14,7 @@ from pathlib import Path
 from PIL import Image, ImageOps
 import piexif
 
-from app.modules.output import unique_output_path
+from app.utils.output import unique_output_path
 
 logger = logging.getLogger(__name__)
 

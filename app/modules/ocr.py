@@ -14,11 +14,12 @@ from pathlib import Path
 import cv2
 from PIL import features
 
-from app.modules.image_utils import load_cv_image
+from app.utils.image_utils import load_cv_image
 
 logger = logging.getLogger(__name__)
 _READER_CACHE = {}
 _READER_LOCK = threading.Lock()
+MAX_IMAGENES = 10
 
 
 def _idiomas_key(idiomas):
@@ -184,7 +185,7 @@ def batch_procesar(rutas, idiomas=['es', 'en']):
     textos = {}
     ok = 0
     errores = 0
-    for ruta in rutas[:10]:  # L?mite de 10 im?genes
+    for ruta in rutas[:MAX_IMAGENES]:
         try:
             texto = procesar_imagen(ruta, reader)
             textos[str(ruta)] = texto

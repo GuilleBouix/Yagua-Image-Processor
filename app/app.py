@@ -20,7 +20,7 @@ from app.ui import fonts
 from app.utils.paths import resource_path
 from app.ui.main_window import MainWindow
 from app.translations import t
-from app.modules.image_utils import init_heif_support
+from app.utils.image_utils import init_heif_support
 
 logger = logging.getLogger(__name__)
 
@@ -60,16 +60,24 @@ class YaguaApp(ctk.CTk):
         # Actualizar para asegurar que la geometria se aplique antes de maximizar
         self.update()
         
-        # Maximizar ventana al iniciar (Windows/Linux)
-        try:
-            # Windows y algunos WM
-            self.state('zoomed')
-        except Exception:
+        # Maximizar ventana al iniciar
+        if sys.platform == 'darwin':
+            self.update_idletasks()
+            w = self.winfo_screenwidth()
+            h = self.winfo_screenheight()
+            self.geometry(f'{w}x{h}+0+0')
+        elif sys.platform == 'win32':
             try:
-                # Linux (algunos window managers)
+                self.state('zoomed')
+            except Exception:
+                self.update_idletasks()
+                w = self.winfo_screenwidth()
+                h = self.winfo_screenheight()
+                self.geometry(f'{w}x{h}+0+0')
+        else:
+            try:
                 self.attributes('-zoomed', True)
             except Exception:
-                # Fallback: usar tamaño de pantalla
                 self.update_idletasks()
                 w = self.winfo_screenwidth()
                 h = self.winfo_screenheight()
@@ -78,6 +86,10 @@ class YaguaApp(ctk.CTk):
         # Establecer tamano minimo de la ventana
         self.minsize(900, 600)
         
+        # En macOS, restaurar la ventana al hacer click en el icono del Dock
+        if sys.platform == 'darwin':
+            self._setup_dock_reopen()
+        
         # Configurar icono de la ventana segun plataforma
         self._setup_icon()
         
@@ -85,35 +97,49 @@ class YaguaApp(ctk.CTk):
         self.main_window = MainWindow(self)
         self.main_window.pack(fill='both', expand=True)
     
+    def _setup_dock_reopen(self):
+        """Registra el handler para restaurar la ventana desde el Dock en macOS."""
+        try:
+            self.createcommand('tk::mac::ReopenApplication', self._on_dock_click)
+        except Exception as e:
+            logger.debug("No se pudo registrar ReopenApplication: %s", e)
+
+    def _on_dock_click(self):
+        """Restaura la ventana cuando el usuario hace click en el icono del Dock."""
+        self.deiconify()
+        self.lift()
+        self.focus_force()
+
     def _setup_icon(self):
         """
         Configura el icono de la ventana segun la plataforma.
         
-        En Windows usa icon.ico, en otras plataformas usa icon.png.
-        Registra warnings si los iconos no se encuentran.
+        Windows: icon.ico | macOS: icon.png (icon.icns para bundle) | Linux: icon.png
         """
-        # Rutas de los archivos de icono
         icon_ico = resource_path('assets/icon.ico')
+        icon_icns = resource_path('assets/icon.icns')
         icon_png = resource_path('assets/icon.png')
         
-        # Configuracion especifica para Windows
         if sys.platform == 'win32':
-            # Usar .ico en Windows (formato nativo)
             if icon_ico.exists():
                 self.iconbitmap(str(icon_ico))
-            # Fallback a PNG si .ico no existe
             elif icon_png.exists():
                 self._setup_icon_png(icon_png)
             else:
-                # Registrar warning si no hay icono disponible
                 logger.warning("Icono no encontrado en assets/")
-        else:
-            # En otras plataformas solo usar PNG
+        elif sys.platform == 'darwin':
             if icon_png.exists():
                 self._setup_icon_png(icon_png)
-            elif icon_ico.exists():
-                # .ico no es compatible con macOS/Linux
-                logger.warning("icon.ico no es compatible con esta plataforma")
+            elif icon_icns.exists():
+                try:
+                    self.iconbitmap(str(icon_icns))
+                except Exception as e:
+                    logger.warning(f'No se pudo aplicar icon.icns: {e}')
+            else:
+                logger.warning("Icono no encontrado en assets/")
+        else:
+            if icon_png.exists():
+                self._setup_icon_png(icon_png)
             else:
                 logger.warning("Icono no encontrado en assets/")
     

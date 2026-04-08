@@ -345,22 +345,41 @@ class VectorizarFrame(BaseFrame):
 
     def _cargar_imagenes(self, rutas):
         logger.info("vectorizar.ui: cargar_imagenes (total=%s)", len(rutas))
+        omitidos_grandes = 0
+        rutas_validas = []
+        for r in rutas:
+            try:
+                if Path(r).stat().st_size > 1_000_000:
+                    omitidos_grandes += 1
+                    continue
+            except Exception:
+                # Si no se puede stat-ear, dejamos que el flujo normal lo maneje
+                # (o quede fuera si luego falla el thumbnail/lectura).
+                pass
+            rutas_validas.append(r)
+
+        if omitidos_grandes:
+            logger.info("vectorizar.ui: omitidos_por_tamano (>%s bytes=%s)", 1_000_000, omitidos_grandes)
+
         limite = 50
-        total = len(rutas)
+        total = len(rutas_validas)
         if total > limite:
-            rutas = rutas[:limite]
-            self._limite_msg = t("limit_reached").format(limit=limite, total=total)
+            rutas_validas = rutas_validas[:limite]
+            self._limite_msg = t("limit_reached").format(limit=limite, total=total) # type: ignore
         else:
             self._limite_msg = None
 
-        super()._cargar_imagenes(rutas)
-        self._state.imagenes = list(rutas)
+        super()._cargar_imagenes(rutas_validas)
+        self._state.imagenes = list(rutas_validas)
         n = len(self._imagenes)
-        if n:
-            suffix = t("images_loaded") if n > 1 else t("image_loaded")
-            msg = f"{n} {suffix}"
-            if self._limite_msg:
-                msg += f"  -  {self._limite_msg}"
+        suffix = t("images_loaded") if n > 1 else t("image_loaded")
+        msg = f"{n} {suffix}" if n else ""
+        if self._limite_msg:
+            msg = f"{msg}  -  {self._limite_msg}" if msg else str(self._limite_msg)
+        if omitidos_grandes:
+            extra = t("vectorizar_omitidos_por_tamano").format(count=omitidos_grandes)  # type: ignore
+            msg = f"{msg}  -  {extra}" if msg else extra
+        if msg:
             self._lbl_info.configure(text=msg)
         logger.info("vectorizar.ui: imagenes cargadas (mostradas=%s)", n)
     
@@ -398,24 +417,26 @@ class VectorizarFrame(BaseFrame):
     # ------------------------------------------------------------------ #
     #  Flujo: _ejecutar → _proceso → _finalizar                           #
     # ------------------------------------------------------------------ #
-
     def _ejecutar(self):
-        logger.info("vectorizar.ui: click_vectorizar")
+        """Inicia el proceso de vectorizacion."""
+        logger.info('vectorizar.ui: click_vectorizar')
         if not self._imagenes:
-            self._lbl_info.configure(text=t("load_images_first"))
+            self._lbl_info.configure(text=t('load_images_first'))
             return
 
-        carpeta = filedialog.askdirectory(title=t("select_output_folder"))
+        carpeta = filedialog.askdirectory(title=t('select_output_folder'))
         if not carpeta:
-            logger.info("vectorizar.ui: proceso_cancelado (sin_carpeta)")
+            logger.info('vectorizar.ui: proceso_cancelado (sin_carpeta)')
             return
 
         self._state.carpeta_salida.set(carpeta)
-        self._btn_exportar.configure(state="disabled", text=t("processing"))
-        self._show_full_overlay(t("processing"))
-        threading.Thread(target=self._proceso, args=(carpeta,), daemon=True).start()
+        self._btn_exportar.configure(state='disabled', text=t('processing'))
+        self._lbl_info.configure(
+            text=f'{t("processing")} {len(self._imagenes)} imagen{"es" if len(self._imagenes) > 1 else ""}...'
+        )
 
-    def _proceso(self, carpeta):
+        # Capturar params antes de entrar al thread para evitar
+        # accesos a StringVar/IntVar desde hilo secundario
         params = _mapear_params(
             colormode=self._state.colormode.get(),
             nivel_detalle=self._state.nivel_detalle.get(),
@@ -423,20 +444,49 @@ class VectorizarFrame(BaseFrame):
             suavidad=self._state.suavidad.get(),
             tamano=self._state.tamano.get(),
         )
-        resultado = batch_vectorizar(
-            rutas_imagenes=self._imagenes,
-            carpeta_salida=carpeta,
-            **params,
-        )
+
+        threading.Thread(
+            target=self._proceso,
+            args=(carpeta, params),
+            daemon=True
+        ).start()
+
+    def _proceso(self, carpeta, params):
+        """
+        Ejecuta la vectorizacion en segundo plano.
+
+        Args:
+            carpeta: Carpeta de salida elegida.
+            params: Diccionario de parametros ya calculados.
+        """
+        try:
+            resultado = batch_vectorizar(
+                rutas_imagenes=self._imagenes,
+                carpeta_salida=carpeta,
+                **params,
+            )
+        except Exception as exc:
+            logger.exception("vectorizar.ui: error en exportar")
+            resultado = {"ok": 0, "errores": len(self._imagenes), "archivos": [], "error": str(exc)}
         self.after(0, lambda: self._finalizar(resultado))
 
     def _finalizar(self, resultado):
-        ok      = resultado.get("ok", 0)
-        errores = resultado.get("errores", 0)
-        logger.info("vectorizar.ui: finalizar_ok (ok=%s, errores=%s)", ok, errores)
-        self._hide_full_overlay()
-        self._btn_exportar.configure(state="normal", text=t("vectorizar_btn_exportar"))
-        msg = t("vectorizar_exportadas").format(ok=ok) # type: ignore
+        """
+        Muestra el resultado final y reactiva el boton.
+
+        Args:
+            resultado: Diccionario con ok, errores, archivos.
+        """
+        ok      = resultado.get('ok', 0)
+        errores = resultado.get('errores', 0)
+        logger.info('vectorizar.ui: finalizar (ok=%s, errores=%s)', ok, errores)
+
+        self._btn_exportar.configure(state='normal', text=t('vectorizar_btn_exportar'))
+        error_msg = resultado.get('error')
+        if error_msg:
+            self._lbl_info.configure(text=f'{t("error_generic")}: {error_msg}')
+            return
+        msg = t('vectorizar_exportadas').format(ok=ok)  # type: ignore
         if errores:
-            msg += f"  —  {errores} {t('error_occurred')}"
+            msg += f'  —  {errores} {t("error_occurred")}'
         self._lbl_info.configure(text=msg)

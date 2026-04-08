@@ -7,14 +7,38 @@ Relacionado con:
 """
 
 import base64
+import html
 import io
 import json
 import logging
+import re
+import unicodedata
 from pathlib import Path
 
 from PIL import Image, ImageFilter
 
 logger = logging.getLogger(__name__)
+
+
+def _nombre_css_seguro(nombre_archivo):
+    """Convierte el nombre original a una clase CSS segura."""
+    nombre = Path(nombre_archivo).stem.strip().lower()
+    nombre = unicodedata.normalize('NFKD', nombre).encode('ascii', 'ignore').decode('ascii')
+    nombre = re.sub(r'\s+', '-', nombre)
+    nombre = re.sub(r'[^a-z0-9_-]+', '-', nombre)
+    nombre = re.sub(r'-{2,}', '-', nombre).strip('-_')
+
+    if not nombre:
+        return 'img'
+    if nombre[0].isdigit():
+        return f'img-{nombre}'
+    return nombre
+
+
+def _comentario_seguro(nombre_archivo):
+    """Evita cierres de comentario o saltos de linea en exportes TXT."""
+    return str(nombre_archivo).replace('*/', '* /').replace('\r', ' ').replace('\n', ' ')
+
 
 def imagen_a_base64(ruta, calidad=85):
     """
@@ -89,13 +113,14 @@ def _construir_resultado(datos_b64, nombre_archivo):
         Diccionario con data_uri, html_tag, css_bg.
     """
     data_uri = f'data:image/jpeg;base64,{datos_b64}'
-    nombre_css = Path(nombre_archivo).stem.replace(' ', '-').lower()
+    nombre_css = _nombre_css_seguro(nombre_archivo)
+    alt = html.escape(Path(nombre_archivo).stem, quote=True)
 
     return {
         'nombre': nombre_archivo,
         'base64': datos_b64,
         'data_uri': data_uri,
-        'html_tag': f'<img src="{data_uri}" alt="{Path(nombre_archivo).stem}" />',
+        'html_tag': f'<img src="{data_uri}" alt="{alt}" />',
         'css_bg': f'.{nombre_css} {{\n  background-image: url("{data_uri}");\n}}',
     }
 
@@ -151,7 +176,7 @@ def exportar_txt(resultados, ruta_salida, campo='data_uri'):
     logger.info("Exportar LQIP TXT: %s resultados -> %s", len(resultados), ruta_salida)
     lineas = []
     for res in resultados:
-        lineas.append(f'/* {res["nombre"]} */')
+        lineas.append(f'/* {_comentario_seguro(res["nombre"])} */')
         lineas.append(res.get(campo, ''))
         lineas.append('')
 

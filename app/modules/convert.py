@@ -12,8 +12,8 @@ from pathlib import Path
 
 from PIL import Image
 
-from app.modules.image_utils import normalize_common, ensure_rgb_for_jpeg
-from app.modules.output import unique_output_path
+from app.utils.image_utils import normalize_common, ensure_rgb_for_jpeg
+from app.utils.output import unique_output_path
 
 logger = logging.getLogger(__name__)
 

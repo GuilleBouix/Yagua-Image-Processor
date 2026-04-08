@@ -27,7 +27,7 @@ from app.ui.frames.base import BaseFrame
 from app.ui.frames.watermark.state import WatermarkState
 from app.ui.frames.watermark.services import aplicar_watermark_np, batch_aplicar_watermark
 from app.modules.compress import formatear_bytes
-from app.modules.image_utils import load_cv_image_unchanged
+from app.utils.image_utils import load_cv_image_unchanged
 
 
 logger = logging.getLogger(__name__)

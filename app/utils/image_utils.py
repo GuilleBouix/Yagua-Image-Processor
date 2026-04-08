@@ -147,3 +147,4 @@ def save_cv_image(ruta, imagen) -> bool:
         return True
     except Exception:
         return False
+
