@@ -25,7 +25,7 @@ from app.ui.frames.convert.services import (
     FORMATOS_DESTINO,
     formato_soporta_calidad,
 )
-from app.modules.image_utils import heif_supported
+from app.utils.image_utils import heif_supported
 from app.ui.frames.convert.state import ConvertState
 
 

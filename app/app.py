@@ -20,7 +20,7 @@ from app.ui import fonts
 from app.utils.paths import resource_path
 from app.ui.main_window import MainWindow
 from app.translations import t
-from app.modules.image_utils import init_heif_support
+from app.utils.image_utils import init_heif_support
 
 logger = logging.getLogger(__name__)
 

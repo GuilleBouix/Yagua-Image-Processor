@@ -323,6 +323,7 @@ TRANSLATIONS = {
     "vectorizar_btn_exportar":  "Export SVG",
     "vectorizar_exportadas":    "{ok} image(s) exported as SVG",
     "vectorizar_warning_distortion": "Warning: vectorization may distort the original image.",
+    "vectorizar_omitidos_por_tamano": "{count} files omitted. 1 MB size limit exceeded.",
 
     # Watermark
     "watermark":                  "Watermark",

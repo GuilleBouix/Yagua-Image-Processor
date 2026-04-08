@@ -1,3 +1,5 @@
+import html
+import os
 import re
 from pathlib import Path
 
@@ -15,14 +17,20 @@ def test_lqip_batch(tmp_path: Path, fixtures_dir: Path):
 
 def test_lqip_escapa_html_y_sanitiza_css(tmp_path: Path, fixtures_dir: Path):
     origen = fixtures_dir / 'sample.png'
-    entrada = tmp_path / 'bad" onerror="alert(1)"} body { color: red; }.png'
+    # Windows no permite comillas dobles en nombres de archivo, pero igual queremos
+    # validar escaping HTML + sanitizacion de selector CSS.
+    if os.name == "nt":
+        entrada = tmp_path / "bad& onerror=alert(1)} body { color: red; }.png"
+    else:
+        entrada = tmp_path / 'bad" onerror="alert(1)"} body { color: red; }.png'
     entrada.write_bytes(origen.read_bytes())
 
     res = batch_procesar([str(entrada)], modo='lqip', ancho=16, blur=1.0, calidad_lqip=40)
 
     assert res['ok'] == 1
     resultado = res['resultados'][0]
-    assert 'alt="bad&quot; onerror=&quot;alert(1)&quot;} body { color: red; }"' in resultado['html_tag']
+    expected_alt = html.escape(Path(entrada).stem, quote=True)
+    assert f'alt="{expected_alt}"' in resultado['html_tag']
 
     selector = resultado['css_bg'].split('{', 1)[0].strip()
     assert re.fullmatch(r'\.[a-z0-9_-]+', selector)

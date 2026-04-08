@@ -8,6 +8,7 @@ def test_remove_bg_frame_build(monkeypatch, ui_root):
 
     frame = RemoveBgFrame(ui_root)
     ui_root.update_idletasks()
+    ui_root.update()
 
     assert hasattr(frame, "_btn_seleccionar")
     assert hasattr(frame, "_lista_frame")
@@ -23,6 +24,7 @@ def test_remove_bg_frame_muestra_error_real_y_comando_copiable(monkeypatch, ui_r
 
     frame = RemoveBgFrame(ui_root)
     ui_root.update_idletasks()
+    ui_root.update()
 
     assert hasattr(frame, "_lbl_error_dependencia")
     assert frame._lbl_error_dependencia.cget("text") == "No se pudo activar Quitar Fondo."

@@ -12,8 +12,8 @@ from pathlib import Path
 
 from PIL import Image
 
-from app.modules.image_utils import normalize_common
-from app.modules.output import unique_output_path
+from app.utils.image_utils import normalize_common
+from app.utils.output import unique_output_path
 
 from math import gcd
 

@@ -51,40 +51,14 @@ class RemoveBgFrame(BaseFrame):
 
     def _build_content(self):
         """Construye el contenido del modulo."""
-        self._crear_spinner()
-        self._inicializar_en_background()
+        # Loader: usamos overlay full-frame (no un componente que empuje el layout).
+        # Importante: diferir al siguiente tick para que BaseFrame no lo oculte
+        # al finalizar _build().
+        self.after(0, self._inicializar_en_background)
 
     def _crear_spinner(self):
-        """Crea un spinner dentro del modulo (no bloqueante)."""
-        self._spinner_frame = ctk.CTkFrame(
-            self,
-            corner_radius=10,
-            fg_color=colors.PANEL_BG,
-            border_width=1,
-            border_color=colors.SIDEBAR_SEPARATOR
-        )
-        self._spinner_frame.grid(row=1, column=0, padx=28, pady=(8, 6), sticky='ew')
-        self._spinner_frame.grid_columnconfigure(0, weight=1)
-
-        self._spinner_label = ctk.CTkLabel(
-            self._spinner_frame,
-            text=t('loading_model'),
-            font=fonts.FUENTE_BASE,
-            text_color=colors.TEXT_COLOR,
-            anchor='w'
-        )
-        self._spinner_label.grid(row=0, column=0, padx=16, pady=(12, 6), sticky='w')
-
-        self._spinner_bar = ctk.CTkProgressBar(
-            self._spinner_frame,
-            width=220,
-            height=10,
-            corner_radius=8,
-            fg_color=colors.SIDEBAR_SEPARATOR,
-            progress_color=colors.ACENTO,
-            mode='indeterminate'
-        )
-        self._spinner_bar.grid(row=1, column=0, padx=16, pady=(0, 12), sticky='w')
+        """Deprecated: RemoveBG usa overlay full-frame."""
+        return
 
     def _inicializar_en_background(self):
         """Inicializa checks pesados sin bloquear la UI."""
@@ -190,25 +164,12 @@ class RemoveBgFrame(BaseFrame):
         )
 
     def _show_overlay(self, text: str):
-        """Muestra spinner dentro del modulo (no bloqueante)."""
-        if not self._spinner_frame or not self._spinner_label or not self._spinner_bar:
-            return
-        self._spinner_label.configure(text=text)
-        self._spinner_frame.grid()
-        try:
-            self._spinner_bar.start()
-        except Exception:
-            pass
+        """Muestra overlay full-frame (bloquea interaccion)."""
+        self._show_full_overlay(text)
 
     def _hide_overlay(self):
-        """Oculta el spinner interno."""
-        if not self._spinner_frame or not self._spinner_bar:
-            return
-        try:
-            self._spinner_bar.stop()
-        except Exception:
-            pass
-        self._spinner_frame.grid_remove()
+        """Oculta overlay full-frame."""
+        self._hide_full_overlay()
 
     def _construir_aviso_dependencia(self, detalle_error: str | None):
         """Muestra panel con el error real y ayuda para instalar dependencias."""

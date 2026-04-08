@@ -19,6 +19,9 @@ import tempfile
 
 logger = logging.getLogger(__name__)
 
+MAX_IMAGENES = 50
+MAX_BYTES_PREPROCESO = 1_000_000  # 1 MB
+
 
 def vectorizar(
     ruta_imagen,
@@ -65,6 +68,13 @@ def vectorizar(
         return {"ok": 0, "archivo": None, "error": "Carpeta de salida no válida"}
 
     try:
+        if os.path.getsize(ruta_imagen) > MAX_BYTES_PREPROCESO:
+            logger.warning("vectorizar: denegado (archivo>1MB): %s", ruta_imagen)
+            return {"ok": 0, "archivo": None, "error": "Archivo demasiado grande (max 1 MB)"}
+    except Exception:
+        pass
+
+    try:
         import vtracer
 
         nombre_base = os.path.splitext(os.path.basename(ruta_imagen))[0]
@@ -95,7 +105,7 @@ def vectorizar(
 
     except ImportError:
         logger.warning("vtracer no está instalado.")
-        raise
+        return {"ok": 0, "archivo": None, "error": "vtracer no esta instalado"}
     except Exception as e:
         logger.warning(f"Error al vectorizar {ruta_imagen}: {e}")
         return {"ok": 0, "archivo": None, "error": str(e)}
@@ -114,14 +124,20 @@ def batch_vectorizar(rutas_imagenes, carpeta_salida, **kwargs):
     ok = 0
     errores = 0
 
-    for ruta in rutas_imagenes:
-        res = vectorizar(ruta, carpeta_salida=carpeta_salida, **kwargs)
-        if res["ok"]:
+    for ruta in list(rutas_imagenes)[:MAX_IMAGENES]:
+        try:
+            res = vectorizar(ruta, carpeta_salida=carpeta_salida, **kwargs)
+        except Exception as exc:
+            errores += 1
+            logger.warning("Error en %s: %s", ruta, exc)
+            continue
+
+        if res.get("ok"):
             ok += 1
-            archivos_generados.append(res["archivo"])
+            archivos_generados.append(res.get("archivo"))
         else:
             errores += 1
-            logger.warning(f"Error en {ruta}: {res['error']}")
+            logger.warning("Error en %s: %s", ruta, res.get("error"))
 
     logger.info(f"Batch vectorizaci?n: {ok} ok, {errores} errores")
     return {"ok": ok, "errores": errores, "archivos": archivos_generados}

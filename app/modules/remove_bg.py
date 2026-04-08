@@ -14,7 +14,7 @@ from pathlib import Path
 
 from PIL import Image, ImageOps
 
-from app.modules.output import unique_output_path
+from app.utils.output import unique_output_path
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +23,7 @@ FORMATOS_SALIDA = ['PNG', 'WEBP', 'TIFF']
 _FMT_A_EXT = {'PNG': '.png', 'WEBP': '.webp', 'TIFF': '.tiff'}
 INSTALL_COMMAND = 'pip install --upgrade rembg onnxruntime pymatting'
 _MODEL_READY = False
+MAX_IMAGENES = 10
 
 
 def _ensure_stdio():
@@ -61,9 +62,10 @@ def quitar_fondo(ruta_entrada, ruta_salida, formato_salida='PNG'):
             ruta_entrada, ruta_salida, formato_salida
         )
         _ensure_stdio()
+        tam_original = Path(ruta_entrada).stat().st_size
+
         imagen = Image.open(ruta_entrada)
         imagen = ImageOps.exif_transpose(imagen)
-        tam_original = Path(ruta_entrada).stat().st_size
 
         logger.info("remove_bg: crear_sesion (modelo=%s)", MODELO)
         sesion = new_session(MODELO)
@@ -127,12 +129,13 @@ def batch_quitar_fondo(rutas, carpeta_salida, formato_salida='PNG'):
     errores = 0
     conflictos = 0
 
-    for ruta in rutas:
+    for ruta in list(rutas)[:MAX_IMAGENES]:
         try:
             logger.debug("remove_bg: procesar_imagen (ruta=%s)", ruta)
+            tam_original = Path(ruta).stat().st_size
+
             imagen = Image.open(ruta)
             imagen = ImageOps.exif_transpose(imagen)
-            tam_original = Path(ruta).stat().st_size
 
             resultado_raw = rembg_remove(imagen, session=sesion)
             if isinstance(resultado_raw, Image.Image):
