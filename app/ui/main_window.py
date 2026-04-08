@@ -116,12 +116,13 @@ class MainWindow(ctk.CTkFrame):
 
         banner = ctk.CTkFrame(
             self.content,
-            corner_radius=12,
+            corner_radius=0,
             fg_color=colors.PANEL_BG,
             border_width=1,
             border_color=colors.SIDEBAR_SEPARATOR,
         )
-        banner.place(relx=0.5, rely=0.02, anchor="n", relwidth=0.94)
+        # Banner inferior (no invasivo). Usamos y negativo para dejar un margen interno.
+        banner.place(relx=0.5, rely=1.0, y=-12, anchor="s", relwidth=0.94)
         banner.grid_columnconfigure(0, weight=1)
 
         lbl = ctk.CTkLabel(
