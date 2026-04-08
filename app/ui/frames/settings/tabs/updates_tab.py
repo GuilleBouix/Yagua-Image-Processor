@@ -9,6 +9,7 @@ import sys
 import tempfile
 import threading
 from pathlib import Path
+from datetime import datetime
 
 import customtkinter as ctk
 import requests
@@ -194,29 +195,26 @@ class UpdatesTab(ctk.CTkFrame):
                 exe_path = str(Path(sys.executable).resolve())
                 ps_path = tmp_dir / "apply_update.ps1"
                 log_path = tmp_dir / "update.log"
+                # Creamos el log desde Python para confirmar que el launcher realmente se disparó.
+                try:
+                    log_path.parent.mkdir(parents=True, exist_ok=True)
+                    log_path.write_text(
+                        f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} update: spawn powershell\n",
+                        encoding="utf-8",
+                    )
+                except Exception:
+                    pass
                 ps_script = f"""param([int]$Pid, [string]$Installer, [string]$ExePath, [string]$LogPath)\n\n$ErrorActionPreference = 'Stop'\n\nfunction Log([string]$Msg) {{\n  $ts = (Get-Date).ToString('yyyy-MM-dd HH:mm:ss')\n  \"$ts $Msg\" | Out-File -FilePath $LogPath -Encoding UTF8 -Append\n}}\n\nLog \"update: waiting pid=$Pid\"\nwhile (Get-Process -Id $Pid -ErrorAction SilentlyContinue) {{ Start-Sleep -Milliseconds 250 }}\n\ntry {{\n  Log \"update: starting installer=$Installer\"\n  # Inno Setup suele requerir elevacion para Program Files.\n  $p = Start-Process -FilePath $Installer -ArgumentList '/SP- /VERYSILENT /SUPPRESSMSGBOXES /NORESTART' -Verb RunAs -Wait -PassThru\n  Log \"update: installer exitcode=$($p.ExitCode)\"\n  if ($p.ExitCode -eq 0) {{\n    Log \"update: relaunch $ExePath\"\n    Start-Process -FilePath $ExePath\n  }} else {{\n    Log \"update: install failed\"\n  }}\n}} catch {{\n  Log \"update: exception $($_.Exception.Message)\"\n}}\n"""
                 ps_path.write_text(ps_script, encoding="utf-8")
 
-                # Nota: DETACHED_PROCESS puede hacer que el UAC / elevación no aparezca.
-                # Preferimos ocultar la ventana de PowerShell pero mantenerlo interactivo.
-                creationflags = getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
-                startupinfo = None
-                if os.name == "nt" and hasattr(subprocess, "STARTUPINFO"):
-                    try:
-                        startupinfo = subprocess.STARTUPINFO()
-                        startupinfo.dwFlags |= getattr(subprocess, "STARTF_USESHOWWINDOW", 0)
-                        startupinfo.wShowWindow = 0  # SW_HIDE
-                    except Exception:
-                        startupinfo = None
-
+                # Importante: para que aparezca el UAC cuando corresponde, evitamos ejecutar PowerShell en modo "detached/hidden".
+                creationflags = 0
                 subprocess.Popen(
                     [
                         "powershell",
                         "-NoProfile",
                         "-ExecutionPolicy",
                         "Bypass",
-                        "-WindowStyle",
-                        "Hidden",
                         "-File",
                         str(ps_path),
                         "-Pid",
@@ -230,8 +228,7 @@ class UpdatesTab(ctk.CTkFrame):
                     ],
                     cwd=str(tmp_dir),
                     creationflags=creationflags,
-                    startupinfo=startupinfo,
-                    close_fds=True,
+                    close_fds=False,
                 )
 
                 # Cerrar app (el script se encarga de relanzar).
