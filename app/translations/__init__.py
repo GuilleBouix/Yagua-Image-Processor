@@ -27,6 +27,7 @@ AVAILABLE_LANGUAGES = {
     'English': 'English',
     'Portugues': 'Portugues',
     'Français': 'Français',
+    'Deutsch': 'Deutsch',
 }
 
 # Idioma por defecto cuando no hay configuracion guardada
@@ -133,6 +134,8 @@ def get_translations(lang=None):
         from app.translations.pt import TRANSLATIONS
     elif lang == 'Français':
         from app.translations.fr import TRANSLATIONS
+    elif lang == 'Deutsch':
+        from app.translations.de import TRANSLATIONS
     else:
         # Fallback a ingles si el idioma no se reconoce
         from app.translations.en import TRANSLATIONS
