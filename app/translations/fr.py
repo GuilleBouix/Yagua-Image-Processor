@@ -285,6 +285,8 @@ TRANSLATIONS = {
     'current_version': 'Version actuelle',
     'no_updates': 'Aucune mise à jour disponible',
     'check_updates': 'Vérifier les mises à jour',
+    'updates_download_btn': 'Télécharger la mise à jour v{version}',
+    'updates_manual_hint': 'L\'installation est manuelle.',
     'updates_checking': 'Recherche de mises à jour...',
     'updates_available': 'Nouvelle version disponible : v{version}',
     'updates_downloading': 'Téléchargement...',

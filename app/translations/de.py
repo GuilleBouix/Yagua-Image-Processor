@@ -268,6 +268,8 @@ TRANSLATIONS = {
     'current_version': 'Aktuelle Version',
     'no_updates': 'Keine Updates verfügbar',
     'check_updates': 'Nach Updates suchen',
+    'updates_download_btn': 'Update v{version} herunterladen',
+    'updates_manual_hint': 'Die Installation erfolgt manuell.',
     'updates_checking': 'Suche läuft...',
     'updates_available': 'Neue Version verfügbar: v{version}',
     'updates_downloading': 'Download läuft...',
