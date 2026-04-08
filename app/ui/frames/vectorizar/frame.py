@@ -56,6 +56,51 @@ PRESETS = {
     },
 }
 
+PRESET_DEFS = {
+    # IDs estables (no dependen del idioma) para no romper presets guardados.
+    "photo": {
+        "label_key": "vectorizar_preset_photo",
+        "params": {"colormode": "color", "nivel_detalle": 7, "limpieza": 4, "suavidad": 7, "tamano": 4},
+    },
+    "illustration": {
+        "label_key": "vectorizar_preset_illustration",
+        "params": {"colormode": "color", "nivel_detalle": 6, "limpieza": 3, "suavidad": 6, "tamano": 5},
+    },
+    "logo": {
+        "label_key": "vectorizar_preset_logo",
+        "params": {"colormode": "color", "nivel_detalle": 8, "limpieza": 5, "suavidad": 4, "tamano": 7},
+    },
+    "line_art": {
+        "label_key": "vectorizar_preset_line_art",
+        "params": {"colormode": "binary", "nivel_detalle": 9, "limpieza": 2, "suavidad": 5, "tamano": 6},
+    },
+    "pixel_art": {
+        "label_key": "vectorizar_preset_pixel_art",
+        "params": {"colormode": "color", "nivel_detalle": 10, "limpieza": 0, "suavidad": 1, "tamano": 8},
+    },
+    "light_svg": {
+        "label_key": "vectorizar_preset_light_svg",
+        "params": {"colormode": "color", "nivel_detalle": 4, "limpieza": 6, "suavidad": 8, "tamano": 9},
+    },
+    "max_quality": {
+        "label_key": "vectorizar_preset_max_quality",
+        "params": {"colormode": "color", "nivel_detalle": 10, "limpieza": 1, "suavidad": 5, "tamano": 1},
+    },
+}
+
+_LEGACY_PRESET_LABEL_TO_ID = {
+    # Labels viejos (ES) + variantes mojibake.
+    "Foto": "photo",
+    "Ilustración": "illustration",
+    "IlustraciÃ³n": "illustration",
+    "Logo": "logo",
+    "Line Art": "line_art",
+    "Pixel Art": "pixel_art",
+    "SVG Liviano": "light_svg",
+    "Máxima Calidad": "max_quality",
+    "MÃ¡xima Calidad": "max_quality",
+}
+
 
 def _mapear_params(colormode, nivel_detalle, limpieza, suavidad, tamano):
     """
@@ -188,7 +233,7 @@ class VectorizarFrame(BaseFrame):
 
         self._combo_preset = ctk.CTkComboBox(
             p,
-            values=list(PRESETS.keys()),
+            values=[],
             font=fonts.FUENTE_BASE,
             fg_color=colors.SIDEBAR_BG,
             border_color=colors.SIDEBAR_SEPARATOR,
@@ -199,7 +244,12 @@ class VectorizarFrame(BaseFrame):
             dropdown_hover_color=colors.SIDEBAR_HOVER,
             command=self._aplicar_preset,
         )
-        self._combo_preset.set(list(PRESETS.keys())[0])
+
+        preset_ids = list(PRESET_DEFS.keys())
+        preset_labels = [t(PRESET_DEFS[p_id]["label_key"]) for p_id in preset_ids]
+        self._preset_label_to_id = {label: p_id for label, p_id in zip(preset_labels, preset_ids)}
+        self._combo_preset.configure(values=preset_labels)
+        self._combo_preset.set(preset_labels[0])
         self._combo_preset.grid(row=1, column=0, padx=pad_x, pady=(0, 6), sticky="ew")
         self._aplicar_preset(self._combo_preset.get(), animar=False)
 
@@ -310,9 +360,21 @@ class VectorizarFrame(BaseFrame):
     def _aplicar_preset(self, nombre, animar=True):
         """Aplica los valores de un preset a todos los controles."""
         logger.info("vectorizar.ui: aplicar_preset (%s)", nombre)
-        preset = PRESETS.get(nombre)
-        if not preset:
+        preset_id = None
+        if nombre in PRESET_DEFS:
+            preset_id = nombre
+        else:
+            try:
+                preset_id = getattr(self, "_preset_label_to_id", {}).get(nombre)
+            except Exception:
+                preset_id = None
+            if not preset_id:
+                preset_id = _LEGACY_PRESET_LABEL_TO_ID.get(nombre) or _LEGACY_PRESET_LABEL_TO_ID.get(str(nombre))
+
+        if not preset_id or preset_id not in PRESET_DEFS:
             return
+
+        preset = PRESET_DEFS[preset_id]["params"]
 
         self._state.colormode.set(preset["colormode"])
         self._state.nivel_detalle.set(preset["nivel_detalle"])

@@ -4,17 +4,23 @@ Todos los cambios notables del proyecto se documentan en este archivo.
 
 ## [Unreleased]
 
+_Sin cambios documentados todavía._
+
+## [1.2.0] - 2026-04-08
+
 ### Nuevas features
 - OCR con EasyOCR.
 - Marca de agua con preview en tiempo real.
-- Vectorizacion a SVG.
-- Transformaciones de imagen (rotacion, flip, EXIF).
-- Soporte HEIC/HEIF en lectura y conversion.
+- Vectorización a SVG.
+- Transformaciones de imagen (rotación, flip, EXIF).
+- Soporte HEIC/HEIF en lectura y conversión.
+- Auto-updater (Windows/Inno): buscar, descargar, verificar e instalar actualizaciones desde Ajustes.
 
 ### UX / UI
 - Ajustes con tabs (Ajustes / Actualizaciones).
 - Mejoras de mensajes y validaciones en Metadata (fechas EXIF).
-- UI mas compacta y consistente en modulos nuevos.
+- UI más compacta y consistente en módulos nuevos.
+- Dropdowns/presets traducidos y consistentes (Vectorizar, Watermark, OCR).
 
 ### Fixes
 - Lectura robusta de rutas con caracteres especiales en varios modulos.
@@ -23,6 +29,7 @@ Todos los cambios notables del proyecto se documentan en este archivo.
 ### Build / Packaging
 - PyInstaller actualizado con imports dinamicos y assets nuevos.
 - Dependencias actualizadas para OCR y HEIC.
+- CI/CD Windows: build + instalador + releases automáticos con hashes.
 
 ## [1.1.1] - 2026-03-27
 

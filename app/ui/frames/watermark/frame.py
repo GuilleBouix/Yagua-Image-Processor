@@ -51,6 +51,29 @@ POSICION_LABELS = {
     "Centro":        "center",
 }
 
+PRESET_DEFS = {
+    "subtle": {"label_key": "watermark_preset_subtle", "params": {"escala": 15, "opacidad": 30, "posicion": "bottom-right"}},
+    "visible": {"label_key": "watermark_preset_visible", "params": {"escala": 25, "opacidad": 60, "posicion": "bottom-right"}},
+    "protection": {"label_key": "watermark_preset_protection", "params": {"escala": 40, "opacidad": 85, "posicion": "bottom-right"}},
+    "center": {"label_key": "watermark_preset_center", "params": {"escala": 30, "opacidad": 40, "posicion": "center"}},
+}
+
+_LEGACY_PRESET_LABEL_TO_ID = {
+    "Sutil": "subtle",
+    "Visible": "visible",
+    "Protección": "protection",
+    "ProtecciÃ³n": "protection",
+    "Centro": "center",
+}
+
+_POS_VALUE_TO_LABEL_KEY = {
+    "top-left": "watermark_pos_top_left",
+    "top-right": "watermark_pos_top_right",
+    "bottom-left": "watermark_pos_bottom_left",
+    "bottom-right": "watermark_pos_bottom_right",
+    "center": "watermark_pos_center",
+}
+
 
 class WatermarkFrame(BaseFrame):
     """
@@ -188,7 +211,7 @@ class WatermarkFrame(BaseFrame):
 
         self._combo_preset = ctk.CTkComboBox(
             p,
-            values=list(PRESETS.keys()),
+            values=[],
             font=fonts.FUENTE_BASE,
             fg_color=colors.SIDEBAR_BG,
             border_color=colors.SIDEBAR_SEPARATOR,
@@ -199,7 +222,12 @@ class WatermarkFrame(BaseFrame):
             dropdown_hover_color=colors.SIDEBAR_HOVER,
             command=self._aplicar_preset,
         )
-        self._combo_preset.set(list(PRESETS.keys())[0])
+
+        preset_ids = list(PRESET_DEFS.keys())
+        preset_labels = [t(PRESET_DEFS[p_id]["label_key"]) for p_id in preset_ids]
+        self._preset_label_to_id = {label: p_id for label, p_id in zip(preset_labels, preset_ids)}
+        self._combo_preset.configure(values=preset_labels)
+        self._combo_preset.set(preset_labels[0])
         self._combo_preset.grid(row=0, column=1, padx=(0, 16), pady=(12, 2), sticky="ew")
 
         sep = ctk.CTkFrame(p, height=1, fg_color=colors.SIDEBAR_SEPARATOR)
@@ -213,7 +241,7 @@ class WatermarkFrame(BaseFrame):
 
         self._combo_pos = ctk.CTkComboBox(
             p,
-            values=list(POSICION_LABELS.keys()),
+            values=[],
             font=fonts.FUENTE_BASE,
             fg_color=colors.SIDEBAR_BG,
             border_color=colors.SIDEBAR_SEPARATOR,
@@ -224,8 +252,14 @@ class WatermarkFrame(BaseFrame):
             dropdown_hover_color=colors.SIDEBAR_HOVER,
             command=self._al_cambiar_posicion,
         )
-        # Setear default que corresponda a bottom-right
-        self._combo_pos.set("Abajo der.")
+
+        pos_values = list(_POS_VALUE_TO_LABEL_KEY.keys())
+        pos_labels = [t(_POS_VALUE_TO_LABEL_KEY[v]) for v in pos_values]
+        self._pos_label_to_value = {label: v for label, v in zip(pos_labels, pos_values)}
+        self._pos_value_to_label = {v: label for label, v in zip(pos_labels, pos_values)}
+        self._combo_pos.configure(values=pos_labels)
+        # Default que corresponda a bottom-right
+        self._combo_pos.set(self._pos_value_to_label.get("bottom-right", pos_labels[0]))
         self._combo_pos.grid(row=2, column=1, padx=(0, 16), pady=(0, 4), sticky="ew")
 
         # Sliders
@@ -334,9 +368,21 @@ class WatermarkFrame(BaseFrame):
 
     def _aplicar_preset(self, nombre):
         logger.info("watermark.ui: aplicar_preset (%s)", nombre)
-        preset = PRESETS.get(nombre)
-        if not preset:
+        preset_id = None
+        if nombre in PRESET_DEFS:
+            preset_id = nombre
+        else:
+            try:
+                preset_id = getattr(self, "_preset_label_to_id", {}).get(nombre)
+            except Exception:
+                preset_id = None
+            if not preset_id:
+                preset_id = _LEGACY_PRESET_LABEL_TO_ID.get(nombre) or _LEGACY_PRESET_LABEL_TO_ID.get(str(nombre))
+
+        if not preset_id or preset_id not in PRESET_DEFS:
             return
+
+        preset = PRESET_DEFS[preset_id]["params"]
         self._state.escala.set(preset["escala"])
         self._state.opacidad.set(preset["opacidad"])
         self._state.posicion.set(preset["posicion"])
@@ -351,16 +397,27 @@ class WatermarkFrame(BaseFrame):
 
         # Sincronizar combo posición
         if hasattr(self, "_combo_pos"):
-            label_pos = next(
-                (k for k, v in POSICION_LABELS.items() if v == preset["posicion"]),
-                "Abajo der."
-            )
-            self._combo_pos.set(label_pos)
+            try:
+                label_pos = getattr(self, "_pos_value_to_label", {}).get(preset["posicion"])
+            except Exception:
+                label_pos = None
+            if not label_pos:
+                # Fallback a legacy labels si todavia existen en UI.
+                label_pos = next((k for k, v in POSICION_LABELS.items() if v == preset["posicion"]), None)
+            if label_pos:
+                self._combo_pos.set(label_pos)
 
         self._disparar_preview()
 
     def _al_cambiar_posicion(self, valor):
-        self._state.posicion.set(POSICION_LABELS.get(valor, "bottom-right"))
+        # Preferimos el map de labels traducidos.
+        try:
+            pos = getattr(self, "_pos_label_to_value", {}).get(valor)
+        except Exception:
+            pos = None
+        if not pos:
+            pos = POSICION_LABELS.get(valor)  # legacy labels (ES)
+        self._state.posicion.set(pos or "bottom-right")
         self._disparar_preview()
 
     def _seleccionar_watermark(self):

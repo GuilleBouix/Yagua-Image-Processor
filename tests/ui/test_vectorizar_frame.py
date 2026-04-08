@@ -23,6 +23,6 @@ def test_vectorizar_frame_muestra_omitidos_si_todos_son_grandes(tmp_path, ui_roo
     ui_root.update_idletasks()
 
     txt = frame._lbl_info.cget("text").lower()
-    assert "omitid" in txt
+    assert ("omitid" in txt) or ("omit" in txt)
     assert "1 mb" in txt
-    assert "excedid" in txt
+    assert ("excedid" in txt) or ("exceed" in txt)

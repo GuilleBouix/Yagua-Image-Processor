@@ -226,17 +226,25 @@ class OcrFrame(BaseFrame):
             text_color=colors.TEXT_GRAY, anchor='w'
         ).grid(row=0, column=0, padx=(16, 12), pady=(10, 6), sticky='w')
 
-        # Mapeo de opciones legibles a valores internos
+        # Mapeo de opciones legibles a valores internos.
+        # Usamos labels traducidos, pero mantenemos compatibilidad con labels legacy.
+        lbl_es_en = t("ocr_lang_es_en")
+        lbl_es = t("ocr_lang_es")
+        lbl_en = t("ocr_lang_en")
         self._idiomas_map = {
-            'Español/Inglés': 'es,en',
-            'Español': 'es',
-            'Inglés': 'en',
+            lbl_es_en: "es,en",
+            lbl_es: "es",
+            lbl_en: "en",
+            # Legacy (hardcodeados en versiones previas)
+            "Español/Inglés": "es,en",
+            "Español": "es",
+            "Inglés": "en",
         }
         
         # Dropdown de idiomas con opciones legibles
         self._dropdown_idiomas = ctk.CTkComboBox(
             p,
-            values=list(self._idiomas_map.keys()),
+            values=[lbl_es_en, lbl_es, lbl_en],
             variable=self._idioma_label,
             font=fonts.FUENTE_BASE,
             fg_color=colors.SIDEBAR_BG,
@@ -247,9 +255,9 @@ class OcrFrame(BaseFrame):
             dropdown_text_color=colors.TEXT_COLOR,
             dropdown_hover_color=colors.SIDEBAR_HOVER
         )
-        # Establecer valor por defecto a la primera opción
-        self._dropdown_idiomas.set('Español/Inglés')
-        self._state.idiomas.set(self._idiomas_map.get('Español/Inglés', 'es,en'))
+        # Establecer valor por defecto.
+        self._dropdown_idiomas.set(lbl_es_en)
+        self._state.idiomas.set(self._idiomas_map.get(lbl_es_en, "es,en"))
         self._dropdown_idiomas.grid(row=0, column=1, padx=(0, 16), pady=(10, 6), sticky='ew')
 
         # Boton de procesar
