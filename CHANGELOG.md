@@ -6,6 +6,11 @@ Todos los cambios notables del proyecto se documentan en este archivo.
 
 _Sin cambios documentados todavía._
 
+## [1.2.1] - 2026-04-08
+
+### UX / UI
+- Nuevo idioma: Francés.
+
 ## [1.2.0] - 2026-04-08
 
 ### Nuevas features
