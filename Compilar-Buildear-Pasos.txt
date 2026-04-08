@@ -1,0 +1,81 @@
+Yagua - Pasos de build, validación y AppImage (Linux)
+
+Nota importante:
+- PyInstaller/AppImage deben generarse en Linux (no desde Windows).
+- Para máxima compatibilidad de AppImage, build en una distro vieja (ej: Ubuntu 20.04 x86_64).
+
+0) Obtener versión (para nombrar artefactos)
+   - Linux:
+     python3 -c "from app.version import __version__; print(__version__)"
+
+1) Dependencias del sistema (Linux)
+   Ubuntu/Debian:
+   - sudo apt update
+   - sudo apt install -y python3 python3-venv python3-pip python3-tk \
+       libgl1 libglib2.0-0
+
+2) Preparar entorno Python (Linux)
+   - python3 -m venv .venv
+   - source .venv/bin/activate
+   - python -m pip install -U pip wheel setuptools
+   - python -m pip install -r requirements.txt
+   - python -m pip install pyinstaller
+
+3) Limpiar builds previos (opcional)
+   - rm -rf dist build AppDir *.AppImage
+
+4) Tests (Linux)
+   - python -m pytest -q
+
+5) Build Linux (PyInstaller one-folder)
+   - python -m PyInstaller --clean --noconfirm Yagua.spec
+   - Ejecutar:
+     ./dist/Yagua/Yagua
+
+6) AppImage (Linux x86_64)
+   6.1) Descargar appimagetool
+   - wget -O appimagetool.AppImage \
+       https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+   - chmod +x appimagetool.AppImage
+
+   6.2) Preparar AppDir (estructura mínima)
+   - rm -rf AppDir
+   - mkdir -p AppDir/usr/bin
+   - cp -r dist/Yagua/* AppDir/usr/bin/
+
+   6.3) AppRun (launcher)
+   - cat > AppDir/AppRun <<'EOF'
+     #!/bin/sh
+     HERE="$(dirname "$(readlink -f "$0")")"
+     exec "$HERE/usr/bin/Yagua" "$@"
+     EOF
+   - chmod +x AppDir/AppRun
+
+   6.4) Desktop entry
+   - cat > AppDir/Yagua.desktop <<'EOF'
+     [Desktop Entry]
+     Type=Application
+     Name=Yagua
+     Exec=Yagua
+     Icon=Yagua
+     Categories=Graphics;
+     Terminal=false
+     EOF
+
+   6.5) Icono (debe llamarse igual que Icon=...)
+   - cp assets/icon.png AppDir/Yagua.png
+
+   6.6) Generar AppImage
+   - VERSION="$(python3 -c "from app.version import __version__; print(__version__)")"
+   - ./appimagetool.AppImage AppDir "Yagua-${VERSION}-x86_64.AppImage"
+
+   6.7) Probar AppImage
+   - chmod +x "Yagua-${VERSION}-x86_64.AppImage"
+   - ./Yagua-${VERSION}-x86_64.AppImage
+
+7) Validación final (Linux)
+   - Abrir app (binario y AppImage)
+   - Probar módulos críticos: Convertir, Comprimir, Quitar fondo, OCR, Watermark, Vectorizar, Metadata
+   - Verificar logs:
+     - Windows: %APPDATA%\\Yagua\\yagua.log
+     - Linux: ~/.config/Yagua/yagua.log (si settings_path() usa XDG_CONFIG_HOME; sino revisar el path real)
