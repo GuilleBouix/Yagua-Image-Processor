@@ -27,6 +27,7 @@ dist/
 *.log
 dist/
 build/
+!Yagua.spec
 
 # Cache / temp
 *.log
@@ -70,8 +71,11 @@ exports/
 *.pdf
 *.psd
 *.iss
+!Yagua.iss
 assets/installer/
-installer/
+!assets/installer/
+!assets/installer/**
+/installer/
 notes/
 Compilar-Buildear-Pasos.txt
 index.html
