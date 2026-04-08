@@ -197,9 +197,17 @@ class UpdatesTab(ctk.CTkFrame):
                 ps_script = f"""param([int]$Pid, [string]$Installer, [string]$ExePath, [string]$LogPath)\n\n$ErrorActionPreference = 'Stop'\n\nfunction Log([string]$Msg) {{\n  $ts = (Get-Date).ToString('yyyy-MM-dd HH:mm:ss')\n  \"$ts $Msg\" | Out-File -FilePath $LogPath -Encoding UTF8 -Append\n}}\n\nLog \"update: waiting pid=$Pid\"\nwhile (Get-Process -Id $Pid -ErrorAction SilentlyContinue) {{ Start-Sleep -Milliseconds 250 }}\n\ntry {{\n  Log \"update: starting installer=$Installer\"\n  # Inno Setup suele requerir elevacion para Program Files.\n  $p = Start-Process -FilePath $Installer -ArgumentList '/SP- /VERYSILENT /SUPPRESSMSGBOXES /NORESTART' -Verb RunAs -Wait -PassThru\n  Log \"update: installer exitcode=$($p.ExitCode)\"\n  if ($p.ExitCode -eq 0) {{\n    Log \"update: relaunch $ExePath\"\n    Start-Process -FilePath $ExePath\n  }} else {{\n    Log \"update: install failed\"\n  }}\n}} catch {{\n  Log \"update: exception $($_.Exception.Message)\"\n}}\n"""
                 ps_path.write_text(ps_script, encoding="utf-8")
 
-                creationflags = 0
-                creationflags |= getattr(subprocess, "DETACHED_PROCESS", 0)
-                creationflags |= getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
+                # Nota: DETACHED_PROCESS puede hacer que el UAC / elevación no aparezca.
+                # Preferimos ocultar la ventana de PowerShell pero mantenerlo interactivo.
+                creationflags = getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
+                startupinfo = None
+                if os.name == "nt" and hasattr(subprocess, "STARTUPINFO"):
+                    try:
+                        startupinfo = subprocess.STARTUPINFO()
+                        startupinfo.dwFlags |= getattr(subprocess, "STARTF_USESHOWWINDOW", 0)
+                        startupinfo.wShowWindow = 0  # SW_HIDE
+                    except Exception:
+                        startupinfo = None
 
                 subprocess.Popen(
                     [
@@ -207,6 +215,8 @@ class UpdatesTab(ctk.CTkFrame):
                         "-NoProfile",
                         "-ExecutionPolicy",
                         "Bypass",
+                        "-WindowStyle",
+                        "Hidden",
                         "-File",
                         str(ps_path),
                         "-Pid",
@@ -220,6 +230,7 @@ class UpdatesTab(ctk.CTkFrame):
                     ],
                     cwd=str(tmp_dir),
                     creationflags=creationflags,
+                    startupinfo=startupinfo,
                     close_fds=True,
                 )
 
