@@ -193,7 +193,8 @@ class UpdatesTab(ctk.CTkFrame):
                 pid = os.getpid()
                 exe_path = str(Path(sys.executable).resolve())
                 ps_path = tmp_dir / "apply_update.ps1"
-                ps_script = f"""param([int]$Pid, [string]$Installer, [string]$ExePath)\n\n$ErrorActionPreference = 'Stop'\n\nwhile (Get-Process -Id $Pid -ErrorAction SilentlyContinue) {{ Start-Sleep -Milliseconds 250 }}\n\n$p = Start-Process -FilePath $Installer -ArgumentList '/VERYSILENT /SUPPRESSMSGBOXES /NORESTART' -Wait -PassThru\nif ($p.ExitCode -eq 0) {{ Start-Process -FilePath $ExePath }}\n"""
+                log_path = tmp_dir / "update.log"
+                ps_script = f"""param([int]$Pid, [string]$Installer, [string]$ExePath, [string]$LogPath)\n\n$ErrorActionPreference = 'Stop'\n\nfunction Log([string]$Msg) {{\n  $ts = (Get-Date).ToString('yyyy-MM-dd HH:mm:ss')\n  \"$ts $Msg\" | Out-File -FilePath $LogPath -Encoding UTF8 -Append\n}}\n\nLog \"update: waiting pid=$Pid\"\nwhile (Get-Process -Id $Pid -ErrorAction SilentlyContinue) {{ Start-Sleep -Milliseconds 250 }}\n\ntry {{\n  Log \"update: starting installer=$Installer\"\n  # Inno Setup suele requerir elevacion para Program Files.\n  $p = Start-Process -FilePath $Installer -ArgumentList '/SP- /VERYSILENT /SUPPRESSMSGBOXES /NORESTART' -Verb RunAs -Wait -PassThru\n  Log \"update: installer exitcode=$($p.ExitCode)\"\n  if ($p.ExitCode -eq 0) {{\n    Log \"update: relaunch $ExePath\"\n    Start-Process -FilePath $ExePath\n  }} else {{\n    Log \"update: install failed\"\n  }}\n}} catch {{\n  Log \"update: exception $($_.Exception.Message)\"\n}}\n"""
                 ps_path.write_text(ps_script, encoding="utf-8")
 
                 creationflags = 0
@@ -214,6 +215,8 @@ class UpdatesTab(ctk.CTkFrame):
                         str(setup_path),
                         "-ExePath",
                         exe_path,
+                        "-LogPath",
+                        str(log_path),
                     ],
                     cwd=str(tmp_dir),
                     creationflags=creationflags,
