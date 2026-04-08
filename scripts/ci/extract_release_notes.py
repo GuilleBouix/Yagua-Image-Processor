@@ -20,7 +20,7 @@ def _extract_section(md: str, header: str) -> str | None:
 
 def main(argv: list[str]) -> int:
     if len(argv) != 2:
-        print("Uso: python scripts/ci/extract_release_notes.py <X.Y.Z>", file=sys.stderr)
+        print("Uso: python scripts/ci/extract_release_notes.py <X.Y.Z[-pre]>", file=sys.stderr)
         return 2
 
     version = argv[1].strip()
@@ -46,4 +46,3 @@ def main(argv: list[str]) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main(sys.argv))
-

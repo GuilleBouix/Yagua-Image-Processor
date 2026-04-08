@@ -5,7 +5,8 @@ import sys
 from pathlib import Path
 
 
-_VER_RE = re.compile(r"^\d+\.\d+\.\d+$")
+# Allow semver pre-release tags (e.g. 2.0.0-rc.1) for CI pre-releases.
+_VER_RE = re.compile(r"^\d+\.\d+\.\d+(?:-[0-9A-Za-z][0-9A-Za-z.-]*)?$")
 
 
 def _replace_line(text: str, pattern: re.Pattern[str], replacement: str) -> str:
@@ -66,4 +67,3 @@ def main(argv: list[str]) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main(sys.argv))
-

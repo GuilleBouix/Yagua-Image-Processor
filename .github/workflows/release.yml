@@ -35,6 +35,11 @@ jobs:
             if ($v.StartsWith("v")) { $v = $v.Substring(1) }
           }
           echo "version=$v" >> $env:GITHUB_OUTPUT
+          if ($v.Contains("-")) {
+            echo "prerelease=true" >> $env:GITHUB_OUTPUT
+          } else {
+            echo "prerelease=false" >> $env:GITHUB_OUTPUT
+          }
           Write-Host "Version=$v"
 
       - name: Apply version to files (CI-only)
@@ -97,6 +102,7 @@ jobs:
         with:
           tag_name: v${{ steps.ver.outputs.version }}
           name: v${{ steps.ver.outputs.version }}
+          prerelease: ${{ steps.ver.outputs.prerelease }}
           body_path: release_notes.md
           files: |
             installer/Yagua_Setup_${{ steps.ver.outputs.version }}.exe
