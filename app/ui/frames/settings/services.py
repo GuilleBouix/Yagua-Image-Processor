@@ -67,9 +67,12 @@ def set_visible_modules_and_restart(modules: list[str]) -> None:
 
 def restart_app() -> None:
     """Reiniciar la aplicacion con los mismos argumentos."""
-    python = sys.executable
-    script = sys.argv[0]
-    subprocess.Popen([python, script])
+    if getattr(sys, 'frozen', False):
+        subprocess.Popen([sys.executable])
+    else:
+        python = sys.executable
+        script = sys.argv[0]
+        subprocess.Popen([python, script])
     sys.exit(0)
 
 

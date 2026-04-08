@@ -23,9 +23,10 @@ from app.ui.frames.base import BaseFrame
 from app.ui.frames.remove_bg.services import (
     batch_quitar_fondo,
     ensure_model,
-    rembg_disponible,
+    estado_rembg,
     modelo_descargado,
     FORMATOS_SALIDA,
+    INSTALL_COMMAND,
 )
 
 logger = logging.getLogger(__name__)
@@ -43,6 +44,9 @@ class RemoveBgFrame(BaseFrame):
         self._spinner_frame = None
         self._spinner_label = None
         self._spinner_bar = None
+        self._lbl_error_dependencia = None
+        self._entry_dependencia_cmd = None
+        self._btn_copiar_comando = None
         super().__init__(parent, t('remove_bg_title'))
 
     def _build_content(self):
@@ -88,25 +92,26 @@ class RemoveBgFrame(BaseFrame):
 
         def _worker():
             try:
-                disponible = rembg_disponible()
+                disponible, detalle_error = estado_rembg()
             except Exception as exc:
                 logger.warning("Error al verificar rembg: %s", exc)
                 disponible = False
+                detalle_error = str(exc).strip() or type(exc).__name__
             try:
                 modelo_ok = modelo_descargado() if disponible else False
             except Exception as exc:
                 logger.warning("Error al verificar modelo: %s", exc)
                 modelo_ok = False
-            self.after(0, lambda: self._build_content_ready(disponible, modelo_ok))
+            self.after(0, lambda: self._build_content_ready(disponible, modelo_ok, detalle_error))
 
         threading.Thread(target=_worker, daemon=True).start()
 
-    def _build_content_ready(self, disponible: bool, modelo_ok: bool):
+    def _build_content_ready(self, disponible: bool, modelo_ok: bool, detalle_error: str | None = None):
         """Construye el contenido una vez finalizados los checks."""
         self._hide_overlay()
 
         if not disponible:
-            self._construir_aviso_dependencia()
+            self._construir_aviso_dependencia(detalle_error)
             return
 
         row = 2
@@ -205,8 +210,8 @@ class RemoveBgFrame(BaseFrame):
             pass
         self._spinner_frame.grid_remove()
 
-    def _construir_aviso_dependencia(self):
-        """Muestra panel de instalacion cuando rembg no esta disponible."""
+    def _construir_aviso_dependencia(self, detalle_error: str | None):
+        """Muestra panel con el error real y ayuda para instalar dependencias."""
         panel = ctk.CTkFrame(
             self,
             corner_radius=12,
@@ -216,23 +221,83 @@ class RemoveBgFrame(BaseFrame):
         )
         panel.grid(row=1, column=0, padx=28, pady=8, sticky='ew')
         panel.grid_columnconfigure(0, weight=1)
+        resumen, detalle = self._resumir_error_dependencia(detalle_error)
 
-        ctk.CTkLabel(
+        self._lbl_error_dependencia = ctk.CTkLabel(
             panel,
-            text=t('rembg_not_installed'),
+            text=resumen,
             font=fonts.FUENTE_BASE,
             text_color=colors.TEXT_COLOR,
-            justify='center'
-        ).grid(row=0, column=0, padx=16, pady=(16, 8))
+            anchor='w',
+            justify='left',
+            wraplength=620
+        )
+        self._lbl_error_dependencia.grid(row=0, column=0, padx=16, pady=(16, 6), sticky='w')
+
+        if detalle:
+            ctk.CTkLabel(
+                panel,
+                text=detalle,
+                font=fonts.FUENTE_CHICA,
+                text_color=colors.TEXT_GRAY,
+                anchor='w',
+                justify='left',
+                wraplength=620
+            ).grid(row=1, column=0, padx=16, pady=(0, 6), sticky='w')
+            row_reinstall = 2
+        else:
+            row_reinstall = 1
 
         ctk.CTkLabel(
             panel,
-            text='pip install rembg onnxruntime',
+            text=t('rembg_reinstall_app'),
+            font=fonts.FUENTE_CHICA,
+            text_color=colors.TEXT_GRAY,
+            anchor='w',
+            justify='left',
+            wraplength=620
+        ).grid(row=row_reinstall, column=0, padx=16, pady=(0, 8), sticky='w')
+
+        ctk.CTkLabel(
+            panel,
+            text=t('rembg_install_from_source'),
+            font=fonts.FUENTE_CHICA,
+            text_color=colors.TEXT_GRAY,
+            anchor='w',
+            justify='left',
+            wraplength=620
+        ).grid(row=row_reinstall + 1, column=0, padx=16, pady=(0, 8), sticky='w')
+
+        fila_comando = ctk.CTkFrame(panel, fg_color='transparent')
+        fila_comando.grid(row=row_reinstall + 2, column=0, padx=16, pady=(0, 16), sticky='ew')
+        fila_comando.grid_columnconfigure(0, weight=1)
+
+        self._entry_dependencia_cmd = ctk.CTkEntry(
+            fila_comando,
             font=ctk.CTkFont(family='Courier New', size=13),
             text_color=colors.ACENTO,
             fg_color=colors.SIDEBAR_BG,
-            corner_radius=6,
-        ).grid(row=1, column=0, padx=16, pady=(0, 16), ipadx=12, ipady=6)
+            border_color=colors.SIDEBAR_SEPARATOR,
+            justify='left'
+        )
+        self._entry_dependencia_cmd.grid(row=0, column=0, sticky='ew', padx=(0, 8))
+        self._entry_dependencia_cmd.insert(0, INSTALL_COMMAND)
+
+        self._btn_copiar_comando = ctk.CTkButton(
+            fila_comando,
+            text=t('copy_command'),
+            width=120,
+            height=32,
+            corner_radius=8,
+            font=fonts.FUENTE_CHICA,
+            fg_color=colors.PANEL_BG,
+            border_width=1,
+            border_color=colors.SIDEBAR_SEPARATOR,
+            text_color=colors.TEXT_COLOR,
+            hover_color=colors.SIDEBAR_HOVER,
+            command=self._copiar_comando_instalacion
+        )
+        self._btn_copiar_comando.grid(row=0, column=1, sticky='e')
 
     def _construir_aviso_primer_uso(self, row: int):
         """Muestra aviso de descarga automatica en el primer uso."""
@@ -255,13 +320,35 @@ class RemoveBgFrame(BaseFrame):
             wraplength=500
         ).grid(row=0, column=0, padx=16, pady=10)
 
+    def _copiar_comando_instalacion(self):
+        """Copia el comando sugerido al portapapeles."""
+        self.clipboard_clear()
+        self.clipboard_append(INSTALL_COMMAND)
+        self._lbl_info.configure(text=t('command_copied'))
+
+    def _resumir_error_dependencia(self, detalle_error: str | None) -> tuple[str, str | None]:
+        """Convierte errores tecnicos en mensajes breves para la UI."""
+        detalle = (detalle_error or '').strip()
+        detalle_lower = detalle.lower()
+
+        if 'pymatting' in detalle_lower:
+            return (
+                t('rembg_unavailable_short'),
+                str(t('rembg_missing_dependency')).format(dependency='pymatting'),
+            )
+
+        if detalle:
+            return t('rembg_unavailable_short'), str(t('rembg_error_detail')).format(error=detalle)
+
+        return t('rembg_unavailable_short'), None
+
     def _cargar_imagenes(self, rutas):
         """Carga las imagenes seleccionadas."""
         limite = 10
         total = len(rutas)
         if total > limite:
             rutas = rutas[:limite]
-            self._limite_msg = t('limit_reached').format(limit=limite, total=total)
+            self._limite_msg = str(t('limit_reached')).format(limit=limite, total=total)
         else:
             self._limite_msg = None
 

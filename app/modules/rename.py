@@ -7,10 +7,33 @@ Relacionado con:
 """
 
 import logging
+import re
 from datetime import datetime
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
+
+_INVALID_FILENAME_CHARS = re.compile(r'[<>:"/\\|?*\x00-\x1f]+')
+
+
+def _sanitizar_prefijo(prefijo):
+    """Limpia el prefijo para evitar rutas inseguras en el renombrado."""
+    if not isinstance(prefijo, str):
+        return ''
+
+    prefijo = _INVALID_FILENAME_CHARS.sub('_', prefijo.strip())
+    prefijo = re.sub(r'_+', '_', prefijo).strip(' ._')
+    return prefijo
+
+
+def _nombre_es_seguro(nombre):
+    """Verifica que el nombre no contenga separadores ni componentes de ruta."""
+    if not nombre or '\x00' in nombre:
+        return False
+    if '/' in nombre or '\\' in nombre:
+        return False
+    return Path(nombre).name == nombre
+
 
 def generar_nombres_preview(rutas, opciones):
     """
@@ -49,7 +72,7 @@ def _aplicar_transformaciones(nombre, indice, opciones):
 
     # Paso 1 - Prefijo + numeracion
     if opciones.get('numeracion_activa'):
-        prefijo = opciones.get('prefijo', '').strip()
+        prefijo = _sanitizar_prefijo(opciones.get('prefijo', ''))
         numero = str(indice + inicio).zfill(3)
         if prefijo:
             nombre_resultado = f'{prefijo}_{numero}'
@@ -106,6 +129,11 @@ def renombrar_archivos(rutas, opciones):
 
             if nombre_nuevo == nombre_original:
                 ok += 1
+                continue
+
+            if not _nombre_es_seguro(nombre_nuevo):
+                logger.warning("Nombre de destino inseguro rechazado: %s", nombre_nuevo)
+                errores += 1
                 continue
 
             ruta_nueva = ruta_archivo.parent / (nombre_nuevo + extension)

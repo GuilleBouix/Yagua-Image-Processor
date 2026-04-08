@@ -11,16 +11,20 @@ from app.modules.remove_bg import (
     quitar_fondo,
     batch_quitar_fondo,
     ensure_model,
+    estado_rembg,
     rembg_disponible,
     modelo_descargado,
     FORMATOS_SALIDA,
+    INSTALL_COMMAND,
 )
 
 __all__ = [
     'quitar_fondo',
     'batch_quitar_fondo',
     'ensure_model',
+    'estado_rembg',
     'rembg_disponible',
     'modelo_descargado',
     'FORMATOS_SALIDA',
+    'INSTALL_COMMAND',
 ]
