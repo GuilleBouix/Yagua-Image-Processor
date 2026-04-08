@@ -12,6 +12,8 @@ Relacionado con:
 import logging
 import threading
 import webbrowser
+import os
+import sys
 
 import customtkinter as ctk
 
@@ -81,6 +83,20 @@ class MainWindow(ctk.CTkFrame):
         self.after(350, self._check_updates_on_startup)
 
     def _check_updates_on_startup(self):
+        # Preview UX: permitir forzar el banner aun sin update disponible.
+        # - En desarrollo (no frozen), lo mostramos siempre para poder ver el diseño.
+        # - En builds, se puede forzar con YAGUA_FORCE_UPDATE_BANNER=1.
+        try:
+            force = os.environ.get("YAGUA_FORCE_UPDATE_BANNER", "").strip() == "1"
+        except Exception:
+            force = False
+
+        if force or (not getattr(sys, "frozen", False)):
+            repo = os.environ.get("YAGUA_UPDATE_REPO") or "GuilleBouix/Yagua-Image-Editor"
+            url = f"https://github.com/{repo}/releases/latest"
+            self._show_update_banner("9.9.9", url)
+            return
+
         def _worker():
             info = check_latest_stable(__version__)
             if not info:
