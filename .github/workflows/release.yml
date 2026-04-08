@@ -95,6 +95,8 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: v${{ steps.ver.outputs.version }}
+          name: v${{ steps.ver.outputs.version }}
           body_path: release_notes.md
           files: |
             installer/Yagua_Setup_${{ steps.ver.outputs.version }}.exe
@@ -102,4 +104,3 @@ jobs:
             installer/Yagua_Portable_${{ steps.ver.outputs.version }}.zip
             installer/Yagua_Portable_${{ steps.ver.outputs.version }}.zip.sha256
             installer/latest.json
-
