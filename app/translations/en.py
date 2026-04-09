@@ -288,6 +288,7 @@ TRANSLATIONS = {
     'check_updates': 'Check updates',
     'updates_download_btn': 'Download update v{version}',
     'updates_manual_hint': 'Installation is manual.',
+    'home_hint': 'Select a module from the sidebar to get started.',
     'updates_checking': 'Checking for updates...',
     'updates_available': 'New version available: v{version}',
     'updates_downloading': 'Downloading update...',

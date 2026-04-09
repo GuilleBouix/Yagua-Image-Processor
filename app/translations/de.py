@@ -270,6 +270,7 @@ TRANSLATIONS = {
     'check_updates': 'Nach Updates suchen',
     'updates_download_btn': 'Update v{version} herunterladen',
     'updates_manual_hint': 'Die Installation erfolgt manuell.',
+    'home_hint': 'Wähle ein Modul in der Seitenleiste, um zu beginnen.',
     'updates_checking': 'Suche läuft...',
     'updates_available': 'Neue Version verfügbar: v{version}',
     'updates_downloading': 'Download läuft...',

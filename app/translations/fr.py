@@ -287,6 +287,7 @@ TRANSLATIONS = {
     'check_updates': 'Vérifier les mises à jour',
     'updates_download_btn': 'Télécharger la mise à jour v{version}',
     'updates_manual_hint': 'L\'installation est manuelle.',
+    'home_hint': 'Sélectionnez un module dans la barre latérale pour commencer.',
     'updates_checking': 'Recherche de mises à jour...',
     'updates_available': 'Nouvelle version disponible : v{version}',
     'updates_downloading': 'Téléchargement...',

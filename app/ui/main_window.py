@@ -16,10 +16,10 @@ import customtkinter as ctk
 
 from app.ui.sidebar import Sidebar
 from app.ui.module_registry import get_module_spec, iter_enabled_modules, load_frame_class
-from app.translations import t
 from app.ui import colors, fonts
-from app.version import __version__
 from app.utils.update_checker import check_latest_stable
+from app.version import __version__
+from app.ui.frames.home.frame import HomeFrame
 
 
 logger = logging.getLogger(__name__)
@@ -71,10 +71,15 @@ class MainWindow(ctk.CTkFrame):
             if first_key is None:
                 first_key = spec.key
 
-        # Mostrar el primer modulo visible por defecto
-        if first_key is None:
-            first_key = 'settings'
-        self.show_module(first_key)
+        # Pantalla inicial (no aparece en sidebar)
+        self._home = HomeFrame(self.content)
+        self._home.place(relwidth=1, relheight=1)
+        self._home.tkraise()
+        # Sidebar sin selección activa hasta que el usuario elija un módulo
+        try:
+            self.sidebar.set_active(None)
+        except Exception:
+            pass
 
         # Check de actualizaciones no bloqueante (solo estable) + banner interno.
         self.after(350, self._check_updates_on_startup)
