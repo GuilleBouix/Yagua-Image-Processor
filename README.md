@@ -2,8 +2,6 @@
 
 # Yagua - Image Processor
 
----
-
 ## 🇬🇧 English
 
 ### Table of Contents
