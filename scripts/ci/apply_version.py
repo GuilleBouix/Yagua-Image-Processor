@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 
 
-# Allow semver pre-release tags (e.g. 2.0.0-rc.1) for CI pre-releases.
+# Permitir tags semver pre-release (ej: 2.0.0-rc.1) para pre-releases de CI.
 _VER_RE = re.compile(r"^\d+\.\d+\.\d+(?:-[0-9A-Za-z][0-9A-Za-z.-]*)?$")
 
 
