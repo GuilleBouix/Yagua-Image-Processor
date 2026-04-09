@@ -1,13 +1,4 @@
-"""
-UI para el modulo de vectorizacion de imagenes.
-Convierte imágenes raster a SVG usando vtracer.
-
-Relacionado con:
-    - app/ui/frames/base.py: Clase base de la que hereda.
-    - app/ui/frames/vectorizar/state.py: Estado de la interfaz.
-    - app/ui/frames/vectorizar/services.py: Servicios de vectorizacion.
-    - app/translations/__init__.py: Traducciones de la UI.
-"""
+"""UI del módulo Vectorizar (raster → SVG)."""
 
 from __future__ import annotations
 
@@ -27,34 +18,8 @@ from app.ui.frames.vectorizar.services import batch_vectorizar
 
 logger = logging.getLogger(__name__)
 
-
-# ------------------------------------------------------------------ #
-#  Presets: cada uno define los 5 controles de la UI                  #
-#  (colormode, nivel_detalle, limpieza, suavidad, tamano)             #
-# ------------------------------------------------------------------ #
-PRESETS = {
-    "Foto": {
-        "colormode": "color", "nivel_detalle": 7, "limpieza": 4, "suavidad": 7, "tamano": 4,
-    },
-    "Ilustración": {
-        "colormode": "color", "nivel_detalle": 6, "limpieza": 3, "suavidad": 6, "tamano": 5,
-    },
-    "Logo": {
-        "colormode": "color", "nivel_detalle": 8, "limpieza": 5, "suavidad": 4, "tamano": 7,
-    },
-    "Line Art": {
-        "colormode": "binary", "nivel_detalle": 9, "limpieza": 2, "suavidad": 5, "tamano": 6,
-    },
-    "Pixel Art": {
-        "colormode": "color", "nivel_detalle": 10, "limpieza": 0, "suavidad": 1, "tamano": 8,
-    },
-    "SVG Liviano": {
-        "colormode": "color", "nivel_detalle": 4, "limpieza": 6, "suavidad": 8, "tamano": 9,
-    },
-    "Máxima Calidad": {
-        "colormode": "color", "nivel_detalle": 10, "limpieza": 1, "suavidad": 5, "tamano": 1,
-    },
-}
+_ALLOWED_EXTS = {".png", ".webp", ".tif", ".tiff", ".heic", ".heif"}
+_ALLOWED_GLOB = "*.png *.webp *.tif *.tiff *.heic *.heif"
 
 PRESET_DEFS = {
     # IDs estables (no dependen del idioma) para no romper presets guardados.
@@ -220,6 +185,18 @@ class VectorizarFrame(BaseFrame):
         panel_der.grid(row=1, column=1, padx=(8, 20), pady=(0, 12), sticky="nsew")
         panel_der.grid_columnconfigure(0, weight=1)
         self._construir_panel_controles(panel_der)
+
+    def _explorar(self, titulo=None, multi=True):
+        """Selector de archivos con formatos permitidos para vectorizar."""
+        logger.info("vectorizar.ui: explorar_imagenes")
+        rutas = filedialog.askopenfilenames(
+            title=t('select_images'),
+            filetypes=[('Imagenes', _ALLOWED_GLOB)],
+        )
+        if not rutas:
+            logger.info("vectorizar.ui: explorar_cancelado")
+            return
+        self._cargar_imagenes(list(rutas))
 
     def _construir_panel_controles(self, p):
         """Construye presets + sliders + exportar dentro del panel derecho."""
@@ -408,8 +385,13 @@ class VectorizarFrame(BaseFrame):
     def _cargar_imagenes(self, rutas):
         logger.info("vectorizar.ui: cargar_imagenes (total=%s)", len(rutas))
         omitidos_grandes = 0
+        omitidos_formato = 0
         rutas_validas = []
         for r in rutas:
+            ext = Path(r).suffix.lower()
+            if not ext or ext not in _ALLOWED_EXTS:
+                omitidos_formato += 1
+                continue
             try:
                 if Path(r).stat().st_size > 1_000_000:
                     omitidos_grandes += 1
@@ -422,6 +404,8 @@ class VectorizarFrame(BaseFrame):
 
         if omitidos_grandes:
             logger.info("vectorizar.ui: omitidos_por_tamano (>%s bytes=%s)", 1_000_000, omitidos_grandes)
+        if omitidos_formato:
+            logger.info("vectorizar.ui: omitidos_por_formato (count=%s)", omitidos_formato)
 
         limite = 50
         total = len(rutas_validas)
@@ -440,6 +424,9 @@ class VectorizarFrame(BaseFrame):
             msg = f"{msg}  -  {self._limite_msg}" if msg else str(self._limite_msg)
         if omitidos_grandes:
             extra = t("vectorizar_omitidos_por_tamano").format(count=omitidos_grandes)  # type: ignore
+            msg = f"{msg}  -  {extra}" if msg else extra
+        if omitidos_formato:
+            extra = t("vectorizar_omitidos_por_formato").format(count=omitidos_formato)  # type: ignore
             msg = f"{msg}  -  {extra}" if msg else extra
         if msg:
             self._lbl_info.configure(text=msg)

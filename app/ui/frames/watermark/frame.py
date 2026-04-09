@@ -35,14 +35,6 @@ logger = logging.getLogger(__name__)
 _PREVIEW_MAX_PX = 260
 _DEBOUNCE_MS    = 350
 
-# Presets: (escala %, opacidad %, posicion)
-PRESETS = {
-    "Sutil":           {"escala": 15, "opacidad": 30, "posicion": "bottom-right"},
-    "Visible":         {"escala": 25, "opacidad": 60, "posicion": "bottom-right"},
-    "Protección":      {"escala": 40, "opacidad": 85, "posicion": "bottom-right"},
-    "Centro":          {"escala": 30, "opacidad": 40, "posicion": "center"},
-}
-
 POSICION_LABELS = {
     "Arriba izq.":   "top-left",
     "Arriba der.":   "top-right",

@@ -344,6 +344,7 @@ TRANSLATIONS = {
     "vectorizar_exportadas": "{ok} image(s) exportée(s) en SVG",
     "vectorizar_warning_distortion": "Note : la vectorisation peut déformer l'image originale.",
     "vectorizar_omitidos_por_tamano": "{count} fichiers ignorés (limite de 1 Mo).",
+    "vectorizar_omitidos_por_formato": "{count} fichiers ignorés. Format non pris en charge pour la vectorisation.",
 
     # Watermark
     "watermark_title": "Filigrane",

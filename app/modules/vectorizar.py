@@ -1,26 +1,19 @@
-"""
-Módulo de vectorización de imágenes a SVG usando vtracer.
+"""Vectorización de imágenes a SVG usando vtracer.
 
-Expone dos niveles de API:
-  - vectorizar()       : imagen individual, parámetros internos directos
-  - batch_vectorizar() : múltiples imágenes, mismos parámetros
-
-Los parámetros internos son los de vtracer; la traducción
-desde los sliders de la UI ocurre en frame.py.
-
-Relacionado con:
-    - app/ui/frames/vectorizar/services.py: Re-exporta estas funciones.
+API pública:
+- `vectorizar()`: procesa una imagen
+- `batch_vectorizar()`: procesa un lote
 """
 
 import logging
 import os
-import io
-import tempfile
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
 MAX_IMAGENES = 50
 MAX_BYTES_PREPROCESO = 1_000_000  # 1 MB
+ALLOWED_EXTS = {".png", ".webp", ".tif", ".tiff", ".heic", ".heif"}
 
 
 def vectorizar(
@@ -59,6 +52,11 @@ def vectorizar(
         archivo : ruta del .svg generado (o None)
         error   : mensaje de error (o None)
     """
+    ext = Path(ruta_imagen).suffix.lower()
+    if ext and ext not in ALLOWED_EXTS:
+        logger.warning("vectorizar: formato no soportado (%s): %s", ext, ruta_imagen)
+        return {"ok": 0, "archivo": None, "error": f"Formato no soportado: {ext}"}
+
     if not os.path.isfile(ruta_imagen):
         logger.warning(f"Imagen no encontrada: {ruta_imagen}")
         return {"ok": 0, "archivo": None, "error": "Archivo no encontrado"}

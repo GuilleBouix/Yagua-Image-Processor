@@ -327,6 +327,7 @@ TRANSLATIONS = {
     "vectorizar_exportadas": "{ok} Bild(er) als SVG exportiert",
     "vectorizar_warning_distortion": "Hinweis: Vektorisierung kann das Original verzerren.",
     "vectorizar_omitidos_por_tamano": "{count} Dateien ignoriert (Limit 1 MB überschritten).",
+    "vectorizar_omitidos_por_formato": "{count} Dateien ignoriert. Nicht unterstütztes Format für Vektorisierung.",
 
     # Watermark
     "watermark_title": "Wasserzeichen",

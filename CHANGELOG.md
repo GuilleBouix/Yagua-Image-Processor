@@ -6,6 +6,33 @@ Todos los cambios notables del proyecto se documentan en este archivo.
 
 _Sin cambios documentados todavía._
 
+## [2.0.0] - 2026-04-09
+
+### Nuevas features
+- Pantalla de bienvenida (Home) al iniciar.
+- OCR con EasyOCR (carga en background).
+- Marca de agua con preview en tiempo real y soporte de PNG transparente.
+- Vectorización a SVG (vtracer) con validación de formatos y límites de seguridad.
+- Transformaciones de imagen (rotación/flip/EXIF).
+- Soporte HEIC/HEIF global (Pillow + pillow-heif).
+
+### UX / UI
+- Ajustes con tabs (Ajustes / Actualizaciones).
+- Actualizaciones simplificadas: solo “check + link” a la última Release (sin instalación automática).
+- UI más consistente y compacta en módulos nuevos.
+
+### Fixes
+- Lectura robusta de rutas Unicode/acentos en OpenCV (imdecode/fromfile).
+- Metadata: edición de fechas EXIF (DateTime / DateTimeOriginal / DateTimeDigitized) + validación de formato.
+
+### Build / CI
+- CI: Windows (suite completa) + Linux/macOS (core).
+- Release Windows: PyInstaller + Inno Setup + portable zip + hashes + `latest.json`.
+- Base macOS: script de build con PyInstaller (`scripts/build_macos_app.sh`).
+
+### Notas
+- `v1.1.2` fue la última versión estable previa a `v2.0.0`.
+
 ## [1.2.3] - 2026-04-08
 
 ### Fixes

@@ -345,6 +345,7 @@ TRANSLATIONS = {
     "vectorizar_exportadas":    "{ok} imagem(ns) exportada(s) como SVG",
     "vectorizar_warning_distortion": "Aviso: a vetorização pode distorcer a imagem original.",
     "vectorizar_omitidos_por_tamano": "{count} arquivos omitidos. Limite de tamanho de 1 MB excedido.",
+    "vectorizar_omitidos_por_formato": "{count} arquivos omitidos. Formato não suportado para vetorização.",
 
     # Watermark
     "watermark":                  "Marca d'água",
