@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "skills": {
+    "pandas-pro": {
+      "source": "jeffallan/claude-skills",
+      "sourceType": "github",
+      "computedHash": "c94776b24cc05b20286fd8fbfc80107afac2b25410c2e75102d9f52945d7e727"
+    },
+    "pydantic": {
+      "source": "bobmatnyc/claude-mpm-skills",
+      "sourceType": "github",
+      "computedHash": "b5b76a23c632127fadc8b3181356095baf9c953c39dfa3cf59c9ea6663d0b0c9"
+    },
+    "python-executor": {
+      "source": "inferen-sh/skills",
+      "sourceType": "github",
+      "computedHash": "217d4b526d1a9f7baca36da191b6d4015944b2d1ec8f2b2798a0eaa8a18a6c2e"
+    },
+    "python-patterns": {
+      "source": "affaan-m/everything-claude-code",
+      "sourceType": "github",
+      "computedHash": "fb08a3345b09766c7423a837cd8a3e416abc4b71a51ff8c1901622bb73b999ef"
+    },
+    "python-testing-patterns": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "computedHash": "a16a6d7d7e0a5154a5058fd9aacf8e675368b2a4a0dc5edf0fee775169c6abe0"
+    }
+  }
+}
