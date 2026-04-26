@@ -31,7 +31,7 @@ from app.translations import t
 logger = logging.getLogger(__name__)
 
 
-class BaseFrame(ctk.CTkFrame):
+class BaseFrame(ctk.CTkScrollableFrame):
     """
     Clase base para todos los frames de modulos.
     
@@ -48,7 +48,14 @@ class BaseFrame(ctk.CTkFrame):
             parent: Widget padre.
             title: Titulo del modulo para mostrar en el header.
         """
-        super().__init__(parent, corner_radius=0, fg_color=colors.FRAMES_BG)
+        super().__init__(
+            parent,
+            corner_radius=0,
+            fg_color=colors.FRAMES_BG,
+            scrollbar_fg_color=colors.FRAMES_BG,
+            scrollbar_button_color=colors.SIDEBAR_SEPARATOR,
+            scrollbar_button_hover_color=colors.SIDEBAR_HOVER,
+        )
         
         # Titulo del modulo
         self._title = title
@@ -67,6 +74,9 @@ class BaseFrame(ctk.CTkFrame):
         self._full_overlay_card = None
         self._full_overlay_label = None
         self._full_overlay_bar = None
+
+        # Asegurar que el contenido ocupe como minimo el viewport visible.
+        self.after(0, self._bind_viewport_sync)
         
         # Construir la estructura del frame
         self._build()
@@ -89,12 +99,36 @@ class BaseFrame(ctk.CTkFrame):
         self._build_footer()
         self._hide_full_overlay()
 
+    def _bind_viewport_sync(self):
+        """Sincroniza la altura minima del frame con el viewport scrollable."""
+        if not hasattr(self, "_parent_canvas"):
+            return
+        try:
+            self._parent_canvas.bind("<Configure>", self._sync_viewport_height, add="+")
+            self.bind("<Configure>", self._sync_viewport_height, add="+")
+            self._sync_viewport_height()
+        except Exception:
+            logger.exception("%s: no se pudo sincronizar viewport", self.__class__.__name__)
+
+    def _sync_viewport_height(self, _event=None):
+        """Hace que el frame ocupe al menos todo el alto visible del canvas."""
+        if not hasattr(self, "_parent_canvas") or not hasattr(self, "_create_window_id"):
+            return
+        try:
+            canvas_height = self._parent_canvas.winfo_height()
+            requested_height = self.winfo_reqheight()
+            target_height = max(canvas_height, requested_height)
+            self._parent_canvas.itemconfigure(self._create_window_id, height=target_height)
+        except Exception:
+            logger.debug("%s: viewport height sync omitido", self.__class__.__name__, exc_info=True)
+
     def _ensure_full_overlay(self):
         """Crea overlay full-frame si no existe."""
         if self._full_overlay_frame:
             return
+        overlay_host = getattr(self, "_parent_frame", self)
         self._full_overlay_frame = ctk.CTkFrame(
-            self,
+            overlay_host,
             corner_radius=0,
             fg_color=colors.SIDEBAR_BG,
         )

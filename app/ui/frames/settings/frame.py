@@ -67,6 +67,7 @@ class SettingsFrame(BaseFrame):
         }
         self._selector_idioma = general_tab._selector_idioma
         self._selector_tema = general_tab._selector_tema
+        self._selector_escala = general_tab._selector_escala
         for f in self._tabs.values():
             f.grid(row=0, column=0, sticky='nsew')
 

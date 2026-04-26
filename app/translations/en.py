@@ -24,6 +24,8 @@ TRANSLATIONS = {
     'app_title': 'Yagua - Image Processor',
     'loading_model': 'Loading model...',
     'downloading_model': 'Downloading model...',
+    'analyzing_image': 'Analyzing image...',
+    'refining_edges': 'Refining edges...',
     'removing_bg': 'Removing background...',
     'limit_reached': 'Loaded {limit} of {total} images (maximum limit).',
     
@@ -93,9 +95,10 @@ TRANSLATIONS = {
     'rembg_install_from_source': 'If you are running the project from source, you can install or reinstall the dependencies with this command:',
     'copy_command': 'Copy command',
     'command_copied': 'Command copied to clipboard.',
-    'model_first_download': 'u2netp model downloaded automatically when processing.',
+    'model_first_download': 'The cutout model will be downloaded automatically when processing.',
     'output_format': 'Output format',
-    'remove_bg_description': 'Removes the background and exports with transparency.',
+    'remove_bg_description': 'Optimized for products and light backgrounds: removes the background and refines edges automatically.',
+    'remove_bg_fallback_notice': 'Using compatibility model ({model})',
     
     # Palette
     'palette_title': 'Color Palette',
@@ -384,6 +387,8 @@ TRANSLATIONS = {
     'appearance': 'Appearance',
     'theme': 'Theme',
     'ui_theme': 'UI theme',
+    'ui_scale': 'Interface scale',
+    'ui_scale_hint': 'Adjust the global app size for screens that look too zoomed in.',
     'dark': 'Dark',
     'light': 'Light',
     'system': 'System',

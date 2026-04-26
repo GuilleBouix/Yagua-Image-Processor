@@ -8,6 +8,8 @@ TRANSLATIONS = {
     'app_title': 'Yagua - Bildprozessor',
     'loading_model': 'Modell wird geladen...',
     'downloading_model': 'Modell wird heruntergeladen...',
+    'analyzing_image': 'Bild wird analysiert...',
+    'refining_edges': 'Kanten werden verfeinert...',
     'removing_bg': 'Hintergrund wird entfernt...',
     'limit_reached': '{limit} von {total} Bildern geladen (Maximalwert).',
     
@@ -77,9 +79,10 @@ TRANSLATIONS = {
     'rembg_install_from_source': 'Wenn du den Quellcode nutzt, installiere die Abhängigkeiten mit:',
     'copy_command': 'Befehl kopieren',
     'command_copied': 'Befehl in die Zwischenablage kopiert.',
-    'model_first_download': 'Modell u2netp wird beim ersten Prozess automatisch geladen.',
+    'model_first_download': 'Das Freistellungsmodell wird beim Verarbeiten automatisch heruntergeladen.',
     'output_format': 'Ausgabeformat',
-    'remove_bg_description': 'Entfernt den Hintergrund und exportiert mit Transparenz.',
+    'remove_bg_description': 'Optimiert für Produkte und helle Hintergründe: entfernt den Hintergrund und verfeinert die Kanten automatisch.',
+    'remove_bg_fallback_notice': 'Kompatibilitätsmodell wird verwendet ({model})',
 
     # Palette
     'palette_title': 'Farbpalette',
@@ -364,6 +367,8 @@ TRANSLATIONS = {
     'appearance': 'Aussehen',
     'theme': 'Thema',
     'ui_theme': 'UI Thema',
+    'ui_scale': 'Oberflächenskalierung',
+    'ui_scale_hint': 'Passt die globale App-Größe für Bildschirme mit zu starkem Zoom an.',
     'dark': 'Dunkel',
     'light': 'Hell',
     'system': 'System',

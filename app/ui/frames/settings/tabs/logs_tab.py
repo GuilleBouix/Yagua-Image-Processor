@@ -4,6 +4,7 @@ from datetime import datetime
 import customtkinter as ctk
 
 from app.ui import colors, fonts
+from app.ui.scale import scale_wraplength
 from app.translations import t
 from app.utils.settings import settings_path
 
@@ -94,7 +95,7 @@ class LogsTab(ctk.CTkFrame):
             ctk.CTkLabel(self._logs_table, text=fecha, font=fonts.FUENTE_CHICA, text_color=colors.TEXT_GRAY, anchor='w').grid(row=row, column=0, padx=10, pady=2, sticky='w')
             ctk.CTkLabel(self._logs_table, text=nivel, font=fonts.FUENTE_CHICA, text_color=colors.TEXT_COLOR, anchor='w').grid(row=row, column=1, padx=10, pady=2, sticky='w')
             ctk.CTkLabel(self._logs_table, text=modulo, font=fonts.FUENTE_CHICA, text_color=colors.TEXT_COLOR, anchor='w').grid(row=row, column=2, padx=10, pady=2, sticky='w')
-            ctk.CTkLabel(self._logs_table, text=mensaje, font=fonts.FUENTE_CHICA, text_color=colors.TEXT_COLOR, anchor='w', wraplength=540).grid(row=row, column=3, padx=10, pady=2, sticky='w')
+            ctk.CTkLabel(self._logs_table, text=mensaje, font=fonts.FUENTE_CHICA, text_color=colors.TEXT_COLOR, anchor='w', wraplength=scale_wraplength(540)).grid(row=row, column=3, padx=10, pady=2, sticky='w')
             row += 1
 
         if row == 1:

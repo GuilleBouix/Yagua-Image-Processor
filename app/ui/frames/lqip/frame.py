@@ -20,6 +20,7 @@ from tkinter import filedialog
 import customtkinter as ctk
 
 from app.ui import colors, fonts
+from app.ui.scale import scale_wraplength
 from app.translations import t
 from app.ui.frames.base import BaseFrame
 from app.ui.frames.lqip.services import batch_procesar, exportar_txt, exportar_json
@@ -108,7 +109,7 @@ class LqipFrame(BaseFrame):
             text=t('lqip_mode_lqip_desc'),
             font=fonts.FUENTE_CHICA,
             text_color=colors.TEXT_GRAY,
-            anchor='w', wraplength=300
+            anchor='w', wraplength=scale_wraplength(300)
         )
         self._lbl_descripcion.grid(row=0, column=2, padx=(16, 0), sticky='w')
 

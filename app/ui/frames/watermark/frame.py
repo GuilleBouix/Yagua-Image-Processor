@@ -22,6 +22,7 @@ import customtkinter as ctk
 from PIL import Image
 
 from app.ui import colors, fonts
+from app.ui.scale import scale_wraplength
 from app.translations import t
 from app.ui.frames.base import BaseFrame
 from app.ui.frames.watermark.state import WatermarkState
@@ -344,7 +345,7 @@ class WatermarkFrame(BaseFrame):
             font=fonts.FUENTE_CHICA, text_color=colors.TEXT_GRAY,
             fg_color=colors.FRAMES_BG,
             width=_PREVIEW_MAX_PX, height=_PREVIEW_MAX_PX,
-            corner_radius=8, wraplength=_PREVIEW_MAX_PX - 20,
+            corner_radius=8, wraplength=scale_wraplength(_PREVIEW_MAX_PX - 20),
         )
         self._canvas_preview.grid(row=1, column=0, padx=12, pady=(0, 8), sticky="nsew")
 

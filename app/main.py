@@ -13,6 +13,7 @@ import sys
 import customtkinter as ctk
 
 from app.app import YaguaApp
+from app.ui.scale import apply_ui_scale
 from app.utils.settings import settings_path
 
 
@@ -47,6 +48,9 @@ def main():
     
     # Establecer tema de color azul para elementos interactivos
     ctk.set_default_color_theme('blue')
+
+    # Aplicar escala global de la UI antes de crear widgets.
+    apply_ui_scale()
     
     # Crear instancia de la aplicacion principal
     app = YaguaApp()

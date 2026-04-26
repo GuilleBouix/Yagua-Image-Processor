@@ -25,6 +25,8 @@ TRANSLATIONS = {
     'app_title': 'Yagua - Processeur d\'Images',
     'loading_model': 'Chargement du modèle...',
     'downloading_model': 'Téléchargement du modèle...',
+    'analyzing_image': 'Analyse de l’image...',
+    'refining_edges': 'Affinage des contours...',
     'removing_bg': 'Suppression du fond...',
     'limit_reached': '{limit} sur {total} images chargées (limite maximale).',
     
@@ -94,9 +96,10 @@ TRANSLATIONS = {
     'rembg_install_from_source': 'Si vous exécutez le projet depuis le code source, installez les dépendances avec :',
     'copy_command': 'Copier la commande',
     'command_copied': 'Commande copiée dans le presse-papiers.',
-    'model_first_download': 'Modèle u2netp téléchargé automatiquement lors du traitement.',
+    'model_first_download': 'Le modèle de détourage sera téléchargé automatiquement lors du traitement.',
     'output_format': 'Format de sortie',
-    'remove_bg_description': 'Supprime le fond et exporte avec transparence.',
+    'remove_bg_description': 'Optimisé pour les produits et les fonds clairs : supprime le fond et affine automatiquement les contours.',
+    'remove_bg_fallback_notice': 'Modèle de compatibilité utilisé ({model})',
 
     # Palette
     'palette_title': 'Palette de couleurs',
@@ -381,6 +384,8 @@ TRANSLATIONS = {
     'appearance': 'Apparence',
     'theme': 'Thème',
     'ui_theme': 'Thème de l\'interface',
+    'ui_scale': 'Échelle de l’interface',
+    'ui_scale_hint': 'Ajustez la taille globale de l’app pour les écrans trop zoomés.',
     'dark': 'Sombre',
     'light': 'Clair',
     'system': 'Système',

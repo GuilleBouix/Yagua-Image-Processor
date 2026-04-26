@@ -11,7 +11,7 @@ import customtkinter as ctk
 from app.ui import colors, fonts
 
 
-class PlaceholderFrame(ctk.CTkFrame):
+class PlaceholderFrame(ctk.CTkScrollableFrame):
     """
     Frame generico para modulos pendientes de implementacion.
     
@@ -27,7 +27,14 @@ class PlaceholderFrame(ctk.CTkFrame):
             parent: Widget padre.
             module_name: Nombre del modulo a mostrar.
         """
-        super().__init__(parent, corner_radius=0, fg_color=colors.FRAMES_BG)
+        super().__init__(
+            parent,
+            corner_radius=0,
+            fg_color=colors.FRAMES_BG,
+            scrollbar_fg_color=colors.FRAMES_BG,
+            scrollbar_button_color=colors.SIDEBAR_SEPARATOR,
+            scrollbar_button_hover_color=colors.SIDEBAR_HOVER,
+        )
         
         # Mostrar mensaje de modulo proximamente
         ctk.CTkLabel(

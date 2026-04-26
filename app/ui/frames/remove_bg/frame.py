@@ -18,8 +18,10 @@ from tkinter import filedialog
 import customtkinter as ctk
 
 from app.ui import colors, fonts
+from app.ui.scale import scale_wraplength
 from app.translations import t
 from app.ui.frames.base import BaseFrame
+from app.ui.frames.remove_bg.state import RemoveBgState
 from app.ui.frames.remove_bg.services import (
     batch_quitar_fondo,
     ensure_model,
@@ -41,12 +43,12 @@ class RemoveBgFrame(BaseFrame):
     def __init__(self, parent):
         """Inicializa el frame."""
         self._formato_salida: ctk.StringVar = ctk.StringVar(value='PNG')
-        self._spinner_frame = None
-        self._spinner_label = None
-        self._spinner_bar = None
+        self._state = RemoveBgState()
         self._lbl_error_dependencia = None
         self._entry_dependencia_cmd = None
         self._btn_copiar_comando = None
+        self._primer_uso_notice = None
+        self._primer_uso_notice_job = None
         super().__init__(parent, t('remove_bg_title'))
 
     def _build_content(self):
@@ -89,9 +91,6 @@ class RemoveBgFrame(BaseFrame):
             return
 
         row = 2
-        if not modelo_ok:
-            self._construir_aviso_primer_uso(row)
-            row += 1
 
         # Boton seleccionar
         self._btn_seleccionar = self._crear_boton_seleccionar(self)
@@ -163,6 +162,9 @@ class RemoveBgFrame(BaseFrame):
             padx=16, pady=(0, 16), sticky='ew'
         )
 
+        if not modelo_ok:
+            self._construir_aviso_primer_uso()
+
     def _show_overlay(self, text: str):
         """Muestra overlay full-frame (bloquea interaccion)."""
         self._show_full_overlay(text)
@@ -191,7 +193,7 @@ class RemoveBgFrame(BaseFrame):
             text_color=colors.TEXT_COLOR,
             anchor='w',
             justify='left',
-            wraplength=620
+            wraplength=scale_wraplength(620)
         )
         self._lbl_error_dependencia.grid(row=0, column=0, padx=16, pady=(16, 6), sticky='w')
 
@@ -203,7 +205,7 @@ class RemoveBgFrame(BaseFrame):
                 text_color=colors.TEXT_GRAY,
                 anchor='w',
                 justify='left',
-                wraplength=620
+                wraplength=scale_wraplength(620)
             ).grid(row=1, column=0, padx=16, pady=(0, 6), sticky='w')
             row_reinstall = 2
         else:
@@ -216,7 +218,7 @@ class RemoveBgFrame(BaseFrame):
             text_color=colors.TEXT_GRAY,
             anchor='w',
             justify='left',
-            wraplength=620
+            wraplength=scale_wraplength(620)
         ).grid(row=row_reinstall, column=0, padx=16, pady=(0, 8), sticky='w')
 
         ctk.CTkLabel(
@@ -226,7 +228,7 @@ class RemoveBgFrame(BaseFrame):
             text_color=colors.TEXT_GRAY,
             anchor='w',
             justify='left',
-            wraplength=620
+            wraplength=scale_wraplength(620)
         ).grid(row=row_reinstall + 1, column=0, padx=16, pady=(0, 8), sticky='w')
 
         fila_comando = ctk.CTkFrame(panel, fg_color='transparent')
@@ -260,16 +262,18 @@ class RemoveBgFrame(BaseFrame):
         )
         self._btn_copiar_comando.grid(row=0, column=1, sticky='e')
 
-    def _construir_aviso_primer_uso(self, row: int):
-        """Muestra aviso de descarga automatica en el primer uso."""
+    def _construir_aviso_primer_uso(self):
+        """Muestra un aviso temporal en la parte inferior para el primer uso."""
+        self._ocultar_aviso_primer_uso()
+
         aviso = ctk.CTkFrame(
-            self,
+            self.content if hasattr(self, 'content') else self,
             corner_radius=8,
             fg_color=colors.SIDEBAR_BG,
             border_width=1,
             border_color=colors.ACENTO_DIMMED
         )
-        aviso.grid(row=row, column=0, padx=28, pady=(0, 4), sticky='ew')
+        aviso.place(relx=0.5, rely=1.0, y=-18, anchor='s', relwidth=0.78)
         aviso.grid_columnconfigure(0, weight=1)
 
         ctk.CTkLabel(
@@ -278,14 +282,38 @@ class RemoveBgFrame(BaseFrame):
             font=fonts.FUENTE_CHICA,
             text_color=colors.TEXT_GRAY,
             justify='center',
-            wraplength=500
+            wraplength=scale_wraplength(500)
         ).grid(row=0, column=0, padx=16, pady=10)
+
+        self._primer_uso_notice = aviso
+        self._primer_uso_notice_job = self.after(5000, self._ocultar_aviso_primer_uso)
+
+    def _ocultar_aviso_primer_uso(self):
+        """Oculta y destruye el aviso temporal del primer uso."""
+        if self._primer_uso_notice_job is not None:
+            try:
+                self.after_cancel(self._primer_uso_notice_job)
+            except Exception:
+                pass
+            self._primer_uso_notice_job = None
+
+        if self._primer_uso_notice is not None:
+            try:
+                if self._primer_uso_notice.winfo_exists():
+                    self._primer_uso_notice.destroy()
+            except Exception:
+                pass
+            self._primer_uso_notice = None
 
     def _copiar_comando_instalacion(self):
         """Copia el comando sugerido al portapapeles."""
         self.clipboard_clear()
         self.clipboard_append(INSTALL_COMMAND)
         self._lbl_info.configure(text=t('command_copied'))
+
+    def _set_overlay_key(self, key: str):
+        """Actualiza el texto del overlay a partir de una clave de traduccion."""
+        self._show_overlay(t(key))
 
     def _resumir_error_dependencia(self, detalle_error: str | None) -> tuple[str, str | None]:
         """Convierte errores tecnicos en mensajes breves para la UI."""
@@ -331,26 +359,32 @@ class RemoveBgFrame(BaseFrame):
         if not carpeta:
             return
 
+        self._state.set_model_info(None, False)
         self._btn_procesar.configure(state='disabled', text=t('processing'))
-        self._show_overlay(t('loading_model'))
+        self._show_overlay(t('analyzing_image'))
         threading.Thread(target=self._proceso, args=(carpeta,), daemon=True).start()
 
     def _proceso(self, carpeta):
         """Ejecuta la eliminacion de fondo."""
         try:
             if not modelo_descargado():
-                self.after(0, lambda: self._show_overlay(t('downloading_model')))
+                self.after(0, lambda: self._set_overlay_key('downloading_model'))
                 ensure_model()
-                self.after(0, lambda: self._show_overlay(t('loading_model')))
+
+            self.after(0, lambda: self._set_overlay_key('loading_model'))
+            self.after(0, lambda: self._set_overlay_key('analyzing_image'))
             res = batch_quitar_fondo(
                 self._imagenes,
                 carpeta,
-                formato_salida=self._formato_salida.get()
+                formato_salida=self._formato_salida.get(),
+                status_callback=lambda key: self.after(0, lambda k=key: self._set_overlay_key(k)),
             )
             self.after(0, lambda: self._finalizar(
                 res['ok'],
                 res['errores'],
                 res.get('conflictos', 0),
+                res.get('used_fallback', False),
+                res.get('model_used'),
             ))
         except Exception as exc:
             logger.exception("Error en proceso remove_bg")
@@ -365,9 +399,10 @@ class RemoveBgFrame(BaseFrame):
         self._btn_procesar.configure(state='normal', text=t('remove_bg_btn'))
         self._lbl_info.configure(text=f'{t("error_generic")}: {msg}')
 
-    def _finalizar(self, ok, errores, conflictos=0):
+    def _finalizar(self, ok, errores, conflictos=0, used_fallback=False, model_used=None):
         """Muestra el resultado final."""
         self._hide_overlay()
+        self._state.set_model_info(model_used, used_fallback)
         self._btn_procesar.configure(state='normal', text=t('remove_bg_btn'))
         suffix = t('images_loaded') if ok > 1 else t('image_loaded')
         msg = f'{ok} {suffix} {t("processed")}'
@@ -375,4 +410,6 @@ class RemoveBgFrame(BaseFrame):
             msg += f'  -  {errores} {t("error_occurred")}'
         if conflictos:
             msg += f'  -  {conflictos} {t("conflicts_renamed")}'
+        if self._state.used_fallback and self._state.model_used:
+            msg += f'  -  {t("remove_bg_fallback_notice").format(model=self._state.model_used)}'
         self._lbl_info.configure(text=msg)

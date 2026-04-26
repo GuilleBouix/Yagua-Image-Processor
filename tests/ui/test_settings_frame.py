@@ -7,3 +7,4 @@ def test_settings_frame_build(ui_root):
 
     assert hasattr(frame, "_selector_idioma")
     assert hasattr(frame, "_selector_tema")
+    assert hasattr(frame, "_selector_escala")

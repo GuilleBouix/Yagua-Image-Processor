@@ -24,6 +24,8 @@ TRANSLATIONS = {
     'app_title': 'Yagua - Processador de Imagem',
     'loading_model': 'Carregando modelo...',
     'downloading_model': 'Baixando modelo...',
+    'analyzing_image': 'Analisando imagem...',
+    'refining_edges': 'Refinando bordas...',
     'removing_bg': 'Removendo fundo...',
     'limit_reached': 'Foram carregadas {limit} de {total} imagens (limite máximo).',
     
@@ -93,9 +95,10 @@ TRANSLATIONS = {
     'rembg_install_from_source': 'Se você estiver executando o projeto a partir do código-fonte, pode instalar ou reinstalar as dependências com este comando:',
     'copy_command': 'Copiar comando',
     'command_copied': 'Comando copiado para a área de transferência.',
-    'model_first_download': 'Modelo u2netp baixado automaticamente ao processar.',
+    'model_first_download': 'O modelo de recorte será baixado automaticamente ao processar.',
     'output_format': 'Formato de saída',
-    'remove_bg_description': 'Remove o fundo e exporta com transparência.',
+    'remove_bg_description': 'Otimizado para produtos e fundos claros: remove o fundo e refina as bordas automaticamente.',
+    'remove_bg_fallback_notice': 'Usando modelo de compatibilidade ({model})',
     
     # Palette
     'palette_title': 'Paleta de Cores',
@@ -384,6 +387,8 @@ TRANSLATIONS = {
     'appearance': 'Aparência',
     'theme': 'Tema',
     'ui_theme': 'Tema da interface',
+    'ui_scale': 'Escala da interface',
+    'ui_scale_hint': 'Ajuste o tamanho global do app para telas com zoom excessivo.',
     'dark': 'Escuro',
     'light': 'Claro',
     'system': 'Sistema',

@@ -9,6 +9,7 @@ from app.ui.module_registry import iter_all_modules
 from app.ui.frames.settings.services import (
     set_language_and_restart,
     set_theme_and_restart,
+    set_ui_scale_and_restart,
     get_visible_modules,
     set_visible_modules_and_restart,
 )
@@ -95,7 +96,49 @@ class GeneralTab(ctk.CTkFrame):
         )
         self._selector_tema.grid(row=0, column=1, padx=(0, 16), pady=16, sticky='w')
 
-        self._build_modules_panel(row=2)
+        self._build_scale_panel(row=2)
+        self._build_modules_panel(row=3)
+
+    def _build_scale_panel(self, row=0):
+        panel_scale = ctk.CTkFrame(
+            self,
+            corner_radius=12,
+            fg_color=colors.PANEL_BG,
+            border_width=1,
+            border_color=colors.SIDEBAR_SEPARATOR
+        )
+        panel_scale.grid(row=row, column=0, pady=(0, 12), sticky='ew')
+        panel_scale.grid_columnconfigure(1, weight=1)
+
+        ctk.CTkLabel(
+            panel_scale,
+            text=t('ui_scale'),
+            font=fonts.FUENTE_BASE,
+            text_color=colors.TEXT_GRAY,
+            anchor='w'
+        ).grid(row=0, column=0, padx=(16, 12), pady=(16, 6), sticky='w')
+
+        self._selector_escala = ctk.CTkSegmentedButton(
+            panel_scale,
+            values=['100%', '75%', '50%'],
+            variable=self._state.scale_var,
+            font=fonts.FUENTE_CHICA,
+            selected_color=colors.SEGMENT_SELECTED,
+            selected_hover_color=colors.SEGMENT_SELECTED_HOVER,
+            unselected_color=colors.SIDEBAR_BG,
+            unselected_hover_color=colors.SIDEBAR_HOVER,
+            text_color=colors.TEXT_COLOR,
+            command=self._cambiar_escala
+        )
+        self._selector_escala.grid(row=0, column=1, padx=(0, 16), pady=(16, 6), sticky='w')
+
+        ctk.CTkLabel(
+            panel_scale,
+            text=t('ui_scale_hint'),
+            font=fonts.FUENTE_CHICA,
+            text_color=colors.TEXT_GRAY,
+            anchor='w'
+        ).grid(row=1, column=0, columnspan=2, padx=(16, 12), pady=(0, 16), sticky='w')
 
     def _build_modules_panel(self, row=0):
         panel_modulos = ctk.CTkFrame(
@@ -190,3 +233,12 @@ class GeneralTab(ctk.CTkFrame):
         logger.info("settings.ui: cambiar_tema (%s)", theme)
         self._set_status(t('restart_required'))
         self.after(1500, lambda: set_theme_and_restart(theme))
+
+    def _cambiar_escala(self, scale_label: str):
+        logger.info("settings.ui: cambiar_escala (%s)", scale_label)
+        try:
+            scale = int(scale_label.rstrip('%'))
+        except ValueError:
+            scale = 100
+        self._set_status(t('restart_required_generic'))
+        self.after(1500, lambda: set_ui_scale_and_restart(scale))

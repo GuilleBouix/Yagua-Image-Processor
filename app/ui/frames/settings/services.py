@@ -15,6 +15,7 @@ import subprocess
 from pathlib import Path
 
 from app.translations import set_language
+from app.ui.scale import DEFAULT_UI_SCALE, VALID_UI_SCALES
 from app.utils.settings import settings_path
 
 
@@ -57,10 +58,31 @@ def get_visible_modules() -> list[str] | None:
     return [str(v) for v in visible]
 
 
+def get_ui_scale() -> int:
+    """Retornar la escala de UI guardada o el valor por defecto."""
+    settings = _load_settings()
+    value = settings.get('ui_scale', DEFAULT_UI_SCALE)
+    try:
+        scale = int(value)
+    except (TypeError, ValueError):
+        return DEFAULT_UI_SCALE
+    return scale if scale in VALID_UI_SCALES else DEFAULT_UI_SCALE
+
+
 def set_visible_modules_and_restart(modules: list[str]) -> None:
     """Guardar modulos visibles y reiniciar la aplicacion."""
     settings = _load_settings()
     settings['visible_modules'] = modules
+    _save_settings(settings)
+    restart_app()
+
+
+def set_ui_scale_and_restart(scale: int) -> None:
+    """Guardar la escala de UI y reiniciar la aplicacion."""
+    if scale not in VALID_UI_SCALES:
+        scale = DEFAULT_UI_SCALE
+    settings = _load_settings()
+    settings['ui_scale'] = scale
     _save_settings(settings)
     restart_app()
 
@@ -101,6 +123,8 @@ def set_theme_and_restart(theme: str) -> None:
 __all__ = [
     'set_language_and_restart',
     'set_theme_and_restart',
+    'get_ui_scale',
+    'set_ui_scale_and_restart',
     'get_visible_modules',
     'set_visible_modules_and_restart',
     'restart_app'
