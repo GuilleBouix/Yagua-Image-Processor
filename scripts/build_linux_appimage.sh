@@ -32,7 +32,6 @@ rm -rf "$BUILD_DIR" "$DIST_DIR/Yagua"
 if [[ -n "$APPDIR_PATH" ]]; then
   rm -rf "$APPDIR_PATH"
   mkdir -p \
-    "$APPDIR_PATH/usr/bin" \
     "$APPDIR_PATH/usr/lib/yagua" \
     "$APPDIR_PATH/usr/share/applications" \
     "$APPDIR_PATH/usr/share/icons/hicolor/256x256/apps"
@@ -40,15 +39,6 @@ if [[ -n "$APPDIR_PATH" ]]; then
   cp -a "$DIST_DIR/Yagua/." "$APPDIR_PATH/usr/lib/yagua/"
   cp "$ROOT_DIR/packaging/linux/yagua.desktop" "$APPDIR_PATH/usr/share/applications/yagua.desktop"
   cp "$ROOT_DIR/assets/icon.png" "$APPDIR_PATH/usr/share/icons/hicolor/256x256/apps/yagua.png"
-
-  cat > "$APPDIR_PATH/usr/bin/yagua" <<'EOF'
-#!/usr/bin/env bash
-set -euo pipefail
-SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-APPDIR="$(cd "$SELF_DIR/../.." && pwd)"
-exec "$APPDIR/usr/lib/yagua/Yagua" "$@"
-EOF
-  chmod +x "$APPDIR_PATH/usr/bin/yagua"
 fi
 
 if [[ "${BUILD_APPIMAGE:-0}" == "1" ]]; then

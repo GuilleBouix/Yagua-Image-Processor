@@ -2,7 +2,7 @@
 Type=Application
 Name=Yagua
 Comment=Batch image processor for desktop workflows
-Exec=yagua %F
+Exec=AppRun %F
 Icon=yagua
 Terminal=false
 Categories=Graphics;

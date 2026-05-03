@@ -8,7 +8,7 @@ AppDir:
     name: Yagua
     icon: yagua
     version: '{{APP_VERSION}}'
-    exec: usr/bin/yagua
+    exec: usr/lib/yagua/Yagua
     exec_args: $@
 
   apt:
