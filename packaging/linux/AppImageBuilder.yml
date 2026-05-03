@@ -4,7 +4,7 @@ AppDir:
   path: AppDir
 
   app_info:
-    id: com.guillebouix.yagua
+    id: yagua
     name: Yagua
     icon: yagua
     version: '{{APP_VERSION}}'

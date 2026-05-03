@@ -58,6 +58,7 @@ jobs:
             fuse \
             libfuse2 \
             patchelf \
+            squashfs-tools \
             libgl1 \
             libglib2.0-0 \
             libsm6 \
@@ -70,23 +71,19 @@ jobs:
         run: |
           python -m pip install -U pip wheel setuptools
           python -m pip install -r requirements.txt
+          python -m pip install appimage-builder==1.1.0
 
       - name: Pytest
         run: |
           xvfb-run -a python -m pytest -q
 
-      - name: Build AppDir
+      - name: Build AppImage
         env:
           TARGET_APPDIR: ${{ github.workspace }}/AppDir
+          APP_VERSION: ${{ steps.ver.outputs.version }}
+          BUILD_APPIMAGE: "1"
         run: |
           bash scripts/build_linux_appimage.sh
-
-      - name: Build AppImage
-        uses: AppImageCrafters/build-appimage@master
-        env:
-          APP_VERSION: ${{ steps.ver.outputs.version }}
-        with:
-          recipe: packaging/linux/AppImageBuilder.yml
 
       - name: Collect artifacts and hashes
         shell: bash
