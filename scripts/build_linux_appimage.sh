@@ -39,6 +39,13 @@ if [[ -n "$APPDIR_PATH" ]]; then
   cp -a "$DIST_DIR/Yagua/." "$APPDIR_PATH/usr/lib/yagua/"
   cp "$ROOT_DIR/packaging/linux/yagua.desktop" "$APPDIR_PATH/usr/share/applications/yagua.desktop"
   cp "$ROOT_DIR/assets/icon.png" "$APPDIR_PATH/usr/share/icons/hicolor/256x256/apps/yagua.png"
+
+  find "$APPDIR_PATH" -type d -name "__pycache__" -prune -exec rm -rf {} + 2>/dev/null || true
+  find "$APPDIR_PATH" -type f \( -name "*.pyc" -o -name "*.pyo" \) -delete
+  find "$APPDIR_PATH/usr/lib/yagua" -type d \( -name "tests" -o -name "test" \) -prune -exec rm -rf {} + 2>/dev/null || true
+  find "$APPDIR_PATH/usr/lib/yagua" -type d \( -name "*.dist-info" -o -name "*.egg-info" \) -prune -exec rm -rf {} + 2>/dev/null || true
+  find "$APPDIR_PATH/usr/lib/yagua" -type f -name "*.so*" -exec strip --strip-unneeded {} + 2>/dev/null || true
+  strip --strip-unneeded "$APPDIR_PATH/usr/lib/yagua/Yagua" 2>/dev/null || true
 fi
 
 if [[ "${BUILD_APPIMAGE:-0}" == "1" ]]; then

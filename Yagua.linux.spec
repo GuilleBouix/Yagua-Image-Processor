@@ -14,9 +14,7 @@ hiddenimports += collect_submodules('app.ui.frames')
 hiddenimports += collect_submodules('app.modules')
 hiddenimports += collect_submodules('app.utils')
 hiddenimports += collect_submodules('app.translations')
-hiddenimports += collect_submodules('easyocr')
 hiddenimports += [
-    'easyocr',
     'pillow_heif',
     'vtracer',
     'cv2',
@@ -46,10 +44,6 @@ hiddenimports += [
     'app.ui.frames.watermark.frame',
     'app.ui.frames.watermark.services',
     'app.ui.frames.watermark.state',
-    'app.ui.frames.ocr',
-    'app.ui.frames.ocr.frame',
-    'app.ui.frames.ocr.services',
-    'app.ui.frames.ocr.state',
 ]
 hiddenimports += collect_submodules('pymatting')
 hiddenimports += collect_submodules('rembg')
@@ -65,7 +59,6 @@ datas = []
 datas += [('assets', 'assets')]
 datas += collect_data_files('customtkinter')
 datas += collect_data_files('app.translations')
-datas += collect_data_files('easyocr')
 
 try:
     dist = importlib_metadata.distribution('pymatting')
@@ -84,7 +77,18 @@ a = Analysis(
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=[],
+    excludes=[
+        'easyocr',
+        'torch',
+        'torchvision',
+        'torchaudio',
+        'triton',
+        'pandas',
+        'IPython',
+        'matplotlib',
+        'notebook',
+        'jupyter',
+    ],
     cipher=block_cipher,
     noarchive=False,
 )

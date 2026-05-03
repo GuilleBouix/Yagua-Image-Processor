@@ -207,8 +207,9 @@ class OcrFrame(BaseFrame):
             self._ocr_ready = True
             self._btn_procesar.configure(state='normal')
         else:
-            self._btn_procesar.configure(state='normal')
-            self._lbl_info.configure(text=t('error_generic'))
+            self._ocr_ready = False
+            self._btn_procesar.configure(state='disabled')
+            self._lbl_info.configure(text=t('ocr_unavailable'))
         self._hide_overlay()
 
     def _construir_opciones(self):

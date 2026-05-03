@@ -277,6 +277,7 @@ TRANSLATIONS = {
     'export_as_txt': 'Exportar como .txt',
     'load_images_first_ocr': 'Carga al menos una imagen.',
     'ocr_model_loading': 'Cargando modelo OCR...',
+    'ocr_unavailable': 'OCR no está disponible en este paquete.',
     'ocr_avif_requires_plugin': 'AVIF requiere pillow-avif-plugin',
     'heic_requires_plugin': 'HEIC requiere pillow-heif',
     'invalid_date_format': 'Formato de fecha inválido. Usa YYYY:MM:DD HH:MM:SS',
