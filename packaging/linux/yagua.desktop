@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Yagua
+Comment=Batch image processor for desktop workflows
+Exec=yagua %F
+Icon=yagua
+Terminal=false
+Categories=Graphics;
+StartupNotify=true
+MimeType=image/jpeg;image/png;image/webp;image/tiff;image/heic;image/heif;image/avif;

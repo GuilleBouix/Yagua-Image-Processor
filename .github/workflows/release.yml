@@ -3,8 +3,8 @@ name: Release (Windows)
 on:
   push:
     tags:
-      - "v*.*.*"
-      - "v*.*.*-*"
+      - "win-v*.*.*"
+      - "win-v*.*.*-*"
   workflow_dispatch:
     inputs:
       version:
@@ -33,7 +33,7 @@ jobs:
             $v = "${{ inputs.version }}".Trim()
           } else {
             $v = "${{ github.ref_name }}".Trim()
-            if ($v.StartsWith("v")) { $v = $v.Substring(1) }
+            if ($v.StartsWith("win-v")) { $v = $v.Substring(5) }
           }
           echo "version=$v" >> $env:GITHUB_OUTPUT
           if ($v.Contains("-")) {
@@ -46,7 +46,7 @@ jobs:
       - name: Apply version to files (CI-only)
         shell: pwsh
         run: |
-          python scripts/ci/apply_version.py "${{ steps.ver.outputs.version }}"
+          python scripts/ci/apply_version.py "${{ steps.ver.outputs.version }}" windows
 
       - name: Install deps
         shell: pwsh
@@ -101,8 +101,8 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ steps.ver.outputs.version }}
-          name: v${{ steps.ver.outputs.version }}
+          tag_name: win-v${{ steps.ver.outputs.version }}
+          name: Windows v${{ steps.ver.outputs.version }}
           prerelease: ${{ steps.ver.outputs.prerelease }}
           body_path: release_notes.md
           files: |

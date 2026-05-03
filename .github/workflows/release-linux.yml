@@ -1,0 +1,117 @@
+name: Release (Linux AppImage)
+
+on:
+  push:
+    tags:
+      - "linux-v*.*.*"
+      - "linux-v*.*.*-*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version X.Y.Z (sin prefijo linux-v)"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  build_release:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Resolve version
+        id: ver
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            v="${{ inputs.version }}"
+          else
+            v="${{ github.ref_name }}"
+            v="${v#linux-v}"
+          fi
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+          if [[ "$v" == *-* ]]; then
+            echo "prerelease=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "prerelease=false" >> "$GITHUB_OUTPUT"
+          fi
+          echo "Version=$v"
+
+      - name: Apply version to files (CI-only)
+        run: |
+          python scripts/ci/apply_version.py "${{ steps.ver.outputs.version }}" linux
+
+      - name: Install system deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            python3-tk \
+            xvfb \
+            file \
+            desktop-file-utils \
+            fuse \
+            libfuse2 \
+            patchelf \
+            libgl1 \
+            libglib2.0-0 \
+            libsm6 \
+            libxext6 \
+            libxrender1 \
+            libgtk-3-0 \
+            libgomp1
+
+      - name: Install deps
+        run: |
+          python -m pip install -U pip wheel setuptools
+          python -m pip install -r requirements.txt
+
+      - name: Pytest
+        run: |
+          xvfb-run -a python -m pytest -q
+
+      - name: Build AppDir
+        env:
+          TARGET_APPDIR: ${{ github.workspace }}/AppDir
+        run: |
+          bash scripts/build_linux_appimage.sh
+
+      - name: Build AppImage
+        uses: AppImageCrafters/build-appimage@master
+        env:
+          APP_VERSION: ${{ steps.ver.outputs.version }}
+        with:
+          recipe: packaging/linux/AppImageBuilder.yml
+
+      - name: Collect artifacts and hashes
+        shell: bash
+        run: |
+          mkdir -p installer
+          appimage="Yagua-${{ steps.ver.outputs.version }}-x86_64.AppImage"
+          if [[ ! -f "$appimage" ]]; then
+            echo "No se encontro AppImage esperado: $appimage" >&2
+            ls -la
+            exit 1
+          fi
+          mv "$appimage" "installer/$appimage"
+          sha256sum "installer/$appimage" > "installer/$appimage.sha256"
+
+      - name: Release notes
+        run: |
+          python scripts/ci/extract_release_notes.py "${{ steps.ver.outputs.version }}" > release_notes.md
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: linux-v${{ steps.ver.outputs.version }}
+          name: Linux v${{ steps.ver.outputs.version }}
+          prerelease: ${{ steps.ver.outputs.prerelease }}
+          body_path: release_notes.md
+          files: |
+            installer/Yagua-${{ steps.ver.outputs.version }}-x86_64.AppImage
+            installer/Yagua-${{ steps.ver.outputs.version }}-x86_64.AppImage.sha256

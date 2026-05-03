@@ -1,0 +1,45 @@
+version: 1
+
+AppDir:
+  path: AppDir
+
+  app_info:
+    id: com.guillebouix.yagua
+    name: Yagua
+    icon: yagua
+    version: '{{APP_VERSION}}'
+    exec: usr/bin/yagua
+    exec_args: $@
+
+  apt:
+    arch:
+      - amd64
+    sources:
+      - sourceline: "deb [arch=amd64] http://archive.ubuntu.com/ubuntu/ jammy main restricted universe multiverse"
+        key_url: "http://keyserver.ubuntu.com/pks/lookup?op=get&search=0x3b4fe6acc0b21f32"
+    include:
+      - libgl1
+      - libglib2.0-0
+      - libsm6
+      - libxext6
+      - libxrender1
+      - libgtk-3-0
+      - libx11-6
+      - libxkbcommon0
+      - libfontconfig1
+      - libfreetype6
+      - libnss3
+      - libgomp1
+
+  files:
+    exclude:
+      - usr/share/man
+      - usr/share/doc/*/README.*
+      - usr/share/doc/*/changelog.*
+      - usr/share/doc/*/NEWS.*
+      - usr/share/doc/*/TODO.*
+      - usr/share/lintian
+
+AppImage:
+  arch: x86_64
+  file_name: 'Yagua-{{APP_VERSION}}-x86_64.AppImage'
