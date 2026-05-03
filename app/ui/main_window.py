@@ -42,10 +42,12 @@ class MainWindow(ctk.CTkFrame):
             parent: Widget padre (normalmente la instancia de YaguaApp).
         """
         super().__init__(parent, corner_radius=0)
-        
+
         # Diccionario para almacenar las instancias de frames (lazy-loaded)
         self.frames = {}
-        
+        self._active_view_key = None
+        self._active_view = None
+
         # Construir la estructura de la ventana
         self._build()
   
@@ -73,8 +75,7 @@ class MainWindow(ctk.CTkFrame):
 
         # Pantalla inicial (no aparece en sidebar)
         self._home = HomeFrame(self.content)
-        self._home.place(relwidth=1, relheight=1)
-        self._home.tkraise()
+        self._show_view(self._home, key=None)
         # Sidebar sin selección activa hasta que el usuario elija un módulo
         try:
             self.sidebar.set_active(None)
@@ -174,7 +175,10 @@ class MainWindow(ctk.CTkFrame):
         # Verificar que la key exista en los frames
         if key not in self.frames:
             return
-        
+
+        previous_key = self._active_view_key
+        logger.info("navigation: show_module from=%s to=%s", previous_key, key)
+
         # Crear frame si no existe (lazy loading)
         if self.frames[key] is None:
             spec = get_module_spec(key)
@@ -183,14 +187,75 @@ class MainWindow(ctk.CTkFrame):
             
             # Cargar la clase del frame dinamicamente
             cls = load_frame_class(spec)
-            
+
             # Crear instancia del frame en el area de contenido
             frame = cls(self.content)
-            frame.place(relwidth=1, relheight=1)
             self.frames[key] = frame
-        
-        # Traer el frame al frente
-        self.frames[key].tkraise()
-        
+            logger.info("navigation: lazy_loaded key=%s frame=%s", key, frame.__class__.__name__)
+
+        # Mostrar unicamente la vista activa
+        self._show_view(self.frames[key], key=key)
+
         # Actualizar boton activo en la sidebar
         self.sidebar.set_active(key)
+
+    def _show_view(self, view, key):
+        """Oculta la vista activa y muestra la nueva de forma explicita."""
+        if self._active_view is view and self._active_view_key == key:
+            logger.info("navigation: view already active key=%s", key)
+            return
+
+        previous_view = self._active_view
+        previous_key = self._active_view_key
+
+        if previous_view is not None:
+            self._hide_view(previous_view, previous_key)
+
+        host = self._get_view_host(view)
+        host.place(x=0, y=0, relwidth=1, relheight=1)
+        try:
+            host.lift()
+        except Exception:
+            logger.debug("navigation: no se pudo elevar vista key=%s", key, exc_info=True)
+
+        self._active_view = view
+        self._active_view_key = key
+        self._notify_view_shown(view)
+        logger.info("navigation: activated key=%s host=%s", key, type(host).__name__)
+
+    def _hide_view(self, view, key):
+        """Oculta una vista existente sin destruirla."""
+        host = self._get_view_host(view)
+        self._notify_view_hidden(view)
+        try:
+            host.place_forget()
+            logger.info("navigation: hidden key=%s host=%s", key, type(host).__name__)
+        except Exception:
+            logger.exception("navigation: no se pudo ocultar key=%s", key)
+        finally:
+            if self._active_view is view:
+                self._active_view = None
+                self._active_view_key = None
+
+    @staticmethod
+    def _get_view_host(view):
+        """Retorna el widget visual que se placea para una vista."""
+        return getattr(view, "_parent_frame", view)
+
+    @staticmethod
+    def _notify_view_shown(view):
+        callback = getattr(view, "on_view_shown", None)
+        if callable(callback):
+            try:
+                callback()
+            except Exception:
+                logger.exception("navigation: error en on_view_shown para %s", type(view).__name__)
+
+    @staticmethod
+    def _notify_view_hidden(view):
+        callback = getattr(view, "on_view_hidden", None)
+        if callable(callback):
+            try:
+                callback()
+            except Exception:
+                logger.exception("navigation: error en on_view_hidden para %s", type(view).__name__)

@@ -81,6 +81,14 @@ class BaseFrame(ctk.CTkScrollableFrame):
         # Construir la estructura del frame
         self._build()
 
+    def on_view_shown(self):
+        """Hook de lifecycle cuando la vista pasa a estar visible."""
+        self._sync_viewport_height()
+
+    def on_view_hidden(self):
+        """Hook de lifecycle cuando la vista deja de estar visible."""
+        return
+
     def _build(self):
         """
         Construye la estructura completa del frame.
@@ -169,6 +177,7 @@ class BaseFrame(ctk.CTkScrollableFrame):
         self._ensure_full_overlay()
         if self._full_overlay_label and text:
             self._full_overlay_label.configure(text=text)
+        self._sync_viewport_height()
         self._full_overlay_frame.place(relx=0, rely=0, relwidth=1, relheight=1)
         try:
             self._full_overlay_frame.lift()

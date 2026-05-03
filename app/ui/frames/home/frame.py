@@ -31,6 +31,14 @@ class HomeFrame(ctk.CTkScrollableFrame):
         self._build()
         self.after(0, self._bind_viewport_sync)
 
+    def on_view_shown(self):
+        """Re-sincroniza el viewport al volver a mostrar Home."""
+        self._sync_viewport_height()
+
+    def on_view_hidden(self):
+        """Hook de lifecycle para mantener API consistente con los modulos."""
+        return
+
     def _bind_viewport_sync(self):
         """Mantiene la pantalla Home con al menos el alto del viewport visible."""
         if not hasattr(self, "_parent_canvas"):
