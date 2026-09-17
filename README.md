@@ -152,9 +152,14 @@ Updates:
 - Submit a PR with clear, small changes.
 - Keep the project's style and current structure.
 
-### ⭐ Support the Project
+### 💙 Support the Project
 
-If Yagua was useful to you, leave a star on the repo — it's free and helps a lot for more people to find it :)
+Yagua is free and open-source, and your support helps me continue developing, maintaining, and improving it.
+
+If you find Yagua useful, consider supporting the project:
+[💙 Sponsor me on GitHub](https://github.com/sponsors/GuilleBouix)
+
+Every contribution, big or small, is greatly appreciated. Thank you! 💙
 
 <a href="https://www.paypal.com/paypalme/guillebouix?locale.x=es_XC&country.x=AR" target="_blank"><img width="300" alt="paypal_donate_button" src="https://github.com/user-attachments/assets/2f3f6a1b-990c-4fb8-9fda-7482c1ca20a5" />
 </a>
