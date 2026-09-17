@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+title: "Yagua – Image Processor"
+type: software
+
+authors:
+  - family-names: "Bouix"
+    given-names: "Guille"
+    website: "https://github.com/GuilleBouix"
+
+repository-code: "https://github.com/GuilleBouix/Yagua-Image-Processor"
+url: "https://github.com/GuilleBouix/Yagua-Image-Processor"
+
+license: "MIT"
+
+abstract: "A free and open-source desktop application for local batch image processing."
+
+keywords:
+  - image processing
+  - batch processing
+  - image conversion
+  - image compression
+  - open source
+  - desktop application
+  - Python
