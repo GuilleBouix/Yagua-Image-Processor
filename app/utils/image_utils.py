@@ -6,11 +6,14 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
+from typing import Any
 
+from numpy.typing import NDArray
 from PIL import Image, ImageOps
 
 
 logger = logging.getLogger(__name__)
+CvImage = NDArray[Any]
 
 
 def init_heif_support() -> bool:
@@ -18,7 +21,7 @@ def init_heif_support() -> bool:
     Registra el soporte HEIF/HEIC en Pillow si la dependencia existe.
     """
     try:
-        import pillow_heif
+        import pillow_heif  # noqa: F401
         pillow_heif.register_heif_opener()
         logger.info("image_utils: HEIF opener registrado")
         return True
@@ -32,13 +35,13 @@ def heif_supported() -> bool:
     Indica si el soporte HEIF/HEIC esta disponible en el runtime.
     """
     try:
-        import pillow_heif
+        import pillow_heif  # noqa: F401
         return True
     except Exception:
         return False
 
 
-def load_cv_image(ruta) -> "object | None":
+def load_cv_image(ruta: str | Path) -> CvImage | None:
     """
     Carga una imagen en formato BGR compatible con OpenCV.
     Soporta rutas con acentos usando imdecode.
@@ -68,7 +71,7 @@ def load_cv_image(ruta) -> "object | None":
         return None
 
 
-def load_cv_image_unchanged(ruta) -> "object | None":
+def load_cv_image_unchanged(ruta: str | Path) -> CvImage | None:
     """
     Carga una imagen preservando canales (incluye alpha si existe).
     Soporta rutas con acentos usando imdecode.
@@ -128,7 +131,7 @@ def ensure_rgb_for_jpeg(imagen: Image.Image) -> Image.Image:
     return imagen.convert('RGB')
 
 
-def save_cv_image(ruta, imagen) -> bool:
+def save_cv_image(ruta: str | Path, imagen: CvImage) -> bool:
     """
     Guarda un array de OpenCV en disco de forma segura (Windows-friendly).
     """

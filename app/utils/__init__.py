@@ -8,8 +8,6 @@ Relacionado con:
 """
 
 import logging
-from typing import Optional
-
 import customtkinter as ctk
 from PIL import Image
 

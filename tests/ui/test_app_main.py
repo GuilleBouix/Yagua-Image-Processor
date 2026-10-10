@@ -1,4 +1,6 @@
+from app import app as app_module
 from app import main as app_main
+from app.ui import main_window
 
 
 def test_main_aplica_escala_antes_de_crear_app(monkeypatch, tmp_path):
@@ -28,3 +30,27 @@ def test_main_aplica_escala_antes_de_crear_app(monkeypatch, tmp_path):
         ("app", None),
         ("mainloop", None),
     ]
+
+
+def test_dock_reopen_registra_y_ejecuta_callback_en_macos(monkeypatch):
+    commands = {}
+    calls = []
+
+    class FakeWindow:
+        def createcommand(self, name, callback):
+            commands[name] = callback
+
+        def _on_dock_click(self):
+            calls.extend(("deiconify", "lift", "focus"))
+
+    window = FakeWindow()
+    monkeypatch.setattr(app_module.sys, "platform", "darwin")
+
+    app_module.YaguaApp._setup_dock_reopen(window)
+    commands["tk::mac::ReopenApplication"]()
+
+    assert calls == ["deiconify", "lift", "focus"]
+
+
+def test_main_window_tiene_traducciones_para_banner_de_actualizacion():
+    assert main_window.t("updates_available")

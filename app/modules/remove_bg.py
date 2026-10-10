@@ -159,8 +159,11 @@ def _analyze_background(imagen: Image.Image) -> BackgroundAnalysis:
     luminance = np.dot(border_pixels, np.array([0.2126, 0.7152, 0.0722], dtype=np.float32))
     luminance_median = float(np.median(luminance))
     luminance_std = float(np.std(luminance))
-    background_rgb = tuple(
-        int(round(channel)) for channel in np.median(border_pixels, axis=0).tolist()
+    median_rgb = np.median(border_pixels, axis=0).tolist()
+    background_rgb = (
+        int(round(median_rgb[0])),
+        int(round(median_rgb[1])),
+        int(round(median_rgb[2])),
     )
     is_light_uniform = luminance_median >= 235 and luminance_std <= 18
 

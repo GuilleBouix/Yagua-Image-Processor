@@ -20,6 +20,7 @@ from app.ui import colors, fonts
 from app.utils.update_checker import check_latest_stable
 from app.version import __version__
 from app.ui.frames.home.frame import HomeFrame
+from app.translations import t
 
 
 logger = logging.getLogger(__name__)
@@ -96,9 +97,10 @@ class MainWindow(ctk.CTkFrame):
 
     def _show_update_banner(self, version: str, url: str):
         # Evitar duplicados en la misma sesión.
-        if hasattr(self, "_update_banner") and getattr(self, "_update_banner") is not None:
+        banner = getattr(self, "_update_banner", None)
+        if banner is not None:
             try:
-                if self._update_banner.winfo_exists():
+                if banner.winfo_exists():
                     return
             except Exception:
                 pass

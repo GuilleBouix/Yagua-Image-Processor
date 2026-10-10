@@ -17,7 +17,6 @@ from pathlib import Path
 from tkinter import filedialog
 
 import cv2
-import numpy as np
 import customtkinter as ctk
 from PIL import Image
 
@@ -229,8 +228,6 @@ class WatermarkFrame(BaseFrame):
         self._construir_preview(panel_preview)
 
     def _construir_controles(self, p):
-        pad = (16, 16)
-
         # Preset
         ctk.CTkLabel(
             p, text=t("watermark_preset"),
@@ -490,6 +487,7 @@ class WatermarkFrame(BaseFrame):
     def _cargar_preview_base(self, ruta):
         self._iniciar_carga_preview("base", ruta)
 
+
     def _cargar_preview_wm(self, ruta):
         self._iniciar_carga_preview("watermark", ruta)
 
@@ -578,6 +576,7 @@ class WatermarkFrame(BaseFrame):
             except Exception:
                 pass
             self._preview_job = None
+
 
     def _disparar_preview(self):
         if self._preview_base_bgra is None or self._preview_wm_bgra is None:
@@ -726,7 +725,8 @@ class WatermarkFrame(BaseFrame):
             canvas.configure(image=ctk_img, text="")
             canvas._ctk_image = ctk_img
         except Exception as e:
-            import logging; logging.getLogger(__name__).warning(f"Error canvas: {e}")
+            import logging
+            logging.getLogger(__name__).warning("Error canvas: %s", e)
 
     # ------------------------------------------------------------------ #
     #  Flujo batch                                                         #

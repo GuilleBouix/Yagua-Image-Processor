@@ -111,13 +111,13 @@ def rgb_a_hsl(rgb_tuple):
     red, green, blue = rgb_tuple[0] / 255, rgb_tuple[1] / 255, rgb_tuple[2] / 255
     max_val, min_val = max(red, green, blue), min(red, green, blue)
     diferencia = max_val - min_val
-    l = (max_val + min_val) / 2
+    lightness = (max_val + min_val) / 2
 
     # Calcular matiz y saturacion
     if diferencia == 0:
         h = s = 0
     else:
-        s = diferencia / (1 - abs(2 * l - 1))
+        s = diferencia / (1 - abs(2 * lightness - 1))
         if max_val == red:
             h = ((green - blue) / diferencia) % 6
         elif max_val == green:
@@ -128,7 +128,7 @@ def rgb_a_hsl(rgb_tuple):
         if h < 0:
             h += 360
 
-    return (int(h), int(s * 100), int(l * 100))
+    return (int(h), int(s * 100), int(lightness * 100))
 
 
 def es_color_claro(rgb_tuple):
@@ -160,11 +160,11 @@ def formatos_color(rgb_tuple):
     Returns:
         Diccionario con los formatos: HEX, RGB, HSL y CSS var.
     """
-    h, s, l = rgb_a_hsl(rgb_tuple)
+    h, s, lightness = rgb_a_hsl(rgb_tuple)
     return {
         'HEX':      rgb_a_hex(rgb_tuple),
         'RGB':      f'rgb({rgb_tuple[0]}, {rgb_tuple[1]}, {rgb_tuple[2]})',
-        'HSL':      f'hsl({h}, {s}%, {l}%)',
+        'HSL':      f'hsl({h}, {s}%, {lightness}%)',
         'CSS var':  f'--color: {rgb_a_hex(rgb_tuple)};',
     }
 
