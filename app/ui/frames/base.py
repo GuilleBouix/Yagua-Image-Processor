@@ -178,9 +178,12 @@ class BaseFrame(ctk.CTkScrollableFrame):
         if self._full_overlay_label and text:
             self._full_overlay_label.configure(text=text)
         self._sync_viewport_height()
-        self._full_overlay_frame.place(relx=0, rely=0, relwidth=1, relheight=1)
+        overlay = self._full_overlay_frame
+        if overlay is None:
+            return
+        overlay.place(relx=0, rely=0, relwidth=1, relheight=1)
         try:
-            self._full_overlay_frame.lift()
+            overlay.lift()
         except Exception:
             pass
         if self._full_overlay_bar:

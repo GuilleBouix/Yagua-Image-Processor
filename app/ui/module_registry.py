@@ -13,11 +13,9 @@ from dataclasses import dataclass
 import importlib
 import json
 import logging
-from typing import Iterable, List, Optional
+from typing import List, Optional
 
 from app.utils.settings import settings_path
-
-import customtkinter as ctk
 
 
 logger = logging.getLogger(__name__)

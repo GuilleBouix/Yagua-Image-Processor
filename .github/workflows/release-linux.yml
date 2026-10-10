@@ -72,6 +72,12 @@ jobs:
           python -m pip install -U pip wheel setuptools
           python -m pip install -r requirements.txt
           python -m pip install appimage-builder==1.1.0
+          python -m pip install -r requirements-dev.txt
+
+      - name: Lint and type check
+        run: |
+          ruff check app tests scripts
+          pyright --skipunannotated --pythonpath "$(which python)" app
 
       - name: Pytest
         run: |

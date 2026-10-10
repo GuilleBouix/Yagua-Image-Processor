@@ -367,7 +367,8 @@ class OcrFrame(BaseFrame):
             self.after(0, lambda: self._finalizar_ocr(res))
         except Exception as exc:
             logger.exception("Error en proceso OCR: %s", exc)
-            self.after(0, lambda: self._handle_error(str(exc)))
+            error_message = str(exc)
+            self.after(0, lambda: self._handle_error(error_message))
 
     def _handle_error(self, msg: str):
         """Maneja errores y restaura el estado visual."""

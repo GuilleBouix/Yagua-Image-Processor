@@ -24,6 +24,14 @@ jobs:
         run: |
           python -m pip install -U pip wheel setuptools
           python -m pip install -r requirements.txt
+          python -m pip install -r requirements-dev.txt
+
+      - name: Lint and type check
+        shell: pwsh
+        run: |
+          ruff check app tests scripts
+          $pythonPath = (Get-Command python).Source
+          pyright --skipunannotated --pythonpath $pythonPath app
 
       - name: Pytest
         shell: pwsh
@@ -49,6 +57,12 @@ jobs:
         run: |
           python -m pip install -U pip wheel setuptools
           python -m pip install -r requirements.txt
+          python -m pip install -r requirements-dev.txt
+
+      - name: Lint and type check
+        run: |
+          ruff check app tests scripts
+          pyright --skipunannotated --pythonpath "$(which python)" app
 
       - name: Pytest
         run: |

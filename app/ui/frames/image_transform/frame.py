@@ -229,27 +229,6 @@ class ImageTransformFrame(BaseFrame):
         )
         self._btn_aplicar.grid(row=0, column=1, sticky='e')
 
-    def _cargar_imagenes(self, rutas):
-        """Carga imagenes con limite de 100."""
-        logger.info("image_transform.ui: cargar_imagenes (total=%s)", len(rutas))
-        limite = 100
-        total = len(rutas)
-        if total > limite:
-            rutas = rutas[:limite]
-            self._limite_msg = t('limit_reached').format(limit=limite, total=total)
-        else:
-            self._limite_msg = None
-
-        super()._cargar_imagenes(rutas)
-        self._state.imagenes = list(rutas)
-        n = len(rutas)
-        suffix = t('images_loaded') if n > 1 else t('image_loaded')
-        msg = f'{n} {suffix}'
-        if self._limite_msg:
-            msg += f'  -  {self._limite_msg}'
-        self._lbl_info.configure(text=msg)
-        logger.info("image_transform.ui: imagenes cargadas (mostradas=%s)", len(rutas))
-
     def _crear_boton_accion_rapida(self, parent, texto, comando):
         """
         Crea un boton de accion rapida con estilo inactivo por defecto.
@@ -329,13 +308,24 @@ class ImageTransformFrame(BaseFrame):
         self._lbl_angulo.configure(text='0°')
 
     def _cargar_imagenes(self, rutas):
-        """Carga archivos en el estado."""
+        """Carga hasta 100 archivos en el estado y actualiza el contador."""
         logger.info("image_transform.ui: cargar_imagenes (total=%s)", len(rutas))
+        limite = 100
+        total = len(rutas)
+        if total > limite:
+            rutas = rutas[:limite]
+            self._limite_msg = t('limit_reached').format(limit=limite, total=total)
+        else:
+            self._limite_msg = None
+
         super()._cargar_imagenes(rutas)
         self._state.imagenes = list(rutas)
         n = len(rutas)
         suffix = t('images_loaded') if n > 1 else t('image_loaded')
-        self._lbl_info.configure(text=f'{n} {suffix}')
+        msg = f'{n} {suffix}'
+        if self._limite_msg:
+            msg += f'  -  {self._limite_msg}'
+        self._lbl_info.configure(text=msg)
         logger.info("image_transform.ui: imagenes cargadas (mostradas=%s)", len(rutas))
 
     def _ejecutar(self):

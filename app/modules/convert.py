@@ -9,6 +9,7 @@ Relacionado con:
 
 import logging
 from pathlib import Path
+from typing import Callable, TypedDict
 
 from PIL import Image
 
@@ -16,6 +17,23 @@ from app.utils.image_utils import normalize_common, ensure_rgb_for_jpeg
 from app.utils.output import unique_output_path
 
 logger = logging.getLogger(__name__)
+
+
+class ConversionResult(TypedDict):
+    ruta_entrada: str | Path
+    ruta_salida: str
+    fmt_origen: str
+    fmt_destino: str
+    tam_original: int
+    tam_resultado: int
+    conflicto: bool
+
+
+class BatchConversionResult(TypedDict):
+    ok: int
+    errores: int
+    fmt_destino: str
+    conflictos: int
 
 
 # Lista de formatos de destino disponibles
@@ -162,7 +180,12 @@ def formato_soporta_calidad(formato):
     return formato.upper() not in {'PNG', 'ICO', 'BMP', 'GIF'}
 
 
-def convertir_imagen(ruta_entrada, fmt_destino, carpeta_salida, calidad=90):
+def convertir_imagen(
+    ruta_entrada: str | Path,
+    fmt_destino: str,
+    carpeta_salida: str | Path,
+    calidad: int = 90,
+) -> ConversionResult:
     """
     Convierte una imagen al formato destino.
     
@@ -220,7 +243,13 @@ def convertir_imagen(ruta_entrada, fmt_destino, carpeta_salida, calidad=90):
     }
 
 
-def batch_convertir(rutas, fmt_destino, carpeta_salida, calidad=90, progress_cb=None):
+def batch_convertir(
+    rutas: list[str | Path],
+    fmt_destino: str,
+    carpeta_salida: str | Path,
+    calidad: int = 90,
+    progress_cb: Callable[[int, int], None] | None = None,
+) -> list[ConversionResult]:
     """
     Convierte multiples imagenes al formato destino.
     
@@ -247,7 +276,12 @@ def batch_convertir(rutas, fmt_destino, carpeta_salida, calidad=90, progress_cb=
     return resultados
 
 
-def batch_convertir_safe(rutas, fmt_destino, carpeta_salida, calidad=90):
+def batch_convertir_safe(
+    rutas: list[str | Path],
+    fmt_destino: str,
+    carpeta_salida: str | Path,
+    calidad: int = 90,
+) -> BatchConversionResult:
     """
     Convierte multiples imagenes con manejo de errores.
     

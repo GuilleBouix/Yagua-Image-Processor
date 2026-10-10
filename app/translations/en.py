@@ -36,7 +36,6 @@ TRANSLATIONS = {
     'resize': 'Resize',
     'rename': 'Batch Rename',
     'palette': 'Extract Palette',
-    'watermark': 'Watermark',
     'metadata': 'EXIF Metadata',
     'lqip': 'LQIP / Base64',
     'ocr': 'Extract Text',
@@ -84,8 +83,6 @@ TRANSLATIONS = {
     'pick_color': 'Pick',
     'transparency_png_only': 'Transparent exports as PNG.',
     'remove_bg_btn': 'Remove background',
-    'processing': 'Processing...',
-    'processed': 'processed',
     'rembg_unavailable_short': 'Remove Background is unavailable.',
     'rembg_missing_dependency': 'Missing or incomplete dependency: {dependency}.',
     'rembg_error_detail': 'Technical detail: {error}',
@@ -317,7 +314,6 @@ TRANSLATIONS = {
     'ocr_lang_es_en': 'Spanish/English',
     'ocr_lang_es': 'Spanish',
     'ocr_lang_en': 'English',
-    'select_language': 'Select language',
 
     # Vectorize
     "vectorizar":               "Vectorize",

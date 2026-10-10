@@ -32,7 +32,6 @@ def main():
         level=logging.INFO,
         format='%(asctime)s [%(levelname)s] %(name)s: %(message)s',
     )
-    logger = logging.getLogger(__name__)
     logging.getLogger('PIL').setLevel(logging.WARNING)
     logging.getLogger('customtkinter').setLevel(logging.WARNING)
 

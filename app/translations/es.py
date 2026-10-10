@@ -36,7 +36,6 @@ TRANSLATIONS = {
     'resize': 'Redimensionar',
     'rename': 'Renombrar Lote',
     'palette': 'Extraer Paleta',
-    'watermark': 'Marca de Agua',
     'metadata': 'Metadatos EXIF',
     'lqip': 'LQIP / Base64',
     'ocr': 'Extraer Texto',
@@ -84,8 +83,6 @@ TRANSLATIONS = {
     'pick_color':             'Elegir',
     'transparency_png_only':  'Transparente exporta como PNG.',
     'remove_bg_btn':          'Quitar fondo',
-    'processing':             'Procesando...',
-    'processed':              'procesadas',
     'rembg_unavailable_short':'No se pudo activar Quitar Fondo.',
     'rembg_missing_dependency':'Falta o está incompleta la dependencia: {dependency}.',
     'rembg_error_detail':     'Detalle técnico: {error}',
@@ -318,7 +315,6 @@ TRANSLATIONS = {
     'ocr_lang_es_en': 'Español/Inglés',
     'ocr_lang_es': 'Español',
     'ocr_lang_en': 'Inglés',
-    'select_language': 'Seleccionar idioma',
 
     # Vectorize
     "vectorizar":               "Vectorizar",

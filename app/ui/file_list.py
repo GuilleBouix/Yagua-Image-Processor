@@ -14,8 +14,6 @@ from __future__ import annotations
 
 import threading
 from pathlib import Path
-from typing import Callable
-
 import customtkinter as ctk
 from PIL import Image
 

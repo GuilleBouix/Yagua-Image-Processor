@@ -74,3 +74,24 @@ def test_check_latest_stable_devuelve_none_si_no_hay_release_superior(monkeypatc
     monkeypatch.setattr(update_checker.requests, "get", lambda *args, **kwargs: _FakeResponse(payload))
 
     assert update_checker.check_latest_stable("2.0.0") is None
+
+
+def test_check_latest_stable_rechaza_payload_no_lista(monkeypatch):
+    monkeypatch.setattr(update_checker.requests, "get", lambda *args, **kwargs: _FakeResponse({"items": []}))
+
+    assert update_checker.check_latest_stable("2.0.0") is None
+
+
+def test_check_latest_stable_rechaza_version_actual_invalida(monkeypatch):
+    monkeypatch.setattr(update_checker.requests, "get", lambda *args, **kwargs: _FakeResponse([]))
+
+    assert update_checker.check_latest_stable("no-es-version") is None
+
+
+def test_check_latest_stable_no_falla_si_github_no_responde(monkeypatch):
+    def fail_request(*args, **kwargs):
+        raise update_checker.requests.Timeout("offline")
+
+    monkeypatch.setattr(update_checker.requests, "get", fail_request)
+
+    assert update_checker.check_latest_stable("2.0.0") is None

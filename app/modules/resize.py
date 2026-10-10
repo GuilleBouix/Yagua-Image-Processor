@@ -15,8 +15,6 @@ from PIL import Image
 from app.utils.image_utils import normalize_common
 from app.utils.output import unique_output_path
 
-from math import gcd
-
 logger = logging.getLogger(__name__)
 
 

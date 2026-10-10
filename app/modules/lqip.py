@@ -14,10 +14,21 @@ import logging
 import re
 import unicodedata
 from pathlib import Path
+from typing import NotRequired, TypedDict
 
 from PIL import Image, ImageFilter
 
 logger = logging.getLogger(__name__)
+
+
+class LqipResult(TypedDict):
+    nombre: str
+    base64: str
+    data_uri: str
+    html_tag: str
+    css_bg: str
+    bytes: NotRequired[int]
+    dimensiones: NotRequired[str]
 
 
 def _nombre_css_seguro(nombre_archivo):
@@ -101,7 +112,7 @@ def generar_lqip(ruta, ancho=20, blur=2.0, calidad=40):
     return resultado
 
 
-def _construir_resultado(datos_b64, nombre_archivo):
+def _construir_resultado(datos_b64: str, nombre_archivo: str) -> LqipResult:
     """
     Construye el diccionario de resultados con todos los formatos.
 

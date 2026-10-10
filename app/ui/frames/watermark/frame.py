@@ -17,7 +17,6 @@ from pathlib import Path
 from tkinter import filedialog
 
 import cv2
-import numpy as np
 import customtkinter as ctk
 from PIL import Image
 
@@ -194,8 +193,6 @@ class WatermarkFrame(BaseFrame):
         self._construir_preview(panel_preview)
 
     def _construir_controles(self, p):
-        pad = (16, 16)
-
         # Preset
         ctk.CTkLabel(
             p, text=t("watermark_preset"),
@@ -463,7 +460,8 @@ class WatermarkFrame(BaseFrame):
             self._mostrar_canvas(self._canvas_preview, self._preview_base_bgra)
             self._disparar_preview()
         except Exception as e:
-            import logging; logging.getLogger(__name__).warning(f"Error cargando base preview: {e}")
+            import logging
+            logging.getLogger(__name__).warning("Error cargando base preview: %s", e)
 
     def _cargar_preview_wm(self, ruta):
         try:
@@ -477,7 +475,8 @@ class WatermarkFrame(BaseFrame):
             self._preview_wm_bgra = img
             self._disparar_preview()
         except Exception as e:
-            import logging; logging.getLogger(__name__).warning(f"Error cargando wm preview: {e}")
+            import logging
+            logging.getLogger(__name__).warning("Error cargando wm preview: %s", e)
 
     def _disparar_preview(self):
         if self._preview_base_bgra is None or self._preview_wm_bgra is None:
@@ -609,7 +608,8 @@ class WatermarkFrame(BaseFrame):
             canvas.configure(image=ctk_img, text="")
             canvas._ctk_image = ctk_img
         except Exception as e:
-            import logging; logging.getLogger(__name__).warning(f"Error canvas: {e}")
+            import logging
+            logging.getLogger(__name__).warning("Error canvas: %s", e)
 
     # ------------------------------------------------------------------ #
     #  Flujo batch                                                         #

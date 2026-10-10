@@ -13,8 +13,6 @@ Relacionado con:
 
 import logging
 import webbrowser
-from pathlib import Path
-
 from PIL import Image
 import customtkinter as ctk
 
