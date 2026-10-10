@@ -29,7 +29,6 @@ fi
   --collect-submodules "easyocr" \
   --collect-data "easyocr" \
   --hidden-import "pillow_heif" \
-  --collect-submodules "vtracer" \
   --hidden-import "cv2" \
   --collect-all "rembg" \
   --collect-all "pymatting" \

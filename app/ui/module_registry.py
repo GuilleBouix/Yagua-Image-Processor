@@ -65,12 +65,6 @@ _MODULE_SPECS = [
         'app.ui.frames.resize.frame:ResizeFrame',
     ),
     ModuleSpec(
-        'image_transform',
-        'image_transform_title',
-        'assets/icons/image_transform.png',
-        'app.ui.frames.image_transform.frame:ImageTransformFrame'
-    ),
-    ModuleSpec(
         'remove_bg',
         'remove_bg',
         'assets/icons/remove_background.png',
@@ -99,12 +93,6 @@ _MODULE_SPECS = [
         'ocr',
         'assets/icons/ocr.png',
         'app.ui.frames.ocr.frame:OcrFrame',
-    ),
-    ModuleSpec(
-        "vectorizar",
-        "vectorizar",
-        "assets/icons/vector.png",
-        "app.ui.frames.vectorizar.frame:VectorizarFrame",
     ),
     ModuleSpec(
         'metadata',

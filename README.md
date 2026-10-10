@@ -33,12 +33,10 @@ Yagua brings together in a single interface features oriented toward modern web 
 - Conversion between multiple image formats
 - AI background removal (rembg)
 - Resize, crop and canvas editing
-- Image transformation (rotation, flip, EXIF)
 - Automatic color palette extraction
 - Bulk renaming with live preview
 - Watermark with real-time preview
 - OCR (EasyOCR)
-- Vectorization to SVG (vtracer)
 - EXIF metadata management (view, edit and clean)
 - LQIP generation and Base64 encoding
 - HEIC/HEIF support (requires `pillow-heif`)
@@ -114,8 +112,7 @@ For Yagua to run smoothly, especially with large batches (up to 100 images):
 - 100 images per batch (compression, conversion, resize, rename, LQIP)
 - 10 images per batch for Background Removal
 - 10 images per batch for OCR
-- 50 images per batch for Vectorize (also skips files over 1 MB) — accepts `PNG/WEBP/TIFF/HEIC/HEIF`
-- 100 images per batch for Transform and Watermark
+- 100 images per batch for Watermark
 - 100 images for metadata cleanup (EXIF)
 
 ### 🚀 Usage
@@ -143,7 +140,6 @@ Updates:
 | piexif        | 1.1.3   | EXIF metadata                |
 | rembg         | 2.0.73  | AI background removal        |
 | EasyOCR       | 1.x     | Local OCR (CPU/GPU)          |
-| vtracer       | 0.x     | Raster → SVG vectorization   |
 | Codex         | N/A     | Development assistance       |
 
 ### 🤝 Contributing
@@ -208,12 +204,10 @@ Yagua integra en una sola interfaz features orientadas al flujo de trabajo web m
 - Conversión entre múltiples formatos de imagen
 - Eliminación de fondo con IA (rembg)
 - Redimensionado, recorte y edición en canvas
-- Transformación de imágenes (rotación, flip, EXIF)
 - Extracción automática de paleta de colores
 - Renombrado masivo con vista previa
 - Marca de agua con preview en tiempo real
 - OCR (EasyOCR)
-- Vectorización a SVG (vtracer)
 - Gestión de metadatos EXIF (visualizar, editar y limpiar)
 - Generación de LQIP y codificación Base64
 - Soporte HEIC/HEIF (requiere `pillow-heif`)
@@ -289,8 +283,7 @@ Para que Yagua funcione de manera fluida, especialmente con lotes grandes (hasta
 - 100 imágenes por lote (compresión, conversión, resize, rename, LQIP)
 - 10 imágenes por lote en Quitar Fondo
 - 10 imágenes por lote en OCR
-- 50 imágenes por lote en Vectorizar (además omite archivos de más de 1 MB) — acepta `PNG/WEBP/TIFF/HEIC/HEIF`
-- 100 imágenes por lote en Transformar y Marca de agua
+- 100 imágenes por lote en Marca de agua
 - 100 imágenes en limpieza de metadatos (EXIF)
 
 ### 🚀 Uso
@@ -318,7 +311,6 @@ Actualizaciones:
 | piexif        | 1.1.3   | Metadatos EXIF              |
 | rembg         | 2.0.73  | Quitar fondo con IA         |
 | EasyOCR       | 1.x     | OCR local (CPU/GPU)         |
-| vtracer       | 0.x     | Vectorización raster → SVG  |
 | Codex         | N/A     | Asistencia de desarrollo    |
 
 ### 🤝 Contribución

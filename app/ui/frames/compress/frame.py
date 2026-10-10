@@ -22,7 +22,6 @@ from app.translations import t
 from app.ui.frames.base import BaseFrame
 from app.ui.frames.compress.services import (
     batch_comprimir,
-    estimar_tamano,
     formatear_bytes,
 )
 from app.ui.frames.compress.state import CompressState
@@ -161,10 +160,10 @@ class CompressFrame(BaseFrame):
 
     def _cargar_imagenes(self, rutas):
         """
-        Carga las imagenes seleccionadas y estima el tamano.
+        Carga las imagenes seleccionadas sin procesarlas para estimar el tamano.
         
-        Sobrescribe el metodo de BaseFrame para agregar
-        estimacion de tamano en segundo plano.
+        Sobrescribe el metodo de BaseFrame para aplicar el limite del modulo
+        y mostrar cuantas imagenes se cargaron.
         
         Args:
             rutas: Lista de rutas de archivos a cargar.
@@ -180,67 +179,22 @@ class CompressFrame(BaseFrame):
 
         super()._cargar_imagenes(rutas)
         self._state.imagenes = list(rutas)
-        threading.Thread(target=self._procesar_carga, args=(rutas,), daemon=True).start()
+        cantidad = len(rutas)
+        suffix = t('images_loaded') if cantidad > 1 else t('image_loaded')
+        msg = f'{cantidad} {suffix}'
+        if self._limite_msg:
+            msg += f'  -  {self._limite_msg}'
+        self._lbl_info.configure(text=msg)
         logger.info("compress.ui: imagenes cargadas (mostradas=%s)", len(rutas))
-
-    def _procesar_carga(self, rutas):
-        """
-        Calcula el tamano estimado de compresion en segundo plano.
-        
-        Args:
-            rutas: Lista de rutas de archivos.
-        """
-        logger.info("compress.ui: proceso_carga_inicio (imagenes=%s)", len(rutas))
-        estimado = 0
-        for ruta in rutas:
-            try:
-                estimado += estimar_tamano(ruta, self._state.calidad.get())
-            except Exception as exc:
-                logger.warning("Error al estimar tamano %s: %s", ruta, exc)
-                continue
-        self.after(0, lambda: self._aplicar_carga(estimado, len(rutas)))
-
-    def _aplicar_carga(self, estimado, n):
-        """
-        Muestra la informacion de tamano estimado.
-        
-        Args:
-            estimado: Tamano total estimado en bytes.
-            n: Cantidad de imagenes.
-        """
-        if estimado > 0:
-            suffix = t('images_loaded') if n > 1 else t('image_loaded')
-            msg = f'{n} {suffix} - {t("estimated")} {formatear_bytes(estimado)}'
-            if self._limite_msg:
-                msg += f'  -  {self._limite_msg}'
-            self._lbl_info.configure(text=msg)
 
     def _actualizar_calidad(self, val):
         """
-        Actualiza el label de calidad y recalcula el estimado.
+        Actualiza solo el label de calidad para mantener el slider fluido.
         
         Args:
             val: Nuevo valor del slider.
         """
         self._lbl_calidad.configure(text=str(int(val)))
-        self._actualizar_estimado()
-
-    def _actualizar_estimado(self, *args):
-        """
-        Recalcula y muestra el tamano estimado con la calidad actual.
-        """
-        if not self._imagenes:
-            self._lbl_info.configure(text='')
-            return
-        try:
-            estimado = sum(estimar_tamano(r, self._state.calidad.get()) for r in self._imagenes)
-            n = len(self._imagenes)
-            suffix = t('images_loaded') if n > 1 else t('image_loaded')
-            self._lbl_info.configure(
-                text=f'{n} {suffix} - {t("estimated")} {formatear_bytes(estimado)}'
-            )
-        except Exception as exc:
-            logger.warning("Error al actualizar estimado: %s", exc)
 
     def _comprimir(self):
         """

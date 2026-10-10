@@ -36,6 +36,38 @@ logger = logging.getLogger(__name__)
 _PREVIEW_MAX_PX = 260
 _DEBOUNCE_MS    = 350
 
+
+def _preparar_preview_imagen(ruta):
+    """Carga una imagen en BGRA y la reduce al tamaño máximo del preview."""
+    imagen = load_cv_image_unchanged(ruta)
+    if imagen is None:
+        return None
+
+    if imagen.ndim == 2:
+        imagen = cv2.cvtColor(imagen, cv2.COLOR_GRAY2BGRA)
+    elif imagen.shape[2] == 3:
+        imagen = cv2.cvtColor(imagen, cv2.COLOR_BGR2BGRA)
+    elif imagen.shape[2] != 4:
+        return None
+
+    alto, ancho = imagen.shape[:2]
+    escala = min(_PREVIEW_MAX_PX / max(alto, ancho), 1.0)
+    if escala < 1.0:
+        nuevo_ancho = max(1, int(ancho * escala))
+        nuevo_alto = max(1, int(alto * escala))
+        imagen = cv2.resize(
+            imagen, (nuevo_ancho, nuevo_alto), interpolation=cv2.INTER_AREA
+        )
+    return imagen
+
+
+def _crear_miniatura_watermark(imagen):
+    """Crea una miniatura PIL desde la imagen BGRA ya reducida."""
+    imagen_rgba = cv2.cvtColor(imagen, cv2.COLOR_BGRA2RGBA)
+    miniatura = Image.fromarray(imagen_rgba, "RGBA")
+    miniatura.thumbnail((44, 44), Image.Resampling.LANCZOS)
+    return miniatura
+
 POSICION_LABELS = {
     "Arriba izq.":   "top-left",
     "Arriba der.":   "top-right",
@@ -86,6 +118,9 @@ class WatermarkFrame(BaseFrame):
         self._preview_wm_bgra   = None   # watermark original (se reescala en preview)
         self._preview_job       = None
         self._preview_activo    = False
+        self._preview_revision  = 0
+        self._preview_load_revisions = {"base": 0, "watermark": 0}
+        self._wm_thumb_label = None
 
         super().__init__(parent, t("watermark_title"))
         try:
@@ -440,6 +475,12 @@ class WatermarkFrame(BaseFrame):
             self._lbl_info.configure(text=self._limite_msg)
         if rutas:
             self._cargar_preview_base(rutas[0])
+        else:
+            self._invalidar_preview()
+            self._preview_load_revisions["base"] += 1
+            self._preview_base_bgra = None
+            self._mostrar_placeholder_preview()
+            self._lbl_preview_status.configure(text="")
         logger.info("watermark.ui: imagenes cargadas (mostradas=%s)", len(rutas))
 
     # ------------------------------------------------------------------ #
@@ -447,41 +488,101 @@ class WatermarkFrame(BaseFrame):
     # ------------------------------------------------------------------ #
 
     def _cargar_preview_base(self, ruta):
-        try:
-            img = load_cv_image_unchanged(ruta)
-            if img is None:
-                return
-            if img.ndim == 2:
-                img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGRA)
-            elif img.shape[2] == 3:
-                img = cv2.cvtColor(img, cv2.COLOR_BGR2BGRA)
-
-            h, w = img.shape[:2]
-            escala = min(_PREVIEW_MAX_PX / max(h, w), 1.0)
-            nw, nh = max(1, int(w * escala)), max(1, int(h * escala))
-            self._preview_base_bgra = cv2.resize(img, (nw, nh), interpolation=cv2.INTER_AREA)
-            self._mostrar_canvas(self._canvas_preview, self._preview_base_bgra)
-            self._disparar_preview()
-        except Exception as e:
-            import logging; logging.getLogger(__name__).warning(f"Error cargando base preview: {e}")
+        self._iniciar_carga_preview("base", ruta)
 
     def _cargar_preview_wm(self, ruta):
+        self._iniciar_carga_preview("watermark", ruta)
+
+    def _iniciar_carga_preview(self, tipo, ruta):
+        self._invalidar_preview()
+        self._preview_load_revisions[tipo] += 1
+        revision = self._preview_load_revisions[tipo]
+        if tipo == "base":
+            self._preview_base_bgra = None
+            self._mostrar_placeholder_preview()
+        else:
+            self._preview_wm_bgra = None
+            self._wm_thumb = None
+            if self._wm_thumb_label is not None:
+                self._wm_thumb_label.configure(image=None)
+        self._lbl_preview_status.configure(text=t("watermark_calculando"))
+        threading.Thread(
+            target=self._cargar_preview_en_background,
+            args=(tipo, ruta, revision),
+            daemon=True,
+        ).start()
+
+    def _cargar_preview_en_background(self, tipo, ruta, revision):
         try:
-            img = load_cv_image_unchanged(ruta)
-            if img is None:
-                return
-            if img.ndim == 2:
-                img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGRA)
-            elif img.shape[2] == 3:
-                img = cv2.cvtColor(img, cv2.COLOR_BGR2BGRA)
-            self._preview_wm_bgra = img
+            imagen = _preparar_preview_imagen(ruta)
+            miniatura = (
+                _crear_miniatura_watermark(imagen)
+                if tipo == "watermark" and imagen is not None
+                else None
+            )
+            error = None
+        except Exception as exc:
+            imagen = None
+            miniatura = None
+            error = exc
+
+        try:
+            self.after(
+                0,
+                lambda: self._aplicar_preview_cargado(
+                    tipo, revision, imagen, miniatura, error
+                ),
+            )
+        except Exception:
+            logger.debug("watermark.ui: frame cerrado durante carga de preview")
+
+    def _aplicar_preview_cargado(self, tipo, revision, imagen, miniatura, error):
+        if revision != self._preview_load_revisions[tipo]:
+            return
+        if error is not None:
+            logger.warning("Error cargando preview %s: %s", tipo, error)
+        elif imagen is None:
+            logger.warning("No se pudo cargar la imagen del preview %s", tipo)
+
+        if tipo == "base":
+            self._preview_base_bgra = imagen
+            if imagen is not None:
+                self._mostrar_canvas(self._canvas_preview, imagen)
+        else:
+            self._preview_wm_bgra = imagen
+            if imagen is not None and miniatura is not None and self._wm_thumb_label is not None:
+                thumb = ctk.CTkImage(
+                    light_image=miniatura,
+                    dark_image=miniatura,
+                    size=miniatura.size,
+                )
+                self._wm_thumb_label.configure(image=thumb)
+                self._wm_thumb = thumb
+
+        if self._preview_base_bgra is not None and self._preview_wm_bgra is not None:
             self._disparar_preview()
-        except Exception as e:
-            import logging; logging.getLogger(__name__).warning(f"Error cargando wm preview: {e}")
+        else:
+            self._lbl_preview_status.configure(text="")
+
+    def _mostrar_placeholder_preview(self):
+        self._canvas_preview.configure(
+            image=None, text=t("watermark_preview_placeholder")
+        )
+        self._canvas_preview._ctk_image = None
+
+    def _invalidar_preview(self):
+        self._preview_revision += 1
+        if self._preview_job is not None:
+            try:
+                self.after_cancel(self._preview_job)
+            except Exception:
+                pass
+            self._preview_job = None
 
     def _disparar_preview(self):
         if self._preview_base_bgra is None or self._preview_wm_bgra is None:
             return
+        self._preview_revision += 1
         if self._preview_job is not None:
             try:
                 self.after_cancel(self._preview_job)
@@ -490,32 +591,55 @@ class WatermarkFrame(BaseFrame):
         self._preview_job = self.after(_DEBOUNCE_MS, self._lanzar_hilo_preview)
 
     def _lanzar_hilo_preview(self):
+        self._preview_job = None
+        if self._preview_base_bgra is None or self._preview_wm_bgra is None:
+            return
         if self._preview_activo:
             return
         self._preview_activo = True
+        revision = self._preview_revision
+        base = self._preview_base_bgra.copy()
+        wm = self._preview_wm_bgra.copy()
+        opciones = (
+            self._state.posicion.get(),
+            self._state.escala.get() / 100.0,
+            self._state.opacidad.get() / 100.0,
+            max(0, int(self._state.margen.get() * min(base.shape[:2]) / 500)),
+        )
         self._lbl_preview_status.configure(text=t("watermark_calculando"))
-        threading.Thread(target=self._hilo_preview, daemon=True).start()
+        threading.Thread(
+            target=self._hilo_preview,
+            args=(revision, base, wm, *opciones),
+            daemon=True,
+        ).start()
 
-    def _hilo_preview(self):
+    def _hilo_preview(self, revision, base, wm, posicion, escala, opacidad, margen):
         try:
-            base = self._preview_base_bgra.copy() # type: ignore
-            wm   = self._preview_wm_bgra.copy() # type: ignore
-
             resultado = aplicar_watermark_np(
                 base, wm,
-                posicion=self._state.posicion.get(),
-                escala=self._state.escala.get() / 100.0,
-                opacidad=self._state.opacidad.get() / 100.0,
-                margen=max(0, int(self._state.margen.get() * min(base.shape[:2]) / 500)),
+                posicion=posicion,
+                escala=escala,
+                opacidad=opacidad,
+                margen=margen,
             )
-            self.after(0, lambda: self._actualizar_preview(resultado))
         except Exception as exc:
-            import logging
-            logging.getLogger(__name__).warning(f"Error en hilo preview watermark: {exc}")
-            self.after(0, lambda: self._actualizar_preview(None))
+            logger.warning("Error en hilo preview watermark: %s", exc)
+            resultado = None
+        try:
+            self.after(0, lambda: self._actualizar_preview(revision, resultado))
+        except Exception:
+            logger.debug("watermark.ui: frame cerrado durante calculo de preview")
 
-    def _actualizar_preview(self, resultado):
+    def _actualizar_preview(self, revision, resultado):
         self._preview_activo = False
+        if revision != self._preview_revision:
+            if (
+                self._preview_job is None
+                and self._preview_base_bgra is not None
+                and self._preview_wm_bgra is not None
+            ):
+                self._preview_job = self.after(0, self._lanzar_hilo_preview)
+            return
         self._lbl_preview_status.configure(text="")
         if resultado is None:
             return
@@ -567,6 +691,7 @@ class WatermarkFrame(BaseFrame):
             fila, text='', width=44, height=44, fg_color='transparent'
         )
         lbl_thumb.grid(row=0, column=0, padx=(8, 0), pady=6)
+        self._wm_thumb_label = lbl_thumb
 
         info = ctk.CTkFrame(fila, fg_color='transparent')
         info.grid(row=0, column=1, padx=(10, 8), pady=6, sticky='w')
@@ -585,15 +710,7 @@ class WatermarkFrame(BaseFrame):
             text_color=colors.TEXT_GRAY, anchor='w'
         ).pack(anchor='w')
 
-        try:
-            with Image.open(ruta) as img:
-                img = img.copy()
-            img.thumbnail((44, 44), Image.Resampling.LANCZOS)
-            thumb = ctk.CTkImage(light_image=img, dark_image=img, size=(44, 44))
-            lbl_thumb.configure(image=thumb)
-            self._wm_thumb = thumb
-        except Exception:
-            self._wm_thumb = None
+        self._wm_thumb = None
 
     def _mostrar_canvas(self, canvas, img_bgra):
         try:

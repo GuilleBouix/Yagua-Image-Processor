@@ -14,12 +14,11 @@ hiddenimports += collect_submodules('app.ui.frames')
 hiddenimports += collect_submodules('app.modules')
 hiddenimports += collect_submodules('app.utils')
 hiddenimports += collect_submodules('app.translations')
-# OCR / HEIC / Vectorizar
+# OCR / HEIC
 hiddenimports += collect_submodules('easyocr')
 hiddenimports += [
     'easyocr',
     'pillow_heif',
-    'vtracer',
     'cv2',
 ]
 # Forzar inclusion de frames y subcomponentes que fallan en runtime
@@ -36,14 +35,6 @@ hiddenimports += [
     'app.ui.frames.lqip.frame',
     'app.ui.frames.lqip.services',
     'app.ui.frames.lqip.state',
-    'app.ui.frames.image_transform',
-    'app.ui.frames.image_transform.frame',
-    'app.ui.frames.image_transform.services',
-    'app.ui.frames.image_transform.state',
-    'app.ui.frames.vectorizar',
-    'app.ui.frames.vectorizar.frame',
-    'app.ui.frames.vectorizar.services',
-    'app.ui.frames.vectorizar.state',
     'app.ui.frames.watermark',
     'app.ui.frames.watermark.frame',
     'app.ui.frames.watermark.services',
