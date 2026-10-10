@@ -1,4 +1,4 @@
-name: CI (Windows)
+name: CI
 
 on:
   push:
@@ -29,3 +29,27 @@ jobs:
         shell: pwsh
         run: |
           python -m pytest -q
+
+  test-linux:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install system deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-tk xvfb libgl1 libglib2.0-0 libsm6 libxext6 libxrender1 libgtk-3-0 libgomp1
+
+      - name: Install deps
+        run: |
+          python -m pip install -U pip wheel setuptools
+          python -m pip install -r requirements.txt
+
+      - name: Pytest
+        run: |
+          xvfb-run -a python -m pytest -q

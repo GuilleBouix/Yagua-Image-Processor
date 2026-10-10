@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 _READER_CACHE = {}
 _READER_LOCK = threading.Lock()
 MAX_IMAGENES = 10
+OCR_INSTALL_COMMAND = 'pip install --upgrade easyocr torch torchvision'
 
 
 def _idiomas_key(idiomas):
@@ -35,7 +36,10 @@ def get_reader(idiomas):
     with _READER_LOCK:
         if key in _READER_CACHE:
             return _READER_CACHE[key]
-        import easyocr
+        try:
+            import easyocr
+        except ImportError as exc:
+            raise ImportError(f'EasyOCR no está disponible. Ejecutá: {OCR_INSTALL_COMMAND}') from exc
         reader = easyocr.Reader(list(key))
         _READER_CACHE[key] = reader
         return reader

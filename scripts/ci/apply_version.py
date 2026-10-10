@@ -7,6 +7,7 @@ from pathlib import Path
 
 # Permitir tags semver pre-release (ej: 2.0.0-rc.1) para pre-releases de CI.
 _VER_RE = re.compile(r"^\d+\.\d+\.\d+(?:-[0-9A-Za-z][0-9A-Za-z.-]*)?$")
+_VALID_TARGETS = {"windows", "linux"}
 
 
 def _replace_line(text: str, pattern: re.Pattern[str], replacement: str) -> str:
@@ -49,8 +50,8 @@ def _apply_inno_iss(repo_root: Path, version: str) -> None:
 
 
 def main(argv: list[str]) -> int:
-    if len(argv) != 2:
-        print("Uso: python scripts/ci/apply_version.py <X.Y.Z>", file=sys.stderr)
+    if len(argv) not in {2, 3}:
+        print("Uso: python scripts/ci/apply_version.py <X.Y.Z> [windows|linux]", file=sys.stderr)
         return 2
 
     version = argv[1].strip()
@@ -58,10 +59,16 @@ def main(argv: list[str]) -> int:
         print(f"Version invalida: {version!r} (esperado X.Y.Z)", file=sys.stderr)
         return 2
 
+    target = argv[2].strip().lower() if len(argv) == 3 else "windows"
+    if target not in _VALID_TARGETS:
+        print(f"Target invalido: {target!r} (esperado windows|linux)", file=sys.stderr)
+        return 2
+
     repo_root = Path(__file__).resolve().parents[2]
     _apply_app_version_py(repo_root, version)
-    _apply_inno_iss(repo_root, version)
-    print(f"OK: version aplicada = {version}")
+    if target == "windows":
+        _apply_inno_iss(repo_root, version)
+    print(f"OK: version aplicada = {version} (target={target})")
     return 0
 
 
