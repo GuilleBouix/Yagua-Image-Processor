@@ -21,6 +21,7 @@ from app.utils.update_checker import check_latest_stable
 from app.version import __version__
 from app.ui.frames.home.frame import HomeFrame
 from app.translations import t
+from app.ui.operations import operations
 
 
 logger = logging.getLogger(__name__)
@@ -48,6 +49,7 @@ class MainWindow(ctk.CTkFrame):
         self.frames = {}
         self._active_view_key = None
         self._active_view = None
+        self._poll_operations()
 
         # Construir la estructura de la ventana
         self._build()
@@ -85,6 +87,12 @@ class MainWindow(ctk.CTkFrame):
 
         # Check de actualizaciones no bloqueante (solo estable) + banner interno.
         self.after(350, self._check_updates_on_startup)
+
+    def _poll_operations(self):
+        if not self.winfo_exists():
+            return
+        operations.drain(lambda owner: bool(owner.winfo_exists()))
+        self.after(30, self._poll_operations)
 
     def _check_updates_on_startup(self):
         def _worker():

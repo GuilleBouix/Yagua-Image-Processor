@@ -12,7 +12,6 @@ Relacionado con:
 from __future__ import annotations
 
 import logging
-import threading
 from tkinter import filedialog
 
 import customtkinter as ctk
@@ -20,6 +19,7 @@ import customtkinter as ctk
 from app.ui import colors, fonts
 from app.translations import t
 from app.ui.frames.base import BaseFrame
+from app.ui.operations import operations
 from app.ui.frames.convert.services import (
     batch_convertir_safe,
     FORMATOS_DESTINO,
@@ -256,9 +256,25 @@ class ConvertFrame(BaseFrame):
             logger.info("convert.ui: proceso_cancelado (sin_carpeta)")
             return
         
+        rutas = tuple(self._imagenes)
+        fmt_destino = self._state.fmt_destino.get()
+        calidad = self._state.calidad.get()
         self._btn_convertir.configure(state='disabled', text=t('converting'))
         self._show_full_overlay(t('processing'))
-        threading.Thread(target=self._proceso, args=(carpeta,), daemon=True).start()
+        started = operations.submit(
+            self,
+            'convert',
+            lambda: batch_convertir_safe(
+                rutas, fmt_destino=fmt_destino, carpeta_salida=carpeta, calidad=calidad
+            ),
+            lambda res: self._finalizar(
+                res['ok'], res['errores'], res['fmt_destino'], res.get('conflictos', 0)
+            ),
+            lambda error: self._fallo_conversion(error),
+        )
+        if not started:
+            self._btn_convertir.configure(state='normal', text=t('convert_btn'))
+            self._hide_full_overlay()
 
     def _proceso(self, carpeta):
         """
@@ -280,6 +296,12 @@ class ConvertFrame(BaseFrame):
             res['fmt_destino'],
             res.get('conflictos', 0),
         ))
+
+    def _fallo_conversion(self, error):
+        logger.exception("convert.ui: fallo general", exc_info=error)
+        self._btn_convertir.configure(state='normal', text=t('convert_btn'))
+        self._hide_full_overlay()
+        self._lbl_info.configure(text=f'{t("error_generic")}: {error}')
 
     def _finalizar(self, ok, errores, fmt, conflictos=0):
         """

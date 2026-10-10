@@ -11,6 +11,7 @@ Relacionado con:
 
 import logging
 import sys
+from tkinter import messagebox
 import customtkinter as ctk
 from PIL import Image, ImageTk
 
@@ -19,6 +20,7 @@ from app.utils.paths import resource_path
 from app.ui.main_window import MainWindow
 from app.translations import t
 from app.utils.image_utils import init_heif_support
+from app.ui.operations import operations
 
 logger = logging.getLogger(__name__)
 
@@ -94,6 +96,27 @@ class YaguaApp(ctk.CTk):
         # Crear ventana principal con sidebar y area de contenido
         self.main_window = MainWindow(self)
         self.main_window.pack(fill='both', expand=True)
+        self._close_after_operation = False
+        self.protocol('WM_DELETE_WINDOW', self._request_close)
+
+    def _request_close(self):
+        if not operations.active:
+            self.destroy()
+            return
+        if not self._close_after_operation and messagebox.askyesno(
+            t('app_title'),
+            'Hay un proceso en curso. ¿Cerrar la aplicación cuando termine?',
+            parent=self,
+        ):
+            self._close_after_operation = True
+        if self._close_after_operation:
+            self.after(100, self._finish_close_when_idle)
+
+    def _finish_close_when_idle(self):
+        if operations.active:
+            self.after(100, self._finish_close_when_idle)
+        else:
+            self.destroy()
     
     def _setup_dock_reopen(self):
         """Registra el handler para restaurar la ventana desde el Dock en macOS."""
