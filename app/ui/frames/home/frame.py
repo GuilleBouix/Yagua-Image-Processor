@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import webbrowser
 
 import customtkinter as ctk
 
@@ -13,6 +14,7 @@ from app.ui.module_registry import iter_enabled_modules
 
 
 logger = logging.getLogger(__name__)
+GITHUB_REPOSITORY_URL = 'https://github.com/GuilleBouix/Yagua-Image-Processor'
 
 
 class HomeFrame(ctk.CTkScrollableFrame):
@@ -103,6 +105,17 @@ class HomeFrame(ctk.CTkScrollableFrame):
             wraplength=scale_wraplength(700), justify="left",
         )
         self._lbl_hint.grid(row=1, column=0, padx=20, pady=(0, 16), sticky="w")
+
+        self._github_icon = tintar_icono('assets/icons/github.png', colors.ICON_COLOR)
+        if self._github_icon is not None:
+            self._github_icon.configure(size=(30, 30))
+        self._btn_github = ctk.CTkButton(
+            header, text='', image=self._github_icon,
+            width=44, height=44, corner_radius=8,
+            fg_color='transparent', hover_color=colors.SIDEBAR_HOVER,
+            cursor='hand2', command=lambda: webbrowser.open(GITHUB_REPOSITORY_URL),
+        )
+        self._btn_github.grid(row=0, column=1, rowspan=2, padx=20, pady=16, sticky='e')
 
         self._tool_buttons = []
         for index, spec in enumerate(iter_enabled_modules()):

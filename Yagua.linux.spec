@@ -16,7 +16,6 @@ hiddenimports += collect_submodules('app.utils')
 hiddenimports += collect_submodules('app.translations')
 hiddenimports += [
     'pillow_heif',
-    'vtracer',
     'cv2',
 ]
 hiddenimports += [
@@ -32,14 +31,6 @@ hiddenimports += [
     'app.ui.frames.lqip.frame',
     'app.ui.frames.lqip.services',
     'app.ui.frames.lqip.state',
-    'app.ui.frames.image_transform',
-    'app.ui.frames.image_transform.frame',
-    'app.ui.frames.image_transform.services',
-    'app.ui.frames.image_transform.state',
-    'app.ui.frames.vectorizar',
-    'app.ui.frames.vectorizar.frame',
-    'app.ui.frames.vectorizar.services',
-    'app.ui.frames.vectorizar.state',
     'app.ui.frames.watermark',
     'app.ui.frames.watermark.frame',
     'app.ui.frames.watermark.services',

@@ -1,0 +1,251 @@
+<div align="center">
+
+[English](../../README.md) · [Español](README_es.md) · [Português](README_pt.md) · **Français** · [Deutsch](README_de.md)
+
+<img src="https://github.com/user-attachments/assets/fc1dacf8-5249-43da-a294-4b20dc423304" width="1000" alt="Bannière Yagua — Traitement d’images" />
+
+# Yagua · Image Processor
+
+### Vos images. Votre ordinateur. Votre façon de travailler.
+
+Des outils de bureau gratuits et open source pour convertir, compresser et traiter des images par lots.
+
+<p align="center">
+  <a href="https://github.com/GuilleBouix/Yagua-Image-Processor/releases/latest"><img src="https://img.shields.io/github/v/release/GuilleBouix/Yagua-Image-Processor?style=flat-square&amp;label=stable&amp;color=2563eb" alt="Dernière version stable" /></a>
+  <a href="https://github.com/GuilleBouix/Yagua-Image-Processor/releases"><img src="https://img.shields.io/github/downloads/GuilleBouix/Yagua-Image-Processor/total?style=flat-square&amp;label=downloads&amp;color=22c55e" alt="Téléchargements totaux" /></a>
+  <a href="https://github.com/GuilleBouix/Yagua-Image-Processor/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/GuilleBouix/Yagua-Image-Processor/ci.yml?branch=main&amp;style=flat-square&amp;label=CI" alt="État de la CI" /></a>
+  <a href="#requirements"><img src="https://img.shields.io/badge/Python-3.13-3776ab?style=flat-square&amp;logo=python&amp;logoColor=white" alt="Python 3.13" /></a>
+  <a href="../../LICENSE"><img src="https://img.shields.io/badge/license-MIT-f4c430?style=flat-square" alt="Licence MIT" /></a>
+</p>
+
+**[Téléchargements](https://github.com/GuilleBouix/Yagua-Image-Processor/releases) · [Fonctionnalités](#features) · [Installation](#installation)**
+
+[Captures](#screenshots) · [Utilisation](#usage) · [Prérequis](#requirements) · [FAQ](#faq) · [Contribuer](#contributing)
+
+</div>
+
+## Pourquoi Yagua ?
+
+Yagua regroupe les tâches courantes de traitement d’images dans une application de bureau destinée aux développeurs web, designers, photographes et à toute personne travaillant avec des collections d’images. Aucun abonnement ni navigateur n’est nécessaire pour traiter vos fichiers.
+
+Le traitement s’effectue sur votre ordinateur. La suppression d’arrière-plan et l’OCR nécessitent un premier téléchargement de modèles, puis peuvent fonctionner hors ligne si les modèles nécessaires sont en cache. Les vérifications de mises à jour contactent GitHub ; les liens de téléchargement, de don et de carte s’ouvrent dans le navigateur.
+
+L’interface propose **l’anglais, l’espagnol, le portugais, le français et l’allemand**, avec des thèmes sombres, des aperçus lorsqu’ils sont disponibles et des journaux de diagnostic dans **Paramètres → Logs**.
+
+<a id="features"></a>
+
+## Fonctionnalités
+
+Le tableau décrit le code actuel. Les versions distribuées peuvent proposer des fonctionnalités différentes ; consultez leurs notes de publication.
+
+| Module | Ce que vous pouvez faire | Formats et sorties | Limite de sélection |
+| --- | --- | --- | --- |
+| Convertir | Changer de format et régler la qualité lorsque le format le permet. | Sorties JPEG, PNG, WebP, AVIF, HEIC, ICO, BMP, TIFF et GIF. | 100 images |
+| Compresser | Réduire la taille du fichier tout en conservant son format d’origine. | JPEG, PNG, WebP, AVIF, HEIC/HEIF et autres formats matriciels compatibles. | 100 images |
+| Redimensionner / Recadrer / Canevas | Modifier les dimensions, recadrer ou ajouter de l’espace ; utiliser des tailles prédéfinies. | Images matricielles courantes, dont JPEG, PNG et WebP. | 100 images |
+| Supprimer l’arrière-plan | Retirer les arrière-plans localement avec l’IA. | Sortie PNG, WebP ou TIFF avec transparence. | 10 images |
+| Palette de couleurs | Extraire des couleurs, copier les valeurs HEX/RGB/HSL et exporter une palette. | Une image compatible → couleurs et palette PNG. | 1 image |
+| Filigrane | Appliquer un logo ; régler position, taille, opacité et marge. | Images de base compatibles ; PNG transparent conseillé pour le logo. | 100 images + 1 logo |
+| Renommer | Prévisualiser une numérotation, des dates et des changements de casse. | Modifie les noms dans leur dossier d’origine. | 100 fichiers |
+| OCR | Extraire du texte avec EasyOCR ; le copier ou l’exporter en TXT. | Images matricielles compatibles → texte. | 10 images |
+| Métadonnées EXIF | Consulter, exporter, modifier des champs ou supprimer les métadonnées par lots. | Modification JPEG/TIFF ; export des métadonnées en TXT/JSON. | 1 image à modifier ; 100 à nettoyer |
+| LQIP / Base64 | Générer des aperçus de faible qualité ou encoder des images pour le web. | Base64, URI de données, HTML et CSS ; export TXT/JSON. | 1 image |
+
+La compatibilité dépend du module, des codecs installés et de la plateforme. Un format indiqué ne garantit pas que tous les modules puissent le lire ou l’écrire. Consultez les [prérequis](#requirements).
+
+<a id="screenshots"></a>
+
+## Captures d’écran
+
+<p align="center">
+  <a href="https://github.com/user-attachments/assets/903c897e-eb48-4b6b-b941-2fbfffb234ce"><img src="https://github.com/user-attachments/assets/903c897e-eb48-4b6b-b941-2fbfffb234ce" width="420" alt="Module de conversion avec images sélectionnées et réglages du format de sortie" /></a>
+  <a href="https://github.com/user-attachments/assets/ed7081e4-d106-47db-9744-927be0db9d5d"><img src="https://github.com/user-attachments/assets/ed7081e4-d106-47db-9744-927be0db9d5d" width="420" alt="Module de suppression d’arrière-plan avec images sélectionnées et réglages de sortie" /></a>
+</p>
+
+<details>
+<summary>Autres captures : compression, dimensions, palette, renommage, EXIF, LQIP et paramètres</summary>
+
+<p align="center">
+  <a href="https://github.com/user-attachments/assets/f8f57bbb-4cdf-4c5f-8d06-a04b2c3dc1b1"><img src="https://github.com/user-attachments/assets/f8f57bbb-4cdf-4c5f-8d06-a04b2c3dc1b1" width="280" alt="Module de compression avec réglage de qualité et option de suppression EXIF" /></a>
+  <a href="https://github.com/user-attachments/assets/381c1f71-debd-47a0-837b-fb8f84e41790"><img src="https://github.com/user-attachments/assets/381c1f71-debd-47a0-837b-fb8f84e41790" width="280" alt="Module de dimensions avec onglets de redimensionnement, recadrage et canevas" /></a>
+  <a href="https://github.com/user-attachments/assets/dfe2dd77-f792-4092-a6d7-82b5e96aa104"><img src="https://github.com/user-attachments/assets/dfe2dd77-f792-4092-a6d7-82b5e96aa104" width="280" alt="Palette extraite avec échantillons de couleurs et leurs valeurs" /></a>
+</p>
+<p align="center">
+  <a href="https://github.com/user-attachments/assets/e3a8f766-84e5-412d-bbaf-acb5936c0380"><img src="https://github.com/user-attachments/assets/e3a8f766-84e5-412d-bbaf-acb5936c0380" width="280" alt="Renommage par lots avec noms d’origine et noms proposés" /></a>
+  <a href="https://github.com/user-attachments/assets/235fce12-9796-4304-9252-f9e016edf483"><img src="https://github.com/user-attachments/assets/235fce12-9796-4304-9252-f9e016edf483" width="280" alt="Éditeur EXIF avec champs auteur, copyright, logiciel et date" /></a>
+  <a href="https://github.com/user-attachments/assets/8e8824a4-0bdf-44d8-b82f-7e0c2e1fcfe5"><img src="https://github.com/user-attachments/assets/8e8824a4-0bdf-44d8-b82f-7e0c2e1fcfe5" width="280" alt="Module LQIP et Base64 avec réglages de taille et de qualité de l’aperçu" /></a>
+</p>
+<p align="center">
+  <a href="https://github.com/user-attachments/assets/29131d50-2ea2-40c5-9549-d5878d89119a"><img src="https://github.com/user-attachments/assets/29131d50-2ea2-40c5-9549-d5878d89119a" width="280" alt="Paramètres de Yagua avec choix de la langue et du thème" /></a>
+</p>
+
+</details>
+
+Il s’agit des captures existantes du projet ; la disposition et les commandes peuvent varier selon la version. Cliquez sur une image pour l’afficher en taille réelle.
+
+## Installation
+
+### Choisir une version
+
+Ouvrez **[GitHub Releases](https://github.com/GuilleBouix/Yagua-Image-Processor/releases)** et choisissez votre système. Le badge **stable** renvoie à la dernière version stable de GitHub ; les versions plus récentes marquées **Pre-release**, y compris les versions `rc`, sont des versions de test. Windows et Linux peuvent avoir des versions différentes.
+
+La version du code est définie dans [`app/version.py`](../../app/version.py). Cela ne signifie pas qu’un installateur correspondant a été publié. Lisez les notes de chaque publication et téléchargez les fichiers qui lui sont joints.
+
+| Plateforme | Paquet | Étapes |
+| --- | --- | --- |
+| Windows | `Yagua_Setup_<version>.exe` | Exécutez l’installateur, puis ouvrez Yagua depuis le menu Démarrer ou le raccourci du bureau. |
+| Windows portable | `Yagua_Portable_<version>.zip`, si disponible | Extrayez le ZIP entier dans un dossier accessible en écriture et lancez `Yagua.exe`. Conservez les fichiers associés ensemble. |
+| Linux x86_64 | `Yagua-<version>-x86_64.AppImage`, si disponible | Rendez le fichier téléchargé exécutable, puis lancez-le comme indiqué ci-dessous. |
+| macOS | Prise en charge expérimentale depuis le code/la compilation | Aucun paquet stable pour macOS n’est promis. Consultez le [script de compilation](../../scripts/build_macos_app.sh) existant. |
+
+Sous Linux, remplacez le nom d’exemple par celui du fichier téléchargé :
+
+~~~bash
+chmod +x "Yagua-<version>-x86_64.AppImage"
+./"Yagua-<version>-x86_64.AppImage"
+~~~
+
+### Exécuter depuis le code source
+
+Utilisez **Python 3.13**, la version utilisée par la CI du projet, et Git. Les dépendances peuvent être volumineuses car elles incluent les bibliothèques d’OCR et d’IA. Linux nécessite aussi Tk et les bibliothèques système indiquées dans les [prérequis](#requirements).
+
+**Windows · PowerShell**
+
+~~~powershell
+git clone https://github.com/GuilleBouix/Yagua-Image-Processor.git
+cd Yagua-Image-Processor
+py -3.13 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install --upgrade pip
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe main.py
+~~~
+
+**Linux · Bash**
+
+~~~bash
+git clone https://github.com/GuilleBouix/Yagua-Image-Processor.git
+cd Yagua-Image-Processor
+python3.13 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+python main.py
+~~~
+
+Ces commandes utilisent les versions de dépendances fixées par le dépôt. Les vérifications de CI Windows/Linux ne confirment pas la compatibilité avec d’autres versions de Python ni avec macOS.
+
+<a id="usage"></a>
+
+## Utilisation
+
+1. Ouvrez Yagua et choisissez un module dans la barre latérale.
+2. Chargez vos images et configurez les options disponibles.
+3. Vérifiez l’aperçu lorsque le module en propose un.
+4. Traitez les images et choisissez un dossier de sortie lorsque cela est demandé ; vérifiez le message final pour repérer les erreurs.
+
+**LQIP / Base64 :** Sélectionnez une image, choisissez le mode et les paramètres, générez, comparez puis copiez ou exportez Data URI, HTML, CSS ou Base64 brut. Charger une autre image réinitialise le mode LQIP, largeur 20 px, flou 2 et qualités 40/85 ; annuler le sélecteur conserve l’état actuel. Les deux modes produisent du JPEG sans transparence.
+
+**Fichiers originaux :** Renommer modifie les noms à leur emplacement actuel. La modification EXIF écrase l’image sélectionnée après confirmation. Travaillez sur des copies pour ces opérations. Le nettoyage EXIF par lots écrit dans le dossier choisi. Les autres exports suivent le processus d’enregistrement ou de dossier de sortie de chaque module.
+
+### Exemples pratiques
+
+- **Préparer des images pour le web :** Convertissez jusqu’à 100 photos en WebP, choisissez la qualité, puis ajustez les dimensions si nécessaire. Générez les aperçus LQIP séparément pour l’affichage pendant le chargement de votre site.
+- **Préparer des photos de produits :** Chargez jusqu’à 10 images dans Supprimer l’arrière-plan et exportez en PNG ou WebP pour conserver la transparence. Ajoutez si nécessaire un logo PNG transparent avec Filigrane.
+- **Extraire du texte :** Chargez jusqu’à 10 images nettes dans OCR, choisissez les langues de reconnaissance, puis copiez le résultat ou exportez un TXT. Relisez le texte pour corriger les erreurs de reconnaissance.
+
+<a id="requirements"></a>
+
+## Prérequis et limites
+
+- **Bureau :** Windows ou Linux ; les paquets Linux ciblent x86_64. La prise en charge de macOS est expérimentale.
+- **Code source :** Python 3.13, Tk et les bibliothèques de [`requirements.txt`](../../requirements.txt). Les paquets compilés ne nécessitent pas d’installation séparée de Python.
+- **Ressources :** RAM, espace disque et durée dépendent de la résolution, de la taille du lot et des modèles d’IA. Prévoyez de la place pour les dépendances, les modèles et les résultats ; réduisez les lots si votre machine dispose de peu de ressources. Aucun minimum matériel mesuré n’est documenté ici.
+- **Lots :** Le tableau indique les limites actuelles de l’interface : une image pour Palette, LQIP / Base64 ou modification EXIF, 10 pour OCR/suppression d’arrière-plan et 100 pour les autres opérations par lots indiquées.
+- **Codecs :** HEIC/HEIF utilise `pillow-heif`, inclus dans les dépendances du code. AVIF et d’autres formats dépendent des codecs Pillow et de la plateforme. JPEG ne gère pas la transparence ; utilisez PNG ou WebP si nécessaire. La compression PNG peut réduire l’image à 256 couleurs : vérifiez le résultat.
+- **Modèles d’IA :** Des téléchargements peuvent avoir lieu au premier usage ou lorsqu’un nouveau modèle/une nouvelle langue nécessite un autre modèle. L’usage hors ligne exige des modèles en cache. Le traitement sur CPU est disponible ; l’usage du GPU dépend du matériel et des bibliothèques compatibles.
+
+### Bibliothèques système sous Linux
+
+AppImage peut nécessiter FUSE 2 (`libfuse2` sur les distributions compatibles). Pour l’exécution depuis le code, la CI installe Tk et ces bibliothèques sur Ubuntu 22.04 :
+
+~~~bash
+sudo apt-get install python3-tk libgl1 libglib2.0-0 libsm6 libxext6 libxrender1 libgtk-3-0 libgomp1
+~~~
+
+Les noms des paquets varient selon la distribution. Vérifiez que Tk est disponible pour votre interpréteur Python 3.13 ; le paquet Tk par défaut de la distribution peut ne pas couvrir un Python installé séparément.
+
+<a id="faq"></a>
+
+## Questions fréquentes
+
+### Yagua envoie-t-il mes images ?
+
+Le traitement est local ; les modules n’envoient pas les images à un service de traitement. Les téléchargements de modèles et les vérifications de mises à jour GitHub nécessitent une connexion. Les liens externes ouvrent le navigateur ; le lien de carte EXIF envoie les coordonnées GPS sélectionnées à Google Maps lorsque vous l’ouvrez.
+
+### Pourquoi la première opération d’IA est-elle plus lente ?
+
+OCR et la suppression d’arrière-plan initialisent leurs moteurs et peuvent télécharger des modèles. Attendez la fin de cette étape. Les exécutions suivantes peuvent réutiliser les modèles en cache ; les grandes images et les gros lots demandent toujours davantage de ressources.
+
+### Pourquoi un format est-il indisponible ou une image refusée ?
+
+Les entrées acceptées dépendent du module et des codecs disponibles. Essayez une copie PNG ou JPEG, vérifiez **Paramètres → Logs**. Exportez en PNG ou WebP pour conserver la transparence.
+
+### Pourquoi la compression ne réduit-elle pas toutes les images ?
+
+Une image déjà optimisée peut ne pas devenir plus petite. Si le résultat est aussi volumineux ou plus volumineux que l’original, Yagua copie l’original vers la sortie. La compression ne garantit donc pas non plus la suppression demandée des métadonnées ; utilisez le module dédié de nettoyage EXIF.
+
+### Comment fonctionnent les mises à jour ?
+
+Yagua peut vous avertir au démarrage et permet une vérification dans **Paramètres → Mises à jour**. Il recherche les versions stables plus récentes avec le préfixe de votre plateforme (`win-v` ou `linux-v`) et exclut les préversions. Il ouvre un lien de téléchargement ; il n’installe pas les mises à jour automatiquement. Consultez Releases manuellement pour les versions de test et les anciennes publications sans préfixe.
+
+### Comment signaler un problème ?
+
+Ouvrez un [rapport de bug](https://github.com/GuilleBouix/Yagua-Image-Processor/issues/new?template=bug_report.md) avec votre version de Yagua, système, module, étapes de reproduction et journaux pertinents. Consultez **Paramètres → Logs** ou cherchez `yagua.log` dans :
+
+- Windows: `%APPDATA%\Yagua\yagua.log`
+- Linux: `~/.config/Yagua/yagua.log`
+- macOS: `~/Library/Application Support/Yagua/yagua.log`
+
+Les journaux peuvent contenir des chemins et noms de fichiers ; relisez-les avant de les partager.
+
+<a id="contributing"></a>
+
+## Développement et contribution
+
+Yagua utilise **CustomTkinter** pour l’interface, **Pillow / pillow-heif** pour les images, **rembg / ONNX Runtime** pour les arrière-plans, **EasyOCR / PyTorch** pour l’OCR et **piexif** pour EXIF. Les versions exactes figurent dans [`requirements.txt`](../../requirements.txt).
+
+Après l’installation depuis le code, installez les outils de développement et lancez les vérifications de CI. Sous Windows, utilisez directement les exécutables de l’environnement virtuel :
+
+~~~powershell
+.\.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
+.\.venv\Scripts\python.exe -m ruff check app tests scripts
+.\.venv\Scripts\python.exe -m pyright --skipunannotated --pythonpath .\.venv\Scripts\python.exe app
+.\.venv\Scripts\python.exe -m pytest -q
+~~~
+
+Sous Linux, avec l’environnement virtuel activé :
+
+~~~bash
+python -m pip install -r requirements-dev.txt
+python -m ruff check app tests scripts
+python -m pyright --skipunannotated --pythonpath "$(command -v python)" app
+python -m pytest -q
+~~~
+
+Les tests d’interface nécessitent un affichage. Sous Linux sans interface graphique, installez `xvfb` et utilisez `xvfb-run -a python -m pytest -q`, comme le fait la CI.
+
+Consultez [`CHANGELOG.md`](../../CHANGELOG.md) pour l’historique. Certaines captures peuvent être en retard sur le code. Signalez des bugs, proposez des fonctionnalités dans [Issues](https://github.com/GuilleBouix/Yagua-Image-Processor/issues) ou soumettez des PR ciblées avec une validation pertinente. Lorsqu’un comportement documenté change, mettez à jour les cinq langues du README.
+
+## Soutenir le projet
+
+Si Yagua vous est utile, une étoile GitHub aide d’autres personnes à le découvrir. Vous pouvez aussi contribuer avec des signalements, des traductions ou des améliorations.
+
+**[Soutenir sur GitHub Sponsors](https://github.com/sponsors/GuilleBouix) · [Soutenir via PayPal](https://www.paypal.com/paypalme/guillebouix)**
+
+<p align="center">
+  <a href="https://www.paypal.com/paypalme/guillebouix"><img src="https://github.com/user-attachments/assets/2f3f6a1b-990c-4fb8-9fda-7482c1ca20a5" width="220" alt="Soutenir Yagua via PayPal" /></a>
+</p>
+
+## Licence
+
+Yagua est distribué sous **[licence MIT](../../LICENSE)**. Les bibliothèques et modèles tiers conservent leurs licences respectives.

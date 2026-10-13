@@ -86,10 +86,22 @@ class LqipFrame(BaseFrame):
             comando=lambda: self._explorar(titulo=t('lqip_select_image'), multi=False),
         )
         self._btn_seleccionar.grid(row=0, column=0, padx=16, pady=(16, 8), sticky='ew')
-        self._lbl_input_name = self._text_label(left, t('lqip_select_hint'), wraplength=330)
-        self._lbl_input_name.grid(row=1, column=0, padx=16, pady=(0, 2), sticky='ew')
-        self._lbl_input_meta = self._text_label(left, '—', muted=True, wraplength=330)
-        self._lbl_input_meta.grid(row=2, column=0, padx=16, pady=(0, 16), sticky='ew')
+        self._input_card = ctk.CTkFrame(
+            left, fg_color=colors.DROPZONE_BG, corner_radius=8,
+            border_width=1, border_color=colors.SIDEBAR_SEPARATOR,
+        )
+        self._input_card.grid(row=1, column=0, padx=16, pady=(0, 16), sticky='ew')
+        self._input_card.grid_columnconfigure(1, weight=1)
+        self._input_thumb = ctk.CTkLabel(
+            self._input_card, text='', width=56, height=56,
+            font=fonts.FUENTE_CHICA, text_color=colors.TEXT_GRAY,
+        )
+        self._input_thumb.grid(row=0, column=0, rowspan=2, padx=(12, 10), pady=12)
+        self._input_thumb.bind('<Configure>', self._programar_render, add=True)
+        self._lbl_input_name = self._text_label(self._input_card, t('lqip_select_hint'), wraplength=240)
+        self._lbl_input_name.grid(row=0, column=1, padx=(0, 12), pady=(12, 0), sticky='sew')
+        self._lbl_input_meta = self._text_label(self._input_card, '', muted=True, wraplength=240)
+        self._lbl_input_meta.grid(row=1, column=1, padx=(0, 12), pady=(2, 12), sticky='new')
 
         header = ctk.CTkFrame(left, fg_color='transparent')
         header.grid(row=3, column=0, padx=16, sticky='ew')
@@ -228,7 +240,7 @@ class LqipFrame(BaseFrame):
             wraplength=220,
         )
         label.grid(row=1, column=0, padx=10, pady=4, sticky='nsew')
-        meta = self._text_label(card, '—', muted=True)
+        meta = self._text_label(card, '', muted=True)
         meta.grid(row=2, column=0, padx=10, pady=(0, 6), sticky='w')
         return label, meta
 
@@ -245,8 +257,9 @@ class LqipFrame(BaseFrame):
         if event is not None and event.widget is self._left:
             width = max(120, int(event.width / scale) - 32)
             self._lbl_descripcion.configure(wraplength=width)
-            self._lbl_input_name.configure(wraplength=width)
-            self._lbl_input_meta.configure(wraplength=width)
+            input_width = max(100, width - 90)
+            self._lbl_input_name.configure(wraplength=input_width)
+            self._lbl_input_meta.configure(wraplength=input_width)
             for label in self._left_help_labels:
                 label.configure(wraplength=width)
         elif event is not None and event.widget is self._right:
@@ -386,8 +399,9 @@ class LqipFrame(BaseFrame):
             w, h = source.dimensions
             input_meta = f'{w} × {h} px · {source.format} · {_peso(source.size)}'
         else:
-            input_meta = t('lqip_loading') if index is not None else '—'
+            input_meta = t('lqip_loading') if index is not None else ''
         self._lbl_input_meta.configure(text=input_meta)
+        self._imagen_preview(self._input_thumb, source.image if source else None, '', 'input')
         if item and item.error:
             status = t('lqip_item_error') + ': ' + item.error
         elif item and item.result:
@@ -407,13 +421,13 @@ class LqipFrame(BaseFrame):
             w, h = source.dimensions
             self._original_meta.configure(text=f'{w} × {h} px · {source.format}\n{_peso(source.size)}')
         else:
-            self._original_meta.configure(text=t('lqip_item_error') if source and source.error else '—')
+            self._original_meta.configure(text=t('lqip_item_error') if source and source.error else '')
         if item and item.dimensions:
             w, h = item.dimensions
             self._output_meta.configure(text=f'{w} × {h} px · JPEG\n{_peso(item.jpeg_bytes)}')
             self._lbl_metrics.configure(text=f'Data URI: {_peso(item.uri_bytes)} · image/jpeg')
         else:
-            self._output_meta.configure(text='—')
+            self._output_meta.configure(text='')
             self._lbl_metrics.configure(text=t('lqip_metrics_hint'))
         self._actualizar_codigo()
 

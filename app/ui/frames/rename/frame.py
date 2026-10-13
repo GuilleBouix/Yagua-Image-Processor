@@ -45,7 +45,7 @@ class RenameFrame(BaseFrame):
         """Construye el contenido del modulo."""
         self.logger.info("rename.ui: build_content")
         izquierda, derecha = self._crear_workspace()
-        izquierda.grid_rowconfigure(3, weight=1)
+        izquierda.grid_rowconfigure(4, weight=1)
         derecha.grid_rowconfigure(0, weight=1)
         # Boton seleccionar
         self._btn_seleccionar = self._crear_boton_seleccionar(izquierda)
@@ -63,12 +63,25 @@ class RenameFrame(BaseFrame):
         panel.grid_columnconfigure(1, weight=1)
         self._construir_opciones(panel)
 
+        self._btn_renombrar = ctk.CTkButton(
+            izquierda,
+            text=t('rename_btn'),
+            height=40,
+            corner_radius=8,
+            font=fonts.FUENTE_BASE,
+            fg_color=colors.ACENTO,
+            text_color=colors.TEXT_ACTIVE,
+            hover_color=colors.ACENTO_HOVER,
+            command=self._renombrar,
+        )
+        self._btn_renombrar.grid(row=2, column=0, padx=16, pady=(0, 16), sticky='ew')
+
         ctk.CTkLabel(
             izquierda, text=t('files_loaded').capitalize(), font=fonts.FUENTE_BASE,
             text_color=colors.TEXT_COLOR, anchor='w'
-        ).grid(row=2, column=0, padx=16, pady=(0, 8), sticky='w')
+        ).grid(row=3, column=0, padx=16, pady=(0, 8), sticky='w')
         self._lista_frame = self._crear_lista_archivos(izquierda, height=180)
-        self._lista_frame.grid(row=3, column=0, padx=16, pady=(0, 16), sticky='nsew')
+        self._lista_frame.grid(row=4, column=0, padx=16, pady=(0, 16), sticky='nsew')
         self._lista_frame.grid_columnconfigure(0, weight=1)
         self._lbl_lista_vacia = self._crear_lista_vacia(self._lista_frame)
         self._lbl_lista_vacia.pack(pady=8)
@@ -243,7 +256,7 @@ class RenameFrame(BaseFrame):
 
     def _construir_preview(self, p):
         """
-        Construye la tabla de preview con cabeceras y boton renombrar.
+        Construye la tabla de preview con cabeceras.
 
         Args:
             p: Frame padre del panel.
@@ -258,19 +271,6 @@ class RenameFrame(BaseFrame):
             font=fonts.FUENTE_BASE,
             text_color=colors.TEXT_COLOR, anchor='w'
         ).grid(row=0, column=0, sticky='w')
-
-        self._btn_renombrar = ctk.CTkButton(
-            header,
-            text=t('rename_btn'),
-            height=30, width=110,
-            corner_radius=8,
-            font=fonts.FUENTE_BASE,
-            fg_color=colors.ACENTO,
-            text_color=colors.TEXT_ACTIVE,
-            hover_color=colors.ACENTO_HOVER,
-            command=self._renombrar
-        )
-        self._btn_renombrar.grid(row=0, column=1, sticky='e')
 
         # Cabeceras
         cab = ctk.CTkFrame(p, fg_color=colors.SIDEBAR_BG, corner_radius=6)

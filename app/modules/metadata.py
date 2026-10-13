@@ -7,12 +7,17 @@ Relacionado con:
     - app/ui/frames/metadata/services.py: Usa las funciones de este modulo.
 """
 
+from dataclasses import dataclass
+from datetime import datetime
+from fractions import Fraction
 import json
 import logging
+import math
 from pathlib import Path
 
 from PIL import Image, ImageOps
 import piexif
+from piexif import helper as piexif_helper
 
 from app.utils.output import unique_output_path
 
@@ -41,15 +46,94 @@ _CAMPOS_LEGIBLES = {
     'GPSLongitude':     'Longitud GPS',
 }
 
-# Campos editables por el usuario
-CAMPOS_EDITABLES = {
-    'Artist':    'Autor',
-    'Copyright': 'Copyright',
-    'Software':  'Software',
-    'DateTime':  'Fecha y hora',
-    'DateTimeOriginal': 'Fecha original',
-    'DateTimeDigitized': 'Fecha digitalizada',
+# Grupos y claves de traducción que describen las opciones del editor.
+GRUPOS_CAMPOS_EDITABLES = {
+    'description': ('ImageDescription', 'Artist', 'Copyright', 'UserComment', 'Software'),
+    'camera': ('Make', 'Model', 'LensMake', 'LensModel'),
+    'capture': (
+        'ExposureTime', 'FNumber', 'ISOSpeedRatings', 'FocalLength',
+        'FocalLengthIn35mmFilm', 'ExposureProgram', 'ExposureMode',
+        'ExposureBiasValue', 'MeteringMode', 'Flash', 'WhiteBalance', 'LightSource',
+    ),
+    'gps': ('GPSLatitude', 'GPSLongitude', 'GPSAltitude', 'GPSImgDirection'),
 }
+CAMPOS_EDITABLES = {
+    'ImageDescription': 'image_description',
+    'Artist': 'artist',
+    'Copyright': 'copyright',
+    'UserComment': 'user_comment',
+    'Software': 'software',
+    'Make': 'camera_make',
+    'Model': 'camera_model',
+    'LensMake': 'lens_make',
+    'LensModel': 'lens_model',
+    'DateTimeOriginal': 'capture_date',
+    'ExposureTime': 'exposure_time',
+    'FNumber': 'aperture',
+    'ISOSpeedRatings': 'iso',
+    'FocalLength': 'focal_length',
+    'FocalLengthIn35mmFilm': 'focal_length_35mm',
+    'ExposureProgram': 'exposure_program',
+    'ExposureMode': 'exposure_mode',
+    'ExposureBiasValue': 'exposure_bias',
+    'MeteringMode': 'metering_mode',
+    'Flash': 'flash',
+    'WhiteBalance': 'white_balance',
+    'LightSource': 'light_source',
+    'GPSLatitude': 'gps_latitude',
+    'GPSLongitude': 'gps_longitude',
+    'GPSAltitude': 'gps_altitude',
+    'GPSImgDirection': 'gps_direction',
+}
+
+
+@dataclass(frozen=True)
+class MetadataEditRequest:
+    """Valores EXIF validados y acciones opcionales solicitadas por la UI."""
+
+    values: dict[str, object]
+    sync_dates: bool = False
+    clear_gps: bool = False
+    orientation: int | None = None
+
+
+_TEXT_TAGS = {
+    'ImageDescription': (piexif.ImageIFD.ImageDescription, '0th'),
+    'Artist': (piexif.ImageIFD.Artist, '0th'),
+    'Copyright': (piexif.ImageIFD.Copyright, '0th'),
+    'Software': (piexif.ImageIFD.Software, '0th'),
+    'Make': (piexif.ImageIFD.Make, '0th'),
+    'Model': (piexif.ImageIFD.Model, '0th'),
+    'DateTime': (piexif.ImageIFD.DateTime, '0th'),
+    'DateTimeOriginal': (piexif.ExifIFD.DateTimeOriginal, 'Exif'),
+    'DateTimeDigitized': (piexif.ExifIFD.DateTimeDigitized, 'Exif'),
+    'LensMake': (piexif.ExifIFD.LensMake, 'Exif'),
+    'LensModel': (piexif.ExifIFD.LensModel, 'Exif'),
+}
+_USER_COMMENT_TAG = (piexif.ExifIFD.UserComment, 'Exif')
+_RATIONAL_TAGS = {
+    'ExposureTime': (piexif.ExifIFD.ExposureTime, 'Exif', True),
+    'FNumber': (piexif.ExifIFD.FNumber, 'Exif', True),
+    'FocalLength': (piexif.ExifIFD.FocalLength, 'Exif', True),
+    'ExposureBiasValue': (piexif.ExifIFD.ExposureBiasValue, 'Exif', False),
+}
+_INTEGER_TAGS = {
+    'ISOSpeedRatings': (piexif.ExifIFD.ISOSpeedRatings, 'Exif', True),
+    'FocalLengthIn35mmFilm': (piexif.ExifIFD.FocalLengthIn35mmFilm, 'Exif', True),
+}
+_ENUM_TAGS = {
+    'ExposureProgram': (piexif.ExifIFD.ExposureProgram, 'Exif', set(range(9))),
+    'ExposureMode': (piexif.ExifIFD.ExposureMode, 'Exif', {0, 1, 2}),
+    'MeteringMode': (piexif.ExifIFD.MeteringMode, 'Exif', {0, 1, 2, 3, 4, 5, 6, 255}),
+    'Flash': (piexif.ExifIFD.Flash, 'Exif', {0, 1}),
+    'WhiteBalance': (piexif.ExifIFD.WhiteBalance, 'Exif', {0, 1}),
+    'LightSource': (piexif.ExifIFD.LightSource, 'Exif', {0, 1, 2, 3, 4, 9, 10, 11, 12, 13, 14, 15, 17, 18, 19, 20, 21, 22, 23, 24, 255}),
+}
+_DATE_FORMATS = (
+    '%Y:%m:%d %H:%M:%S', '%Y:%m:%d %H:%M',
+    '%Y-%m-%d %H:%M:%S', '%Y-%m-%d %H:%M',
+    '%d-%m-%Y %H:%M:%S', '%d-%m-%Y %H:%M',
+)
 
 
 def _fraccion_a_float(val):
@@ -175,6 +259,91 @@ def leer_metadatos(ruta):
     return resultado
 
 
+def _decimal_texto(valor):
+    """Devuelve una representacion compacta para editar valores racionales."""
+    if isinstance(valor, tuple) and len(valor) == 2 and valor[1]:
+        numero = valor[0] / valor[1]
+    else:
+        numero = valor
+    return f'{float(numero):.8f}'.rstrip('0').rstrip('.')
+
+
+def _gps_referencia(gps, tag, defecto):
+    referencia = gps.get(tag, defecto)
+    return referencia.decode('ascii', errors='ignore') if isinstance(referencia, bytes) else str(referencia)
+
+
+def leer_campos_edicion(ruta):
+    """Lee los valores EXIF editables sin convertirlos a etiquetas de vista."""
+    with Image.open(ruta) as imagen:
+        tamano = imagen.size
+        exif = piexif.load(ruta)
+
+    resultado = {'__image_size__': f'{tamano[0]} x {tamano[1]}'}
+    for nombre, (tag, ifd) in _TEXT_TAGS.items():
+        valor = exif.get(ifd, {}).get(tag)
+        if valor:
+            resultado[nombre] = valor.decode('utf-8', errors='replace').rstrip('\x00')
+
+    valor = exif.get('Exif', {}).get(_USER_COMMENT_TAG[0])
+    if valor:
+        valor_bytes = valor if isinstance(valor, bytes) else bytes(valor)
+        try:
+            resultado['UserComment'] = piexif_helper.UserComment.load(valor_bytes)
+        except (ValueError, UnicodeError):
+            resultado['UserComment'] = valor_bytes.decode('utf-8', errors='replace').rstrip('\x00')
+
+    for nombre, (tag, ifd, _positivo) in _RATIONAL_TAGS.items():
+        valor = exif.get(ifd, {}).get(tag)
+        if valor:
+            resultado[nombre] = _decimal_texto(valor)
+    for nombre, (tag, ifd, _positivo) in _INTEGER_TAGS.items():
+        valor = exif.get(ifd, {}).get(tag)
+        if valor is not None:
+            resultado[nombre] = str(valor)
+    for nombre, (tag, ifd, _opciones) in _ENUM_TAGS.items():
+        valor = exif.get(ifd, {}).get(tag)
+        if valor is not None:
+            resultado[nombre] = str(valor)
+
+    gps = exif.get('GPS', {})
+    if gps:
+        lat = _gps_a_decimal(
+            gps.get(piexif.GPSIFD.GPSLatitude),
+            _gps_referencia(gps, piexif.GPSIFD.GPSLatitudeRef, b'N'),
+        )
+        lon = _gps_a_decimal(
+            gps.get(piexif.GPSIFD.GPSLongitude),
+            _gps_referencia(gps, piexif.GPSIFD.GPSLongitudeRef, b'E'),
+        )
+        if lat is not None and lon is not None:
+            resultado['GPSLatitude'] = str(lat)
+            resultado['GPSLongitude'] = str(lon)
+        altitude = gps.get(piexif.GPSIFD.GPSAltitude)
+        if altitude:
+            resultado['GPSAltitude'] = _decimal_texto(altitude)
+            if gps.get(piexif.GPSIFD.GPSAltitudeRef, 0) == 1:
+                resultado['GPSAltitude'] = f"-{resultado['GPSAltitude']}"
+        direction = gps.get(piexif.GPSIFD.GPSImgDirection)
+        if direction:
+            resultado['GPSImgDirection'] = _decimal_texto(direction)
+
+    with Image.open(ruta) as imagen:
+        color_space = imagen.getexif().get(piexif.ExifIFD.ColorSpace)
+    resultado['__color_space__'] = str(color_space) if color_space is not None else ''
+    resultado['__orientation__'] = str(exif.get('0th', {}).get(piexif.ImageIFD.Orientation, 1))
+    return resultado
+
+
+def leer_campos_edicion_safe(ruta):
+    """Versión segura de :func:`leer_campos_edicion` para la interfaz."""
+    try:
+        return leer_campos_edicion(ruta), None
+    except Exception as exc:
+        logger.warning("Error al leer campos editables EXIF en %s: %s", ruta, exc)
+        return {}, str(exc)
+
+
 def leer_metadatos_safe(ruta):
     """
     Wrapper seguro para leer_metadatos que maneja errores.
@@ -264,7 +433,28 @@ def limpiar_exif(ruta_entrada, ruta_salida):
     }
 
 
-def editar_exif(ruta_entrada, ruta_salida, campos):
+def _rational(valor):
+    fraccion = Fraction(str(valor)).limit_denominator(1_000_000)
+    return fraccion.numerator, fraccion.denominator
+
+
+def _gps_tags(latitud, longitud):
+    def _coordenada(valor):
+        total_segundos = round(abs(valor) * 3600 * 1_000_000)
+        grados, resto = divmod(total_segundos, 3600 * 1_000_000)
+        minutos, microsegundos = divmod(resto, 60 * 1_000_000)
+        return ((grados, 1), (minutos, 1), (microsegundos, 1_000_000))
+
+    return {
+        piexif.GPSIFD.GPSVersionID: (2, 3, 0, 0),
+        piexif.GPSIFD.GPSLatitudeRef: b'S' if latitud < 0 else b'N',
+        piexif.GPSIFD.GPSLatitude: _coordenada(latitud),
+        piexif.GPSIFD.GPSLongitudeRef: b'W' if longitud < 0 else b'E',
+        piexif.GPSIFD.GPSLongitude: _coordenada(longitud),
+    }
+
+
+def editar_exif(ruta_entrada, ruta_salida, request):
     """
     Edita campos EXIF especificos y guarda la imagen.
     
@@ -273,12 +463,15 @@ def editar_exif(ruta_entrada, ruta_salida, campos):
     Args:
         ruta_entrada: Ruta de la imagen original.
         ruta_salida: Ruta donde guardar la imagen editada.
-        campos: Diccionario con nombre_campo como clave y nuevo_valor.
+        request: Solicitud validada de edición EXIF.
         
     Returns:
         Tupla (ok, warning). Si ok es True pero warning no es None, la
         imagen se guardo sin EXIF por formato no compatible.
     """
+
+    if isinstance(request, dict):
+        request = MetadataEditRequest(request)
 
     logger.info("Editar EXIF: %s -> %s", ruta_entrada, ruta_salida)
     try:
@@ -296,25 +489,93 @@ def editar_exif(ruta_entrada, ruta_salida, campos):
                 # Crear estructura EXIF vacia si falla la lectura
                 exif_dict = {'0th': {}, 'Exif': {}, 'GPS': {}, '1st': {}}
 
-            # Mapa de campos a tags de piexif
-            _PIEXIF_MAP = {
-                'Artist':    (piexif.ImageIFD.Artist,    '0th'),
-                'Copyright': (piexif.ImageIFD.Copyright, '0th'),
-                'Software':  (piexif.ImageIFD.Software,  '0th'),
-                'DateTime':  (piexif.ImageIFD.DateTime,  '0th'),
-                'DateTimeOriginal': (piexif.ExifIFD.DateTimeOriginal, 'Exif'),
-                'DateTimeDigitized': (piexif.ExifIFD.DateTimeDigitized, 'Exif'),
-            }
+            if request.clear_gps:
+                exif_dict['GPS'] = {}
 
-            # Aplicar cada campo
-            for campo, valor in campos.items():
-                if campo in _PIEXIF_MAP:
-                    nombre_tag, ifd = _PIEXIF_MAP[campo]
+            for campo, valor in request.values.items():
+                if campo in _TEXT_TAGS:
+                    nombre_tag, ifd = _TEXT_TAGS[campo]
                     exif_dict[ifd][nombre_tag] = valor.encode('utf-8')
+                elif campo == 'UserComment':
+                    nombre_tag, ifd = _USER_COMMENT_TAG
+                    exif_dict[ifd][nombre_tag] = piexif_helper.UserComment.dump(
+                        str(valor), encoding='unicode'
+                    )
+                elif campo in _RATIONAL_TAGS:
+                    nombre_tag, ifd, _positivo = _RATIONAL_TAGS[campo]
+                    exif_dict[ifd][nombre_tag] = valor
+                elif campo in _INTEGER_TAGS:
+                    nombre_tag, ifd, _positivo = _INTEGER_TAGS[campo]
+                    exif_dict[ifd][nombre_tag] = valor
+                elif campo in _ENUM_TAGS:
+                    nombre_tag, ifd, _opciones = _ENUM_TAGS[campo]
+                    exif_dict[ifd][nombre_tag] = valor
+
+            if request.sync_dates and 'DateTimeOriginal' in request.values:
+                fecha = request.values['DateTimeOriginal'].encode('utf-8')
+                exif_dict['0th'][piexif.ImageIFD.DateTime] = fecha
+                exif_dict['Exif'][piexif.ExifIFD.DateTimeDigitized] = fecha
+
+            gps_values = request.values
+            if 'GPSLatitude' in gps_values and not request.clear_gps:
+                latitud = float(gps_values['GPSLatitude'])
+                longitud = float(gps_values['GPSLongitude'])
+                exif_dict['GPS'].update(_gps_tags(latitud, longitud))
+                if 'GPSAltitude' in gps_values:
+                    altitud = float(gps_values['GPSAltitude'])
+                    exif_dict['GPS'][piexif.GPSIFD.GPSAltitude] = _rational(abs(altitud))
+                    exif_dict['GPS'][piexif.GPSIFD.GPSAltitudeRef] = int(altitud < 0)
+                if 'GPSImgDirection' in gps_values:
+                    exif_dict['GPS'][piexif.GPSIFD.GPSImgDirectionRef] = b'T'
+                    exif_dict['GPS'][piexif.GPSIFD.GPSImgDirection] = _rational(
+                        float(gps_values['GPSImgDirection'])
+                    )
+
+            if request.orientation is not None:
+                image = ImageOps.exif_transpose(imagen)
+                orientation_transforms = {
+                    1: None,
+                    2: Image.Transpose.FLIP_LEFT_RIGHT,
+                    3: Image.Transpose.ROTATE_180,
+                    4: Image.Transpose.FLIP_TOP_BOTTOM,
+                    5: Image.Transpose.TRANSPOSE,
+                    6: Image.Transpose.ROTATE_270,
+                    7: Image.Transpose.TRANSVERSE,
+                    8: Image.Transpose.ROTATE_90,
+                }
+                transform = orientation_transforms[request.orientation]
+                if transform is not None:
+                    image = image.transpose(transform)
+                exif_dict['0th'][piexif.ImageIFD.Orientation] = 1
+                exif_dict['0th'][piexif.ImageIFD.ImageWidth] = image.width
+                exif_dict['0th'][piexif.ImageIFD.ImageLength] = image.height
+                if formato == 'JPEG':
+                    exif_dict['Exif'][piexif.ExifIFD.PixelXDimension] = image.width
+                    exif_dict['Exif'][piexif.ExifIFD.PixelYDimension] = image.height
+            else:
+                image = imagen
 
             # Guardar con EXIF modificado
+            if formato == 'TIFF':
+                # Pillow rebuilds these storage tags for the transformed pixels.
+                for tag in (
+                    piexif.ImageIFD.ImageWidth,
+                    piexif.ImageIFD.ImageLength,
+                    piexif.ImageIFD.BitsPerSample,
+                    piexif.ImageIFD.Compression,
+                    piexif.ImageIFD.PhotometricInterpretation,
+                    piexif.ImageIFD.StripOffsets,
+                    piexif.ImageIFD.SamplesPerPixel,
+                    piexif.ImageIFD.RowsPerStrip,
+                    piexif.ImageIFD.StripByteCounts,
+                    piexif.ImageIFD.PlanarConfiguration,
+                ):
+                    exif_dict['0th'].pop(tag, None)
             exif_bytes = piexif.dump(exif_dict)
-            imagen.save(ruta_salida, formato, exif=exif_bytes, quality=95)
+            opciones_guardado: dict[str, object] = {'exif': exif_bytes}
+            if formato == 'JPEG':
+                opciones_guardado['quality'] = 95
+            image.save(ruta_salida, formato, **opciones_guardado)
             return True, None
 
     except Exception as exc:
@@ -374,7 +635,13 @@ def exportar_metadatos(metadatos, ruta, formato):
         exportar_json(metadatos, ruta)
 
 
-def preparar_campos_exif(campos_edit):
+def preparar_campos_exif(
+    campos_edit,
+    *,
+    sync_dates=False,
+    clear_gps=False,
+    orientation=None,
+):
     """
     Prepara los campos editados para guardar.
     
@@ -384,22 +651,108 @@ def preparar_campos_exif(campos_edit):
         campos_edit: Diccionario con campos a editar.
         
     Returns:
-        Tupla (campos_filtrados, error). Si error es None, exito.
+        Tupla (solicitud validada, error). Si error es None, exito.
     """
-    campos = {
-        clave: valor
-        for clave, valor in campos_edit.items()
-        if valor.strip()
+    valores = {}
+    claves_conocidas = set(_TEXT_TAGS) | {'UserComment'} | set(_RATIONAL_TAGS) | set(_INTEGER_TAGS) | set(_ENUM_TAGS) | {
+        'GPSLatitude', 'GPSLongitude', 'GPSAltitude', 'GPSImgDirection'
     }
-    if not campos:
-        return {}, 'empty'
-    # Validar fechas EXIF
-    import re
-    patron = re.compile(r'^\d{4}:\d{2}:\d{2} \d{2}:\d{2}:\d{2}$')
-    for key in ('DateTime', 'DateTimeOriginal', 'DateTimeDigitized'):
-        if key in campos and not patron.match(campos[key]):
-            return {}, 'invalid_date'
-    return campos, None
+    if set(campos_edit) - claves_conocidas:
+        return None, 'invalid_field'
+
+    campos = {clave: str(valor).strip() for clave, valor in campos_edit.items()}
+    campos = {clave: valor for clave, valor in campos.items() if valor}
+    for campo_fecha in ('DateTime', 'DateTimeOriginal', 'DateTimeDigitized'):
+        if campo_fecha not in campos:
+            continue
+        for formato in _DATE_FORMATS:
+            try:
+                fecha = datetime.strptime(campos[campo_fecha], formato)
+                campos[campo_fecha] = (
+                    f'{fecha.year:04}:{fecha.month:02}:{fecha.day:02} '
+                    f'{fecha.hour:02}:{fecha.minute:02}:{fecha.second:02}'
+                )
+                break
+            except ValueError:
+                continue
+        else:
+            return None, 'invalid_date'
+
+    for nombre, valor in campos.items():
+        if nombre in _TEXT_TAGS or nombre == 'UserComment':
+            valores[nombre] = valor
+        elif nombre in _RATIONAL_TAGS:
+            _tag, _ifd, positivo = _RATIONAL_TAGS[nombre]
+            try:
+                numero = Fraction(valor)
+                if positivo and numero <= 0:
+                    return None, 'invalid_number'
+                valores[nombre] = _rational(numero)
+            except (ValueError, ZeroDivisionError):
+                return None, 'invalid_number'
+        elif nombre in _INTEGER_TAGS:
+            _tag, _ifd, positivo = _INTEGER_TAGS[nombre]
+            try:
+                numero = int(valor)
+                if str(numero) != valor or (positivo and numero <= 0):
+                    return None, 'invalid_number'
+                valores[nombre] = numero
+            except ValueError:
+                return None, 'invalid_number'
+        elif nombre in _ENUM_TAGS:
+            _tag, _ifd, opciones = _ENUM_TAGS[nombre]
+            try:
+                numero = int(valor)
+                if str(numero) != valor or numero not in opciones:
+                    return None, 'invalid_option'
+                valores[nombre] = numero
+            except ValueError:
+                return None, 'invalid_option'
+
+    gps_fields = {'GPSLatitude', 'GPSLongitude', 'GPSAltitude', 'GPSImgDirection'}
+    campos_gps = gps_fields & set(campos)
+    if clear_gps and campos_gps:
+        return None, 'gps_conflict'
+    has_lat = 'GPSLatitude' in campos
+    has_lon = 'GPSLongitude' in campos
+    if has_lat != has_lon or (campos_gps - {'GPSLatitude', 'GPSLongitude'} and not (has_lat and has_lon)):
+        return None, 'gps_pair'
+    if has_lat and has_lon:
+        try:
+            latitud = float(campos['GPSLatitude'])
+            longitud = float(campos['GPSLongitude'])
+            if not math.isfinite(latitud) or not -90 <= latitud <= 90:
+                return None, 'invalid_gps'
+            if not math.isfinite(longitud) or not -180 <= longitud <= 180:
+                return None, 'invalid_gps'
+            valores['GPSLatitude'] = f'{latitud:.8f}'.rstrip('0').rstrip('.')
+            valores['GPSLongitude'] = f'{longitud:.8f}'.rstrip('0').rstrip('.')
+            if 'GPSAltitude' in campos:
+                altitud = float(campos['GPSAltitude'])
+                if not math.isfinite(altitud):
+                    return None, 'invalid_gps'
+                valores['GPSAltitude'] = altitud
+            if 'GPSImgDirection' in campos:
+                direccion = float(campos['GPSImgDirection'])
+                if not math.isfinite(direccion) or not 0 <= direccion < 360:
+                    return None, 'invalid_gps'
+                valores['GPSImgDirection'] = direccion
+        except ValueError:
+            return None, 'invalid_gps'
+
+    if sync_dates and 'DateTimeOriginal' not in valores:
+        return None, 'sync_requires_date'
+    if orientation is not None:
+        try:
+            orientation = int(orientation)
+        except (TypeError, ValueError):
+            return None, 'invalid_orientation'
+        if orientation not in range(1, 9):
+            return None, 'invalid_orientation'
+
+    if not valores and not clear_gps and orientation is None:
+        return None, 'empty'
+    return MetadataEditRequest(valores, sync_dates, clear_gps, orientation), None
 
 
 def batch_limpiar_exif(rutas, carpeta_salida, sufijo='_sinexif'):

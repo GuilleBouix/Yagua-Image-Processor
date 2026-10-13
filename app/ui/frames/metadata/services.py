@@ -12,7 +12,10 @@ from app.modules.metadata import (
     editar_exif,
     exportar_metadatos,
     preparar_campos_exif,
+    MetadataEditRequest,
     CAMPOS_EDITABLES,
+    GRUPOS_CAMPOS_EDITABLES,
+    leer_campos_edicion_safe,
     batch_limpiar_exif,
 )
 
@@ -21,6 +24,9 @@ __all__ = [
     'editar_exif',
     'exportar_metadatos',
     'preparar_campos_exif',
+    'MetadataEditRequest',
     'CAMPOS_EDITABLES',
+    'GRUPOS_CAMPOS_EDITABLES',
+    'leer_campos_edicion_safe',
     'batch_limpiar_exif',
 ]

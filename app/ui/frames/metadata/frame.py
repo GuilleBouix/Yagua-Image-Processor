@@ -38,12 +38,40 @@ from app.ui.frames.metadata.services import (
     exportar_metadatos,
     preparar_campos_exif,
     CAMPOS_EDITABLES,
+    GRUPOS_CAMPOS_EDITABLES,
+    leer_campos_edicion_safe,
     batch_limpiar_exif,
 )
 from app.ui.frames.metadata.state import MetadataState
 
 
 logger = logging.getLogger(__name__)
+
+_ENUM_OPTIONS = {
+    'ExposureProgram': {
+        0: 'enum_not_defined', 1: 'enum_manual', 2: 'enum_program',
+        3: 'enum_aperture_priority', 4: 'enum_shutter_priority',
+        5: 'enum_creative', 6: 'enum_action', 7: 'enum_portrait', 8: 'enum_landscape',
+    },
+    'ExposureMode': {0: 'enum_auto', 1: 'enum_manual', 2: 'enum_auto_bracket'},
+    'MeteringMode': {
+        0: 'enum_meter_unknown', 1: 'enum_average', 2: 'enum_center_weighted',
+        3: 'enum_spot', 4: 'enum_multi_spot', 5: 'enum_pattern',
+        6: 'enum_partial', 255: 'enum_other',
+    },
+    'Flash': {0: 'flash_no', 1: 'flash_yes'},
+    'WhiteBalance': {0: 'wb_auto', 1: 'wb_manual'},
+    'LightSource': {
+        0: 'enum_not_defined', 1: 'light_daylight', 2: 'light_fluorescent',
+        3: 'light_tungsten', 4: 'light_flash', 9: 'light_fine_weather',
+        10: 'light_cloudy', 11: 'light_shade', 255: 'enum_other',
+    },
+}
+_ORIENTATION_OPTIONS = {
+    1: 'orient_normal', 2: 'orient_mirror_horizontal', 3: 'orient_180',
+    4: 'orient_mirror_vertical', 5: 'orient_transpose', 6: 'orient_90_cw',
+    7: 'orient_transverse', 8: 'orient_90_ccw',
+}
 
 
 class MetadataFrame(BaseFrame):
@@ -55,7 +83,9 @@ class MetadataFrame(BaseFrame):
         self._preview_img: ctk.CTkImage | None = None
         self._thumbs: list[ctk.CTkImage] = []
         self._filas_lote: list[ctk.CTkLabel] = []
-        self._campos_edit: dict[str, ctk.CTkEntry] = {}
+        self._campos_edit: dict[str, ctk.CTkEntry | ctk.CTkComboBox] = {}
+        self._enum_values: dict[str, dict[str, str]] = {}
+        self._orientacion_values: dict[str, int] = {}
         super().__init__(parent, t('metadata_title'))
 
     def _build_content(self):
@@ -166,47 +196,75 @@ class MetadataFrame(BaseFrame):
         btn = self._crear_boton_seleccionar(izquierda, t('select_image_edit'), self._explorar_editar)
         btn.grid(row=0, column=0, padx=16, pady=16, sticky='ew')
 
-        panel = ctk.CTkFrame(
+        panel = ctk.CTkScrollableFrame(
             izquierda, corner_radius=10,
             fg_color=colors.PANEL_BG,
             border_width=1,
-            border_color=colors.SIDEBAR_SEPARATOR
+            border_color=colors.SIDEBAR_SEPARATOR,
+            height=420,
         )
+        self._panel_editar = panel
         panel.grid(row=1, column=0, padx=16, pady=(0, 16), sticky='new')
         panel.grid_columnconfigure(1, weight=1)
 
-        _label_map = {
-            'Artist': 'artist',
-            'Copyright': 'copyright',
-            'Software': 'software',
-            'DateTime': 'datetime',
-        }
-        _placeholder_map = {
-            'DateTime': t('datetime_format_placeholder'),
-            'DateTimeOriginal': t('datetime_format_placeholder'),
-            'DateTimeDigitized': t('datetime_format_placeholder'),
-        }
-        for indice, (campo, etiqueta) in enumerate(CAMPOS_EDITABLES.items()):
-            etiqueta_trad = t(_label_map.get(campo, '')) if campo in _label_map else etiqueta
+        fila = 0
+        for grupo, campos in GRUPOS_CAMPOS_EDITABLES.items():
             ctk.CTkLabel(
-                panel, text=etiqueta_trad,
-                font=fonts.FUENTE_BASE,
-                text_color=colors.TEXT_GRAY, anchor='w'
-            ).grid(row=indice, column=0, padx=(16, 12), pady=8, sticky='w')
+                panel, text=t(f'metadata_section_{grupo}'),
+                font=fonts.FUENTE_TITULO, text_color=colors.TEXT_COLOR,
+                anchor='w'
+            ).grid(row=fila, column=0, columnspan=2, padx=16, pady=(14, 4), sticky='ew')
+            fila += 1
+            for campo in campos:
+                fila = self._agregar_campo_edicion(panel, campo, fila)
+            if grupo == 'gps':
+                self._clear_gps_var = ctk.BooleanVar(value=False)
+                ctk.CTkCheckBox(
+                    panel, text=t('clear_gps'), variable=self._clear_gps_var,
+                    font=fonts.FUENTE_CHICA, text_color=colors.TEXT_COLOR,
+                ).grid(row=fila, column=0, columnspan=2, padx=16, pady=6, sticky='w')
+                fila += 1
 
-            entry = ctk.CTkEntry(
-                panel,
-                font=fonts.FUENTE_BASE,
-                fg_color=colors.FRAMES_BG,
-                border_color=colors.SIDEBAR_SEPARATOR,
-                text_color=colors.TEXT_COLOR,
-                placeholder_text=_placeholder_map.get(
-                    campo, t('enter_field').format(etiqueta_trad.lower())
-                ),
-                placeholder_text_color=colors.TEXT_GRAY
-            )
-            entry.grid(row=indice, column=1, padx=(0, 16), pady=8, sticky='ew')
-            self._campos_edit[campo] = entry
+        ctk.CTkLabel(
+            panel, text=t('metadata_section_dates'),
+            font=fonts.FUENTE_TITULO, text_color=colors.TEXT_COLOR,
+            anchor='w'
+        ).grid(row=fila, column=0, columnspan=2, padx=16, pady=(14, 4), sticky='ew')
+        fila += 1
+        fila = self._agregar_campo_edicion(panel, 'DateTimeOriginal', fila)
+        self._sync_dates_var = ctk.BooleanVar(value=False)
+        ctk.CTkCheckBox(
+            panel, text=t('sync_dates'), variable=self._sync_dates_var,
+            font=fonts.FUENTE_CHICA, text_color=colors.TEXT_COLOR,
+        ).grid(row=fila, column=0, columnspan=2, padx=16, pady=6, sticky='w')
+        fila += 1
+
+        ctk.CTkLabel(
+            panel, text=t('metadata_section_orientation'),
+            font=fonts.FUENTE_TITULO, text_color=colors.TEXT_COLOR,
+            anchor='w'
+        ).grid(row=fila, column=0, columnspan=2, padx=16, pady=(14, 4), sticky='ew')
+        fila += 1
+        ctk.CTkLabel(
+            panel, text=t('orientation_transform'), font=fonts.FUENTE_BASE,
+            text_color=colors.TEXT_GRAY, anchor='w'
+        ).grid(row=fila, column=0, padx=(16, 12), pady=6, sticky='w')
+        self._combo_orientacion = ctk.CTkComboBox(
+            panel, values=[t('keep_orientation')] + [t(key) for key in _ORIENTATION_OPTIONS.values()],
+            state='readonly', font=fonts.FUENTE_BASE,
+            fg_color=colors.FRAMES_BG, border_color=colors.SIDEBAR_SEPARATOR,
+            text_color=colors.TEXT_COLOR,
+        )
+        self._combo_orientacion.set(t('keep_orientation'))
+        self._orientacion_values = {t(key): value for value, key in _ORIENTATION_OPTIONS.items()}
+        self._combo_orientacion.grid(row=fila, column=1, padx=(0, 16), pady=6, sticky='ew')
+        fila += 1
+        self._info_tecnica = ctk.CTkLabel(
+            panel, text='', font=fonts.FUENTE_CHICA,
+            text_color=colors.TEXT_GRAY, anchor='w', justify='left'
+        )
+        self._info_tecnica.grid(row=fila, column=0, columnspan=2, padx=16, pady=6, sticky='ew')
+        fila += 1
 
         self._btn_guardar_edit = ctk.CTkButton(
             panel,
@@ -219,7 +277,7 @@ class MetadataFrame(BaseFrame):
             command=self._guardar_edicion
         )
         self._btn_guardar_edit.grid(
-            row=len(CAMPOS_EDITABLES), column=0, columnspan=2,
+            row=fila, column=0, columnspan=2,
             padx=16, pady=(0, 16), sticky='ew'
         )
 
@@ -231,6 +289,35 @@ class MetadataFrame(BaseFrame):
         self._lbl_edit_target.grid(row=0, column=0, padx=16, pady=16, sticky='nw')
 
         return f
+
+    def _agregar_campo_edicion(self, panel, campo: str, fila: int) -> int:
+        etiqueta = t(CAMPOS_EDITABLES[campo])
+        ctk.CTkLabel(
+            panel, text=etiqueta, font=fonts.FUENTE_BASE,
+            text_color=colors.TEXT_GRAY, anchor='w'
+        ).grid(row=fila, column=0, padx=(16, 12), pady=6, sticky='w')
+
+        if campo in _ENUM_OPTIONS:
+            opciones = {t(clave): str(valor) for valor, clave in _ENUM_OPTIONS[campo].items()}
+            self._enum_values[campo] = opciones
+            widget = ctk.CTkComboBox(
+                panel, values=[t('leave_unchanged')] + list(opciones),
+                state='readonly', font=fonts.FUENTE_BASE,
+                fg_color=colors.FRAMES_BG, border_color=colors.SIDEBAR_SEPARATOR,
+                text_color=colors.TEXT_COLOR,
+            )
+            widget.set(t('leave_unchanged'))
+        else:
+            placeholder = t('datetime_format_placeholder') if campo == 'DateTimeOriginal' else t('enter_field').format(etiqueta.lower())
+            widget = ctk.CTkEntry(
+                panel, font=fonts.FUENTE_BASE,
+                fg_color=colors.FRAMES_BG, border_color=colors.SIDEBAR_SEPARATOR,
+                text_color=colors.TEXT_COLOR, placeholder_text=placeholder,
+                placeholder_text_color=colors.TEXT_GRAY,
+            )
+        widget.grid(row=fila, column=1, padx=(0, 16), pady=6, sticky='ew')
+        self._campos_edit[campo] = widget
+        return fila + 1
 
     def _build_tab_limpiar(self) -> ctk.CTkFrame:
         """Construir el tab de limpieza de metadatos en lote."""
@@ -420,7 +507,7 @@ class MetadataFrame(BaseFrame):
         logger.info("metadata.ui: explorar_editar")
         archivo = filedialog.askopenfilename(
             title=t('select_image_edit'),
-            filetypes=[('Imagenes', '*.jpg *.jpeg *.tiff *.heic *.heif')]
+            filetypes=[('JPEG / TIFF', '*.jpg *.jpeg *.tif *.tiff')]
         )
         if not archivo:
             return
@@ -429,17 +516,41 @@ class MetadataFrame(BaseFrame):
         self._show_full_overlay(t('processing'))
 
         def _proc():
-            meta, _ = leer_metadatos_safe(archivo)
+            meta, _ = leer_campos_edicion_safe(archivo)
             self.after(0, lambda: self._aplicar_campos_edit(meta))
 
         threading.Thread(target=_proc, daemon=True).start()
 
     def _aplicar_campos_edit(self, meta: dict):
         """Aplicar metadatos a los campos editables."""
-        for etiqueta, entry in zip(CAMPOS_EDITABLES.values(), self._campos_edit.values()):
-            entry.delete(0, 'end')
-            if etiqueta in meta:
-                entry.insert(0, meta[etiqueta])
+        for campo, widget in self._campos_edit.items():
+            valor = meta.get(campo, '')
+            if campo in self._enum_values:
+                display = next(
+                    (label for label, code in self._enum_values[campo].items() if code == str(valor)),
+                    t('leave_unchanged'),
+                )
+                widget.set(display)
+            else:
+                widget.delete(0, 'end')
+                if valor:
+                    widget.insert(0, valor)
+        self._sync_dates_var.set(False)
+        self._clear_gps_var.set(False)
+        self._combo_orientacion.set(t('keep_orientation'))
+        orientation_key = _ORIENTATION_OPTIONS.get(int(meta.get('__orientation__', 1)), 'orient_normal')
+        color_space = meta.get('__color_space__', '')
+        if color_space == '1':
+            color_space = t('color_srgb')
+        elif color_space == '65535':
+            color_space = t('color_uncalibrated')
+        elif not color_space:
+            color_space = t('unknown')
+        self._info_tecnica.configure(text=(
+            f"{t('current_orientation')}: {t(orientation_key)}  |  "
+            f"{t('dimensions')}: {meta.get('__image_size__', t('unknown'))}  |  "
+            f"{t('color_space')}: {color_space}"
+        ))
         if self._state.ruta:
             self._lbl_info.configure(text=f'{t("editing")} {Path(self._state.ruta).name}')
             if hasattr(self, '_lbl_edit_target'):
@@ -453,13 +564,32 @@ class MetadataFrame(BaseFrame):
             self._lbl_info.configure(text=t('export_metadata_first'))
             return
 
-        campos_raw = {campo: entry.get() for campo, entry in self._campos_edit.items()}
-        campos, err = preparar_campos_exif(campos_raw)
+        campos_raw = {}
+        for campo, widget in self._campos_edit.items():
+            valor = widget.get().strip()
+            if campo in self._enum_values:
+                valor = self._enum_values[campo].get(valor, '')
+            campos_raw[campo] = valor
+        orientacion = self._orientacion_values.get(self._combo_orientacion.get())
+        campos, err = preparar_campos_exif(
+            campos_raw,
+            sync_dates=self._sync_dates_var.get(),
+            clear_gps=self._clear_gps_var.get(),
+            orientation=orientacion,
+        )
         if err:
-            if err == 'invalid_date':
-                self._lbl_info.configure(text=t('invalid_date_format'))
-            else:
-                self._lbl_info.configure(text=t('enter_at_least_one'))
+            mensajes = {
+                'invalid_date': 'invalid_date_format',
+                'invalid_number': 'invalid_metadata_number',
+                'invalid_option': 'invalid_metadata_option',
+                'invalid_gps': 'invalid_gps',
+                'gps_pair': 'gps_pair_required',
+                'gps_conflict': 'gps_clear_conflict',
+                'sync_requires_date': 'sync_date_required',
+                'invalid_orientation': 'invalid_orientation',
+                'empty': 'no_metadata_changes',
+            }
+            self._lbl_info.configure(text=t(mensajes.get(err, 'error_saving')))
             return
 
         confirm = messagebox.askyesno(

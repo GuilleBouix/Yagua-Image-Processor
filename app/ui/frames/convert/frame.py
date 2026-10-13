@@ -60,31 +60,29 @@ class ConvertFrame(BaseFrame):
         boton de convertir.
         """
         logger.info("convert.ui: build_content")
-        izquierda, derecha = self._crear_workspace()
-        izquierda.grid_rowconfigure(2, weight=1)
-        derecha.grid_rowconfigure(1, weight=1)
+        self.grid_rowconfigure(3, weight=1)
 
-        self._btn_seleccionar = self._crear_boton_seleccionar(izquierda)
-        self._btn_seleccionar.grid(row=0, column=0, padx=16, pady=(16, 8), sticky='ew')
+        self._btn_seleccionar = self._crear_boton_seleccionar(self)
+        self._btn_seleccionar.grid(row=1, column=0, padx=24, pady=(0, 12), sticky='ew')
 
         self._panel_opciones = ctk.CTkFrame(
-            izquierda,
+            self,
             corner_radius=10,
             fg_color=colors.SIDEBAR_BG,
             border_width=1,
             border_color=colors.SIDEBAR_SEPARATOR
         )
-        self._panel_opciones.grid(row=1, column=0, padx=16, pady=(0, 16), sticky='new')
+        self._panel_opciones.grid(row=4, column=0, padx=24, pady=(0, 12), sticky='ew')
         self._panel_opciones.grid_columnconfigure(1, weight=1)
         self._construir_opciones()
 
         # Lista de archivos seleccionados
         ctk.CTkLabel(
-            derecha, text=t('files_loaded').capitalize(), font=fonts.FUENTE_BASE,
+            self, text=t('files_loaded').capitalize(), font=fonts.FUENTE_BASE,
             text_color=colors.TEXT_COLOR, anchor='w'
-        ).grid(row=0, column=0, padx=16, pady=(16, 8), sticky='w')
-        self._lista_frame = self._crear_lista_archivos(derecha, height=420)
-        self._lista_frame.grid(row=1, column=0, padx=16, pady=(0, 16), sticky='nsew')
+        ).grid(row=2, column=0, padx=24, pady=(0, 8), sticky='w')
+        self._lista_frame = self._crear_lista_archivos(self, height=220)
+        self._lista_frame.grid(row=3, column=0, padx=24, pady=(0, 12), sticky='nsew')
         self._lista_frame.grid_columnconfigure(0, weight=1)
 
         # Label de lista vacia

@@ -1,336 +1,243 @@
-<img width="1761" height="497" alt="banner" src="https://github.com/user-attachments/assets/fc1dacf8-5249-43da-a294-4b20dc423304" />
+<div align="center">
 
-# Yagua - Image Processor
+**English** · [Español](docs/i18n/README_es.md) · [Português](docs/i18n/README_pt.md) · [Français](docs/i18n/README_fr.md) · [Deutsch](docs/i18n/README_de.md)
 
-## 🇬🇧 English
+<img src="https://github.com/user-attachments/assets/fc1dacf8-5249-43da-a294-4b20dc423304" width="1000" alt="Yagua — Image Processor banner" />
 
-### Table of Contents
+# Yagua · Image Processor
 
-- [Description](#-description)
-- [Features](#-features)
-- [Gallery](#️-gallery)
-- [Installation](#️-installation)
-- [Requirements](#-recommended-requirements)
-- [Usage](#-usage)
-- [Technologies](#-technologies-used)
-- [Contributing](#-contributing)
-- [Support the project](#-support-the-project)
-- [License](#-license)
+### Your images. Your computer. Your workflow.
 
----
-
-### 📖 Description
-
-Yagua was born as an alternative to web-based image processing tools: limited and paywalled for tasks that should be simple. It's a free, open source desktop app that runs everything locally.
-
-Built for web developers, designers, photographers, and anyone who needs to process images in bulk without relying on a browser or paying a subscription.
-
-Yagua brings together in a single interface features oriented toward modern web workflows: LQIP and Base64 generation, AI background removal (rembg, works offline once the model is downloaded), EXIF metadata editing, and batch compression/conversion with practical per-module limits.
-
-### ✨ Features
-
-- Smart compression with quality control
-- Conversion between multiple image formats
-- AI background removal (rembg)
-- Resize, crop and canvas editing
-- Automatic color palette extraction
-- Bulk renaming with live preview
-- Watermark with real-time preview
-- OCR (EasyOCR)
-- EXIF metadata management (view, edit and clean)
-- LQIP generation and Base64 encoding
-- HEIC/HEIF support (requires `pillow-heif`)
-- Multi-language support (ES / EN / PT / FR / DE)
-- New version notification on startup + link to download the latest release
-- Settings with tabs (Settings / Updates)
-- Welcome screen on app launch
-- Detailed per-module logs for diagnostics
-- Predefined dark themes
-
-### 🖼️ Gallery
+Free, open-source desktop tools to convert, compress and process images in batches.
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/f8f57bbb-4cdf-4c5f-8d06-a04b2c3dc1b1" width="250" alt="1"/>
-  <img src="https://github.com/user-attachments/assets/903c897e-eb48-4b6b-b941-2fbfffb234ce" width="250" alt="2"/>
-  <img src="https://github.com/user-attachments/assets/ed7081e4-d106-47db-9744-927be0db9d5d" width="250" alt="3"/>
+  <a href="https://github.com/GuilleBouix/Yagua-Image-Processor/releases/latest"><img src="https://img.shields.io/github/v/release/GuilleBouix/Yagua-Image-Processor?style=flat-square&amp;label=stable&amp;color=2563eb" alt="Latest stable release" /></a>
+  <a href="https://github.com/GuilleBouix/Yagua-Image-Processor/releases"><img src="https://img.shields.io/github/downloads/GuilleBouix/Yagua-Image-Processor/total?style=flat-square&amp;label=downloads&amp;color=22c55e" alt="Total downloads" /></a>
+  <a href="https://github.com/GuilleBouix/Yagua-Image-Processor/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/GuilleBouix/Yagua-Image-Processor/ci.yml?branch=main&amp;style=flat-square&amp;label=CI" alt="CI status" /></a>
+  <a href="#requirements"><img src="https://img.shields.io/badge/Python-3.13-3776ab?style=flat-square&amp;logo=python&amp;logoColor=white" alt="Python 3.13" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-f4c430?style=flat-square" alt="MIT license" /></a>
 </p>
+
+**[Downloads](https://github.com/GuilleBouix/Yagua-Image-Processor/releases) · [Features](#features) · [Installation](#installation)**
+
+[Screenshots](#screenshots) · [Usage](#usage) · [Requirements](#requirements) · [FAQ](#faq) · [Contributing](#contributing)
+
+</div>
+
+## Why Yagua?
+
+Yagua brings everyday image tasks into one desktop app for web developers, designers, photographers and anyone working with image collections. No subscription or browser is needed to process your files.
+
+Image processing runs on your computer. Background removal and OCR need an initial model download, then can work offline with the required models cached. Update checks contact GitHub; opening download, donation or map links uses your browser.
+
+The interface supports **English, Spanish, Portuguese, French and German**, with dark themes, previews where available and diagnostic logs under **Settings → Logs**.
+
+## Features
+
+The table describes the current source code. Packaged releases may include different features; check their release notes.
+
+| Module | What you can do | Formats and outputs | Selection limit |
+| --- | --- | --- | --- |
+| Convert | Change format and adjust quality where supported. | JPEG, PNG, WebP, AVIF, HEIC, ICO, BMP, TIFF, GIF outputs. | 100 images |
+| Compress | Reduce file size while keeping the original format. | JPEG, PNG, WebP, AVIF, HEIC/HEIF and other supported raster formats. | 100 images |
+| Resize / Crop / Canvas | Set dimensions, crop or add canvas space; use size presets. | Common raster images, including JPEG, PNG and WebP. | 100 images |
+| Remove background | Remove backgrounds locally with AI. | PNG, WebP or TIFF output with transparency. | 10 images |
+| Color palette | Extract colors, copy HEX/RGB/HSL values and export a palette. | One supported image → colors and a PNG palette. | 1 image |
+| Watermark | Apply an image logo; adjust position, size, opacity and margin. | Supported base images; transparent PNG recommended for the logo. | 100 images + 1 logo |
+| Rename | Preview numbered names, dates and letter case changes. | Changes filenames in their current folder. | 100 files |
+| OCR | Extract text with EasyOCR; copy it or export as TXT. | Supported raster images → text. | 10 images |
+| EXIF metadata | Inspect, export, edit fields or remove metadata in batches. | JPEG/TIFF editing; TXT/JSON metadata export. | 1 image for editing; 100 for cleanup |
+| LQIP / Base64 | Generate low-quality placeholders or encode images for the web. | Base64, data URIs, HTML and CSS; TXT/JSON export. | 1 image |
+
+Format support varies by module, installed codecs and platform. A listed format is not a guarantee that every module can read or write it. See [requirements](#requirements).
+
+## Screenshots
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/381c1f71-debd-47a0-837b-fb8f84e41790" width="250" alt="4"/>
-  <img src="https://github.com/user-attachments/assets/dfe2dd77-f792-4092-a6d7-82b5e96aa104" width="250" alt="5"/>
-  <img src="https://github.com/user-attachments/assets/e3a8f766-84e5-412d-bbaf-acb5936c0380" width="250" alt="6"/>
+  <a href="https://github.com/user-attachments/assets/903c897e-eb48-4b6b-b941-2fbfffb234ce"><img src="https://github.com/user-attachments/assets/903c897e-eb48-4b6b-b941-2fbfffb234ce" width="420" alt="Conversion module with selected images and output format controls" /></a>
+  <a href="https://github.com/user-attachments/assets/ed7081e4-d106-47db-9744-927be0db9d5d"><img src="https://github.com/user-attachments/assets/ed7081e4-d106-47db-9744-927be0db9d5d" width="420" alt="Background removal module with selected images and output format controls" /></a>
 </p>
+
+<details>
+<summary>More screenshots: compression, resizing, palette, renaming, EXIF, LQIP and settings</summary>
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/235fce12-9796-4304-9252-f9e016edf483" width="250" alt="7"/>
-  <img src="https://github.com/user-attachments/assets/8e8824a4-0bdf-44d8-b82f-7e0c2e1fcfe5" width="250" alt="8"/>
-  <img src="https://github.com/user-attachments/assets/29131d50-2ea2-40c5-9549-d5878d89119a" width="250" alt="9"/>
+  <a href="https://github.com/user-attachments/assets/f8f57bbb-4cdf-4c5f-8d06-a04b2c3dc1b1"><img src="https://github.com/user-attachments/assets/f8f57bbb-4cdf-4c5f-8d06-a04b2c3dc1b1" width="280" alt="Compression module with a quality slider and EXIF removal option" /></a>
+  <a href="https://github.com/user-attachments/assets/381c1f71-debd-47a0-837b-fb8f84e41790"><img src="https://github.com/user-attachments/assets/381c1f71-debd-47a0-837b-fb8f84e41790" width="280" alt="Resize module with resize, crop and canvas tabs" /></a>
+  <a href="https://github.com/user-attachments/assets/dfe2dd77-f792-4092-a6d7-82b5e96aa104"><img src="https://github.com/user-attachments/assets/dfe2dd77-f792-4092-a6d7-82b5e96aa104" width="280" alt="Extracted color palette with swatches and color values" /></a>
+</p>
+<p align="center">
+  <a href="https://github.com/user-attachments/assets/e3a8f766-84e5-412d-bbaf-acb5936c0380"><img src="https://github.com/user-attachments/assets/e3a8f766-84e5-412d-bbaf-acb5936c0380" width="280" alt="Batch rename module showing original and proposed filenames" /></a>
+  <a href="https://github.com/user-attachments/assets/235fce12-9796-4304-9252-f9e016edf483"><img src="https://github.com/user-attachments/assets/235fce12-9796-4304-9252-f9e016edf483" width="280" alt="EXIF editor with author, copyright, software and date fields" /></a>
+  <a href="https://github.com/user-attachments/assets/8e8824a4-0bdf-44d8-b82f-7e0c2e1fcfe5"><img src="https://github.com/user-attachments/assets/8e8824a4-0bdf-44d8-b82f-7e0c2e1fcfe5" width="280" alt="LQIP and Base64 module with placeholder size and quality controls" /></a>
+</p>
+<p align="center">
+  <a href="https://github.com/user-attachments/assets/29131d50-2ea2-40c5-9549-d5878d89119a"><img src="https://github.com/user-attachments/assets/29131d50-2ea2-40c5-9549-d5878d89119a" width="280" alt="Yagua settings with interface language and theme selection" /></a>
 </p>
 
-### ⚙️ Installation
+</details>
 
-#### 🖥️ Installation (Windows)
+These are existing project screenshots; layouts and controls can differ between versions. Click an image to view it at full size.
 
-1. Download `Yagua_Setup_2.X.X.exe`
-2. Run the installer
-3. Follow the installation instructions
-4. Launch the app from the desktop or Start menu
+## Installation
 
-#### 🐧 Installation (Linux)
+### Choose a release
 
-1. Download `Yagua-2.X.X-x86_64.AppImage`
-2. Run in terminal: `chmod +x Yagua-2.X.X-x86_64.AppImage`
-3. Then: `./Yagua-2.X.X-x86_64.AppImage`
+Open **[GitHub Releases](https://github.com/GuilleBouix/Yagua-Image-Processor/releases)** and choose your operating system. The **stable** badge links to GitHub's latest stable release; newer builds marked **Pre-release**, including `rc` builds, are testing versions. Windows and Linux releases can have different versions.
 
-#### 🐍 Source code
+The source version is defined in [`app/version.py`](app/version.py). It does not mean that a matching installer has been published. Read each release's notes and download the assets attached to that release.
 
-1. Clone the repository.
-2. Create and activate your virtual environment.
-3. Install dependencies with `pip install -r requirements.txt`.
-4. Run `python main.py`.
+| Platform | Package | Steps |
+| --- | --- | --- |
+| Windows | `Yagua_Setup_<version>.exe` | Run the installer, then open Yagua from the Start menu or desktop shortcut. |
+| Windows portable | `Yagua_Portable_<version>.zip`, when provided | Extract the entire ZIP into a writable folder and launch `Yagua.exe` inside it. Keep the accompanying files together. |
+| Linux x86_64 | `Yagua-<version>-x86_64.AppImage`, when provided | Make the downloaded file executable, then run it as shown below. |
+| macOS | Experimental source/build support | No stable macOS package is promised. See the existing [build script](scripts/build_macos_app.sh). |
 
-### 🧩 Recommended Requirements
+For Linux, replace the example filename with the one you downloaded:
 
-For Yagua to run smoothly, especially with large batches (up to 100 images):
+~~~bash
+chmod +x "Yagua-<version>-x86_64.AppImage"
+./"Yagua-<version>-x86_64.AppImage"
+~~~
 
-#### ✅ System
+### Run from source
 
-- Windows 10/11 or Linux x64
-- CPU: 4 cores or more recommended
-- RAM: 6 GB minimum
-- Disk: 500 MB free + space for outputs
+Use **Python 3.13**, the version used by the project's CI, and Git. Dependency installation can be large because it includes OCR and AI libraries. Linux also needs Tk and the system libraries listed under [requirements](#requirements).
 
-#### ✅ Dependencies (Linux)
+**Windows · PowerShell**
 
-- AppImage usually runs out of the box, but may require:
-  - `libfuse2`
-  - `libgl1`
-  - `libglib2.0-0`
+~~~powershell
+git clone https://github.com/GuilleBouix/Yagua-Image-Processor.git
+cd Yagua-Image-Processor
+py -3.13 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install --upgrade pip
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe main.py
+~~~
 
-#### ✅ Batch Limits
+**Linux · Bash**
 
-- 100 images per batch (compression, conversion, resize, rename, LQIP)
-- 10 images per batch for Background Removal
-- 10 images per batch for OCR
-- 100 images per batch for Watermark
-- 100 images for metadata cleanup (EXIF)
+~~~bash
+git clone https://github.com/GuilleBouix/Yagua-Image-Processor.git
+cd Yagua-Image-Processor
+python3.13 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+python main.py
+~~~
 
-### 🚀 Usage
+The commands use the repository's pinned dependencies. Compatibility with other Python versions or macOS is not established by the Windows/Linux CI checks.
 
-1. Open the app.
-2. Select a module from the sidebar.
-3. Load images and process.
-4. Save results to the output folder.
+## Usage
 
-Updates:
+1. Open Yagua and select a module from the sidebar.
+2. Load your images and choose the available processing options.
+3. Check the preview where the module provides one.
+4. Process the images and choose an output folder when prompted; review the completion message for errors.
 
-- If a newer version is available, Yagua shows a notice inside the app on startup.
-- You can also go to `Settings → Updates` and open the download link.
+**LQIP / Base64:** Select one image, choose the mode and parameters, generate, compare, then copy or export Data URI, HTML, CSS or raw Base64. Loading another image resets LQIP mode, width 20 px, blur 2 and qualities 40/85; canceling the picker preserves the current state. Both modes output JPEG without transparency.
 
-ℹ️ Note: macOS is in experimental phase.
+**Original files:** Rename changes filenames in place. EXIF editing overwrites the selected image after confirmation. Work on copies for these operations. Batch EXIF cleanup writes to the chosen output folder. Other export operations use their module's save or output-folder flow.
 
-### 🔧 Technologies Used
+### Practical workflows
 
-| Technology    | Version | Purpose                      |
-| ------------- | ------- | ---------------------------- |
-| Python        | 3.13+   | Main language                |
-| CustomTkinter | 5.2.2   | Modern desktop UI            |
-| Pillow        | 12.1.1  | Image processing             |
-| pillow-heif   | 1.x     | HEIC/HEIF support for Pillow |
-| piexif        | 1.1.3   | EXIF metadata                |
-| rembg         | 2.0.73  | AI background removal        |
-| EasyOCR       | 1.x     | Local OCR (CPU/GPU)          |
-| Codex         | N/A     | Development assistance       |
+- **Prepare web images:** Convert up to 100 photos to WebP, choose a quality setting, then resize if needed. Generate LQIP placeholders separately for loading previews on your site.
+- **Prepare product photos:** Load up to 10 images in Remove background and export as PNG or WebP to keep transparency. Add a transparent PNG logo with Watermark if needed.
+- **Extract text:** Load up to 10 clear images in OCR, choose recognition languages, then copy the result or export a TXT file. Review the text for recognition errors.
 
-### 🤝 Contributing
+<a id="requirements"></a>
 
-- Open an issue for bugs or ideas.
-- Submit a PR with clear, small changes.
-- Keep the project's style and current structure.
+## Requirements and limits
 
-### 💙 Support the Project
+- **Desktop:** Windows or Linux; Linux packages target x86_64. macOS support is experimental.
+- **From source:** Python 3.13, Tk and the libraries in [`requirements.txt`](requirements.txt). Prebuilt packages do not require a separate Python installation.
+- **Resources:** RAM, disk space and processing time depend on image resolution, batch size and AI models. Keep space for dependencies, downloaded models and outputs; reduce batch size on machines with limited resources. No measured minimum hardware requirements are documented here.
+- **Batch limits:** The table lists current UI limits: one image for Palette, LQIP / Base64 or EXIF editing, 10 for OCR/background removal and 100 for the other listed batch operations.
+- **Codecs:** HEIC/HEIF uses `pillow-heif`, included in source dependencies. AVIF and other formats depend on Pillow codecs and platform. JPEG has no transparency; use PNG or WebP when alpha is needed. PNG compression can reduce the image to 256 colors, so check the result.
+- **AI models:** Downloads can occur on first use or when a newly selected model/language needs one. Offline use requires the models to be present. CPU processing is available; GPU use depends on compatible hardware and libraries.
 
-Yagua is free and open-source, and your support helps me continue developing, maintaining, and improving it.
+### Linux system libraries
 
-If you find Yagua useful, consider supporting the project:
-[💙 Sponsor me on GitHub](https://github.com/sponsors/GuilleBouix)
+AppImage may need FUSE 2 (`libfuse2` on compatible distributions). For source runs, Linux CI installs Tk and these libraries on Ubuntu 22.04:
 
-Every contribution, big or small, is greatly appreciated. Thank you! 💙
+~~~bash
+sudo apt-get install python3-tk libgl1 libglib2.0-0 libsm6 libxext6 libxrender1 libgtk-3-0 libgomp1
+~~~
 
-<a href="https://www.paypal.com/paypalme/guillebouix?locale.x=es_XC&country.x=AR" target="_blank"><img width="300" alt="paypal_donate_button" src="https://github.com/user-attachments/assets/2f3f6a1b-990c-4fb8-9fda-7482c1ca20a5" />
-</a>
+Package names vary by distribution. Ensure Tk is available for the Python 3.13 interpreter you use; the distribution's default Tk package may not cover a separately installed Python.
 
-### 📄 License
+## FAQ
 
-MIT License - See LICENSE file for more details.
+### Does Yagua upload my images?
 
----
+Processing runs locally; the modules do not upload images to a processing service. Model downloads and GitHub update checks need a network connection. External links open in your browser; the EXIF map link sends the selected GPS coordinates to Google Maps when you open it.
 
-&nbsp;
+### Why is the first AI operation slower?
 
----
+OCR and background removal initialize their engines and may download models. Wait for that step to finish. Later runs can reuse cached models; larger images and batches still require more resources.
 
----
+### Why is a format unavailable or an image rejected?
 
----
+Supported inputs differ by module and codec availability. Try a PNG or JPEG copy, review **Settings → Logs**. Export to PNG or WebP if you need transparency.
 
-&nbsp;
+### Why does compression not reduce every image?
 
----
+An already optimized image may not become smaller. If compression produces a file at least as large as the original, Yagua copies the original to the output instead. Requested metadata removal is therefore not guaranteed by compression; use the dedicated EXIF cleanup module.
 
-## 🇦🇷 Español
+### How do updates work?
 
-### Índice
+Yagua can notify you on startup and lets you check under **Settings → Updates**. The checker looks for newer stable releases with the matching platform prefix (`win-v` or `linux-v`) and excludes prereleases. It opens a download link; it does not automatically install updates. Check Releases manually for test builds and older unprefixed releases.
 
-- [Descripción](#-descripción)
-- [Features](#-features-1)
-- [Galería](#️-galería)
-- [Instalación](#️-instalación)
-- [Requisitos](#-requisitos-recomendados)
-- [Uso](#-uso)
-- [Tecnologías](#-tecnologías-utilizadas)
-- [Contribución](#-contribución)
-- [Apoyá el proyecto](#-apoyá-el-proyecto)
-- [Licencia](#-licencia)
+### How do I report a problem?
 
----
+Open a [bug report](https://github.com/GuilleBouix/Yagua-Image-Processor/issues/new?template=bug_report.md) with your Yagua version, OS, module, steps to reproduce and relevant logs. Inspect logs in **Settings → Logs** or locate `yagua.log` at:
 
-### 📖 Descripción
+- Windows: `%APPDATA%\Yagua\yagua.log`
+- Linux: `~/.config/Yagua/yagua.log`
+- macOS: `~/Library/Application Support/Yagua/yagua.log`
 
-Yagua surgió como alternativa a las herramientas web de procesamiento de imágenes: limitadas y con planes de pago para tareas que deberían ser simples. Es una app de escritorio gratuita y open source que corre todo localmente.
+Logs can contain file paths and names; review them before sharing.
 
-Está pensada para desarrolladores web, diseñadores, fotógrafos y cualquier usuario que necesite procesar imágenes en lote sin depender de un navegador ni pagar una suscripción.
+<a id="contributing"></a>
 
-Yagua integra en una sola interfaz features orientadas al flujo de trabajo web moderno: generación de LQIP y Base64, quitar fondo con IA (rembg, funciona offline una vez descargado el modelo), edición de metadatos EXIF y compresión/conversión en lote con límites prácticos por módulo.
+## Development and contributing
 
-### ✨ Features
+Yagua uses **CustomTkinter** for its interface, **Pillow / pillow-heif** for images, **rembg / ONNX Runtime** for background removal, **EasyOCR / PyTorch** for OCR and **piexif** for EXIF. Exact versions are in [`requirements.txt`](requirements.txt).
 
-- Compresión inteligente con control de calidad
-- Conversión entre múltiples formatos de imagen
-- Eliminación de fondo con IA (rembg)
-- Redimensionado, recorte y edición en canvas
-- Extracción automática de paleta de colores
-- Renombrado masivo con vista previa
-- Marca de agua con preview en tiempo real
-- OCR (EasyOCR)
-- Gestión de metadatos EXIF (visualizar, editar y limpiar)
-- Generación de LQIP y codificación Base64
-- Soporte HEIC/HEIF (requiere `pillow-heif`)
-- Soporte multi-idioma (ES / EN / PT / FR / DE)
-- Aviso de nuevas versiones al iniciar + enlace para descargar la última release
-- Ajustes con tabs (Ajustes / Actualizaciones)
-- Pantalla de bienvenida al abrir la app
-- Logs detallados por módulo para diagnóstico
-- Temas oscuros predefinidos
+After source installation, install development tools and run CI checks. On Windows, use the virtual environment's executables directly:
 
-### 🖼️ Galería
+~~~powershell
+.\.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
+.\.venv\Scripts\python.exe -m ruff check app tests scripts
+.\.venv\Scripts\python.exe -m pyright --skipunannotated --pythonpath .\.venv\Scripts\python.exe app
+.\.venv\Scripts\python.exe -m pytest -q
+~~~
+
+On Linux, with the virtual environment activated:
+
+~~~bash
+python -m pip install -r requirements-dev.txt
+python -m ruff check app tests scripts
+python -m pyright --skipunannotated --pythonpath "$(command -v python)" app
+python -m pytest -q
+~~~
+
+UI tests require a display. In headless Linux environments, install `xvfb` and use `xvfb-run -a python -m pytest -q`, as CI does.
+
+See [`CHANGELOG.md`](CHANGELOG.md) for project history. Some screenshots may lag behind the code. Report bugs, suggest features through [Issues](https://github.com/GuilleBouix/Yagua-Image-Processor/issues), or submit focused pull requests with relevant validation. When changing documented behavior, update all five README languages.
+
+## Support the project
+
+If Yagua helps you, a GitHub star makes it easier for others to find it. You can also help with bug reports, translations or contributions.
+
+**[Sponsor on GitHub](https://github.com/sponsors/GuilleBouix) · [Support via PayPal](https://www.paypal.com/paypalme/guillebouix)**
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/f8f57bbb-4cdf-4c5f-8d06-a04b2c3dc1b1" width="250" alt="1"/>
-  <img src="https://github.com/user-attachments/assets/903c897e-eb48-4b6b-b941-2fbfffb234ce" width="250" alt="2"/>
-  <img src="https://github.com/user-attachments/assets/ed7081e4-d106-47db-9744-927be0db9d5d" width="250" alt="3"/>
+  <a href="https://www.paypal.com/paypalme/guillebouix"><img src="https://github.com/user-attachments/assets/2f3f6a1b-990c-4fb8-9fda-7482c1ca20a5" width="220" alt="Support Yagua via PayPal" /></a>
 </p>
 
-<p align="center">
-  <img src="https://github.com/user-attachments/assets/381c1f71-debd-47a0-837b-fb8f84e41790" width="250" alt="4"/>
-  <img src="https://github.com/user-attachments/assets/dfe2dd77-f792-4092-a6d7-82b5e96aa104" width="250" alt="5"/>
-  <img src="https://github.com/user-attachments/assets/e3a8f766-84e5-412d-bbaf-acb5936c0380" width="250" alt="6"/>
-</p>
+## License
 
-<p align="center">
-  <img src="https://github.com/user-attachments/assets/235fce12-9796-4304-9252-f9e016edf483" width="250" alt="7"/>
-  <img src="https://github.com/user-attachments/assets/8e8824a4-0bdf-44d8-b82f-7e0c2e1fcfe5" width="250" alt="8"/>
-  <img src="https://github.com/user-attachments/assets/29131d50-2ea2-40c5-9549-d5878d89119a" width="250" alt="9"/>
-</p>
-
-### ⚙️ Instalación
-
-#### 🖥️ Instalación (Windows)
-
-1. Descargar `Yagua_Setup_2.X.X.exe`
-2. Ejecutar el instalador
-3. Seguir instrucciones de instalación
-4. Ejecutar la app desde el escritorio o el menú Inicio
-
-#### 🐧 Instalación (Linux)
-
-1. Descargar `Yagua-2.X.X-x86_64.AppImage`
-2. Ejecutar en terminal `chmod +x Yagua-2.X.X-x86_64.AppImage`
-3. Luego `./Yagua-2.X.X-x86_64.AppImage`
-
-#### 🐍 Código fuente
-
-1. Clona el repositorio.
-2. Crea y activa tu entorno virtual.
-3. Instala dependencias con `pip install -r requirements.txt`.
-4. Ejecuta `python main.py`.
-
-### 🧩 Requisitos Recomendados
-
-Para que Yagua funcione de manera fluida, especialmente con lotes grandes (hasta 100 imágenes):
-
-#### ✅ Sistema
-
-- Windows 10/11 o Linux x64
-- CPU: 4 núcleos o más recomendado
-- RAM: 6 GB mínimo
-- Disco: 500 MB libres + espacio para outputs
-
-#### ✅ Dependencias (Linux)
-
-- AppImage suele correr directo, pero puede requerir:
-  - `libfuse2`
-  - `libgl1`
-  - `libglib2.0-0`
-
-#### ✅ Límites de carga
-
-- 100 imágenes por lote (compresión, conversión, resize, rename, LQIP)
-- 10 imágenes por lote en Quitar Fondo
-- 10 imágenes por lote en OCR
-- 100 imágenes por lote en Marca de agua
-- 100 imágenes en limpieza de metadatos (EXIF)
-
-### 🚀 Uso
-
-1. Abre la app.
-2. Selecciona un módulo en la barra lateral.
-3. Carga imágenes y procesa.
-4. Guarda los resultados en la carpeta de salida.
-
-Actualizaciones:
-
-- Si hay una versión más nueva, Yagua muestra un aviso dentro de la app al iniciar.
-- También podés ir a `Ajustes → Actualizaciones` y abrir el enlace de descarga.
-
-ℹ️ Nota: macOS está en fase experimental.
-
-### 🔧 Tecnologías Utilizadas
-
-| Tecnología    | Versión | Propósito                   |
-| ------------- | ------- | --------------------------- |
-| Python        | 3.13+   | Lenguaje principal          |
-| CustomTkinter | 5.2.2   | UI moderna para escritorio  |
-| Pillow        | 12.1.1  | Procesamiento de imágenes   |
-| pillow-heif   | 1.x     | Soporte HEIC/HEIF en Pillow |
-| piexif        | 1.1.3   | Metadatos EXIF              |
-| rembg         | 2.0.73  | Quitar fondo con IA         |
-| EasyOCR       | 1.x     | OCR local (CPU/GPU)         |
-| Codex         | N/A     | Asistencia de desarrollo    |
-
-### 🤝 Contribución
-
-- Abre un issue para bugs o ideas.
-- Envía un PR con cambios claros y pequeños.
-- Mantén el estilo del proyecto y la estructura actual.
-
-### ⭐ Apoyá el Proyecto
-
-Si Yagua te resultó útil, dejá una estrella en el repo — es gratis y ayuda un montón a que más gente lo encuentre :)
-
-<a href="https://www.paypal.com/paypalme/guillebouix?locale.x=es_XC&country.x=AR" target="_blank"><img width="300" alt="paypal_donate_button" src="https://github.com/user-attachments/assets/2f3f6a1b-990c-4fb8-9fda-7482c1ca20a5" />
-</a>
-
-### 📄 Licencia
-
-MIT License - Ver archivo LICENSE para más detalles.
+Yagua is released under the **[MIT License](LICENSE)**. Third-party libraries and models retain their respective licenses.
