@@ -129,6 +129,7 @@ jobs:
           DIST_DIR: ${{ github.workspace }}/dist/linux-release
           APP_VERSION: ${{ steps.ver.outputs.version }}
           BUILD_APPIMAGE: "1"
+          PREFLIGHT_REPORT: ${{ github.workspace }}/reports/selftest-preflight.json
         run: |
           mkdir -p reports
           bash scripts/build_linux_appimage.sh 2>&1 | tee reports/build.log
@@ -143,8 +144,14 @@ jobs:
           test ! -d "$EASYOCR_MODULE_PATH"
           test ! -d "$U2NET_HOME"
           package="$PWD/build/linux-release/package-check/squashfs-root/AppRun"
-          YAGUA_PACKAGE_SELFTEST="$PWD/reports/selftest-online.json" xvfb-run -a "$package"
-          YAGUA_PACKAGE_SELFTEST="$PWD/reports/selftest-offline.json" YAGUA_PACKAGE_OFFLINE=1 xvfb-run -a "$package"
+          test -x "$package"
+          test -x "$PWD/build/linux-release/package-check/squashfs-root/usr/lib/yagua/Yagua"
+          mkdir "$RUNNER_TEMP/yagua-selftest-cwd"
+          (
+            cd "$RUNNER_TEMP/yagua-selftest-cwd"
+            YAGUA_PACKAGE_SELFTEST="$GITHUB_WORKSPACE/reports/selftest-online.json" xvfb-run -a "$package"
+            YAGUA_PACKAGE_SELFTEST="$GITHUB_WORKSPACE/reports/selftest-offline.json" YAGUA_PACKAGE_OFFLINE=1 xvfb-run -a "$package"
+          )
       - name: Assemble validation report
         env:
           RELEASE_VERSION: ${{ steps.ver.outputs.version }}
@@ -199,5 +206,6 @@ jobs:
             release/Yagua-*.sha256
             release/validation.md
             release/sizes.json
+            release/selftest-preflight.json
             release/selftest-online.json
             release/selftest-offline.json

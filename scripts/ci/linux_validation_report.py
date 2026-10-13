@@ -7,9 +7,11 @@ from pathlib import Path
 
 def main() -> None:
     reports = Path('reports')
+    preflight = json.loads((reports / 'selftest-preflight.json').read_text(encoding='utf-8'))
     online = json.loads((reports / 'selftest-online.json').read_text(encoding='utf-8'))
     offline = json.loads((reports / 'selftest-offline.json').read_text(encoding='utf-8'))
     sizes = json.loads(Path('dist/linux-release/sizes.json').read_text(encoding='utf-8'))
+    assert preflight['status'] == 'passed' and preflight['mode'] == 'preflight'
     assert online['status'] == offline['status'] == 'passed'
     assert online['frozen'] and offline['frozen'] and offline['offline']
     assert all(item['bytes'] < 2_000_000_000 for item in sizes['artifacts'])
@@ -22,6 +24,7 @@ def main() -> None:
         f'# Yagua Linux {version}', '',
         f'Commit: {sha}', f'Validation run: {run_url}', '',
         'Windows and Linux lint, types and tests passed before this build.',
+        'The frozen PyInstaller directory passed native imports, CPU checks and packaged-resource preflight.',
         'The extracted AppImage passed startup, every registered module, real Spanish/English',
         'OCR, clipboard, TXT export and background removal with the default model.',
         'OCR and background removal passed again with network access blocked.',

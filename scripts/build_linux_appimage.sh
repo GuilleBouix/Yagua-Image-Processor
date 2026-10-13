@@ -51,6 +51,13 @@ PY
   "$SPEC_FILE"
 
 "$PYTHON_BIN" scripts/ci/check_linux_size.py "$DIST_DIR/Yagua"
+test -x "$DIST_DIR/Yagua/Yagua"
+mkdir "$BUILD_DIR/preflight-cwd"
+(
+  cd "$BUILD_DIR/preflight-cwd"
+  YAGUA_PACKAGE_SELFTEST="${PREFLIGHT_REPORT:-$DIST_DIR/selftest-preflight.json}" \
+    YAGUA_PACKAGE_SELFTEST_MODE=preflight xvfb-run -a "$DIST_DIR/Yagua/Yagua"
+)
 
 if [[ -n "$APPDIR_PATH" ]]; then
   mkdir -p \
@@ -94,6 +101,7 @@ PY
     appimage-builder --recipe "$ROOT_DIR/packaging/linux/AppImageBuilder.yml" \
       --appdir "$APPDIR_PATH" --build-dir "$BUILD_DIR/appimage-builder"
   )
+  test -x "$appimage"
   mkdir "$BUILD_DIR/package-check"
   (
     cd "$BUILD_DIR/package-check"
@@ -101,6 +109,8 @@ PY
   )
   "$PYTHON_BIN" scripts/ci/check_linux_size.py "$DIST_DIR/Yagua" "$appimage" \
     "$BUILD_DIR/package-check/squashfs-root" --report "$DIST_DIR/sizes.json"
+  test -x "$BUILD_DIR/package-check/squashfs-root/AppRun"
+  test -x "$BUILD_DIR/package-check/squashfs-root/usr/lib/yagua/Yagua"
   (
     cd "$DIST_DIR"
     sha256sum "$(basename "$appimage")" > "$(basename "$appimage").sha256"
