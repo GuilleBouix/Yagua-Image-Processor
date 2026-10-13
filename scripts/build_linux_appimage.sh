@@ -90,7 +90,8 @@ PY
   fi
   (
     cd "$DIST_DIR"
-    appimage-builder --recipe "$ROOT_DIR/packaging/linux/AppImageBuilder.yml"
+    appimage-builder --recipe "$ROOT_DIR/packaging/linux/AppImageBuilder.yml" \
+      --appdir "$APPDIR_PATH" --build-dir "$BUILD_DIR/appimage-builder"
   )
   mkdir "$BUILD_DIR/package-check"
   (

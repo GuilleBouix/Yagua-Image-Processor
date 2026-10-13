@@ -1,13 +1,11 @@
 version: 1
 
 AppDir:
-  path: '{{APPDIR_PATH}}'
-
   app_info:
     id: yagua
     name: Yagua
     icon: yagua
-    version: '{{APP_VERSION}}'
+    version: !ENV '${APP_VERSION}'
     exec: usr/lib/yagua/Yagua
     exec_args: $@
 
@@ -42,4 +40,4 @@ AppDir:
 
 AppImage:
   arch: x86_64
-  file_name: 'Yagua-{{APP_VERSION}}-x86_64.AppImage'
+  file_name: !ENV 'Yagua-${APP_VERSION}-x86_64.AppImage'
