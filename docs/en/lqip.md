@@ -5,16 +5,20 @@ Generates LQIP (Low Quality Image Placeholder) and/or Base64 for web usage.
 
 ## Supported inputs
 - Common raster formats: `JPG`, `PNG`, `WEBP`, `AVIF`, `HEIC`, `HEIF`, etc.
-- Max batch size (UI): 100 images
+- One image at a time in both LQIP and Base64.
 
 ## Outputs
 - Strings/Base64 ready to copy/export.
 
 ## Workflow
-1. Select images.
-2. Choose placeholder size/quality.
-3. Generate.
-4. Copy/export.
+1. Select an image.
+2. Choose LQIP or Base64 and adjust its parameters.
+3. Generate and compare the original with the result.
+4. Choose Data URI, HTML, CSS or raw Base64 and copy/export.
+
+Loading another image discards the result and resets the LQIP mode,
+20 px width, blur 2, LQIP quality 40 and Base64 quality 85.
+Canceling the picker preserves the current image and settings.
 
 ## Common errors
 - If a specific file fails: it is often corrupted or unsupported.
@@ -23,7 +27,7 @@ Generates LQIP (Low Quality Image Placeholder) and/or Base64 for web usage.
 - Check `yagua.log` to identify the failing file.
 
 ## Examples
-- Generate LQIP for 20 web images.
+- Generate a 20 px placeholder for a web image.
 
 ## Technical notes
 - HTML is escaped and CSS selectors are sanitized to prevent injection in outputs.

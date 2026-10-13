@@ -74,6 +74,7 @@ class BaseFrame(ctk.CTkScrollableFrame):
         self._full_overlay_card = None
         self._full_overlay_label = None
         self._full_overlay_bar = None
+        self._viewport_sync_job = None
 
         # Asegurar que el contenido ocupe como minimo el viewport visible.
         self.after(0, self._bind_viewport_sync)
@@ -83,7 +84,7 @@ class BaseFrame(ctk.CTkScrollableFrame):
 
     def on_view_shown(self):
         """Hook de lifecycle cuando la vista pasa a estar visible."""
-        self._sync_viewport_height()
+        self._schedule_viewport_sync()
 
     def on_view_hidden(self):
         """Hook de lifecycle cuando la vista deja de estar visible."""
@@ -112,18 +113,30 @@ class BaseFrame(ctk.CTkScrollableFrame):
         if not hasattr(self, "_parent_canvas"):
             return
         try:
-            self._parent_canvas.bind("<Configure>", self._sync_viewport_height, add="+")
-            self.bind("<Configure>", self._sync_viewport_height, add="+")
-            self._sync_viewport_height()
+            self._parent_canvas.bind("<Configure>", self._schedule_viewport_sync, add="+")
+            self.bind("<Configure>", self._schedule_viewport_sync, add="+")
+            self._schedule_viewport_sync()
         except Exception:
             logger.exception("%s: no se pudo sincronizar viewport", self.__class__.__name__)
 
+    def _schedule_viewport_sync(self, _event=None):
+        """Espera al final del ciclo de geometría antes de medir el viewport."""
+        if self._viewport_sync_job is not None or not self.winfo_exists():
+            return
+        try:
+            self._viewport_sync_job = self.after_idle(self._sync_viewport_height)
+        except Exception:
+            logger.debug("%s: no se pudo programar sync de viewport", self.__class__.__name__, exc_info=True)
+
     def _sync_viewport_height(self, _event=None):
         """Hace que el frame ocupe al menos todo el alto visible del canvas."""
+        self._viewport_sync_job = None
         if not hasattr(self, "_parent_canvas") or not hasattr(self, "_create_window_id"):
             return
         try:
             canvas_height = self._parent_canvas.winfo_height()
+            if canvas_height <= 1:
+                return
             requested_height = self.winfo_reqheight()
             target_height = max(canvas_height, requested_height)
             self._parent_canvas.itemconfigure(self._create_window_id, height=target_height)
@@ -213,7 +226,7 @@ class BaseFrame(ctk.CTkScrollableFrame):
         logger.info("%s: build_header", self.__class__.__name__)
         # Frame transparente para la fila del titulo
         fila_titulo = ctk.CTkFrame(self, fg_color='transparent')
-        fila_titulo.grid(row=0, column=0, padx=28, pady=(26, 8), sticky='ew')
+        fila_titulo.grid(row=0, column=0, padx=24, pady=(22, 10), sticky='ew')
         fila_titulo.grid_columnconfigure(0, weight=1)
         fila_titulo.grid_columnconfigure(1, weight=0)
         fila_titulo.grid_columnconfigure(2, weight=0)
@@ -266,7 +279,66 @@ class BaseFrame(ctk.CTkScrollableFrame):
             font=fonts.FUENTE_CHICA,
             text_color=colors.TEXT_GRAY
         )
-        self._lbl_info.grid(row=100, column=0, pady=(0, 4))
+        self._lbl_info.grid(row=100, column=0, padx=24, pady=(0, 8), sticky='w')
+
+    def _crear_workspace(self, parent=None, *, row=1, columnspan=1, column_weights=(1, 1), breakpoint=940, padx=24, pady=(0, 12)):
+        """Crea dos paneles de trabajo que se apilan al reducir el ancho.
+
+        Los módulos colocan entrada y controles en el panel izquierdo, y la
+        lista, preview o salida en el derecho. El umbral se mide sobre el
+        ancho disponible del área de contenido, no de la ventana completa.
+        column_weights define la proporción entre ambas columnas al estar
+        juntas; por defecto conservan el mismo ancho.
+        """
+        parent = parent or self
+        host = ctk.CTkFrame(parent, fg_color='transparent')
+        host.grid(row=row, column=0, columnspan=columnspan, padx=padx, pady=pady, sticky='nsew')
+        parent.grid_columnconfigure(0, weight=1)
+        parent.grid_rowconfigure(row, weight=1)
+        for column, weight in enumerate(column_weights):
+            host.grid_columnconfigure(column, weight=weight, uniform='workspace')
+        host.grid_rowconfigure(0, weight=1)
+
+        panels = []
+        for column in range(2):
+            panel = ctk.CTkFrame(
+                host,
+                corner_radius=12,
+                fg_color=colors.PANEL_BG,
+                border_width=1,
+                border_color=colors.SIDEBAR_SEPARATOR,
+            )
+            panel.grid_columnconfigure(0, weight=1)
+            panels.append(panel)
+
+        state = {'narrow': None}
+
+        def reflow(event=None):
+            width = event.width if event is not None else host.winfo_width()
+            narrow = width < breakpoint
+            if state['narrow'] == narrow:
+                return
+            state['narrow'] = narrow
+            if narrow:
+                host.grid_columnconfigure(1, weight=0, uniform='')
+                panels[0].grid(row=0, column=0, padx=0, pady=(0, 12), sticky='nsew')
+                panels[1].grid(row=1, column=0, padx=0, pady=0, sticky='nsew')
+                host.grid_rowconfigure(0, weight=0)
+                host.grid_rowconfigure(1, weight=0)
+            else:
+                for column, weight in enumerate(column_weights):
+                    host.grid_columnconfigure(column, weight=weight, uniform='workspace')
+                host.grid_rowconfigure(0, weight=1)
+                host.grid_rowconfigure(1, weight=0)
+                panels[0].grid(row=0, column=0, padx=(0, 8), pady=0, sticky='nsew')
+                panels[1].grid(row=0, column=1, padx=(8, 0), pady=0, sticky='nsew')
+
+        host.bind('<Configure>', reflow, add='+')
+        host.after(0, reflow)
+        if parent is self:
+            self._workspace_host = host
+            self._workspace_left, self._workspace_right = panels
+        return panels[0], panels[1]
 
     def _crear_boton_seleccionar(self, parent, texto=None, comando=None):
         """

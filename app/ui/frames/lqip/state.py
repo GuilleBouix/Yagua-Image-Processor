@@ -5,6 +5,8 @@ Relacionado con:
     - app/ui/frames/lqip/frame.py: Usa este estado.
 """
 
+import math
+
 import customtkinter as ctk
 
 
@@ -26,6 +28,32 @@ class LqipState:
 
         # Opciones base64 completo
         self.calidad_b64 = ctk.IntVar(value=85)
+
+    def restablecer_ajustes(self):
+        """Cada nueva imagen comienza con los valores predeterminados."""
+        self.modo.set('lqip')
+        self.ancho_lqip.set('20')
+        self.blur.set('2')
+        self.calidad_lqip.set(40)
+        self.calidad_b64.set(85)
+
+    def errores_validacion(self):
+        """Devuelve claves de ayuda para valores LQIP inválidos."""
+        if self.modo.get() != 'lqip':
+            return {}
+        errores = {}
+        try:
+            if int(self.ancho_lqip.get()) <= 0:
+                raise ValueError
+        except (ValueError, TypeError):
+            errores['ancho'] = 'lqip_invalid_width'
+        try:
+            blur = float(self.blur.get())
+            if not math.isfinite(blur) or blur < 0:
+                raise ValueError
+        except (ValueError, TypeError):
+            errores['blur'] = 'lqip_invalid_blur'
+        return errores
 
     def obtener_opciones(self):
         """

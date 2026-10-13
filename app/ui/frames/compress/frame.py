@@ -56,30 +56,35 @@ class CompressFrame(BaseFrame):
         y boton de comprimir.
         """
         logger.info("compress.ui: build_content")
-        # Boton para seleccionar imagenes
-        self._btn_seleccionar = self._crear_boton_seleccionar(self)
-        self._btn_seleccionar.grid(row=1, column=0, padx=28, pady=8, sticky='ew')
+        izquierda, derecha = self._crear_workspace()
+        derecha.grid_rowconfigure(1, weight=1)
+
+        self._btn_seleccionar = self._crear_boton_seleccionar(izquierda)
+        self._btn_seleccionar.grid(row=0, column=0, padx=16, pady=(16, 8), sticky='ew')
+
+        self._panel_opciones = ctk.CTkFrame(
+            izquierda,
+            corner_radius=10,
+            fg_color=colors.SIDEBAR_BG,
+            border_width=1,
+            border_color=colors.SIDEBAR_SEPARATOR
+        )
+        self._panel_opciones.grid(row=1, column=0, padx=16, pady=(0, 16), sticky='new')
+        self._panel_opciones.grid_columnconfigure(1, weight=1)
+        self._construir_opciones()
 
         # Lista de archivos seleccionados
-        self._lista_frame = self._crear_lista_archivos(self, height=200)
-        self._lista_frame.grid(row=2, column=0, padx=28, pady=8, sticky='ew')
+        ctk.CTkLabel(
+            derecha, text=t('files_loaded').capitalize(), font=fonts.FUENTE_BASE,
+            text_color=colors.TEXT_COLOR, anchor='w'
+        ).grid(row=0, column=0, padx=16, pady=(16, 8), sticky='w')
+        self._lista_frame = self._crear_lista_archivos(derecha, height=420)
+        self._lista_frame.grid(row=1, column=0, padx=16, pady=(0, 16), sticky='nsew')
         self._lista_frame.grid_columnconfigure(0, weight=1)
 
         # Label de lista vacia
         self._lbl_lista_vacia = self._crear_lista_vacia(self._lista_frame)
         self._lbl_lista_vacia.pack(pady=12)
-
-        # Panel de opciones de compresion
-        self._panel_opciones = ctk.CTkFrame(
-            self,
-            corner_radius=12,
-            fg_color=colors.PANEL_BG,
-            border_width=1,
-            border_color=colors.SIDEBAR_SEPARATOR
-        )
-        self._panel_opciones.grid(row=3, column=0, padx=28, pady=8, sticky='ew')
-        self._panel_opciones.grid_columnconfigure(1, weight=1)
-        self._construir_opciones()
 
     def _construir_opciones(self):
         """
@@ -180,7 +185,7 @@ class CompressFrame(BaseFrame):
         super()._cargar_imagenes(rutas)
         self._state.imagenes = list(rutas)
         cantidad = len(rutas)
-        suffix = t('images_loaded') if cantidad > 1 else t('image_loaded')
+        suffix = t('files_loaded').capitalize() if cantidad > 1 else t('image_loaded')
         msg = f'{cantidad} {suffix}'
         if self._limite_msg:
             msg += f'  -  {self._limite_msg}'
@@ -248,7 +253,7 @@ class CompressFrame(BaseFrame):
         self._btn_comprimir.configure(state='normal', text=t('compress_btn'))
         logger.info("compress.ui: finalizar_ok (ok=%s, errores=%s, conflictos=%s)", n, errores, conflictos)
         self._hide_full_overlay()
-        suffix = t('images_loaded') if n > 1 else t('image_loaded')
+        suffix = t('files_loaded').capitalize() if n > 1 else t('image_loaded')
         msg = (
             f'{n} {suffix} - '
             f'{formatear_bytes(orig)} -> {formatear_bytes(comp)} - '

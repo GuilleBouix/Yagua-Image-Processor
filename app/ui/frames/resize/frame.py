@@ -52,8 +52,12 @@ class ResizeFrame(BaseFrame):
     def _build_content(self):
         """Construir el contenido principal del frame con tabs."""
         logger.info("resize.ui: build_content")
+        izquierda, derecha = self._crear_workspace()
+        izquierda.grid_rowconfigure(2, weight=1)
+        derecha.grid_rowconfigure(1, weight=1)
+
         self._tab = ctk.CTkSegmentedButton(
-            self,
+            izquierda,
             values=[t('resize_tab'), t('crop_tab'), t('canvas_tab')],
             font=fonts.FUENTE_BASE,
             selected_color=colors.SEGMENT_SELECTED,
@@ -64,13 +68,17 @@ class ResizeFrame(BaseFrame):
             command=self._cambiar_tab
         )
         self._tab.set(t('resize_tab'))
-        self._tab.grid(row=1, column=0, padx=28, pady=(0, 8), sticky='ew')
+        self._tab.grid(row=0, column=0, padx=16, pady=(16, 8), sticky='ew')
 
-        self._btn_seleccionar = self._crear_boton_seleccionar(self)
-        self._btn_seleccionar.grid(row=2, column=0, padx=28, pady=(0, 8), sticky='ew')
+        self._btn_seleccionar = self._crear_boton_seleccionar(izquierda)
+        self._btn_seleccionar.grid(row=1, column=0, padx=16, pady=(0, 8), sticky='ew')
 
-        self._lista_frame = self._crear_lista_archivos(self, height=120)
-        self._lista_frame.grid(row=3, column=0, padx=28, pady=(0, 8), sticky='ew')
+        ctk.CTkLabel(
+            derecha, text=t('files_loaded').capitalize(), font=fonts.FUENTE_BASE,
+            text_color=colors.TEXT_COLOR, anchor='w'
+        ).grid(row=0, column=0, padx=16, pady=(16, 8), sticky='w')
+        self._lista_frame = self._crear_lista_archivos(derecha, height=420)
+        self._lista_frame.grid(row=1, column=0, padx=16, pady=(0, 16), sticky='nsew')
         self._lista_frame.grid_columnconfigure(0, weight=1)
 
         self._lbl_lista_vacia = ctk.CTkLabel(
@@ -81,8 +89,8 @@ class ResizeFrame(BaseFrame):
         )
         self._lbl_lista_vacia.pack(pady=12)
 
-        self._contenedor = ctk.CTkFrame(self, fg_color='transparent')
-        self._contenedor.grid(row=4, column=0, padx=28, sticky='ew')
+        self._contenedor = ctk.CTkFrame(izquierda, fg_color='transparent')
+        self._contenedor.grid(row=2, column=0, padx=16, pady=(0, 16), sticky='nsew')
         self._contenedor.grid_columnconfigure(0, weight=1)
 
         self._frames: dict[str, ctk.CTkFrame] = {

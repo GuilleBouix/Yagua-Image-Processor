@@ -65,29 +65,13 @@ class OcrFrame(BaseFrame):
         """
         logger.info("ocr.ui: build_content")
         # Loader: usamos overlay full-frame (no un componente que empuje el layout).
-        self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure(1, weight=1)
-
-        cont = ctk.CTkFrame(self, fg_color="transparent")
-        cont.grid(row=1, column=0, padx=28, pady=(0, 10), sticky="nsew")
-        cont.grid_columnconfigure(0, weight=1, minsize=380)
-        cont.grid_columnconfigure(1, weight=1, minsize=380)
-        cont.grid_rowconfigure(0, weight=1)
+        col_izq, col_der = self._crear_workspace()
+        col_izq.grid_rowconfigure(3, weight=1)
+        col_der.grid_rowconfigure(0, weight=1)
 
         # ===== COLUMNA IZQUIERDA =====
-        col_izq = ctk.CTkFrame(cont, fg_color="transparent")
-        col_izq.grid(row=0, column=0, padx=(0, 10), sticky="nsew")
-        col_izq.grid_columnconfigure(0, weight=1)
-        col_izq.grid_rowconfigure(1, weight=1)
-
         self._btn_seleccionar = self._crear_boton_seleccionar(col_izq, texto=t("select_images_ocr"))
-        self._btn_seleccionar.grid(row=0, column=0, pady=(0, 6), sticky="ew")
-
-        self._lista_frame = self._crear_lista_archivos(col_izq, height=150)
-        self._lista_frame.grid(row=1, column=0, pady=(0, 6), sticky="nsew")
-        self._lista_frame.grid_columnconfigure(0, weight=1)
-        self._lbl_lista_vacia = self._crear_lista_vacia(self._lista_frame)
-        self._lbl_lista_vacia.pack(pady=10)
+        self._btn_seleccionar.grid(row=0, column=0, padx=16, pady=(16, 8), sticky="ew")
 
         self._panel_opciones = ctk.CTkFrame(
             col_izq,
@@ -96,16 +80,22 @@ class OcrFrame(BaseFrame):
             border_width=1,
             border_color=colors.SIDEBAR_SEPARATOR,
         )
-        self._panel_opciones.grid(row=2, column=0, pady=(0, 0), sticky="ew")
+        self._panel_opciones.grid(row=1, column=0, padx=16, pady=(0, 16), sticky="new")
         self._panel_opciones.grid_columnconfigure(1, weight=1)
         self._construir_opciones()
 
-        # ===== COLUMNA DERECHA =====
-        col_der = ctk.CTkFrame(cont, fg_color="transparent")
-        col_der.grid(row=0, column=1, padx=(10, 0), sticky="nsew")
-        col_der.grid_columnconfigure(0, weight=1)
-        col_der.grid_rowconfigure(0, weight=1)
+        # Lista debajo de los ajustes, junto a la entrada de archivos.
+        ctk.CTkLabel(
+            col_izq, text=t('files_loaded').capitalize(), font=fonts.FUENTE_BASE,
+            text_color=colors.TEXT_COLOR, anchor="w"
+        ).grid(row=2, column=0, padx=16, pady=(0, 8), sticky="w")
+        self._lista_frame = self._crear_lista_archivos(col_izq, height=160)
+        self._lista_frame.grid(row=3, column=0, padx=16, pady=(0, 16), sticky="nsew")
+        self._lista_frame.grid_columnconfigure(0, weight=1)
+        self._lbl_lista_vacia = self._crear_lista_vacia(self._lista_frame)
+        self._lbl_lista_vacia.pack(pady=10)
 
+        # ===== COLUMNA DERECHA =====
         self._textarea = ctk.CTkTextbox(
             col_der,
             corner_radius=12,
@@ -115,7 +105,7 @@ class OcrFrame(BaseFrame):
             font=fonts.FUENTE_BASE,
             text_color=colors.TEXT_COLOR,
         )
-        self._textarea.grid(row=0, column=0, pady=(0, 6), sticky="nsew")
+        self._textarea.grid(row=0, column=0, padx=16, pady=(16, 8), sticky="nsew")
         self._textarea.insert("0.0", self._state.texto_extraido.get())
 
         self._panel_acciones = ctk.CTkFrame(
@@ -125,7 +115,7 @@ class OcrFrame(BaseFrame):
             border_width=1,
             border_color=colors.SIDEBAR_SEPARATOR,
         )
-        self._panel_acciones.grid(row=1, column=0, sticky="ew")
+        self._panel_acciones.grid(row=1, column=0, padx=16, pady=(0, 16), sticky="ew")
         self._panel_acciones.grid_columnconfigure(0, weight=1)
         self._panel_acciones.grid_columnconfigure(1, weight=1)
         self._construir_acciones()
@@ -404,7 +394,8 @@ class OcrFrame(BaseFrame):
 
         ok = res['ok']
         errores = res['errores']
-        msg = f'{ok} {t("images_loaded") if ok > 1 else t("image_loaded")} {t("text_extracted")}'
+        suffix = t('files_loaded').capitalize() if ok > 1 else t('image_loaded')
+        msg = f'{ok} {suffix} {t("text_extracted")}'
         if errores:
             msg += f' - {errores} {t("error_occurred")}'
         avif_omitidos = res.get('avif_omitidos', 0)

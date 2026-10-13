@@ -133,26 +133,19 @@ class WatermarkFrame(BaseFrame):
 
     def _build_content(self):
         logger.info("watermark.ui: build_content")
-        self.grid_columnconfigure(0, weight=1)
-        self.grid_columnconfigure(1, weight=1)
-        self.grid_rowconfigure(1, weight=1)
+        izquierda, derecha = self._crear_workspace(columnspan=2, breakpoint=760)
+        derecha.grid_rowconfigure(0, weight=3)
 
         # --- Columna izquierda ---
-        panel_izq = ctk.CTkFrame(self, fg_color="transparent")
-        panel_izq.grid(row=1, column=0, padx=(20, 8), pady=(0, 12), sticky="nsew")
+        panel_izq = izquierda
         panel_izq.grid_columnconfigure(0, weight=1)
-        panel_izq.grid_rowconfigure(1, weight=1)
 
         # Botón imágenes base
         self._btn_seleccionar = self._crear_boton_seleccionar(panel_izq)
-        self._btn_seleccionar.grid(row=0, column=0, pady=(0, 6), sticky="ew")
-
-        # Lista archivos
-        self._lista_frame = self._crear_lista_archivos(panel_izq, height=110)
-        self._lista_frame.grid(row=1, column=0, sticky="nsew")
-        self._lista_frame.grid_columnconfigure(0, weight=1)
-        self._lbl_lista_vacia = self._crear_lista_vacia(self._lista_frame)
-        self._lbl_lista_vacia.pack(pady=12)
+        self._btn_seleccionar.grid(row=0, column=0, padx=16, pady=(16, 8), sticky="ew")
+        # La lista de archivos no se muestra en Watermark; se conserva un
+        # contenedor interno vacío para el fallback de limpieza de BaseFrame.
+        self._lista_frame = ctk.CTkFrame(panel_izq)
 
         # Botón seleccionar watermark
         self._btn_wm = ctk.CTkButton(
@@ -163,10 +156,10 @@ class WatermarkFrame(BaseFrame):
             text_color=colors.TEXT_COLOR,
             border_width=1,
             border_color=colors.SIDEBAR_SEPARATOR,
-            hover_color=colors.ACENTO_HOVER,
+            hover_color=colors.SIDEBAR_HOVER,
             command=self._seleccionar_watermark,
         )
-        self._btn_wm.grid(row=2, column=0, pady=(6, 0), sticky="ew")
+        self._btn_wm.grid(row=1, column=0, padx=16, pady=(0, 8), sticky="ew")
 
         # Preview del watermark seleccionado (single item)
         self._wm_frame = ctk.CTkFrame(
@@ -177,7 +170,7 @@ class WatermarkFrame(BaseFrame):
             border_color=colors.SIDEBAR_SEPARATOR,
             height=70
         )
-        self._wm_frame.grid(row=3, column=0, pady=(2, 6), sticky="ew")
+        self._wm_frame.grid(row=2, column=0, padx=16, pady=(0, 6), sticky="ew")
         self._wm_frame.grid_columnconfigure(1, weight=1)
         self._wm_placeholder = ctk.CTkLabel(
             self._wm_frame,
@@ -197,7 +190,7 @@ class WatermarkFrame(BaseFrame):
             border_width=1,
             border_color=colors.SIDEBAR_SEPARATOR,
         )
-        panel_ctrl.grid(row=4, column=0, pady=(4, 0), sticky="ew")
+        panel_ctrl.grid(row=3, column=0, padx=16, pady=(4, 16), sticky="ew")
         panel_ctrl.grid_columnconfigure(1, weight=1)
         self._construir_controles(panel_ctrl)
 
@@ -216,16 +209,17 @@ class WatermarkFrame(BaseFrame):
         self._btn_limpiar_preview.grid(row=0, column=1, padx=(0, 20), pady=(16, 0), sticky="e")
 
         panel_preview = ctk.CTkFrame(
-            self,
+            derecha,
             corner_radius=12,
             fg_color=colors.PANEL_BG,
             border_width=1,
             border_color=colors.SIDEBAR_SEPARATOR,
         )
-        panel_preview.grid(row=1, column=1, padx=(8, 20), pady=(0, 12), sticky="nsew")
+        panel_preview.grid(row=0, column=0, padx=16, pady=(16, 8), sticky="nsew")
         panel_preview.grid_columnconfigure(0, weight=1)
         panel_preview.grid_rowconfigure(1, weight=1)
         self._construir_preview(panel_preview)
+
 
     def _construir_controles(self, p):
         # Preset
@@ -466,7 +460,11 @@ class WatermarkFrame(BaseFrame):
         else:
             self._limite_msg = None
 
-        super()._cargar_imagenes(rutas)
+        # En este módulo los archivos se usan para el procesamiento y el
+        # preview, sin generar filas ni miniaturas de una lista visible.
+        self._imagenes = list(rutas)
+        self._thumbs.clear()
+        self._filas_lista.clear()
         self._state.imagenes = list(rutas)
         if self._limite_msg:
             self._lbl_info.configure(text=self._limite_msg)

@@ -207,6 +207,7 @@ def exportar_json(resultados, ruta_salida):
     datos = [
         {
             'nombre':   r['nombre'],
+            'base64':   r['base64'],
             'data_uri': r['data_uri'],
             'html_tag': r['html_tag'],
             'css_bg':   r['css_bg'],

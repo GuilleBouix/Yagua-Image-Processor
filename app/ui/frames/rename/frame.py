@@ -44,31 +44,45 @@ class RenameFrame(BaseFrame):
     def _build_content(self):
         """Construye el contenido del modulo."""
         self.logger.info("rename.ui: build_content")
+        izquierda, derecha = self._crear_workspace()
+        izquierda.grid_rowconfigure(3, weight=1)
+        derecha.grid_rowconfigure(0, weight=1)
         # Boton seleccionar
-        self._btn_seleccionar = self._crear_boton_seleccionar(self)
-        self._btn_seleccionar.grid(row=1, column=0, padx=28, pady=(8, 0), sticky='ew')
+        self._btn_seleccionar = self._crear_boton_seleccionar(izquierda)
+        self._btn_seleccionar.grid(row=0, column=0, padx=16, pady=(16, 8), sticky='ew')
 
         # Panel de opciones
         panel = ctk.CTkFrame(
-            self,
+            izquierda,
             corner_radius=12,
             fg_color=colors.PANEL_BG,
             border_width=1,
             border_color=colors.SIDEBAR_SEPARATOR
         )
-        panel.grid(row=2, column=0, padx=28, pady=6, sticky='ew')
+        panel.grid(row=1, column=0, padx=16, pady=(0, 16), sticky='new')
         panel.grid_columnconfigure(1, weight=1)
         self._construir_opciones(panel)
 
+        ctk.CTkLabel(
+            izquierda, text=t('files_loaded').capitalize(), font=fonts.FUENTE_BASE,
+            text_color=colors.TEXT_COLOR, anchor='w'
+        ).grid(row=2, column=0, padx=16, pady=(0, 8), sticky='w')
+        self._lista_frame = self._crear_lista_archivos(izquierda, height=180)
+        self._lista_frame.grid(row=3, column=0, padx=16, pady=(0, 16), sticky='nsew')
+        self._lista_frame.grid_columnconfigure(0, weight=1)
+        self._lbl_lista_vacia = self._crear_lista_vacia(self._lista_frame)
+        self._lbl_lista_vacia.pack(pady=8)
+
         # Panel de preview
         panel_prev = ctk.CTkFrame(
-            self,
+            derecha,
             corner_radius=12,
             fg_color=colors.PANEL_BG,
             border_width=1,
             border_color=colors.SIDEBAR_SEPARATOR
         )
-        panel_prev.grid(row=3, column=0, padx=28, pady=(0, 6), sticky='ew')
+        panel_prev.grid(row=0, column=0, padx=16, pady=(16, 16), sticky='nsew')
+        panel_prev.grid_rowconfigure(2, weight=1)
         panel_prev.grid_columnconfigure(0, weight=1)
         self._construir_preview(panel_prev)
 
@@ -284,7 +298,7 @@ class RenameFrame(BaseFrame):
             scrollbar_button_color=colors.SIDEBAR_SEPARATOR,
             scrollbar_button_hover_color=colors.ACENTO_DIMMED,
         )
-        self._lista_preview.grid(row=2, column=0, padx=16, pady=(0, 10), sticky='ew')
+        self._lista_preview.grid(row=2, column=0, padx=16, pady=(0, 10), sticky='nsew')
         self._lista_preview.grid_columnconfigure((0, 1), weight=1)
 
         # Placeholder inicial
@@ -326,8 +340,8 @@ class RenameFrame(BaseFrame):
         else:
             self._limite_msg = None
 
-        self._imagenes = list(rutas)
-        self._state.imagenes = self._imagenes
+        super()._cargar_imagenes(rutas)
+        self._state.imagenes = list(self._imagenes)
         n = len(rutas)
         suffix = t('files_loaded') if n > 1 else t('file_loaded')
         msg = f'{n} {suffix}'
@@ -418,12 +432,12 @@ class RenameFrame(BaseFrame):
             msg += f'  -  {conflictos} {t("rename_conflicts")}'
         if errores:
             msg += f'  -  {errores} {t("error_occurred")}'
-        self._lbl_info.configure(text=msg)
-
         # Limpiar despues de renombrar exitoso
         self._imagenes = []
         self._state.imagenes = []
+        super()._limpiar()
         self._renderizar_preview([])
+        self._lbl_info.configure(text=msg)
 
     def _aplicar_capitalizacion(self, caso):
         """

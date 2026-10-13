@@ -27,6 +27,7 @@ import webbrowser
 import customtkinter as ctk
 
 from app.ui import colors, fonts
+from app.ui.scale import scale_wraplength
 from app.translations import t
 from app.utils import tintar_icono
 from app.ui.file_list import build_file_list, load_thumbs_async
@@ -93,26 +94,27 @@ class MetadataFrame(BaseFrame):
     def _build_tab_ver(self) -> ctk.CTkFrame:
         """Construir el tab de visualizacion de metadatos."""
         f = ctk.CTkFrame(self._contenedor, fg_color='transparent')
-        f.grid_columnconfigure(0, weight=1)
+        izquierda, derecha = self._crear_workspace(f, row=0, breakpoint=720, padx=16, pady=0)
+        derecha.grid_columnconfigure(0, weight=1)
+        derecha.grid_rowconfigure(1, weight=1)
 
-        btn = self._crear_boton_seleccionar(f, t('select_image_view'), self._explorar_ver)
-        btn.grid(row=0, column=0, padx=28, pady=8, sticky='ew')
+        btn = self._crear_boton_seleccionar(izquierda, t('select_image_view'), self._explorar_ver)
+        btn.grid(row=0, column=0, padx=16, pady=16, sticky='ew')
         self._dz_ver = btn
 
-        panel = ctk.CTkFrame(
-            f, corner_radius=12,
-            fg_color=colors.PANEL_BG,
-            border_width=1,
-            border_color=colors.SIDEBAR_SEPARATOR
-        )
-        panel.grid(row=1, column=0, padx=28, pady=8, sticky='ew')
+        ctk.CTkLabel(
+            izquierda, text=t('select_image_view'), font=fonts.FUENTE_CHICA,
+            text_color=colors.TEXT_GRAY, justify='left', wraplength=300,
+        ).grid(row=1, column=0, padx=16, pady=(0, 16), sticky='nw')
+
+        panel = derecha
         panel.grid_columnconfigure(0, weight=1)
 
         self._scroll_meta = ctk.CTkScrollableFrame(
             panel, fg_color='transparent',
-            border_width=0, height=220
+            border_width=0, height=320
         )
-        self._scroll_meta.grid(row=0, column=0, padx=8, pady=8, sticky='ew')
+        self._scroll_meta.grid(row=1, column=0, padx=16, pady=8, sticky='nsew')
         self._scroll_meta.grid_columnconfigure(0, weight=1)
         self._scroll_meta.grid_columnconfigure(1, weight=1)
 
@@ -123,8 +125,13 @@ class MetadataFrame(BaseFrame):
             text_color=colors.TEXT_GRAY
         ).grid(row=0, column=0, columnspan=2, pady=20)
 
+        ctk.CTkLabel(
+            panel, text=t('metadata_title'), font=fonts.FUENTE_BASE,
+            text_color=colors.TEXT_COLOR, anchor='w'
+        ).grid(row=0, column=0, padx=16, pady=(16, 0), sticky='w')
+
         fila_exp = ctk.CTkFrame(panel, fg_color='transparent')
-        fila_exp.grid(row=1, column=0, padx=16, pady=(0, 16), sticky='ew')
+        fila_exp.grid(row=2, column=0, padx=16, pady=(0, 16), sticky='ew')
         fila_exp.grid_columnconfigure((0, 1), weight=1)
 
         ctk.CTkButton(
@@ -154,18 +161,18 @@ class MetadataFrame(BaseFrame):
     def _build_tab_editar(self) -> ctk.CTkFrame:
         """Construir el tab de edicion de metadatos."""
         f = ctk.CTkFrame(self._contenedor, fg_color='transparent')
-        f.grid_columnconfigure(0, weight=1)
+        izquierda, derecha = self._crear_workspace(f, row=0, breakpoint=720, padx=16, pady=0)
 
-        btn = self._crear_boton_seleccionar(f, t('select_image_edit'), self._explorar_editar)
-        btn.grid(row=0, column=0, padx=28, pady=8, sticky='ew')
+        btn = self._crear_boton_seleccionar(izquierda, t('select_image_edit'), self._explorar_editar)
+        btn.grid(row=0, column=0, padx=16, pady=16, sticky='ew')
 
         panel = ctk.CTkFrame(
-            f, corner_radius=12,
+            izquierda, corner_radius=10,
             fg_color=colors.PANEL_BG,
             border_width=1,
             border_color=colors.SIDEBAR_SEPARATOR
         )
-        panel.grid(row=1, column=0, padx=28, pady=8, sticky='ew')
+        panel.grid(row=1, column=0, padx=16, pady=(0, 16), sticky='new')
         panel.grid_columnconfigure(1, weight=1)
 
         _label_map = {
@@ -216,25 +223,32 @@ class MetadataFrame(BaseFrame):
             padx=16, pady=(0, 16), sticky='ew'
         )
 
+        self._lbl_edit_target = ctk.CTkLabel(
+            derecha, text=t('select_image_edit'),
+            font=fonts.FUENTE_BASE, text_color=colors.TEXT_GRAY,
+            justify='left', wraplength=scale_wraplength(360),
+        )
+        self._lbl_edit_target.grid(row=0, column=0, padx=16, pady=16, sticky='nw')
+
         return f
 
     def _build_tab_limpiar(self) -> ctk.CTkFrame:
         """Construir el tab de limpieza de metadatos en lote."""
         f = ctk.CTkFrame(self._contenedor, fg_color='transparent')
-        f.grid_columnconfigure(0, weight=1)
+        izquierda, derecha = self._crear_workspace(f, row=0, breakpoint=720, padx=16, pady=0)
 
-        btn = self._crear_boton_seleccionar(f, t('select_images_clean'), self._explorar_lote)
-        btn.grid(row=0, column=0, padx=28, pady=8, sticky='ew')
+        btn = self._crear_boton_seleccionar(izquierda, t('select_images_clean'), self._explorar_lote)
+        btn.grid(row=0, column=0, padx=16, pady=16, sticky='ew')
 
         self._lista_lote = ctk.CTkScrollableFrame(
-            f, corner_radius=10,
+            derecha, corner_radius=10,
             fg_color=colors.PANEL_BG,
             border_width=0,
             scrollbar_button_color=colors.SIDEBAR_SEPARATOR,
             scrollbar_button_hover_color=colors.ACENTO_DIMMED,
-            height=160
+            height=420
         )
-        self._lista_lote.grid(row=1, column=0, padx=28, pady=8, sticky='ew')
+        self._lista_lote.grid(row=0, column=0, padx=16, pady=16, sticky='nsew')
         self._lista_lote.grid_columnconfigure(0, weight=1)
 
         self._lbl_lote_vacio = ctk.CTkLabel(
@@ -246,12 +260,12 @@ class MetadataFrame(BaseFrame):
         self._lbl_lote_vacio.pack(pady=12)
 
         panel_opc = ctk.CTkFrame(
-            f, corner_radius=12,
+            izquierda, corner_radius=10,
             fg_color=colors.PANEL_BG,
             border_width=1,
             border_color=colors.SIDEBAR_SEPARATOR
         )
-        panel_opc.grid(row=2, column=0, padx=28, pady=8, sticky='ew')
+        panel_opc.grid(row=1, column=0, padx=16, pady=(0, 16), sticky='new')
         panel_opc.grid_columnconfigure(0, weight=1)
 
         self._btn_limpiar_exif = ctk.CTkButton(
@@ -428,6 +442,8 @@ class MetadataFrame(BaseFrame):
                 entry.insert(0, meta[etiqueta])
         if self._state.ruta:
             self._lbl_info.configure(text=f'{t("editing")} {Path(self._state.ruta).name}')
+            if hasattr(self, '_lbl_edit_target'):
+                self._lbl_edit_target.configure(text=f'{t("editing")}\n{Path(self._state.ruta).name}')
         self._hide_full_overlay()
 
     def _guardar_edicion(self):
@@ -497,9 +513,9 @@ class MetadataFrame(BaseFrame):
         self._state.imagenes_lote = rutas
         build_file_list(
             self._lista_lote, rutas, self._filas_lote, self._thumbs,
-            thumb_size=40, show_ext=False
+            thumb_size=44, show_ext=True
         )
-        load_thumbs_async(rutas, self._filas_lote, self._thumbs, self.after, thumb_size=40)
+        load_thumbs_async(rutas, self._filas_lote, self._thumbs, self.after, thumb_size=44)
         n = len(rutas)
         self._lbl_info.configure(
             text=f'{n} {t("images_ready_clean")}'
@@ -576,6 +592,9 @@ class MetadataFrame(BaseFrame):
 
         for entry in self._campos_edit.values():
             entry.delete(0, 'end')
+
+        if hasattr(self, '_lbl_edit_target'):
+            self._lbl_edit_target.configure(text=t('select_image_edit'))
 
         for w in self._lista_lote.winfo_children():
             w.destroy()

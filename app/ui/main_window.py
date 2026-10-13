@@ -63,6 +63,7 @@ class MainWindow(ctk.CTkFrame):
         """
         # Crear sidebar y posicionar a la izquierda
         self.sidebar = Sidebar(self, on_select=self.show_module)
+        self.sidebar.on_home = self.show_home
         self.sidebar.pack(side='left', fill='y')
         
         # Crear area de contenido y posicionar a la derecha
@@ -78,6 +79,9 @@ class MainWindow(ctk.CTkFrame):
 
         # Pantalla inicial (no aparece en sidebar)
         self._home = HomeFrame(self.content)
+        set_home_navigation = getattr(self._home, "set_on_select", None)
+        if callable(set_home_navigation):
+            set_home_navigation(self.show_module)
         self._show_view(self._home, key=None)
         # Sidebar sin selección activa hasta que el usuario elija un módulo
         try:
@@ -208,6 +212,11 @@ class MainWindow(ctk.CTkFrame):
 
         # Actualizar boton activo en la sidebar
         self.sidebar.set_active(key)
+
+    def show_home(self):
+        """Vuelve a Inicio al activar el logo del panel lateral."""
+        self._show_view(self._home, key=None)
+        self.sidebar.set_active(None)
 
     def _show_view(self, view, key):
         """Oculta la vista activa y muestra la nueva de forma explicita."""

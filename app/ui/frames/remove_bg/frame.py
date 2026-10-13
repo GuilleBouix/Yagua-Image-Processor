@@ -90,31 +90,33 @@ class RemoveBgFrame(BaseFrame):
             self._construir_aviso_dependencia(detalle_error)
             return
 
-        row = 2
+        izquierda, derecha = self._crear_workspace()
+        derecha.grid_rowconfigure(1, weight=1)
 
         # Boton seleccionar
-        self._btn_seleccionar = self._crear_boton_seleccionar(self)
-        self._btn_seleccionar.grid(row=row, column=0, padx=28, pady=8, sticky='ew')
-        row += 1
+        self._btn_seleccionar = self._crear_boton_seleccionar(izquierda)
+        self._btn_seleccionar.grid(row=0, column=0, padx=16, pady=(16, 8), sticky='ew')
 
-        # Lista de archivos
-        self._lista_frame = self._crear_lista_archivos(self, height=200)
-        self._lista_frame.grid(row=row, column=0, padx=28, pady=8, sticky='ew')
+        ctk.CTkLabel(
+            derecha, text=t('files_loaded').capitalize(), font=fonts.FUENTE_BASE,
+            text_color=colors.TEXT_COLOR, anchor='w'
+        ).grid(row=0, column=0, padx=16, pady=(16, 8), sticky='w')
+        self._lista_frame = self._crear_lista_archivos(derecha, height=420)
+        self._lista_frame.grid(row=1, column=0, padx=16, pady=(0, 16), sticky='nsew')
         self._lista_frame.grid_columnconfigure(0, weight=1)
-        row += 1
 
         self._lbl_lista_vacia = self._crear_lista_vacia(self._lista_frame)
         self._lbl_lista_vacia.pack(pady=12)
 
         # Panel de opciones
         panel = ctk.CTkFrame(
-            self,
+            izquierda,
             corner_radius=12,
             fg_color=colors.PANEL_BG,
             border_width=1,
             border_color=colors.SIDEBAR_SEPARATOR
         )
-        panel.grid(row=row, column=0, padx=28, pady=8, sticky='ew')
+        panel.grid(row=1, column=0, padx=16, pady=(0, 16), sticky='new')
         panel.grid_columnconfigure(1, weight=1)
 
         # Descripcion
@@ -343,7 +345,7 @@ class RemoveBgFrame(BaseFrame):
 
         super()._cargar_imagenes(rutas)
         n = len(rutas)
-        suffix = t('images_loaded') if n > 1 else t('image_loaded')
+        suffix = t('files_loaded').capitalize() if n > 1 else t('image_loaded')
         msg = f'{n} {suffix}'
         if self._limite_msg:
             msg += f'  -  {self._limite_msg}'
@@ -404,7 +406,7 @@ class RemoveBgFrame(BaseFrame):
         self._hide_overlay()
         self._state.set_model_info(model_used, used_fallback)
         self._btn_procesar.configure(state='normal', text=t('remove_bg_btn'))
-        suffix = t('images_loaded') if ok > 1 else t('image_loaded')
+        suffix = t('files_loaded').capitalize() if ok > 1 else t('image_loaded')
         msg = f'{ok} {suffix} {t("processed")}'
         if errores:
             msg += f'  -  {errores} {t("error_occurred")}'

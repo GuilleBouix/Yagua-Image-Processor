@@ -53,13 +53,14 @@ class Sidebar(ctk.CTkFrame):
         """
         super().__init__(
             parent,
-            width=160,
+            width=220,
             corner_radius=0,
             fg_color=colors.SIDEBAR_BG
         )
         
         # Guardar callback para navegacion entre modulos
         self.on_select = on_select
+        self.on_home = None
         
         # Diccionario para guardar referencias a los botones
         self.buttons = {}
@@ -100,7 +101,10 @@ class Sidebar(ctk.CTkFrame):
             logo = ctk.CTkLabel(self, image=imagen_ctk, text='')
         else:
             logo = ctk.CTkLabel(self, text='')
+        self.logo = logo
         logo.pack(pady=(20, 10))
+        logo.configure(cursor='hand2')
+        logo.bind('<Button-1>', lambda _event: self.on_home() if callable(self.on_home) else None)
 
         # Crear linea separadora
         separador = ctk.CTkFrame(
@@ -139,7 +143,7 @@ class Sidebar(ctk.CTkFrame):
                 text=f' {label}',
                 image=icon_ctk,
                 compound='left',
-                width=150,
+                width=200,
                 fg_color='transparent',
                 hover_color=colors.SIDEBAR_HOVER,
                 text_color=colors.TEXT_COLOR,

@@ -1,475 +1,550 @@
-"""
-UI para el modulo LQIP / Base64.
-Genera placeholders de baja calidad y strings base64
-listos para usar en proyectos web.
-
-Relacionado con:
-    - app/ui/frames/base.py: Clase base de la que hereda.
-    - app/ui/frames/lqip/state.py: Estado de la interfaz.
-    - app/ui/frames/lqip/services.py: Servicios de logica.
-    - app/translations/__init__.py: Traducciones de la UI.
-"""
+"""Espacio técnico para generar, comparar y exportar LQIP / Base64."""
 
 from __future__ import annotations
 
 import logging
-import threading
 from pathlib import Path
-from tkinter import filedialog
+from queue import Empty, SimpleQueue
+from threading import Thread
+from tkinter import TclError, filedialog, font as tkfont
 
 import customtkinter as ctk
+from PIL import Image
 
+from app.modules.compress import formatear_bytes
+from app.translations import t as _translate
 from app.ui import colors, fonts
-from app.ui.scale import scale_wraplength
-from app.translations import t
 from app.ui.frames.base import BaseFrame
-from app.ui.frames.lqip.services import batch_procesar, exportar_txt, exportar_json
+from app.ui.frames.lqip.services import (
+    ItemResult, SourcePreview, cargar_original, exportar_json, exportar_txt,
+    procesar_archivos,
+)
 from app.ui.frames.lqip.state import LqipState
-
+from app.ui.operations import operations
 
 logger = logging.getLogger(__name__)
+CODE_PREVIEW_LIMIT = 12_000
+
+
+def t(key: str) -> str:
+    """Los textos del módulo siempre son cadenas, incluso sin traducción."""
+    return _translate(key) or key
+
+
+def _peso(byte_count):
+    return f'{byte_count} B' if byte_count < 1024 else formatear_bytes(byte_count)
 
 
 class LqipFrame(BaseFrame):
-    """Frame del modulo LQIP / Base64."""
+    """Entrada y ajustes a la izquierda; comparación y código a la derecha."""
 
     def __init__(self, parent):
-        """Inicializa el frame."""
-        logger.info('lqip.ui: init')
         self._state = LqipState()
+        self._selected_index: int | None = None
+        self._results: dict[int, ItemResult] = {}
+        self._sources: dict[int, SourcePreview] = {}
+        self._resetting = False
+        self._revision = 0
+        self._source_revision = 0
+        self._busy = False
+        self._ui_ready = False
+        self._source_queue: SimpleQueue[tuple[int, SourcePreview]] = SimpleQueue()
+        self._source_job = None
+        self._render_job = None
+        self._display_images = {}
+        self._left_help_labels = []
+        self._traces = []
         super().__init__(parent, t('lqip_title'))
+        self._ui_ready = True
+        for variable in (
+            self._state.modo, self._state.ancho_lqip, self._state.blur,
+            self._state.calidad_lqip, self._state.calidad_b64,
+        ):
+            token = variable.trace_add('write', self._ajustes_cambiados)
+            self._traces.append((variable, token))
+        self._source_job = self.after(40, self._recibir_originales)
+        self._actualizar_validacion()
+        self._actualizar_acciones()
+        self._programar_render()
+
+    def _text_label(self, parent, text='', *, muted=False, **kwargs):
+        return ctk.CTkLabel(
+            parent, text=text, anchor='w', justify='left',
+            font=fonts.FUENTE_CHICA if muted else fonts.FUENTE_BASE,
+            text_color=colors.TEXT_GRAY if muted else colors.TEXT_COLOR,
+            height=18 if muted else 22, **kwargs,
+        )
 
     def _build_content(self):
-        """Construye el contenido del modulo."""
-        logger.info('lqip.ui: build_content')
-
-        # Boton seleccionar
-        self._btn_seleccionar = self._crear_boton_seleccionar(self)
-        self._btn_seleccionar.grid(row=1, column=0, padx=28, pady=(8, 0), sticky='ew')
-
-        # Lista de archivos
-        self._lista_frame = self._crear_lista_archivos(self, height=90)
-        self._lista_frame.grid(row=2, column=0, padx=28, pady=8, sticky='ew')
-        self._lista_frame.grid_columnconfigure(0, weight=1)
-        self._lbl_lista_vacia = self._crear_lista_vacia(self._lista_frame)
-        self._lbl_lista_vacia.pack(pady=8)
-
-        # Panel de opciones
-        panel = ctk.CTkFrame(
-            self,
-            corner_radius=12,
-            fg_color=colors.PANEL_BG,
-            border_width=1,
-            border_color=colors.SIDEBAR_SEPARATOR
+        left, right = self._crear_workspace(column_weights=(2, 3), breakpoint=900)
+        self._left = left
+        self._right = right
+        self._workspace_host.bind('<Configure>', self._schedule_viewport_sync, add=True)
+        right.grid_rowconfigure(7, weight=1)
+        self._btn_seleccionar = self._crear_boton_seleccionar(
+            left, texto=t('lqip_select_image'),
+            comando=lambda: self._explorar(titulo=t('lqip_select_image'), multi=False),
         )
-        panel.grid(row=3, column=0, padx=28, pady=(0, 6), sticky='ew')
-        panel.grid_columnconfigure(0, weight=1)
-        self._construir_opciones(panel)
+        self._btn_seleccionar.grid(row=0, column=0, padx=16, pady=(16, 8), sticky='ew')
+        self._lbl_input_name = self._text_label(left, t('lqip_select_hint'), wraplength=330)
+        self._lbl_input_name.grid(row=1, column=0, padx=16, pady=(0, 2), sticky='ew')
+        self._lbl_input_meta = self._text_label(left, '—', muted=True, wraplength=330)
+        self._lbl_input_meta.grid(row=2, column=0, padx=16, pady=(0, 16), sticky='ew')
 
-    def _construir_opciones(self, p):
-        """
-        Construye todas las secciones del panel de opciones.
-
-        Args:
-            p: Frame padre del panel.
-        """
-        # ── Fila 1: selector de modo + descripcion ────────────────────────────
-        fila_modo = ctk.CTkFrame(p, fg_color='transparent')
-        fila_modo.grid(row=0, column=0, padx=16, pady=(12, 0), sticky='ew')
-        fila_modo.grid_columnconfigure(1, weight=1)
-
-        ctk.CTkLabel(
-            fila_modo, text=t('lqip_mode'),
-            font=fonts.FUENTE_BASE,
-            text_color=colors.TEXT_COLOR, anchor='w'
-        ).grid(row=0, column=0, padx=(0, 12), sticky='w')
-
-        # Mapa de valores traducidos a internos para el selector de modo
-        self._modo_a_interno = {
-            t('lqip_mode_lqip'): 'lqip',
-            t('lqip_mode_b64'):  'base64',
-        }
-
+        header = ctk.CTkFrame(left, fg_color='transparent')
+        header.grid(row=3, column=0, padx=16, sticky='ew')
+        header.grid_columnconfigure(0, weight=1)
+        self._text_label(header, t('lqip_generation')).grid(row=0, column=0, sticky='w')
+        self._modo_a_interno = {t('lqip_mode_lqip'): 'lqip', t('lqip_mode_b64'): 'base64'}
+        self._modo_visible = ctk.StringVar(value=t('lqip_mode_lqip'))
         self._seg_modo = ctk.CTkSegmentedButton(
-            fila_modo,
-            values=list(self._modo_a_interno.keys()),
-            variable=self._state.modo,
-            font=fonts.FUENTE_CHICA,
-            selected_color=colors.ACENTO,
-            selected_hover_color=colors.ACENTO_HOVER,
-            unselected_color=colors.SIDEBAR_BG,
-            unselected_hover_color=colors.SIDEBAR_HOVER,
-            text_color=colors.TEXT_COLOR,
-            command=self._cambiar_modo
+            header, values=list(self._modo_a_interno), variable=self._modo_visible,
+            font=fonts.FUENTE_CHICA, selected_color=colors.SIDEBAR_HOVER,
+            selected_hover_color=colors.SIDEBAR_HOVER,
+            unselected_color=colors.SIDEBAR_BG, unselected_hover_color=colors.SIDEBAR_HOVER,
+            text_color=colors.TEXT_COLOR, command=self._cambiar_modo,
         )
-        self._seg_modo.grid(row=0, column=1, sticky='w')
-
-        self._lbl_descripcion = ctk.CTkLabel(
-            fila_modo,
-            text=t('lqip_mode_lqip_desc'),
-            font=fonts.FUENTE_CHICA,
-            text_color=colors.TEXT_GRAY,
-            anchor='w', wraplength=scale_wraplength(300)
+        self._seg_modo.grid(row=0, column=1, sticky='e')
+        self._lbl_descripcion = self._text_label(left, t('lqip_mode_lqip_desc'), muted=True, wraplength=330)
+        self._lbl_descripcion.grid(row=4, column=0, padx=16, pady=(6, 8), sticky='ew')
+        self._frame_opciones_modo = ctk.CTkFrame(left, fg_color='transparent')
+        self._frame_opciones_modo.grid(row=5, column=0, padx=16, sticky='ew')
+        self._frame_opciones_modo.grid_columnconfigure(0, weight=1)
+        self._lqip_options = ctk.CTkFrame(self._frame_opciones_modo, fg_color='transparent')
+        self._b64_options = ctk.CTkFrame(self._frame_opciones_modo, fg_color='transparent')
+        for frame in (self._lqip_options, self._b64_options):
+            frame.grid_columnconfigure(0, weight=1)
+        self._entry_width, self._error_width = self._campo_numerico(
+            self._lqip_options, 0, 'lqip_width', 'lqip_width_help', self._state.ancho_lqip,
         )
-        self._lbl_descripcion.grid(row=0, column=2, padx=(16, 0), sticky='w')
-
-        # Separador
-        ctk.CTkFrame(p, height=1, fg_color=colors.SIDEBAR_SEPARATOR).grid(
-            row=1, column=0, padx=16, pady=(8, 4), sticky='ew'
+        self._entry_blur, self._error_blur = self._campo_numerico(
+            self._lqip_options, 3, 'lqip_blur', 'lqip_blur_help', self._state.blur,
         )
-
-        # ── Opciones especificas del modo (se reconstruyen al cambiar) ─────────
-        self._frame_opciones_modo = ctk.CTkFrame(p, fg_color='transparent')
-        self._frame_opciones_modo.grid(row=2, column=0, padx=16, pady=(6, 0), sticky='ew')
-        self._frame_opciones_modo.grid_columnconfigure((0, 1, 2), weight=1)
-        self._construir_opciones_lqip()
-
-        # Separador
-        ctk.CTkFrame(p, height=1, fg_color=colors.SIDEBAR_SEPARATOR).grid(
-            row=3, column=0, padx=16, pady=(8, 4), sticky='ew'
-        )
-
-        # ── Fila de exportacion ───────────────────────────────────────────────
-        fila_export = ctk.CTkFrame(p, fg_color='transparent')
-        fila_export.grid(row=4, column=0, padx=16, pady=(4, 12), sticky='ew')
-        fila_export.grid_columnconfigure(1, weight=1)
-
-        ctk.CTkLabel(
-            fila_export, text=t('lqip_export_field'),
-            font=fonts.FUENTE_CHICA,
-            text_color=colors.TEXT_GRAY, anchor='w'
-        ).grid(row=0, column=0, sticky='w', pady=(0, 4))
-
-        ctk.CTkLabel(
-            fila_export, text=t('lqip_actions'),
-            font=fonts.FUENTE_CHICA,
-            text_color=colors.TEXT_GRAY, anchor='w'
-        ).grid(row=0, column=1, columnspan=3, sticky='w', pady=(0, 4), padx=(12, 0))
-
-        # Mapa de etiquetas visibles a claves internas del resultado
-        self._campo_a_clave = {
-            t('DATA_URI'): 'data_uri',
-            t('HTML_TAG'): 'html_tag',
-            t('CSS_BG'):   'css_bg',
-        }
-
-        self._campo_export = ctk.StringVar(value=t('DATA_URI'))
-        ctk.CTkOptionMenu(
-            fila_export,
-            values=list(self._campo_a_clave.keys()),
-            variable=self._campo_export,
-            font=fonts.FUENTE_BASE,
-            fg_color=colors.SIDEBAR_BG,
-            button_color=colors.ACENTO,
-            button_hover_color=colors.ACENTO_HOVER,
-            text_color=colors.TEXT_COLOR,
-            dropdown_fg_color=colors.PANEL_BG,
-            dropdown_text_color=colors.TEXT_COLOR,
-            dropdown_hover_color=colors.SIDEBAR_HOVER,
-            width=120
-        ).grid(row=1, column=0, sticky='w', padx=(0, 12))
-
+        self._lbl_cal_lqip = self._calidad(self._lqip_options, 6, self._state.calidad_lqip, 80)
+        self._lbl_cal_b64 = self._calidad(self._b64_options, 0, self._state.calidad_b64, 100)
+        self._lqip_options.grid(row=0, column=0, sticky='ew')
         self._btn_procesar = ctk.CTkButton(
-            fila_export,
-            text=t('lqip_btn_process'),
-            height=34, corner_radius=8,
-            font=fonts.FUENTE_BASE,
-            fg_color=colors.ACENTO,
-            text_color=colors.TEXT_ACTIVE,
-            hover_color=colors.ACENTO_HOVER,
-            command=self._procesar
+            left, text=t('lqip_btn_process'), height=38, font=fonts.FUENTE_BASE,
+            fg_color=colors.ACENTO, text_color=colors.TEXT_ACTIVE,
+            hover_color=colors.ACENTO_HOVER, command=self._procesar,
         )
-        self._btn_procesar.grid(row=1, column=1, sticky='ew', padx=(0, 4))
+        self._btn_procesar.grid(row=6, column=0, padx=16, pady=(12, 16), sticky='ew')
 
-        ctk.CTkButton(
-            fila_export,
-            text=t('lqip_btn_copy'),
-            height=34, corner_radius=8,
-            font=fonts.FUENTE_BASE,
-            fg_color=colors.PANEL_BG,
-            border_width=1,
-            border_color=colors.SIDEBAR_SEPARATOR,
-            text_color=colors.TEXT_COLOR,
-            hover_color=colors.SIDEBAR_HOVER,
-            command=self._copiar
-        ).grid(row=1, column=2, sticky='ew', padx=4)
-
-        ctk.CTkButton(
-            fila_export,
-            text=t('lqip_btn_save'),
-            height=34, corner_radius=8,
-            font=fonts.FUENTE_BASE,
-            fg_color=colors.PANEL_BG,
-            border_width=1,
-            border_color=colors.SIDEBAR_SEPARATOR,
-            text_color=colors.TEXT_COLOR,
-            hover_color=colors.SIDEBAR_HOVER,
-            command=self._guardar
-        ).grid(row=1, column=3, sticky='ew', padx=(4, 0))
-
-    def _construir_opciones_lqip(self):
-        """Construye los controles especificos del modo LQIP."""
-        f = self._frame_opciones_modo
-
-        # Ocultar sin destruir para no romper los StringVar vinculados
-        for widget in f.winfo_children():
-            widget.grid_forget()
-
-        ctk.CTkLabel(
-            f, text=t('lqip_width'),
-            font=fonts.FUENTE_CHICA,
-            text_color=colors.TEXT_GRAY, anchor='w'
-        ).grid(row=0, column=0, sticky='w', pady=(0, 4))
-
-        ctk.CTkEntry(
-            f,
-            textvariable=self._state.ancho_lqip,
-            font=fonts.FUENTE_BASE,
-            fg_color=colors.FRAMES_BG,
-            border_color=colors.SIDEBAR_SEPARATOR,
-            text_color=colors.TEXT_COLOR,
-            placeholder_text='20',
-            placeholder_text_color=colors.TEXT_GRAY,
-        ).grid(row=1, column=0, sticky='ew', padx=(0, 12))
-
-        ctk.CTkLabel(
-            f, text=t('lqip_blur'),
-            font=fonts.FUENTE_CHICA,
-            text_color=colors.TEXT_GRAY, anchor='w'
-        ).grid(row=0, column=1, sticky='w', pady=(0, 4))
-
-        ctk.CTkEntry(
-            f,
-            textvariable=self._state.blur,
-            font=fonts.FUENTE_BASE,
-            fg_color=colors.FRAMES_BG,
-            border_color=colors.SIDEBAR_SEPARATOR,
-            text_color=colors.TEXT_COLOR,
-            placeholder_text='2',
-            placeholder_text_color=colors.TEXT_GRAY,
-        ).grid(row=1, column=1, sticky='ew', padx=(0, 12))
-
-        ctk.CTkLabel(
-            f, text=t('lqip_quality'),
-            font=fonts.FUENTE_CHICA,
-            text_color=colors.TEXT_GRAY, anchor='w'
-        ).grid(row=0, column=2, sticky='w', pady=(0, 4))
-
-        fila_calidad = ctk.CTkFrame(f, fg_color='transparent')
-        fila_calidad.grid(row=1, column=2, sticky='ew')
-        fila_calidad.grid_columnconfigure(0, weight=1)
-
-        self._lbl_cal_lqip = ctk.CTkLabel(
-            fila_calidad, text=str(self._state.calidad_lqip.get()),
-            font=fonts.FUENTE_BASE,
-            text_color=colors.ACENTO,
-            fg_color='transparent', width=28
+        self._lbl_result_name = self._text_label(right, t('lqip_result'), wraplength=500)
+        self._lbl_result_name.grid(row=0, column=0, padx=16, pady=(16, 0), sticky='ew')
+        self._lbl_result_status = self._text_label(right, t('lqip_select_hint'), muted=True, wraplength=500)
+        self._lbl_result_status.grid(row=1, column=0, padx=16, pady=(2, 8), sticky='ew')
+        self._comparison = ctk.CTkFrame(right, fg_color='transparent', height=200)
+        self._comparison.grid(row=2, column=0, padx=16, sticky='ew')
+        self._comparison.grid_propagate(False)
+        self._comparison.grid_columnconfigure((0, 1), weight=1, uniform='previews')
+        self._comparison.grid_rowconfigure(0, weight=1)
+        self._original_label, self._original_meta = self._preview_card(0, 'lqip_original')
+        self._output_label, self._output_meta = self._preview_card(1, 'lqip_result')
+        self._comparison.bind('<Configure>', self._programar_render, add=True)
+        self._lbl_metrics = self._text_label(right, t('lqip_metrics_hint'), muted=True)
+        self._lbl_metrics.grid(row=3, column=0, padx=16, pady=(8, 10), sticky='ew')
+        self._text_label(right, t('lqip_code')).grid(row=4, column=0, padx=16, pady=(0, 6), sticky='w')
+        self._campo_a_clave = {
+            t('lqip_field_data_uri'): 'data_uri', t('lqip_field_html_tag'): 'html_tag',
+            t('lqip_field_css_bg'): 'css_bg', t('lqip_field_base64'): 'base64',
+        }
+        self._campo_export = ctk.StringVar(value=t('lqip_field_data_uri'))
+        self._seg_formato = ctk.CTkSegmentedButton(
+            right, values=list(self._campo_a_clave), variable=self._campo_export,
+            font=fonts.FUENTE_CHICA, selected_color=colors.SIDEBAR_HOVER,
+            selected_hover_color=colors.SIDEBAR_HOVER,
+            unselected_color=colors.SIDEBAR_BG, unselected_hover_color=colors.SIDEBAR_HOVER,
+            text_color=colors.TEXT_COLOR, command=lambda _: self._actualizar_codigo(),
         )
-        ctk.CTkSlider(
-            fila_calidad,
-            from_=10, to=80,
-            variable=self._state.calidad_lqip,
-            button_color=colors.ACENTO,
-            button_hover_color=colors.ACENTO_HOVER,
-            progress_color=colors.ACENTO,
-            fg_color=colors.SIDEBAR_SEPARATOR,
-            command=lambda v: self._lbl_cal_lqip.configure(text=str(int(v)))
-        ).grid(row=0, column=0, sticky='ew', padx=(0, 6))
-        self._lbl_cal_lqip.grid(row=0, column=1)
-
-    def _construir_opciones_b64(self):
-        """Construye los controles especificos del modo base64 completo."""
-        f = self._frame_opciones_modo
-
-        # Ocultar sin destruir para no romper los IntVar vinculados
-        for widget in f.winfo_children():
-            widget.grid_forget()
-
-        f.grid_columnconfigure(0, weight=1)
-        f.grid_columnconfigure(1, weight=0)
-
-        ctk.CTkLabel(
-            f, text=t('lqip_quality'),
-            font=fonts.FUENTE_CHICA,
-            text_color=colors.TEXT_GRAY, anchor='w'
-        ).grid(row=0, column=0, columnspan=2, sticky='w', pady=(0, 4))
-
-        fila_calidad = ctk.CTkFrame(f, fg_color='transparent')
-        fila_calidad.grid(row=1, column=0, columnspan=2, sticky='ew')
-        fila_calidad.grid_columnconfigure(0, weight=1)
-
-        self._lbl_cal_b64 = ctk.CTkLabel(
-            fila_calidad, text=str(self._state.calidad_b64.get()),
-            font=fonts.FUENTE_BASE,
-            text_color=colors.ACENTO,
-            fg_color='transparent', width=28
+        self._seg_formato.grid(row=5, column=0, padx=16, sticky='ew')
+        self._lbl_format_help = self._text_label(right, '', muted=True, wraplength=500)
+        self._lbl_format_help.grid(row=6, column=0, padx=16, pady=(6, 6), sticky='ew')
+        fixed = tkfont.nametofont('TkFixedFont').actual('family')
+        self._resultado_preview = ctk.CTkTextbox(
+            right, height=140, corner_radius=8, font=ctk.CTkFont(family=fixed, size=12),
+            fg_color=colors.SIDEBAR_BG, border_width=1,
+            border_color=colors.SIDEBAR_SEPARATOR, text_color=colors.TEXT_COLOR, wrap='char',
         )
-        ctk.CTkSlider(
-            fila_calidad,
-            from_=10, to=100,
-            variable=self._state.calidad_b64,
-            button_color=colors.ACENTO,
-            button_hover_color=colors.ACENTO_HOVER,
-            progress_color=colors.ACENTO,
-            fg_color=colors.SIDEBAR_SEPARATOR,
-            command=lambda v: self._lbl_cal_b64.configure(text=str(int(v)))
-        ).grid(row=0, column=0, sticky='ew', padx=(0, 6))
-        self._lbl_cal_b64.grid(row=0, column=1)
+        self._resultado_preview._y_scrollbar.configure(height=120)
+        self._resultado_preview._textbox.configure(exportselection=False)
+        self._resultado_preview._textbox.bind('<<Copy>>', self._copiar_desde_preview)
+        self._resultado_preview.grid(row=7, column=0, padx=16, sticky='nsew')
+        self._lbl_abbreviated = self._text_label(right, t('lqip_abbreviated'), muted=True, wraplength=500)
+        self._lbl_abbreviated.grid(row=8, column=0, padx=16, pady=(4, 0), sticky='ew')
+        self._lbl_abbreviated.grid_forget()
+        actions = ctk.CTkFrame(right, fg_color='transparent')
+        actions.grid(row=9, column=0, padx=16, pady=(12, 16), sticky='ew')
+        actions.grid_columnconfigure((0, 1), weight=1, uniform='actions')
+        self._btn_copiar = self._action_button(actions, 'lqip_btn_copy', self._copiar)
+        self._btn_copiar.grid(row=0, column=0, padx=(0, 4), sticky='ew')
+        self._btn_guardar = self._action_button(actions, 'lqip_btn_save', self._guardar)
+        self._btn_guardar.grid(row=0, column=1, padx=(4, 0), sticky='ew')
+        left.bind('<Configure>', self._ajustar_textos, add='+')
+        right.bind('<Configure>', self._ajustar_textos, add='+')
+        self._actualizar_codigo()
 
-    def _cambiar_modo(self, modo_etiqueta):
-        """
-        Cambia los controles y descripcion segun el modo seleccionado.
+    def _campo_numerico(self, parent, row, title, help_key, variable):
+        self._text_label(parent, t(title)).grid(row=row, column=0, sticky='w')
+        entry = ctk.CTkEntry(
+            parent, textvariable=variable, width=80, font=fonts.FUENTE_BASE,
+            fg_color=colors.SIDEBAR_BG, border_color=colors.SIDEBAR_SEPARATOR,
+            text_color=colors.TEXT_COLOR,
+        )
+        entry.grid(row=row, column=1, sticky='e')
+        help_label = self._text_label(parent, t(help_key), muted=True, wraplength=330)
+        help_label.grid(row=row + 1, column=0, columnspan=2, sticky='ew', pady=(0, 6))
+        self._left_help_labels.append(help_label)
+        error = self._text_label(parent, '', muted=False, wraplength=330)
+        self._left_help_labels.append(error)
+        error.grid(row=row + 2, column=0, columnspan=2, sticky='w', pady=(0, 4))
+        error.grid_forget()
+        return entry, error
 
-        Args:
-            modo_etiqueta: Etiqueta visible del boton (traducida).
-        """
-        logger.info('lqip.ui: cambiar_modo (%s)', modo_etiqueta)
+    def _calidad(self, parent, row, variable, maximum):
+        self._text_label(parent, t('lqip_quality')).grid(row=row, column=0, sticky='w')
+        value = self._text_label(parent, str(variable.get()))
+        value.grid(row=row, column=1, sticky='e')
+        slider = ctk.CTkSlider(
+            parent, from_=10, to=maximum, number_of_steps=maximum - 10, variable=variable,
+            button_color=colors.ACENTO, button_hover_color=colors.ACENTO_HOVER,
+            progress_color=colors.ACENTO, fg_color=colors.SIDEBAR_SEPARATOR,
+        )
+        slider.grid(row=row + 1, column=0, columnspan=2, pady=(2, 0), sticky='ew')
+        help_label = self._text_label(parent, t('lqip_quality_help'), muted=True, wraplength=330)
+        help_label.grid(row=row + 2, column=0, columnspan=2, sticky='ew', pady=(0, 2))
+        self._left_help_labels.append(help_label)
+        return value
 
-        # Convertir etiqueta traducida a valor interno
-        modo_interno = self._modo_a_interno.get(modo_etiqueta, 'lqip')
-        self._state.modo.set(modo_interno)
+    def _preview_card(self, column, title):
+        card = ctk.CTkFrame(self._comparison, fg_color=colors.SIDEBAR_BG, corner_radius=8)
+        card.grid(row=0, column=column, padx=(0, 4) if column == 0 else (4, 0), sticky='nsew')
+        card.grid_columnconfigure(0, weight=1)
+        card.grid_rowconfigure(1, weight=1)
+        self._text_label(card, t(title), muted=True).grid(row=0, column=0, padx=10, pady=(6, 0), sticky='w')
+        label = ctk.CTkLabel(
+            card, text=t('lqip_select_hint') if column == 0 else t('lqip_generate_hint'),
+            width=1, height=1, font=fonts.FUENTE_CHICA, text_color=colors.TEXT_GRAY,
+            wraplength=220,
+        )
+        label.grid(row=1, column=0, padx=10, pady=4, sticky='nsew')
+        meta = self._text_label(card, '—', muted=True)
+        meta.grid(row=2, column=0, padx=10, pady=(0, 6), sticky='w')
+        return label, meta
 
-        if modo_interno == 'lqip':
-            self._lbl_descripcion.configure(text=t('lqip_mode_lqip_desc'))
-            self._construir_opciones_lqip()
-        else:
-            self._lbl_descripcion.configure(text=t('lqip_mode_b64_desc'))
-            self._construir_opciones_b64()
+    def _action_button(self, parent, key, command):
+        return ctk.CTkButton(
+            parent, text=t(key), height=36, font=fonts.FUENTE_BASE,
+            fg_color=colors.SIDEBAR_BG, hover_color=colors.SIDEBAR_HOVER,
+            border_width=1, border_color=colors.SIDEBAR_SEPARATOR,
+            text_color=colors.TEXT_COLOR, command=command,
+        )
 
-    def _obtener_clave_campo(self):
-        """
-        Convierte la etiqueta visible del campo a su clave interna.
+    def _ajustar_textos(self, event=None):
+        scale = self._get_widget_scaling()
+        if event is not None and event.widget is self._left:
+            width = max(120, int(event.width / scale) - 32)
+            self._lbl_descripcion.configure(wraplength=width)
+            self._lbl_input_name.configure(wraplength=width)
+            self._lbl_input_meta.configure(wraplength=width)
+            for label in self._left_help_labels:
+                label.configure(wraplength=width)
+        elif event is not None and event.widget is self._right:
+            width = max(120, int(event.width / scale) - 32)
+            for label in (self._lbl_format_help, self._lbl_abbreviated, self._lbl_result_status, self._lbl_result_name):
+                label.configure(wraplength=width)
+        self._schedule_viewport_sync()
 
-        Returns:
-            Clave interna del campo ('data_uri', 'html_tag', 'css_bg').
-        """
-        return self._campo_a_clave.get(self._campo_export.get(), 'data_uri')
+    def _cambiar_modo(self, label):
+        self._modo_visible.set(label)
+        self._state.modo.set(self._modo_a_interno[label])
+        self._lqip_options.grid_forget()
+        self._b64_options.grid_forget()
+        is_lqip = self._state.modo.get() == 'lqip'
+        (self._lqip_options if is_lqip else self._b64_options).grid(row=0, column=0, sticky='ew')
+        self._lbl_descripcion.configure(text=t('lqip_mode_lqip_desc' if is_lqip else 'lqip_mode_b64_desc'))
+        self._schedule_viewport_sync()
+
+    def _actualizar_validacion(self):
+        errors = self._state.errores_validacion()
+        for field, entry, label, row in (
+            ('ancho', self._entry_width, self._error_width, 2),
+            ('blur', self._entry_blur, self._error_blur, 5),
+        ):
+            entry.configure(border_color=colors.ACENTO if field in errors else colors.SIDEBAR_SEPARATOR)
+            if field in errors:
+                label.configure(text=t(errors[field]))
+                label.grid(row=row, column=0, columnspan=2, sticky='w', pady=(0, 4))
+            else:
+                label.grid_forget()
+        self._lbl_cal_lqip.configure(text=str(self._state.calidad_lqip.get()))
+        self._lbl_cal_b64.configure(text=str(self._state.calidad_b64.get()))
+        self._schedule_viewport_sync()
+        return not errors
+
+    def _ajustes_cambiados(self, *_):
+        if self._resetting:
+            return
+        had_results = bool(self._results)
+        self._revision += 1
+        self._results.clear()
+        self._state.resultados = []
+        self._actualizar_validacion()
+        self._render_selected()
+        self._actualizar_acciones()
+        if had_results or self._busy:
+            self._lbl_info.configure(text=t('lqip_changed'))
 
     def _cargar_imagenes(self, rutas):
-        """Carga archivos con limite de 100 imagenes y limpia resultados anteriores."""
-        logger.info('lqip.ui: cargar_imagenes (total=%s)', len(rutas))
-
-        limite = 100
-        total = len(rutas)
-        if total > limite:
-            rutas = rutas[:limite]
-            self._limite_msg = t('limit_reached').format(limit=limite, total=total)  # type: ignore
-        else:
-            self._limite_msg = None
-
-        super()._cargar_imagenes(rutas)
-        self._state.imagenes = list(rutas)
+        """Reemplaza la única entrada y reinicia los controles sin callbacks intermedios."""
+        rutas = tuple(rutas)
+        if len(rutas) > 1:
+            raise ValueError('LQIP / Base64 accepts one image at a time')
+        self._revision += 1
+        self._source_revision += 1
+        self._imagenes = list(rutas)
+        self._state.imagenes = list(self._imagenes)
         self._state.resultados = []
+        self._results.clear()
+        self._sources.clear()
+        self._resetting = True
+        try:
+            self._state.restablecer_ajustes()
+            self._cambiar_modo(t('lqip_mode_lqip'))
+            self._campo_export.set(t('lqip_field_data_uri'))
+        finally:
+            self._resetting = False
+        self._selected_index = 0 if self._imagenes else None
+        self._actualizar_validacion()
+        self._render_selected()
+        self._actualizar_acciones()
+        self._lbl_info.configure(text=t('lqip_loaded') if rutas else '')
+        revision = self._source_revision
+        paths = tuple(self._imagenes)
+        queue = self._source_queue
 
-        n = len(rutas)
-        suffix = t('images_loaded') if n > 1 else t('image_loaded')
-        msg = f'{n} {suffix}'
-        if self._limite_msg:
-            msg += f'  -  {self._limite_msg}'
-        self._lbl_info.configure(text=msg)
+        def load():
+            for index, path in enumerate(paths):
+                queue.put((revision, cargar_original(index, path)))
 
-        logger.info('lqip.ui: imagenes cargadas (mostradas=%s)', len(rutas))
+        if paths:
+            Thread(target=load, daemon=True).start()
+
+    def _recibir_originales(self):
+        self._source_job = None
+        try:
+            while True:
+                revision, source = self._source_queue.get_nowait()
+                if revision != self._source_revision:
+                    continue
+                self._sources[source.index] = source
+                if source.index == self._selected_index:
+                    self._render_selected()
+        except Empty:
+            pass
+        self._source_job = self.after(40, self._recibir_originales)
+
+    def _programar_render(self, _event=None):
+        if self._ui_ready and self._render_job is None:
+            self._render_job = self.after_idle(self._render_selected)
+
+    def _imagen_preview(self, label, image, placeholder, key):
+        if image is None:
+            label.configure(image=None)
+            # CTkLabel deja la imagen nativa anterior al configurar image=None.
+            label._label.configure(image='')
+            self._display_images.pop(key, None)
+            label.configure(text=placeholder)
+            return
+        scale = self._get_widget_scaling()
+        width = max(1, int(label.winfo_width() / scale))
+        height = max(1, int(label.winfo_height() / scale))
+        ratio = min(width / image.width, height / image.height)
+        size = (max(1, int(image.width * ratio)), max(1, int(image.height * ratio)))
+        rendered = image.resize(size, Image.Resampling.BILINEAR)
+        tkimage = ctk.CTkImage(light_image=rendered, dark_image=rendered, size=size)
+        # Mantener viva la imagen anterior hasta reemplazarla en el widget.
+        label.configure(image=tkimage)
+        self._display_images[key] = tkimage
+        label.configure(text='')
+
+    def _render_selected(self):
+        if self._render_job is not None:
+            self.after_cancel(self._render_job)
+        self._render_job = None
+        if not self._ui_ready:
+            return
+        index = self._selected_index
+        source = self._sources.get(index) if index is not None else None
+        item = self._results.get(index) if index is not None else None
+        name = Path(self._imagenes[index]).name if index is not None else t('lqip_result')
+        self._lbl_result_name.configure(text=name)
+        self._lbl_input_name.configure(text=name if index is not None else t('lqip_select_hint'))
+        if source and source.error:
+            input_meta = t('lqip_item_error') + ': ' + source.error
+        elif source and source.dimensions:
+            w, h = source.dimensions
+            input_meta = f'{w} × {h} px · {source.format} · {_peso(source.size)}'
+        else:
+            input_meta = t('lqip_loading') if index is not None else '—'
+        self._lbl_input_meta.configure(text=input_meta)
+        if item and item.error:
+            status = t('lqip_item_error') + ': ' + item.error
+        elif item and item.result:
+            status = t('lqip_result_ready')
+        else:
+            status = t('lqip_generate_hint') if index is not None else t('lqip_select_hint')
+        self._lbl_result_status.configure(text=status)
+        original_image = source.image if source else None
+        output_image = item.image if item else None
+        if source and source.error:
+            original_hint = t('lqip_item_error')
+        else:
+            original_hint = t('lqip_loading') if index is not None else t('lqip_select_hint')
+        self._imagen_preview(self._original_label, original_image, original_hint, 'original')
+        self._imagen_preview(self._output_label, output_image, t('lqip_generate_hint'), 'output')
+        if source and source.dimensions:
+            w, h = source.dimensions
+            self._original_meta.configure(text=f'{w} × {h} px · {source.format}\n{_peso(source.size)}')
+        else:
+            self._original_meta.configure(text=t('lqip_item_error') if source and source.error else '—')
+        if item and item.dimensions:
+            w, h = item.dimensions
+            self._output_meta.configure(text=f'{w} × {h} px · JPEG\n{_peso(item.jpeg_bytes)}')
+            self._lbl_metrics.configure(text=f'Data URI: {_peso(item.uri_bytes)} · image/jpeg')
+        else:
+            self._output_meta.configure(text='—')
+            self._lbl_metrics.configure(text=t('lqip_metrics_hint'))
+        self._actualizar_codigo()
+
+    def _obtener_clave_campo(self):
+        return self._campo_a_clave[self._campo_export.get()]
+
+    def _codigo_seleccionado(self):
+        item = self._results.get(self._selected_index) if self._selected_index is not None else None
+        return item.result[self._obtener_clave_campo()] if item and item.result else ''
+
+    def _actualizar_codigo(self):
+        key = self._obtener_clave_campo()
+        self._lbl_format_help.configure(text=t('lqip_help_' + key))
+        content = self._codigo_seleccionado()
+        self._resultado_preview.configure(state='normal')
+        self._resultado_preview.delete('1.0', 'end')
+        self._resultado_preview.insert('1.0', content[:CODE_PREVIEW_LIMIT] if content else t('lqip_code_hint'))
+        self._resultado_preview.configure(state='disabled')
+        if len(content) > CODE_PREVIEW_LIMIT:
+            self._lbl_abbreviated.grid(row=8, column=0, padx=16, pady=(4, 0), sticky='ew')
+        else:
+            self._lbl_abbreviated.grid_forget()
+        self._actualizar_acciones()
+        self._schedule_viewport_sync()
+
+    def _actualizar_acciones(self):
+        if not hasattr(self, '_btn_guardar'):
+            return
+        item = self._results.get(self._selected_index) if self._selected_index is not None else None
+        self._btn_copiar.configure(state='normal' if item and item.result else 'disabled')
+        self._btn_guardar.configure(state='normal' if self._state.resultados else 'disabled')
+        self._btn_procesar.configure(
+            state='normal' if self._imagenes and not self._busy and not self._state.errores_validacion() else 'disabled',
+            text=t('processing') if self._busy else t('lqip_btn_process'),
+        )
 
     def _procesar(self):
-        """Inicia el procesamiento en segundo plano."""
-        logger.info('lqip.ui: click_procesar')
-        if not self._imagenes:
-            self._lbl_info.configure(text=t('load_images_first'))
+        if self._busy or not self._imagenes or not self._actualizar_validacion():
             return
-
-        self._btn_procesar.configure(state='disabled', text=t('processing'))
-        opciones = self._state.obtener_opciones()
-
-        threading.Thread(
-            target=self._proceso, args=(opciones,), daemon=True
-        ).start()
-
-    def _proceso(self, opciones):
-        """
-        Ejecuta el procesamiento en segundo plano.
-
-        Args:
-            opciones: Diccionario con configuracion del procesamiento.
-        """
-        logger.info(
-            'lqip.ui: proceso_interno_inicio (imagenes=%s, modo=%s)',
-            len(self._imagenes), opciones.get('modo')
+        paths = tuple(self._imagenes)
+        options = dict(self._state.obtener_opciones())
+        revision = self._revision
+        self._busy = True
+        self._actualizar_acciones()
+        self._lbl_info.configure(text=t('processing'))
+        started = operations.submit(
+            self, 'lqip', lambda: procesar_archivos(paths, options),
+            lambda items: self._finalizar(revision, items),
+            lambda error: self._fallo_generacion(revision, error),
         )
-        res = batch_procesar(
-            self._imagenes,
-            modo=opciones['modo'],
-            ancho=opciones['ancho'],
-            blur=opciones['blur'],
-            calidad_lqip=opciones['calidad_lqip'],
-            calidad_b64=opciones['calidad_b64'],
-        )
-        self._state.resultados = res['resultados']
-        self.after(0, lambda: self._finalizar(res['ok'], res['errores']))
+        if not started:
+            self._busy = False
+            self._actualizar_acciones()
+            self._lbl_info.configure(text=t('lqip_busy'))
 
-    def _finalizar(self, ok, errores):
-        """
-        Muestra el resultado del procesamiento.
+    def _finalizar(self, revision, items):
+        self._busy = False
+        if revision == self._revision:
+            items = [item for item in items if item.index == 0 and self._imagenes and item.path == self._imagenes[0]][:1]
+            self._results = {item.index: item for item in items}
+            self._state.resultados = [item.result for item in items if item.result is not None]
+            self._lbl_info.configure(text=t('lqip_result_ready') if self._state.resultados else t('lqip_item_error'))
+            self._render_selected()
+        self._actualizar_acciones()
 
-        Args:
-            ok: Imagenes procesadas correctamente.
-            errores: Cantidad de errores.
-        """
-        logger.info('lqip.ui: finalizar_ok (ok=%s, errores=%s)', ok, errores)
-        self._btn_procesar.configure(state='normal', text=t('lqip_btn_process'))
-        suffix = t('images_loaded') if ok > 1 else t('image_loaded')
-        msg = f'{ok} {suffix} {t("processed")}  -  {t("lqip_ready_to_export")}'
-        if errores:
-            msg += f'  -  {errores} {t("error_occurred")}'
-        self._lbl_info.configure(text=msg)
+    def _fallo_generacion(self, revision, error):
+        self._busy = False
+        if revision == self._revision:
+            self._lbl_info.configure(text=f'{t("lqip_item_error")}: {error}')
+        self._actualizar_acciones()
 
     def _copiar(self):
-        """Copia el campo seleccionado al portapapeles."""
-        logger.info('lqip.ui: copiar_resultado')
-        if not self._state.resultados:
-            self._lbl_info.configure(text=t('lqip_process_first'))
+        content = self._codigo_seleccionado()
+        if not content:
             return
+        try:
+            self.clipboard_clear()
+            self.clipboard_append(content)
+            copied = self.clipboard_get()
+            # Windows puede convertir LF a CRLF al transferir texto.
+            if copied.replace('\r\n', '\n') != content.replace('\r\n', '\n'):
+                self._lbl_info.configure(text=t('lqip_copy_failed'))
+                return
+        except TclError:
+            self._lbl_info.configure(text=t('lqip_copy_failed'))
+            return
+        self._lbl_info.configure(text=t('lqip_copied_full').format(count=len(content)))
 
-        # Usar clave interna para acceder al campo correcto del resultado
-        clave = self._obtener_clave_campo()
-        contenido = '\n\n'.join(
-            r.get(clave, '') for r in self._state.resultados
-        )
-        self.clipboard_clear()
-        self.clipboard_append(contenido)
-        self._lbl_info.configure(text=t('lqip_copied'))
-        self.after(2000, lambda: self._lbl_info.configure(
-            text=f'{len(self._state.resultados)} {t("processed")}'
-        ))
+    def _copiar_desde_preview(self, _event=None):
+        """Copiar toda la vista abreviada entrega el código original completo."""
+        textbox = self._resultado_preview._textbox
+        ranges = textbox.tag_ranges('sel')
+        if (
+            len(self._codigo_seleccionado()) > CODE_PREVIEW_LIMIT
+            and len(ranges) == 2
+            and textbox.compare(ranges[0], '==', '1.0')
+            and textbox.compare(ranges[1], '>=', 'end-1c')
+        ):
+            self._copiar()
+            return 'break'
+        return None
 
     def _guardar(self):
-        """Guarda los resultados en archivo .txt o .json."""
-        logger.info('lqip.ui: guardar_resultado')
         if not self._state.resultados:
-            self._lbl_info.configure(text=t('lqip_process_first'))
             return
-
-        ruta = filedialog.asksaveasfilename(
-            title=t('lqip_save_title'),
-            defaultextension='.txt',
-            filetypes=[
-                (t('file_txt'), '*.txt'),
-                (t('file_json'), '*.json'),
-            ],
-            initialfile='lqip_output'
+        path = filedialog.asksaveasfilename(
+            title=t('lqip_save_title'), defaultextension='.txt',
+            initialfile=Path(self._imagenes[0]).stem + '_lqip',
+            filetypes=[(t('file_txt'), '*.txt'), (t('file_json'), '*.json')],
         )
-        if not ruta:
+        if not path:
             return
+        try:
+            if Path(path).suffix.lower() == '.json':
+                exportar_json(self._state.resultados, path)
+            else:
+                exportar_txt(self._state.resultados, path, campo=self._obtener_clave_campo())
+            self._lbl_info.configure(text=f'{t("lqip_saved_as")} {Path(path).name}')
+        except OSError as error:
+            self._lbl_info.configure(text=f'{t("error_generic")}: {error}')
 
-        if ruta.endswith('.json'):
-            exportar_json(self._state.resultados, ruta)
-        else:
-            # Usar clave interna para exportar el campo correcto
-            exportar_txt(
-                self._state.resultados,
-                ruta,
-                campo=self._obtener_clave_campo()
-            )
+    def _limpiar(self):
+        self._cargar_imagenes([])
+        self._lbl_info.configure(text='')
 
-        self._lbl_info.configure(
-            text=f'{t("lqip_saved_as")} {Path(ruta).name}'
-        )
+    def destroy(self):
+        self._revision += 1
+        self._source_revision += 1
+        for job in (self._source_job, self._render_job):
+            if job is not None:
+                self.after_cancel(job)
+        for variable, token in self._traces:
+            variable.trace_remove('write', token)
+        super().destroy()
