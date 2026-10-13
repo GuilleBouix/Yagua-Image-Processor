@@ -1,7 +1,7 @@
 version: 1
 
 AppDir:
-  path: AppDir
+  path: '{{APPDIR_PATH}}'
 
   app_info:
     id: yagua

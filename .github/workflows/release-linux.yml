@@ -8,113 +8,178 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Version X.Y.Z (sin prefijo linux-v)"
+        description: "Version X.Y.Z[-rc.N] (sin prefijo linux-v)"
         required: true
 
 permissions:
-  contents: write
+  contents: read
+
+concurrency:
+  group: linux-release-${{ github.event.inputs.version || github.ref }}
+  cancel-in-progress: false
 
 jobs:
-  build_release:
-    runs-on: ubuntu-22.04
+  validate:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-22.04]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
-
-      - name: Resolve version
-        id: ver
+      - name: Install Linux system dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-tk xvfb libgl1 libglib2.0-0 libsm6 libxext6 libxrender1 libgtk-3-0 libgomp1
+      - name: Install dependencies
         shell: bash
         run: |
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            v="${{ inputs.version }}"
+          python -m pip install -U pip wheel setuptools
+          if [[ "$RUNNER_OS" == "Linux" ]]; then
+            python -m pip install -r requirements-linux-cpu.txt
           else
-            v="${{ github.ref_name }}"
-            v="${v#linux-v}"
+            python -m pip install -r requirements.txt
           fi
+          python -m pip install -r requirements-dev.txt
+      - name: Lint and type check
+        shell: bash
+        run: |
+          ruff check app tests scripts
+          pyright --skipunannotated --pythonpath "$(python -c 'import sys; print(sys.executable)')" app
+      - name: Tests
+        shell: bash
+        run: |
+          if [[ "$RUNNER_OS" == "Linux" ]]; then
+            xvfb-run -a python -m pytest -q
+          else
+            python -m pytest -q
+          fi
+
+  build_release:
+    needs: validate
+    runs-on: ubuntu-22.04
+    timeout-minutes: 60
+    outputs:
+      version: ${{ steps.ver.outputs.version }}
+      prerelease: ${{ steps.ver.outputs.prerelease }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Resolve version
+        id: ver
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          if [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
+            v="$INPUT_VERSION"
+          else
+            v="${GITHUB_REF_NAME#linux-v}"
+          fi
+          VERSION="$v" python - <<'PY'
+          import os, re
+          version = os.environ['VERSION']
+          if not re.fullmatch(r'\d+\.\d+\.\d+(?:-[0-9A-Za-z][0-9A-Za-z.-]*)?', version):
+              raise SystemExit('Version invalida')
+          PY
           echo "version=$v" >> "$GITHUB_OUTPUT"
           if [[ "$v" == *-* ]]; then
             echo "prerelease=true" >> "$GITHUB_OUTPUT"
           else
             echo "prerelease=false" >> "$GITHUB_OUTPUT"
           fi
-          echo "Version=$v"
-
-      - name: Apply version to files (CI-only)
-        run: |
-          python scripts/ci/apply_version.py "${{ steps.ver.outputs.version }}" linux
-
-      - name: Install system deps
+      - name: Apply version in the runner only
+        run: python scripts/ci/apply_version.py "${{ steps.ver.outputs.version }}" linux
+      - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y \
-            python3-tk \
-            xvfb \
-            file \
-            desktop-file-utils \
-            fuse \
-            libfuse2 \
-            patchelf \
-            squashfs-tools \
-            libgl1 \
-            libglib2.0-0 \
-            libsm6 \
-            libxext6 \
-            libxrender1 \
-            libgtk-3-0 \
-            libgomp1
-
-      - name: Install deps
+          sudo apt-get install -y python3-tk xvfb xauth fonts-dejavu-core file desktop-file-utils libfuse2 patchelf squashfs-tools binutils fakeroot strace zsync libgdk-pixbuf2.0-dev libgl1 libglib2.0-0 libsm6 libxext6 libxrender1 libgtk-3-0 libgomp1
+      - name: Install CPU dependencies and packaging tools
         run: |
           python -m pip install -U pip wheel setuptools
-          python -m pip install -r requirements.txt
+          python -m pip install -r requirements-linux-cpu.txt
           python -m pip install appimage-builder==1.1.0
-          python -m pip install -r requirements-dev.txt
-
-      - name: Lint and type check
-        run: |
-          ruff check app tests scripts
-          pyright --skipunannotated --pythonpath "$(which python)" app
-
-      - name: Pytest
-        run: |
-          xvfb-run -a python -m pytest -q
-
-      - name: Build AppImage
+      - name: Available disk space
+        run: df -h .
+      - name: Build and check AppImage sizes
         env:
-          TARGET_APPDIR: ${{ github.workspace }}/AppDir
+          TARGET_APPDIR: ${{ github.workspace }}/build/linux-release/AppDir
+          BUILD_DIR: ${{ github.workspace }}/build/linux-release
+          DIST_DIR: ${{ github.workspace }}/dist/linux-release
           APP_VERSION: ${{ steps.ver.outputs.version }}
           BUILD_APPIMAGE: "1"
+        run: bash scripts/build_linux_appimage.sh
+      - name: Verify frozen package online and offline
+        env:
+          EASYOCR_MODULE_PATH: ${{ runner.temp }}/yagua-models/easyocr
+          U2NET_HOME: ${{ runner.temp }}/yagua-models/rembg
+          OMP_NUM_THREADS: "2"
+          OPENBLAS_NUM_THREADS: "2"
         run: |
-          bash scripts/build_linux_appimage.sh
-
-      - name: Collect artifacts and hashes
-        shell: bash
+          mkdir -p reports
+          test ! -d "$EASYOCR_MODULE_PATH"
+          test ! -d "$U2NET_HOME"
+          package="$PWD/build/linux-release/package-check/squashfs-root/AppRun"
+          YAGUA_PACKAGE_SELFTEST="$PWD/reports/selftest-online.json" xvfb-run -a "$package"
+          YAGUA_PACKAGE_SELFTEST="$PWD/reports/selftest-offline.json" YAGUA_PACKAGE_OFFLINE=1 xvfb-run -a "$package"
+      - name: Assemble validation report
+        env:
+          RELEASE_VERSION: ${{ steps.ver.outputs.version }}
         run: |
-          mkdir -p installer
-          appimage="Yagua-${{ steps.ver.outputs.version }}-x86_64.AppImage"
-          if [[ ! -f "$appimage" ]]; then
-            echo "No se encontro AppImage esperado: $appimage" >&2
-            ls -la
-            exit 1
-          fi
-          mv "$appimage" "installer/$appimage"
-          sha256sum "installer/$appimage" > "installer/$appimage.sha256"
+          python scripts/ci/linux_validation_report.py
+          cp dist/linux-release/Yagua-*.AppImage dist/linux-release/Yagua-*.sha256 reports/
+      - name: Upload validated distribution
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-validated-${{ steps.ver.outputs.version }}
+          path: reports/
+          compression-level: 0
+          retention-days: 14
+          if-no-files-found: error
+      - name: Upload failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-failure-diagnostics
+          path: |
+            reports/
+            dist/linux-release/sizes.json
+            build/linux-release/Yagua/warn-Yagua.txt
+          if-no-files-found: ignore
 
-      - name: Release notes
+  publish:
+    needs: [validate, build_release]
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: linux-validated-${{ needs.build_release.outputs.version }}
+          path: release/
+      - name: Verify checksum before publication
         run: |
-          python scripts/ci/extract_release_notes.py "${{ steps.ver.outputs.version }}" > release_notes.md
-
-      - name: Create GitHub Release
+          cd release
+          sha256sum --check Yagua-*.sha256
+      - name: Publish the validated commit
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: linux-v${{ steps.ver.outputs.version }}
-          name: Linux v${{ steps.ver.outputs.version }}
-          prerelease: ${{ steps.ver.outputs.prerelease }}
-          body_path: release_notes.md
+          tag_name: linux-v${{ needs.build_release.outputs.version }}
+          target_commitish: ${{ github.sha }}
+          name: Linux v${{ needs.build_release.outputs.version }}
+          prerelease: ${{ needs.build_release.outputs.prerelease }}
+          make_latest: ${{ needs.build_release.outputs.prerelease == 'true' && 'false' || 'legacy' }}
+          fail_on_unmatched_files: true
+          body_path: release/validation.md
           files: |
-            installer/Yagua-${{ steps.ver.outputs.version }}-x86_64.AppImage
-            installer/Yagua-${{ steps.ver.outputs.version }}-x86_64.AppImage.sha256
+            release/Yagua-*.AppImage
+            release/Yagua-*.sha256
+            release/validation.md
+            release/sizes.json
+            release/selftest-online.json
+            release/selftest-offline.json
