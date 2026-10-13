@@ -66,8 +66,9 @@ if [[ -n "$APPDIR_PATH" ]]; then
   find "$APPDIR_PATH" -type f \( -name "*.pyc" -o -name "*.pyo" \) -delete
   find "$APPDIR_PATH/usr/lib/yagua" -type d \( -name "tests" -o -name "test" \) -prune -exec rm -rf {} + 2>/dev/null || true
   # Keep library metadata: PyMatting queries it at runtime.
-  find "$APPDIR_PATH/usr/lib/yagua" -type f -name "*.so*" -exec strip --strip-unneeded {} + 2>/dev/null || true
-  strip --strip-unneeded "$APPDIR_PATH/usr/lib/yagua/Yagua" 2>/dev/null || true
+  # Wheel libraries may already have patched ELF layouts. Stripping them again
+  # can invalidate LOAD segment alignment (for example NumPy's OpenBLAS).
+  # Keep the binaries intact; the size checks still enforce the 2 GB budget.
   "$PYTHON_BIN" scripts/ci/check_linux_size.py "$APPDIR_PATH"
 fi
 
