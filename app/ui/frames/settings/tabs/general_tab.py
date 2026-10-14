@@ -7,11 +7,8 @@ from app.ui import colors, fonts
 from app.translations import t, AVAILABLE_LANGUAGES
 from app.ui.module_registry import iter_all_modules
 from app.ui.frames.settings.services import (
-    set_language_and_restart,
-    set_theme_and_restart,
-    set_ui_scale_and_restart,
+    apply_settings_and_restart,
     get_visible_modules,
-    set_visible_modules_and_restart,
 )
 
 logger = logging.getLogger(__name__)
@@ -58,7 +55,6 @@ class GeneralTab(ctk.CTkFrame):
             dropdown_fg_color=colors.PANEL_BG,
             dropdown_text_color=colors.TEXT_COLOR,
             dropdown_hover_color=colors.SIDEBAR_HOVER,
-            command=self._cambiar_idioma
         )
         self._selector_idioma.grid(row=0, column=1, padx=(0, 16), pady=16, sticky='w')
 
@@ -92,12 +88,12 @@ class GeneralTab(ctk.CTkFrame):
             dropdown_fg_color=colors.PANEL_BG,
             dropdown_text_color=colors.TEXT_COLOR,
             dropdown_hover_color=colors.SIDEBAR_HOVER,
-            command=self._cambiar_tema
         )
         self._selector_tema.grid(row=0, column=1, padx=(0, 16), pady=16, sticky='w')
 
         self._build_scale_panel(row=2)
         self._build_modules_panel(row=3)
+        self._build_apply_button(row=4)
 
     def _build_scale_panel(self, row=0):
         panel_scale = ctk.CTkFrame(
@@ -128,7 +124,6 @@ class GeneralTab(ctk.CTkFrame):
             unselected_color=colors.SIDEBAR_BG,
             unselected_hover_color=colors.SIDEBAR_HOVER,
             text_color=colors.TEXT_COLOR,
-            command=self._cambiar_escala
         )
         self._selector_escala.grid(row=0, column=1, padx=(0, 16), pady=(16, 6), sticky='w')
 
@@ -200,8 +195,9 @@ class GeneralTab(ctk.CTkFrame):
             pad_left = (16, 12) if col == 0 else (8, 12)
             switch.grid(row=row, column=col, padx=pad_left, pady=6, sticky='w')
 
-        self._btn_apply_modules = ctk.CTkButton(
-            panel_modulos,
+    def _build_apply_button(self, row=0):
+        self._btn_apply = ctk.CTkButton(
+            self,
             text=t('apply_changes'),
             width=120,
             height=32,
@@ -211,34 +207,35 @@ class GeneralTab(ctk.CTkFrame):
             text_color=colors.BTN_CLEAR_TEXT,
             hover_color=colors.BTN_CLEAR_HOVER,
             border_width=0,
-            command=self._apply_modules
+            command=self._apply_settings,
         )
-        last_row = start_row + ((idx) // 2 if 'idx' in locals() else 0) + 1
-        self._btn_apply_modules.grid(row=last_row, column=0, columnspan=2, padx=16, pady=(8, 14), sticky='w')
+        self._btn_apply.grid(row=row, column=0, pady=(0, 16), sticky='w')
 
-    def _apply_modules(self):
-        logger.info("settings.ui: apply_modules")
+    def _apply_settings(self):
         visibles = [k for k, v in self._module_vars.items() if v.get()]
         if 'settings' not in visibles:
             visibles.append('settings')
-        self._set_status(t('restart_required_generic'))
-        self.after(1500, lambda: set_visible_modules_and_restart(visibles))
-
-    def _cambiar_idioma(self, lang: str):
-        logger.info("settings.ui: cambiar_idioma (%s)", lang)
-        self._set_status(t('restart_required'))
-        self.after(1500, lambda: set_language_and_restart(lang))
-
-    def _cambiar_tema(self, theme: str):
-        logger.info("settings.ui: cambiar_tema (%s)", theme)
-        self._set_status(t('restart_required'))
-        self.after(1500, lambda: set_theme_and_restart(theme))
-
-    def _cambiar_escala(self, scale_label: str):
-        logger.info("settings.ui: cambiar_escala (%s)", scale_label)
+        language = self._state.lang_var.get()
+        theme = self._state.theme_var.get()
+        scale_label = self._state.scale_var.get()
         try:
             scale = int(scale_label.rstrip('%'))
         except ValueError:
             scale = 100
+        logger.info(
+            "settings.ui: apply (language=%s, theme=%s, scale=%s)",
+            language,
+            theme,
+            scale,
+        )
         self._set_status(t('restart_required_generic'))
-        self.after(1500, lambda: set_ui_scale_and_restart(scale))
+        self._btn_apply.configure(state='disabled')
+        self.after(
+            1500,
+            lambda: apply_settings_and_restart(
+                language=language,
+                theme=theme,
+                ui_scale=scale,
+                visible_modules=visibles,
+            ),
+        )

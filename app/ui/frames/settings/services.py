@@ -1,35 +1,28 @@
-"""Servicios UI-agnosticos para gestion de ajustes de la aplicacion.
+"""Servicios UI-agnosticos para gestionar y aplicar los ajustes."""
 
-Proporciona funciones para persistir y aplicar configuraciones:
-    - Cambio de idioma con reinicio de la aplicacion
-    - Cambio de tema con reinicio de la aplicacion
-    - Lectura y escritura de archivo de configuracion
-
-Relaciones:
-    - Traducciones: app.translations
-"""
+from __future__ import annotations
 
 import json
-import sys
-import subprocess
+import os
 from pathlib import Path
+import subprocess
+import sys
+from typing import Mapping
 
-from app.translations import set_language
+from app.translations import AVAILABLE_LANGUAGES
+from app.ui import colors
+from app.ui.module_registry import iter_all_modules
 from app.ui.scale import DEFAULT_UI_SCALE, VALID_UI_SCALES
 from app.utils.settings import settings_path
 
 
 def _settings_path() -> Path:
-    """Obtener ruta del archivo de configuracion de usuario."""
+    """Obtener la ruta del archivo de configuracion de usuario."""
     return settings_path()
 
 
 def _load_settings() -> dict:
-    """Cargar configuracion desde el archivo JSON.
-
-    Returns:
-        Diccionario con la configuracion guardada o vacio si no existe
-    """
+    """Cargar la configuracion guardada o un diccionario vacio."""
     path = _settings_path()
     if not path.exists():
         return {}
@@ -40,11 +33,7 @@ def _load_settings() -> dict:
 
 
 def _save_settings(settings: dict) -> None:
-    """Guardar configuracion en el archivo JSON.
-
-    Args:
-        settings: Diccionario con la configuracion a guardar
-    """
+    """Guardar la configuracion de usuario."""
     path = _settings_path()
     path.write_text(json.dumps(settings, indent=2, ensure_ascii=False), encoding='utf-8')
 
@@ -55,7 +44,7 @@ def get_visible_modules() -> list[str] | None:
     visible = settings.get('visible_modules')
     if not isinstance(visible, list):
         return None
-    return [str(v) for v in visible]
+    return [str(value) for value in visible]
 
 
 def get_ui_scale() -> int:
@@ -69,63 +58,79 @@ def get_ui_scale() -> int:
     return scale if scale in VALID_UI_SCALES else DEFAULT_UI_SCALE
 
 
-def set_visible_modules_and_restart(modules: list[str]) -> None:
-    """Guardar modulos visibles y reiniciar la aplicacion."""
+def apply_settings_and_restart(
+    *,
+    language: str,
+    theme: str,
+    ui_scale: int,
+    visible_modules: list[str],
+) -> None:
+    """Validar y guardar todos los ajustes antes de reiniciar una sola vez."""
+    if language not in AVAILABLE_LANGUAGES:
+        raise ValueError(f'Idioma no valido: {language}')
+    if theme not in colors.get_theme_names():
+        raise ValueError(f'Tema no valido: {theme}')
+    if ui_scale not in VALID_UI_SCALES:
+        raise ValueError(f'Escala de UI no valida: {ui_scale}')
+
+    selected = set(visible_modules)
+    selected.add('settings')
+    modules = [spec.key for spec in iter_all_modules() if spec.key in selected]
+
     settings = _load_settings()
-    settings['visible_modules'] = modules
+    settings.update({
+        'language': language,
+        'theme': theme,
+        'ui_scale': ui_scale,
+        'visible_modules': modules,
+    })
     _save_settings(settings)
     restart_app()
 
 
-def set_ui_scale_and_restart(scale: int) -> None:
-    """Guardar la escala de UI y reiniciar la aplicacion."""
-    if scale not in VALID_UI_SCALES:
-        scale = DEFAULT_UI_SCALE
-    settings = _load_settings()
-    settings['ui_scale'] = scale
-    _save_settings(settings)
-    restart_app()
+def _restart_command(environ: Mapping[str, str] | None = None) -> list[str]:
+    """Resolver el ejecutable estable que debe abrir la nueva instancia."""
+    environment = os.environ if environ is None else environ
+    arguments = sys.argv[1:]
+    if getattr(sys, 'frozen', False):
+        appimage = environment.get('APPIMAGE')
+        if appimage and Path(appimage).is_file():
+            return [appimage, *arguments]
+        return [sys.executable, *arguments]
+    return [sys.executable, str(Path(sys.argv[0]).resolve()), *arguments]
+
+
+def _restart_environment(environ: Mapping[str, str] | None = None) -> dict[str, str]:
+    """Quitar referencias al montaje viejo sin perder el entorno grafico."""
+    environment = dict(os.environ if environ is None else environ)
+    if 'APPIMAGE' not in environment and 'APPDIR' not in environment:
+        return environment
+
+    for key in ('APPDIR', 'APPIMAGE', 'ARGV0'):
+        environment.pop(key, None)
+
+    original_library_path = environment.pop('LD_LIBRARY_PATH_ORIG', None)
+    if original_library_path is None:
+        environment.pop('LD_LIBRARY_PATH', None)
+    else:
+        environment['LD_LIBRARY_PATH'] = original_library_path
+    return environment
 
 
 def restart_app() -> None:
-    """Reiniciar la aplicacion con los mismos argumentos."""
-    if getattr(sys, 'frozen', False):
-        subprocess.Popen([sys.executable])
+    """Abrir una nueva instancia y cerrar la actual."""
+    command = _restart_command()
+    environment = _restart_environment()
+    if os.name == 'nt':
+        subprocess.Popen(command, env=environment)
     else:
-        python = sys.executable
-        script = sys.argv[0]
-        subprocess.Popen([python, script])
+        subprocess.Popen(command, env=environment, start_new_session=True)
     sys.exit(0)
 
 
-def set_language_and_restart(lang: str) -> None:
-    """Cambiar idioma y reiniciar la aplicacion.
-
-    Args:
-        lang: Codigo de idioma a establecer
-    """
-    set_language(lang)
-    restart_app()
-
-
-def set_theme_and_restart(theme: str) -> None:
-    """Cambiar tema y reiniciar la aplicacion.
-
-    Args:
-        theme: Nombre del tema a establecer
-    """
-    settings = _load_settings()
-    settings['theme'] = theme
-    _save_settings(settings)
-    restart_app()
-
-
 __all__ = [
-    'set_language_and_restart',
-    'set_theme_and_restart',
+    'apply_settings_and_restart',
     'get_ui_scale',
-    'set_ui_scale_and_restart',
     'get_visible_modules',
-    'set_visible_modules_and_restart',
-    'restart_app'
+    'restart_app',
 ]
