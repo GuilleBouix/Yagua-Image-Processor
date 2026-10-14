@@ -141,6 +141,9 @@ jobs:
           OPENBLAS_NUM_THREADS: "2"
         run: |
           mkdir -p reports
+          appimage="$(find "$PWD/dist/linux-release" -maxdepth 1 -type f -name 'Yagua-*.AppImage' -print -quit)"
+          test -n "$appimage"
+          test -x "$appimage"
           test ! -d "$EASYOCR_MODULE_PATH"
           test ! -d "$U2NET_HOME"
           package="$PWD/build/linux-release/package-check/squashfs-root/AppRun"
@@ -149,6 +152,8 @@ jobs:
           mkdir "$RUNNER_TEMP/yagua-selftest-cwd"
           (
             cd "$RUNNER_TEMP/yagua-selftest-cwd"
+            YAGUA_PACKAGE_SELFTEST="$GITHUB_WORKSPACE/reports/selftest-appimage-runtime.json" \
+              YAGUA_PACKAGE_SELFTEST_MODE=preflight xvfb-run -a "$appimage"
             YAGUA_PACKAGE_SELFTEST="$GITHUB_WORKSPACE/reports/selftest-online.json" xvfb-run -a "$package"
             YAGUA_PACKAGE_SELFTEST="$GITHUB_WORKSPACE/reports/selftest-offline.json" YAGUA_PACKAGE_OFFLINE=1 xvfb-run -a "$package"
           )
@@ -207,5 +212,6 @@ jobs:
             release/validation.md
             release/sizes.json
             release/selftest-preflight.json
+            release/selftest-appimage-runtime.json
             release/selftest-online.json
             release/selftest-offline.json

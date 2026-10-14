@@ -102,6 +102,22 @@ def _verify_runtime(result: dict):
     return modules
 
 
+def _verify_restart_target(result: dict) -> None:
+    from app.ui.frames.settings.services import _restart_command
+
+    command = _restart_command()
+    target = Path(command[0])
+    if not target.is_file():
+        raise RuntimeError(f'Restart target does not exist: {target}')
+    if os.name != 'nt' and not os.access(target, os.X_OK):
+        raise RuntimeError(f'Restart target is not executable: {target}')
+    appimage = os.environ.get('APPIMAGE')
+    if appimage and target.resolve() != Path(appimage).resolve():
+        raise RuntimeError(f'Restart target is not the running AppImage: {target}')
+    result['restart_target'] = str(target)
+    result['restart_uses_appimage'] = bool(appimage)
+
+
 def _render_ocr_sample(work: Path):
     from PIL import Image, ImageDraw
 
@@ -135,6 +151,7 @@ def run(report_path: Path) -> int:
             _deny_network()
 
         _stage(result, 'native-imports-and-cpu', lambda: _verify_runtime(result))
+        _stage(result, 'restart-target', lambda: _verify_restart_target(result))
         work = report_path.parent / report_path.stem
         work.mkdir()
         image_path = _stage(result, 'packaged-font-and-render',
