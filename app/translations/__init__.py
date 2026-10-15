@@ -16,9 +16,8 @@ Relacionado con:
 """
 
 from typing import Optional
-import json
 
-from app.utils.settings import settings_path
+from app.utils.settings import settings_path, load_settings, save_settings
 
 
 # Idiomas disponibles en la aplicacion
@@ -37,37 +36,12 @@ DEFAULT_LANGUAGE = 'Español'
 _current_lang: Optional[str] = None
 
 
-def _load_settings():
-    """
-    Carga la configuracion de usuario desde el archivo JSON.
-    
-    Busca user_settings.json en el directorio raiz de la app
-    y retorna las configuraciones guardadas.
-    
-    Returns:
-        Diccionario con la configuracion o vacio si no existe.
-    """
-    # Construir ruta al archivo de settings
-    path = settings_path()
-    
-    if path.exists():
-        try:
-            return json.loads(path.read_text(encoding='utf-8'))
-        except Exception:
-            pass
-    
-    return {}
+def _load_settings() -> dict:
+    return load_settings(settings_path())
 
 
-def _save_settings(settings):
-    """
-    Guarda la configuracion de usuario en el archivo JSON.
-    
-    Args:
-        settings: Diccionario con la configuracion a guardar.
-    """
-    path = settings_path()
-    path.write_text(json.dumps(settings, indent=2, ensure_ascii=False), encoding='utf-8')
+def _save_settings(settings: dict) -> None:
+    save_settings(settings, settings_path())
 
 
 def get_language():
@@ -143,7 +117,7 @@ def get_translations(lang=None):
     return TRANSLATIONS
 
 
-def t(key, lang=None):
+def t(key: str, lang: str | None = None) -> str:
     """
     Obtiene la traduccion para una clave.
     

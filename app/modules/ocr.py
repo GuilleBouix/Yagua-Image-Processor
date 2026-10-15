@@ -16,6 +16,8 @@ from PIL import features
 
 from app.utils.image_utils import load_cv_image
 
+from app.utils.results import FileFailure, file_failure
+
 logger = logging.getLogger(__name__)
 _READER_CACHE = {}
 _READER_LOCK = threading.Lock()
@@ -171,6 +173,7 @@ def batch_procesar(rutas, idiomas=['es', 'en']):
     Returns:
         Diccionario con ok, errores, textos.
     """
+    fallos: list[FileFailure] = []
     logger.info("batch_procesar: inicio con %d im?genes, idiomas=%s", len(rutas), idiomas)
     avif_omitidos = 0
     if not _avif_supported():
@@ -183,7 +186,7 @@ def batch_procesar(rutas, idiomas=['es', 'en']):
         rutas = rutas_filtradas
     if not rutas:
         logger.warning("batch_procesar: sin rutas procesables (avif_omitidos=%d)", avif_omitidos)
-        return {"ok": 0, "errores": 0, "textos": {}, "avif_omitidos": avif_omitidos}
+        return {'fallos': fallos, "ok": 0, "errores": 0, "textos": {}, "avif_omitidos": avif_omitidos}
 
     reader = get_reader(idiomas)
     textos = {}
@@ -196,10 +199,11 @@ def batch_procesar(rutas, idiomas=['es', 'en']):
             ok += 1
             logger.info("Procesada %s: %d caracteres", ruta, len(texto))
         except Exception as e:
+            fallos.append(file_failure(str(ruta), e))
             logger.exception("Error procesando %s: %s", ruta, e)
             errores += 1
     logger.info("batch_procesar: fin, ok=%d, errores=%d", ok, errores)
-    return {"ok": ok, "errores": errores, "textos": textos, "avif_omitidos": avif_omitidos}
+    return {'fallos': fallos, "ok": ok, "errores": errores, "textos": textos, "avif_omitidos": avif_omitidos}
 
 
 def exportar_texto(texto, carpeta_salida, nombre_base="texto_extraido"):
@@ -223,7 +227,8 @@ def exportar_texto(texto, carpeta_salida, nombre_base="texto_extraido"):
         ruta_final = carpeta / f"{nombre_base}_{contador}.txt"
         contador += 1
     
-    with open(ruta_final, 'w', encoding='utf-8') as f:
-        f.write(texto)
+    from app.utils.output import atomic_destination
+    with atomic_destination(ruta_final, replace=False) as temporary:
+        temporary.write_text(texto, encoding='utf-8')
     logger.info("Texto exportado a %s", ruta_final)
     return str(ruta_final)

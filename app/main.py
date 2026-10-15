@@ -25,13 +25,16 @@ def main():
     luego crea y ejecuta la ventana principal.
     """
     # Configurar logging a archivo para diagnostico en exe
-    log_path = settings_path().with_name('yagua.log')
-    logging.basicConfig(
-        filename=str(log_path),
-        filemode='a',
-        level=logging.INFO,
-        format='%(asctime)s [%(levelname)s] %(name)s: %(message)s',
-    )
+    try:
+        log_path = settings_path().with_name('yagua.log')
+        log_path.parent.mkdir(parents=True, exist_ok=True)
+        logging.basicConfig(
+            filename=str(log_path), filemode='a', level=logging.INFO,
+            format='%(asctime)s [%(levelname)s] %(name)s: %(message)s',
+        )
+    except OSError:
+        # A read-only profile must not prevent the app from starting.
+        logging.basicConfig(handlers=[logging.NullHandler()], level=logging.INFO)
     logging.getLogger('PIL').setLevel(logging.WARNING)
     logging.getLogger('customtkinter').setLevel(logging.WARNING)
 

@@ -14,7 +14,9 @@ import os
 import cv2
 import numpy as np
 
-from app.utils.image_utils import load_cv_image_unchanged
+from app.utils.image_utils import load_cv_image_unchanged, save_cv_image
+from app.utils.output import require_single_frame, unique_output_path
+from app.utils.results import file_failure
 
 logger = logging.getLogger(__name__)
 
@@ -121,6 +123,11 @@ def aplicar_watermark(
         salida : ruta del archivo generado
         error  : mensaje de error (o None)
     """
+    try:
+        require_single_frame(ruta_imagen)
+        require_single_frame(ruta_watermark)
+    except (OSError, ValueError) as error:
+        return {'ok': False, 'salida': None, 'error': f'No se pudo cargar la imagen base o el watermark: {error}'}
     base = _cargar_rgba(ruta_imagen)
     if base is None:
         return {"ok": False, "salida": None, "error": "No se pudo cargar la imagen base"}
@@ -145,7 +152,8 @@ def aplicar_watermark(
 
     resultado = _componer(base, wm_resized, x, y, opacidad)
 
-    cv2.imwrite(ruta_salida, resultado)
+    if not save_cv_image(ruta_salida, resultado):
+        return {'ok': False, 'salida': None, 'error': 'error_saving'}
     logger.info(f"Watermark aplicado: {ruta_salida}")
     return {"ok": True, "salida": ruta_salida, "error": None}
 
@@ -180,6 +188,7 @@ def batch_aplicar_watermark(rutas_imagenes, ruta_watermark, carpeta_salida, sufi
     ok = 0
     errores = 0
     archivos = []
+    fallos = []
 
     for ruta in rutas_imagenes:
         nombre_base = os.path.splitext(os.path.basename(ruta))[0]
@@ -187,14 +196,16 @@ def batch_aplicar_watermark(rutas_imagenes, ruta_watermark, carpeta_salida, sufi
         nombre_out  = f"{nombre_base}{sufijo}{ext}"
         ruta_salida = os.path.join(carpeta_salida, nombre_out)
 
-        res = aplicar_watermark(ruta, ruta_watermark, ruta_salida, **kwargs)
+        ruta_salida, _ = unique_output_path(carpeta_salida, ruta, sufijo=sufijo)
+        res = aplicar_watermark(ruta, ruta_watermark, str(ruta_salida), **kwargs)
 
         if res["ok"]:
             ok += 1
             archivos.append(res["salida"])
         else:
             errores += 1
+            fallos.append(file_failure(str(ruta), res['error']))
             logger.warning(f"Error en {ruta}: {res['error']}")
 
     logger.info(f"Batch watermark: {ok} ok, {errores} errores")
-    return {"ok": ok, "errores": errores, "archivos": archivos}
+    return {"ok": ok, "errores": errores, "archivos": archivos, "fallos": fallos}

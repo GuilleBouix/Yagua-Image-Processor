@@ -17,7 +17,6 @@ Relaciones:
 from __future__ import annotations
 
 import logging
-import threading
 from tkinter import filedialog
 
 import customtkinter as ctk
@@ -397,6 +396,8 @@ class ResizeFrame(BaseFrame):
         Args:
             rutas: Lista de rutas de archivos seleccionados
         """
+        if self._operation_blocked(global_job=False):
+            return
         logger.info("resize.ui: cargar_imagenes (total=%s)", len(rutas))
         limite = 100
         total = len(rutas)
@@ -432,6 +433,8 @@ class ResizeFrame(BaseFrame):
 
     def _ejecutar_resize(self):
         """Ejecutar redimension en hilo separado para no bloquear la UI."""
+        if self._operation_blocked(global_job=True):
+            return
         logger.info("resize.ui: click_resize")
         if not self._imagenes:
             self._lbl_info.configure(text=t('load_images_first_resize'))
@@ -455,36 +458,41 @@ class ResizeFrame(BaseFrame):
         self._btn_resize.configure(state='disabled', text=t('processing'))
         self._show_full_overlay(t('processing'))
 
+        paths = tuple(self._imagenes)
+        percentage, ratio, preset = self._state.pct_var.get(), self._state.mantener_ratio.get(), self._state.preset_var.get()
         def _proc():
             if modo == t('percentage'):
                 res = batch_redimensionar(
-                    self._imagenes, carpeta,
-                    porcentaje=self._state.pct_var.get(),
+                    paths, carpeta,
+                    porcentaje=percentage,
                     mantener_ratio=False
                 )
             elif modo == t('pixels'):
                 res = batch_redimensionar(
-                    self._imagenes, carpeta,
+                    paths, carpeta,
                     ancho=ancho_px, alto=alto_px,
-                    mantener_ratio=self._state.mantener_ratio.get()
+                    mantener_ratio=ratio
                 )
             else:
                 res = batch_redimensionar(
-                    self._imagenes, carpeta,
-                    preset_key=self._state.preset_var.get(),
+                    paths, carpeta,
+                    preset_key=preset,
                     mantener_ratio=False
                 )
             ok = res['ok']
             errores = res['errores']
             conflictos = res.get('conflictos', 0)
-            self.after(0, lambda: self._finalizar(
+            self._post_ui(0, lambda: self._finalizar(
                 self._btn_resize, t('resize_tab'), ok, errores, conflictos
             ))
+            return res
 
-        threading.Thread(target=_proc, daemon=True).start()
+        self._submit_job(_proc, button=self._btn_resize, text=t('resize_tab'))
 
     def _ejecutar_crop(self):
         """Ejecutar recorte en hilo separado para no bloquear la UI."""
+        if self._operation_blocked(global_job=True):
+            return
         logger.info("resize.ui: click_crop")
         if not self._imagenes:
             self._lbl_info.configure(text=t('load_images_first_resize'))
@@ -498,22 +506,26 @@ class ResizeFrame(BaseFrame):
         self._show_full_overlay(t('processing'))
         ratio = self._state.ratio_var.get()
 
+        paths = tuple(self._imagenes)
         def _proc():
             res = batch_recortar(
-                self._imagenes, carpeta,
+                paths, carpeta,
                 ratio=ratio
             )
             ok = res['ok']
             errores = res['errores']
             conflictos = res.get('conflictos', 0)
-            self.after(0, lambda: self._finalizar(
+            self._post_ui(0, lambda: self._finalizar(
                 self._btn_crop, t('crop_tab'), ok, errores, conflictos
             ))
+            return res
 
-        threading.Thread(target=_proc, daemon=True).start()
+        self._submit_job(_proc, button=self._btn_crop, text=t('crop_tab'))
 
     def _ejecutar_canvas(self):
         """Ejecutar canvas en hilo separado para no bloquear la UI."""
+        if self._operation_blocked(global_job=True):
+            return
         logger.info("resize.ui: click_canvas")
         if not self._imagenes:
             self._lbl_info.configure(text=t('load_images_first_resize'))
@@ -531,24 +543,26 @@ class ResizeFrame(BaseFrame):
         self._btn_canvas.configure(state='disabled', text=t('processing'))
         self._show_full_overlay(t('processing'))
 
+        paths = tuple(self._imagenes)
+        choice_key = self._state.canvas_choice_map.get(fondo_elegido, 'white')
         def _proc():
-            choice_key = self._state.canvas_choice_map.get(fondo_elegido, 'white')
-            soporta_transparencia = any_supports_transparency(self._imagenes)
+            soporta_transparencia = any_supports_transparency(paths)
             color, _ = canvas_color_for_choice(choice_key, soporta_transparencia)
 
             res = batch_canvas(
-                self._imagenes, carpeta,
+                paths, carpeta,
                 ancho=ancho, alto=alto,
                 color_fondo=color
             )
             ok = res['ok']
             errores = res['errores']
             conflictos = res.get('conflictos', 0)
-            self.after(0, lambda: self._finalizar(
+            self._post_ui(0, lambda: self._finalizar(
                 self._btn_canvas, t('apply_canvas'), ok, errores, conflictos
             ))
+            return res
 
-        threading.Thread(target=_proc, daemon=True).start()
+        self._submit_job(_proc, button=self._btn_canvas, text=t('apply_canvas'))
 
     def _finalizar(self, btn: ctk.CTkButton, texto: str, ok: int, errores: int, conflictos: int = 0):
         """Restaurar estado del boton y mostrar mensaje de resultado.
@@ -562,7 +576,8 @@ class ResizeFrame(BaseFrame):
         btn.configure(state='normal', text=texto)
         logger.info("resize.ui: finalizar_ok (ok=%s, errores=%s, conflictos=%s)", ok, errores, conflictos)
         self._hide_full_overlay()
-        msg = f'{ok} imagen{"es" if ok != 1 else ""} {t("processed" if ok != 1 else "processed_singular")}'
+        noun = t('image_loaded' if ok == 1 else 'images_loaded')
+        msg = f'{ok} {noun} {t("processed" if ok != 1 else "processed_singular")}'
         if errores:
             msg += f'  -  {errores} {t("error_occurred")}'
         if conflictos:
@@ -571,6 +586,8 @@ class ResizeFrame(BaseFrame):
 
     def _limpiar(self):
         """Limpiar todas las imagenes y reiniciar el estado del frame."""
+        if self._operation_blocked(global_job=False):
+            return
         self._imagenes = []
         self._thumbs.clear()
         self._filas_lista.clear()

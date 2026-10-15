@@ -450,3 +450,13 @@ TRANSLATIONS = {
     'lqip_copied_full': 'Vollständig kopiert: {count} Zeichen.',
     'lqip_copy_failed': 'Die vollständige Kopie konnte nicht überprüft werden. Erneut versuchen oder das Ergebnis exportieren.',
 }
+
+TRANSLATIONS["operation_busy"] = 'Ein Vorgang läuft. Bitte warten Sie bis zum Abschluss.'
+
+TRANSLATIONS['unsupported_frames'] = 'Das Bild hat mehrere Seiten oder eine Animation. Es wurde nicht verändert.'
+
+TRANSLATIONS['close_when_idle'] = 'Ein Vorgang läuft. Danach schließen?'
+
+TRANSLATIONS['restart_when_idle'] = 'Ein Vorgang läuft. Danach neu starten?'
+
+TRANSLATIONS['invalid_filename'] = 'Der Zieldateiname ist ungültig.'

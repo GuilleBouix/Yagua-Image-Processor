@@ -1,0 +1,56 @@
+{
+  "branch": "codex/yagua-v2-readiness",
+  "full_suite": {
+    "passed": 254,
+    "skipped": 0,
+    "seconds": 380.14,
+    "note": "Final source, including all 15 UI matrix cases; YAGUA_REQUIRE_UI=1"
+  },
+  "current_suite_without_matrix": {
+    "passed": 239,
+    "skipped": 0,
+    "seconds": 74.21
+  },
+  "ruff": "passed",
+  "pyright": {
+    "errors": 0,
+    "warnings": 0,
+    "skipunannotated": false,
+    "mode": "basic"
+  },
+  "mutations": {
+    "detected": 11,
+    "total": 11,
+    "report": "mutation-results.json"
+  },
+  "windows_build": "passed: final source snapshot",
+  "package_preflight": "passed: final executable, offline",
+  "release_ready": false,
+  "pending": [
+    "Windows/Linux remote CI checks",
+    "Installer and portable on clean Windows 10/11",
+    "Full Windows package models and UI self-test",
+    "Linux AppImage on target distributions and desktops",
+    "Visual clipping, keyboard and contrast acceptance",
+    "Required branch protection and publication approval",
+    "Installer signing decision",
+    "Linux output folders on external/network filesystems"
+  ],
+  "windows_os": {
+    "name": "Windows 11 Pro",
+    "version": "10.0.26200",
+    "architecture": "x64"
+  },
+  "scope_limits": [
+    "Basic type checking; external library values may remain dynamic",
+    "UI matrix asserts construction/navigation, not visual clipping or contrast",
+    "Generated sequences cover coordinator state, not every possible user action",
+    "Atomic output publication on Linux requires hard-link support",
+    "No rollback of completed renames in a partial batch",
+    "No clean-machine, installer or Linux package acceptance performed on this host"
+  ],
+  "yaml": "3 workflows parsed successfully; remote execution still pending",
+  "git_diff_check": "passed",
+  "new_tests_vs_audit_baseline": 97,
+  "package_source_snapshot_verified": true
+}

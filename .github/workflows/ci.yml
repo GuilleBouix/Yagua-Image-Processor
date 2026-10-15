@@ -30,13 +30,14 @@ jobs:
         shell: pwsh
         run: |
           ruff check app tests scripts
+          if ($LASTEXITCODE -ne 0) { throw 'Ruff failed' }
           $pythonPath = (Get-Command python).Source
-          pyright --skipunannotated --pythonpath $pythonPath app
+          pyright --pythonpath $pythonPath app
 
       - name: Pytest
         shell: pwsh
         run: |
-          python -m pytest -q
+          python scripts/verify.py -q
 
   test-linux:
     runs-on: ubuntu-22.04
@@ -62,8 +63,8 @@ jobs:
       - name: Lint and type check
         run: |
           ruff check app tests scripts
-          pyright --skipunannotated --pythonpath "$(which python)" app
+          pyright --pythonpath "$(which python)" app
 
       - name: Pytest
         run: |
-          xvfb-run -a python -m pytest -q
+          xvfb-run -a python scripts/verify.py -q

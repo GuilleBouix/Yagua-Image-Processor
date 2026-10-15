@@ -123,7 +123,7 @@ def ensure_rgb_for_jpeg(imagen: Image.Image) -> Image.Image:
     Convierte una imagen a RGB apto para JPEG, manejando transparencia.
     """
     if imagen.mode in ('RGBA', 'LA', 'P'):
-        if imagen.mode == 'P':
+        if imagen.mode in ('P', 'LA'):
             imagen = imagen.convert('RGBA')
         fondo = Image.new('RGB', imagen.size, (255, 255, 255))
         fondo.paste(imagen, mask=imagen.split()[-1] if imagen.mode == 'RGBA' else None)
@@ -145,7 +145,9 @@ def save_cv_image(ruta: str | Path, imagen: CvImage) -> bool:
         ok, buf = cv2.imencode(ext, imagen)
         if not ok:
             return False
-        buf.tofile(str(ruta))
+        from app.utils.output import atomic_destination
+        with atomic_destination(ruta, replace=False) as temporary:
+            buf.tofile(str(temporary))
         logger.debug("image_utils: save_cv_image ok (%s)", ruta)
         return True
     except Exception:

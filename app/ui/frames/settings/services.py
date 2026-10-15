@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 import os
 from pathlib import Path
 import subprocess
@@ -13,7 +12,7 @@ from app.translations import AVAILABLE_LANGUAGES
 from app.ui import colors
 from app.ui.module_registry import iter_all_modules
 from app.ui.scale import DEFAULT_UI_SCALE, VALID_UI_SCALES
-from app.utils.settings import settings_path
+from app.utils.settings import settings_path, load_settings, save_settings
 
 
 def _settings_path() -> Path:
@@ -22,20 +21,11 @@ def _settings_path() -> Path:
 
 
 def _load_settings() -> dict:
-    """Cargar la configuracion guardada o un diccionario vacio."""
-    path = _settings_path()
-    if not path.exists():
-        return {}
-    try:
-        return json.loads(path.read_text(encoding='utf-8'))
-    except Exception:
-        return {}
+    return load_settings(_settings_path())
 
 
 def _save_settings(settings: dict) -> None:
-    """Guardar la configuracion de usuario."""
-    path = _settings_path()
-    path.write_text(json.dumps(settings, indent=2, ensure_ascii=False), encoding='utf-8')
+    save_settings(settings, _settings_path())
 
 
 def get_visible_modules() -> list[str] | None:
@@ -119,6 +109,22 @@ def _restart_environment(environ: Mapping[str, str] | None = None) -> dict[str, 
 
 def restart_app() -> None:
     """Abrir una nueva instancia y cerrar la actual."""
+    from app.ui.operations import operations
+    if operations.is_busy():
+        import tkinter
+        from tkinter import messagebox
+        from app.translations import t
+        root = getattr(tkinter, '_default_root', None)
+        if root is None:
+            raise RuntimeError('Cannot restart during an active operation')
+        if messagebox.askyesno(t('app_title'), t('restart_when_idle'), parent=root):
+            def wait():
+                if operations.is_busy():
+                    root.after(100, wait)
+                else:
+                    restart_app()
+            root.after(100, wait)
+        return
     command = _restart_command()
     environment = _restart_environment()
     if os.name == 'nt':

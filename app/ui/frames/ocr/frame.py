@@ -12,7 +12,6 @@ Relacionado con:
 from __future__ import annotations
 
 import logging
-import threading
 from pathlib import Path
 from tkinter import filedialog
 
@@ -20,6 +19,7 @@ import customtkinter as ctk
 
 from app.ui import colors, fonts
 from app.translations import t
+from app.ui.operations import operations
 from app.ui.frames.base import BaseFrame
 from app.ui.frames.ocr.services import batch_procesar, exportar_texto, ensure_reader
 from app.ui.frames.ocr.state import OcrState
@@ -105,26 +105,19 @@ class OcrFrame(BaseFrame):
             font=fonts.FUENTE_BASE,
             text_color=colors.TEXT_COLOR,
         )
-        self._textarea.grid(row=0, column=0, padx=16, pady=(16, 8), sticky="nsew")
+        self._textarea.grid(row=0, column=0, columnspan=2, padx=16, pady=(16, 8), sticky="nsew")
         self._textarea.insert("0.0", self._state.texto_extraido.get())
 
-        self._panel_acciones = ctk.CTkFrame(
-            col_der,
-            corner_radius=12,
-            fg_color=colors.PANEL_BG,
-            border_width=1,
-            border_color=colors.SIDEBAR_SEPARATOR,
-        )
-        self._panel_acciones.grid(row=1, column=0, padx=16, pady=(0, 16), sticky="ew")
-        self._panel_acciones.grid_columnconfigure(0, weight=1)
-        self._panel_acciones.grid_columnconfigure(1, weight=1)
-        self._construir_acciones()
+        col_der.grid_columnconfigure((0, 1), weight=1, uniform='ocr-actions')
+        self._construir_acciones(col_der)
 
         # Importante: diferir al siguiente tick para que BaseFrame no lo oculte al finalizar _build().
-        self.after(0, self._inicializar_en_background)
+        self._post_ui(0, self._inicializar_en_background)
 
     def _limpiar(self):
         """Limpia imagenes y tambien el textarea."""
+        if self._operation_blocked(global_job=False):
+            return
         logger.info("ocr.ui: limpiar")
         try:
             self._state.processing.set(False)
@@ -174,23 +167,26 @@ class OcrFrame(BaseFrame):
     def _inicializar_en_background(self):
         """Inicializa OCR en background sin bloquear la UI."""
         logger.info("ocr.ui: inicializar_en_background")
+        if operations.is_busy():
+            self.after(100, self._inicializar_en_background)
+            return
         self._show_overlay(t('ocr_model_loading'))
         self._btn_procesar.configure(state='disabled')
 
+        opcion = self._dropdown_idiomas.get()
+        idiomas_str = self._idiomas_map.get(opcion, 'es,en')
+        self._state.idiomas.set(idiomas_str)
+        idiomas = tuple(idiomas_str.split(','))
         def _worker():
             ok = True
             try:
-                opcion = self._dropdown_idiomas.get()
-                idiomas_str = self._idiomas_map.get(opcion, 'es,en')
-                self._state.idiomas.set(idiomas_str)
-                idiomas = idiomas_str.split(',')
                 ensure_reader(idiomas)
             except Exception as exc:
                 logger.exception("Error inicializando OCR: %s", exc)
                 ok = False
-            self.after(0, lambda: self._finalizar_init(ok))
+            return ok
 
-        threading.Thread(target=_worker, daemon=True).start()
+        self._submit_job(_worker, on_success=self._finalizar_init, on_error=lambda error: self._finalizar_init(False))
 
     def _finalizar_init(self, ok: bool):
         if ok:
@@ -265,14 +261,12 @@ class OcrFrame(BaseFrame):
         )
         self._btn_procesar.grid(row=1, column=0, columnspan=2, padx=16, pady=(0, 12), sticky='ew')
 
-    def _construir_acciones(self):
+    def _construir_acciones(self, p):
         """
         Construye los botones de acciones.
         
         Incluye botones copy y export.
         """
-        p = self._panel_acciones
-
         # Boton copiar
         self._btn_copiar = ctk.CTkButton(
             p,
@@ -287,7 +281,7 @@ class OcrFrame(BaseFrame):
             hover_color=colors.SIDEBAR_HOVER,
             command=self._copiar_texto
         )
-        self._btn_copiar.grid(row=0, column=0, padx=(16, 8), pady=8, sticky='ew')
+        self._btn_copiar.grid(row=1, column=0, padx=(16, 8), pady=(0, 16), sticky='ew')
 
         # Boton exportar
         self._btn_exportar = ctk.CTkButton(
@@ -301,7 +295,7 @@ class OcrFrame(BaseFrame):
             hover_color=colors.ACENTO_HOVER,
             command=self._exportar
         )
-        self._btn_exportar.grid(row=0, column=1, padx=(8, 16), pady=8, sticky='ew')
+        self._btn_exportar.grid(row=1, column=1, padx=(8, 16), pady=(0, 16), sticky='ew')
 
     def _cargar_imagenes(self, rutas):
         """
@@ -310,6 +304,8 @@ class OcrFrame(BaseFrame):
         Args:
             rutas: Lista de rutas de archivos a cargar.
         """
+        if self._operation_blocked(global_job=False):
+            return
         logger.info("ocr.ui: cargar_imagenes (total=%s)", len(rutas))
         limite = 10
         total = len(rutas)
@@ -328,6 +324,8 @@ class OcrFrame(BaseFrame):
         """
         Inicia el proceso de OCR en segundo plano.
         """
+        if self._operation_blocked(global_job=True):
+            return
         logger.info("ocr.ui: click_procesar")
         if not self._imagenes:
             self._lbl_info.configure(text=t('load_images_first_ocr'))
@@ -342,9 +340,10 @@ class OcrFrame(BaseFrame):
         idiomas_str = self._idiomas_map.get(opcion, 'es,en')
         idiomas = idiomas_str.split(',')
 
-        threading.Thread(target=self._proceso_ocr, args=(idiomas,), daemon=True).start()
+        paths = tuple(self._imagenes)
+        self._submit_job(lambda: self._proceso_ocr(idiomas, paths), button=self._btn_procesar, text=t('process_ocr'))
 
-    def _proceso_ocr(self, idiomas):
+    def _proceso_ocr(self, idiomas, paths=None):
         """
         Ejecuta el OCR en segundo plano.
 
@@ -353,12 +352,13 @@ class OcrFrame(BaseFrame):
         """
         try:
             logger.info("ocr.ui: proceso_interno_inicio (idiomas=%s)", idiomas)
-            res = batch_procesar(self._imagenes, idiomas)
-            self.after(0, lambda: self._finalizar_ocr(res))
+            res = batch_procesar(paths if paths is not None else self._imagenes, idiomas)
+            self._post_ui(0, lambda: self._finalizar_ocr(res))
         except Exception as exc:
             logger.exception("Error en proceso OCR: %s", exc)
             error_message = str(exc)
-            self.after(0, lambda: self._handle_error(error_message))
+            self._post_ui(0, lambda: self._handle_error(error_message))
+        return locals().get('res')
 
     def _handle_error(self, msg: str):
         """Maneja errores y restaura el estado visual."""
@@ -408,6 +408,8 @@ class OcrFrame(BaseFrame):
         """
         Limpia el texto de la textarea.
         """
+        if self._operation_blocked(global_job=False):
+            return
         self._state.texto_extraido.set('')
         self._textarea.delete('0.0', 'end')
 
@@ -425,6 +427,8 @@ class OcrFrame(BaseFrame):
         """
         Exporta el texto a un archivo .txt.
         """
+        if self._operation_blocked(global_job=True):
+            return
         texto = self._textarea.get('0.0', 'end').strip()
         if not texto:
             return

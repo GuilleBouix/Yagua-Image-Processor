@@ -18,6 +18,10 @@ logger = logging.getLogger(__name__)
 class UpdatesTab(ctk.CTkFrame):
     """Tab Actualizaciones: solo check + link (sin auto-download/install)."""
 
+    def _post_ui(self, delay, callback):
+        from app.ui.operations import operations
+        operations.post(self, callback)
+
     def __init__(self, parent):
         super().__init__(parent, fg_color="transparent")
         self.grid_columnconfigure(0, weight=1)
@@ -148,15 +152,15 @@ class UpdatesTab(ctk.CTkFrame):
             try:
                 info = check_latest_stable(__version__)
                 if not info:
-                    self.after(0, lambda: self._set_status(t("no_updates")))
+                    self._post_ui(0, lambda: self._set_status(t("no_updates")))
                     return
-                self.after(0, lambda: self._set_status(t("updates_available").format(version=info.version)))  # type: ignore
-                self.after(0, lambda: self._mostrar_descarga(info.version, info.release_url))
+                self._post_ui(0, lambda: self._set_status(t("updates_available").format(version=info.version)))  # type: ignore
+                self._post_ui(0, lambda: self._mostrar_descarga(info.version, info.release_url))
             except Exception:
                 logger.exception("updates: error")
-                self.after(0, lambda: self._set_status(t("updates_error")))
+                self._post_ui(0, lambda: self._set_status(t("updates_error")))
             finally:
-                self.after(0, lambda: self._set_busy(False))
+                self._post_ui(0, lambda: self._set_busy(False))
 
         threading.Thread(target=_worker, daemon=True).start()
 

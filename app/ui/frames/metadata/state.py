@@ -14,5 +14,6 @@ class MetadataState:
 
     def __init__(self):
         self.ruta: str | None = None
+        self.ruta_edicion: str | None = None
         self.imagenes_lote: list[str] = []
         self.metadatos: dict[str, str] = {}

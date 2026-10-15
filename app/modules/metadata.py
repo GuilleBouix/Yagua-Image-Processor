@@ -7,10 +7,14 @@ Relacionado con:
     - app/ui/frames/metadata/services.py: Usa las funciones de este modulo.
 """
 
+from types import MappingProxyType
+from typing import Mapping, cast
 from dataclasses import dataclass
 from datetime import datetime
 from fractions import Fraction
 import json
+from copy import deepcopy
+import shutil
 import logging
 import math
 from pathlib import Path
@@ -19,7 +23,9 @@ from PIL import Image, ImageOps
 import piexif
 from piexif import helper as piexif_helper
 
-from app.utils.output import unique_output_path
+from app.utils.output import unique_output_path, safe_image_output, atomic_destination, require_single_frame, atomic_write_text
+
+from app.utils.results import FileFailure, file_failure
 
 logger = logging.getLogger(__name__)
 
@@ -91,10 +97,13 @@ CAMPOS_EDITABLES = {
 class MetadataEditRequest:
     """Valores EXIF validados y acciones opcionales solicitadas por la UI."""
 
-    values: dict[str, object]
+    values: Mapping[str, str | int | float | tuple[int, int]]
     sync_dates: bool = False
     clear_gps: bool = False
     orientation: int | None = None
+
+    def __post_init__(self):
+        object.__setattr__(self, 'values', MappingProxyType(dict(self.values)))
 
 
 _TEXT_TAGS = {
@@ -265,7 +274,7 @@ def _decimal_texto(valor):
         numero = valor[0] / valor[1]
     else:
         numero = valor
-    return f'{float(numero):.8f}'.rstrip('0').rstrip('.')
+    return f'{float(cast(str | int | float, numero)):.8f}'.rstrip('0').rstrip('.')
 
 
 def _gps_referencia(gps, tag, defecto):
@@ -390,6 +399,7 @@ def _gps_a_decimal(coordenadas, referencia_gps):
     return round(decimal, 6)
 
 
+@safe_image_output
 def limpiar_exif(ruta_entrada, ruta_salida):
     """
     Guarda la imagen sin ningun metadato EXIF.
@@ -407,11 +417,10 @@ def limpiar_exif(ruta_entrada, ruta_salida):
 
     logger.info("Limpiar EXIF: %s -> %s", ruta_entrada, ruta_salida)
     with Image.open(ruta_entrada) as imagen:
+        formato = imagen.format or 'JPEG'
         imagen = ImageOps.exif_transpose(imagen)
         tam_original = Path(ruta_entrada).stat().st_size
 
-        formato = imagen.format or 'JPEG'
-        
         # Crear nueva imagen copiando solo los pixeles
         img_limpia = Image.new(imagen.mode, imagen.size)
         img_limpia.paste(imagen)
@@ -455,6 +464,37 @@ def _gps_tags(latitud, longitud):
 
 
 def editar_exif(ruta_entrada, ruta_salida, request):
+    try:
+        require_single_frame(ruta_entrada)
+        source = Path(ruta_entrada)
+        before = source.stat()
+        destination = Path(ruta_salida)
+        same_file = source.resolve() == destination.resolve()
+        # A private exception aborts publishing on a returned failure or no-op.
+        with atomic_destination(destination, replace=same_file) as temporary:
+            ok, warning = _editar_exif(str(source), str(temporary), request)
+            if not ok:
+                raise _EditAborted(warning)
+            if warning == 'unchanged':
+                if same_file:
+                    raise _EditAborted('unchanged')
+                shutil.copyfile(source, temporary)
+            after = source.stat()
+            if (before.st_size, before.st_mtime_ns) != (after.st_size, after.st_mtime_ns):
+                raise OSError('source_changed')
+        return True, None
+    except _EditAborted as error:
+        return (True, None) if str(error) == 'unchanged' else (False, str(error))
+    except Exception as error:
+        logger.warning('EXIF save aborted: %s', error)
+        return False, 'unsupported_frames' if str(error) == 'unsupported_frames' else 'error'
+
+
+class _EditAborted(Exception):
+    pass
+
+
+def _editar_exif(ruta_entrada, ruta_salida, request):
     """
     Edita campos EXIF especificos y guarda la imagen.
     
@@ -480,14 +520,10 @@ def editar_exif(ruta_entrada, ruta_salida, request):
 
             # Solo JPEG y TIFF soportan EXIF editable
             if formato not in ('JPEG', 'TIFF'):
-                imagen.save(ruta_salida, formato)
-                return True, 'no_exif'
+                return False, 'no_exif'
 
-            try:
-                exif_dict = piexif.load(ruta_entrada)
-            except Exception:
-                # Crear estructura EXIF vacia si falla la lectura
-                exif_dict = {'0th': {}, 'Exif': {}, 'GPS': {}, '1st': {}}
+            exif_dict = piexif.load(str(ruta_entrada))
+            original_exif = deepcopy(exif_dict)
 
             if request.clear_gps:
                 exif_dict['GPS'] = {}
@@ -495,7 +531,7 @@ def editar_exif(ruta_entrada, ruta_salida, request):
             for campo, valor in request.values.items():
                 if campo in _TEXT_TAGS:
                     nombre_tag, ifd = _TEXT_TAGS[campo]
-                    exif_dict[ifd][nombre_tag] = valor.encode('utf-8')
+                    exif_dict[ifd][nombre_tag] = cast(str, valor).encode('utf-8')
                 elif campo == 'UserComment':
                     nombre_tag, ifd = _USER_COMMENT_TAG
                     exif_dict[ifd][nombre_tag] = piexif_helper.UserComment.dump(
@@ -512,23 +548,23 @@ def editar_exif(ruta_entrada, ruta_salida, request):
                     exif_dict[ifd][nombre_tag] = valor
 
             if request.sync_dates and 'DateTimeOriginal' in request.values:
-                fecha = request.values['DateTimeOriginal'].encode('utf-8')
+                fecha = cast(str, request.values['DateTimeOriginal']).encode('utf-8')
                 exif_dict['0th'][piexif.ImageIFD.DateTime] = fecha
                 exif_dict['Exif'][piexif.ExifIFD.DateTimeDigitized] = fecha
 
             gps_values = request.values
             if 'GPSLatitude' in gps_values and not request.clear_gps:
-                latitud = float(gps_values['GPSLatitude'])
-                longitud = float(gps_values['GPSLongitude'])
+                latitud = float(cast(str | int | float, gps_values['GPSLatitude']))
+                longitud = float(cast(str | int | float, gps_values['GPSLongitude']))
                 exif_dict['GPS'].update(_gps_tags(latitud, longitud))
                 if 'GPSAltitude' in gps_values:
-                    altitud = float(gps_values['GPSAltitude'])
+                    altitud = float(cast(str | int | float, gps_values['GPSAltitude']))
                     exif_dict['GPS'][piexif.GPSIFD.GPSAltitude] = _rational(abs(altitud))
                     exif_dict['GPS'][piexif.GPSIFD.GPSAltitudeRef] = int(altitud < 0)
                 if 'GPSImgDirection' in gps_values:
                     exif_dict['GPS'][piexif.GPSIFD.GPSImgDirectionRef] = b'T'
                     exif_dict['GPS'][piexif.GPSIFD.GPSImgDirection] = _rational(
-                        float(gps_values['GPSImgDirection'])
+                        float(cast(str | int | float, gps_values['GPSImgDirection']))
                     )
 
             if request.orientation is not None:
@@ -555,6 +591,9 @@ def editar_exif(ruta_entrada, ruta_salida, request):
             else:
                 image = imagen
 
+            if request.orientation is None and original_exif == exif_dict:
+                return True, 'unchanged'
+
             # Guardar con EXIF modificado
             if formato == 'TIFF':
                 # Pillow rebuilds these storage tags for the transformed pixels.
@@ -572,7 +611,13 @@ def editar_exif(ruta_entrada, ruta_salida, request):
                 ):
                     exif_dict['0th'].pop(tag, None)
             exif_bytes = piexif.dump(exif_dict)
+            if formato == 'JPEG' and request.orientation is None:
+                # Replace APP1 only: no decoding/recompression of the JPEG scan.
+                piexif.insert(exif_bytes, Path(ruta_entrada).read_bytes(), str(ruta_salida))
+                return True, None
             opciones_guardado: dict[str, object] = {'exif': exif_bytes}
+            if imagen.info.get('icc_profile'):
+                opciones_guardado['icc_profile'] = imagen.info['icc_profile']
             if formato == 'JPEG':
                 opciones_guardado['quality'] = 95
             image.save(ruta_salida, formato, **opciones_guardado)
@@ -597,7 +642,7 @@ def exportar_txt(metadatos, ruta):
         if clave.startswith('__'):
             continue
         lineas.append(f'{clave:<25} {valor}\n')
-    Path(ruta).write_text(''.join(lineas), encoding='utf-8')
+    atomic_write_text(ruta, ''.join(lineas))
 
 
 def exportar_json(metadatos, ruta):
@@ -614,10 +659,7 @@ def exportar_json(metadatos, ruta):
         for clave, valor in metadatos.items()
         if not clave.startswith('__')
     }
-    Path(ruta).write_text(
-        json.dumps(datos, ensure_ascii=False, indent=2),
-        encoding='utf-8'
-    )
+    atomic_write_text(ruta, json.dumps(datos, ensure_ascii=False, indent=2))
 
 
 def exportar_metadatos(metadatos, ruta, formato):
@@ -687,14 +729,18 @@ def preparar_campos_exif(
                 numero = Fraction(valor)
                 if positivo and numero <= 0:
                     return None, 'invalid_number'
-                valores[nombre] = _rational(numero)
+                rational = _rational(numero)
+                lower, upper = (-(2**31), 2**31 - 1) if nombre == 'ExposureBiasValue' else (0, 2**32 - 1)
+                if not lower <= rational[0] <= upper or not 1 <= rational[1] <= upper:
+                    return None, 'invalid_number'
+                valores[nombre] = rational
             except (ValueError, ZeroDivisionError):
                 return None, 'invalid_number'
         elif nombre in _INTEGER_TAGS:
             _tag, _ifd, positivo = _INTEGER_TAGS[nombre]
             try:
                 numero = int(valor)
-                if str(numero) != valor or (positivo and numero <= 0):
+                if str(numero) != valor or not 0 <= numero <= 65535 or (positivo and numero <= 0):
                     return None, 'invalid_number'
                 valores[nombre] = numero
             except ValueError:
@@ -729,7 +775,7 @@ def preparar_campos_exif(
             valores['GPSLongitude'] = f'{longitud:.8f}'.rstrip('0').rstrip('.')
             if 'GPSAltitude' in campos:
                 altitud = float(campos['GPSAltitude'])
-                if not math.isfinite(altitud):
+                if not math.isfinite(altitud) or _rational(abs(altitud))[0] > 2**32 - 1:
                     return None, 'invalid_gps'
                 valores['GPSAltitude'] = altitud
             if 'GPSImgDirection' in campos:
@@ -767,6 +813,7 @@ def batch_limpiar_exif(rutas, carpeta_salida, sufijo='_sinexif'):
     Returns:
         Diccionario con exitos, errores y conflictos.
     """
+    fallos: list[FileFailure] = []
 
     logger.info("Batch limpiar EXIF: %s archivos -> %s", len(rutas), carpeta_salida)
     errores = 0
@@ -781,6 +828,7 @@ def batch_limpiar_exif(rutas, carpeta_salida, sufijo='_sinexif'):
                 conflictos += 1
             limpiar_exif(ruta, salida)
         except Exception as exc:
+            fallos.append(file_failure(str(ruta), exc))
             logger.warning("Error al limpiar EXIF %s: %s", ruta, exc)
             errores += 1
-    return {'ok': len(rutas) - errores, 'errores': errores, 'conflictos': conflictos}
+    return {'fallos': fallos, 'ok': len(rutas) - errores, 'errores': errores, 'conflictos': conflictos}

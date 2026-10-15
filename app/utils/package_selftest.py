@@ -76,16 +76,16 @@ def _verify_runtime(result: dict):
     }
     torch = modules['torch']
     torchvision = modules['torchvision']
-    if torch.__version__ != '2.11.0+cpu':
+    if sys.platform == 'linux' and torch.__version__ != '2.11.0+cpu':
         raise RuntimeError(f'Unexpected torch build: {torch.__version__}')
-    if torchvision.__version__ != '0.26.0+cpu':
+    if sys.platform == 'linux' and torchvision.__version__ != '0.26.0+cpu':
         raise RuntimeError(f'Unexpected torchvision build: {torchvision.__version__}')
-    if torch.version.cuda is not None:
+    if sys.platform == 'linux' and torch.version.cuda is not None:
         raise RuntimeError(f'CUDA-enabled torch was packaged: {torch.version.cuda}')
     distributions = [str(dist.metadata.get('Name') or '').lower()
                      for dist in importlib.metadata.distributions()]
     nvidia = sorted(name for name in distributions if name.startswith('nvidia-'))
-    if nvidia:
+    if sys.platform == 'linux' and nvidia:
         raise RuntimeError(f'NVIDIA packages were bundled: {nvidia}')
     torch.set_num_threads(2)
     result.update({
@@ -146,7 +146,7 @@ def run(report_path: Path) -> int:
         if mode not in {'preflight', 'full'}:
             raise RuntimeError(f'Unknown package self-test mode: {mode}')
         if not result['frozen']:
-            raise RuntimeError('This verification must run inside the frozen Linux package.')
+            raise RuntimeError('This verification must run inside the frozen package.')
         if offline:
             _deny_network()
 
@@ -192,7 +192,7 @@ def run(report_path: Path) -> int:
                     raise RuntimeError(f'Unexpected background model: {removal_result}')
                 output = Image.open(removal_result['resultados'][0]['ruta_salida'])
                 alpha_min, _ = output.getchannel('A').getextrema()
-                if output.mode != 'RGBA' or output.size != foreground.size or alpha_min >= 255:
+                if output.mode != 'RGBA' or output.size != foreground.size or isinstance(alpha_min, tuple) or alpha_min >= 255:
                     raise RuntimeError('Background output is not a transparent 256x256 RGBA image')
                 result['background_model'] = removal_result['model_used']
                 result['background_removal'] = 'passed'

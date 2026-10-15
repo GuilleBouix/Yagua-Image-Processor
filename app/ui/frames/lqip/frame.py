@@ -20,7 +20,6 @@ from app.ui.frames.lqip.services import (
     procesar_archivos,
 )
 from app.ui.frames.lqip.state import LqipState
-from app.ui.operations import operations
 
 logger = logging.getLogger(__name__)
 CODE_PREVIEW_LIMIT = 12_000
@@ -97,7 +96,7 @@ class LqipFrame(BaseFrame):
             font=fonts.FUENTE_CHICA, text_color=colors.TEXT_GRAY,
         )
         self._input_thumb.grid(row=0, column=0, rowspan=2, padx=(12, 10), pady=12)
-        self._input_thumb.bind('<Configure>', self._programar_render, add=True)
+        self._input_thumb.bind('<Configure>', self._programar_render, add='+')
         self._lbl_input_name = self._text_label(self._input_card, t('lqip_select_hint'), wraplength=240)
         self._lbl_input_name.grid(row=0, column=1, padx=(0, 12), pady=(12, 0), sticky='sew')
         self._lbl_input_meta = self._text_label(self._input_card, '', muted=True, wraplength=240)
@@ -257,7 +256,7 @@ class LqipFrame(BaseFrame):
         if event is not None and event.widget is self._left:
             width = max(120, int(event.width / scale) - 32)
             self._lbl_descripcion.configure(wraplength=width)
-            input_width = max(100, width - 90)
+            input_width = max(100, width - (90 if self._selected_index is not None else 24))
             self._lbl_input_name.configure(wraplength=input_width)
             self._lbl_input_meta.configure(wraplength=input_width)
             for label in self._left_help_labels:
@@ -310,6 +309,8 @@ class LqipFrame(BaseFrame):
 
     def _cargar_imagenes(self, rutas):
         """Reemplaza la única entrada y reinicia los controles sin callbacks intermedios."""
+        if self._operation_blocked():
+            return
         rutas = tuple(rutas)
         if len(rutas) > 1:
             raise ValueError('LQIP / Base64 accepts one image at a time')
@@ -393,6 +394,17 @@ class LqipFrame(BaseFrame):
         name = Path(self._imagenes[index]).name if index is not None else t('lqip_result')
         self._lbl_result_name.configure(text=name)
         self._lbl_input_name.configure(text=name if index is not None else t('lqip_select_hint'))
+        input_width = max(120, int(self._left.winfo_width() / self._get_widget_scaling()) - 32)
+        if index is None:
+            self._input_thumb.grid_forget()
+            self._lbl_input_meta.grid_forget()
+            self._lbl_input_name.configure(anchor='center', justify='center', wraplength=max(100, input_width - 24))
+            self._lbl_input_name.grid(row=0, column=0, columnspan=2, padx=12, pady=24, sticky='ew')
+        else:
+            self._input_thumb.grid(row=0, column=0, rowspan=2, padx=(12, 10), pady=12)
+            self._lbl_input_meta.grid(row=1, column=1, padx=(0, 12), pady=(2, 12), sticky='new')
+            self._lbl_input_name.configure(anchor='w', justify='left', wraplength=max(100, input_width - 90))
+            self._lbl_input_name.grid(row=0, column=1, columnspan=1, padx=(0, 12), pady=(12, 0), sticky='sew')
         if source and source.error:
             input_meta = t('lqip_item_error') + ': ' + source.error
         elif source and source.dimensions:
@@ -473,10 +485,10 @@ class LqipFrame(BaseFrame):
         self._busy = True
         self._actualizar_acciones()
         self._lbl_info.configure(text=t('processing'))
-        started = operations.submit(
-            self, 'lqip', lambda: procesar_archivos(paths, options),
-            lambda items: self._finalizar(revision, items),
-            lambda error: self._fallo_generacion(revision, error),
+        started = self._submit_job(
+            lambda: procesar_archivos(paths, options),
+            on_success=lambda items: self._finalizar(revision, items),
+            on_error=lambda error: self._fallo_generacion(revision, error),
         )
         if not started:
             self._busy = False

@@ -11,11 +11,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import importlib
-import json
 import logging
 from typing import List, Optional
 
-from app.utils.settings import settings_path
+from app.utils.settings import settings_path, load_settings
 
 
 logger = logging.getLogger(__name__)
@@ -135,13 +134,7 @@ def iter_all_modules() -> List[ModuleSpec]:
 
 def _get_visible_modules() -> Optional[List[str]]:
     """Lee visible_modules desde user_settings.json si existe."""
-    path = settings_path()
-    if not path.exists():
-        return None
-    try:
-        data = json.loads(path.read_text(encoding='utf-8'))
-    except Exception:
-        return None
+    data = load_settings(settings_path())
     visible = data.get('visible_modules')
     if not isinstance(visible, list):
         return None

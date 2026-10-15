@@ -19,7 +19,9 @@ from typing import Callable
 import numpy as np
 from PIL import Image, ImageOps
 
-from app.utils.output import unique_output_path
+from app.utils.output import unique_output_path, atomic_destination, require_single_frame
+
+from app.utils.results import FileFailure, file_failure
 
 logger = logging.getLogger(__name__)
 
@@ -272,7 +274,8 @@ def _save_output(
         extension=extension,
     )
     logger.info("remove_bg: guardar_resultado (ruta=%s, conflicto=%s)", ruta_final, conflicto)
-    resultado.save(str(ruta_final), formato)
+    with atomic_destination(ruta_final, replace=False) as temporary:
+        resultado.save(temporary, formato)
     return ruta_final, conflicto
 
 
@@ -303,6 +306,7 @@ def quitar_fondo(ruta_entrada, ruta_salida, formato_salida='PNG'):
         _ensure_stdio()
         tam_original = Path(ruta_entrada).stat().st_size
 
+        require_single_frame(ruta_entrada)
         imagen = Image.open(ruta_entrada)
         imagen = ImageOps.exif_transpose(imagen)
         resultado, analysis = _process_image(
@@ -347,6 +351,7 @@ def batch_quitar_fondo(rutas, carpeta_salida, formato_salida='PNG', status_callb
     Returns:
         Diccionario con ok, errores, resultados, conflictos y metadata del modelo usado.
     """
+    fallos: list[FileFailure] = []
     rembg_remove, _ = _import_rembg()
     session, model_used, used_fallback = _get_processing_session()
     config = RemoveBgConfig(model_name=model_used)
@@ -368,6 +373,7 @@ def batch_quitar_fondo(rutas, carpeta_salida, formato_salida='PNG', status_callb
             logger.debug("remove_bg: procesar_imagen (ruta=%s)", ruta)
             tam_original = Path(ruta).stat().st_size
 
+            require_single_frame(ruta)
             imagen = Image.open(ruta)
             imagen = ImageOps.exif_transpose(imagen)
 
@@ -396,7 +402,8 @@ def batch_quitar_fondo(rutas, carpeta_salida, formato_salida='PNG', status_callb
                     'background_profile': 'light_uniform' if analysis.is_light_uniform else 'general',
                 }
             )
-        except Exception:
+        except Exception as exc:
+            fallos.append(file_failure(str(ruta), exc))
             logger.exception("Error al quitar fondo %s", ruta)
             errores += 1
 
@@ -408,7 +415,7 @@ def batch_quitar_fondo(rutas, carpeta_salida, formato_salida='PNG', status_callb
         model_used,
         used_fallback,
     )
-    return {
+    return {'fallos': fallos,
         'ok': len(resultados),
         'errores': errores,
         'resultados': resultados,

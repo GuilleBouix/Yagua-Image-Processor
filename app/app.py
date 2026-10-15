@@ -105,7 +105,7 @@ class YaguaApp(ctk.CTk):
             return
         if not self._close_after_operation and messagebox.askyesno(
             t('app_title'),
-            'Hay un proceso en curso. ¿Cerrar la aplicación cuando termine?',
+            t('close_when_idle'),
             parent=self,
         ):
             self._close_after_operation = True
@@ -179,6 +179,6 @@ class YaguaApp(ctk.CTk):
             img_tk = ImageTk.PhotoImage(img)
             
             # Asignar icono a la ventana
-            self.iconphoto(True, img_tk)
+            self.iconphoto(True, str(img_tk))
         except Exception as e:
             logger.warning(f"Error al cargar icono: {e}")

@@ -17,6 +17,7 @@ import customtkinter as ctk
 from app.ui.sidebar import Sidebar
 from app.ui.module_registry import get_module_spec, iter_enabled_modules, load_frame_class
 from app.ui import colors, fonts
+from app.ui.lifetime import UiLifetime
 from app.utils.update_checker import check_latest_stable
 from app.version import __version__
 from app.ui.frames.home.frame import HomeFrame
@@ -27,7 +28,7 @@ from app.ui.operations import operations
 logger = logging.getLogger(__name__)
 
 
-class MainWindow(ctk.CTkFrame):
+class MainWindow(UiLifetime, ctk.CTkFrame):
     """
     Marco principal que contiene la barra lateral y el area de contenido.
     
@@ -63,7 +64,7 @@ class MainWindow(ctk.CTkFrame):
         """
         # Crear sidebar y posicionar a la izquierda
         self.sidebar = Sidebar(self, on_select=self.show_module)
-        self.sidebar.on_home = self.show_home
+        setattr(self.sidebar, "on_home", self.show_home)
         self.sidebar.pack(side='left', fill='y')
         
         # Crear area de contenido y posicionar a la derecha
@@ -95,7 +96,10 @@ class MainWindow(ctk.CTkFrame):
     def _poll_operations(self):
         if not self.winfo_exists():
             return
-        operations.drain(lambda owner: bool(owner.winfo_exists()))
+        try:
+            operations.drain(lambda owner: bool(owner.winfo_exists()))
+        except Exception:
+            logger.exception('Operation polling failed')
         self.after(30, self._poll_operations)
 
     def _check_updates_on_startup(self):
@@ -103,7 +107,7 @@ class MainWindow(ctk.CTkFrame):
             info = check_latest_stable(__version__)
             if not info:
                 return
-            self.after(0, lambda: self._show_update_banner(info.version, info.release_url))
+            operations.post(self, lambda: self._show_update_banner(info.version, info.release_url))
 
         threading.Thread(target=_worker, daemon=True).start()
 

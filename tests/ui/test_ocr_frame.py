@@ -31,7 +31,7 @@ def test_error_en_background_se_muestra_despues_del_except(monkeypatch):
     class FakeFrame:
         _imagenes = ["entrada.png"]
 
-        def after(self, delay, callback):
+        def _post_ui(self, delay, callback):
             callbacks.append(callback)
 
         def _handle_error(self, message):

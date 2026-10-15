@@ -54,3 +54,20 @@ def test_dock_reopen_registra_y_ejecuta_callback_en_macos(monkeypatch):
 
 def test_main_window_tiene_traducciones_para_banner_de_actualizacion():
     assert main_window.t("updates_available")
+
+
+def test_unwritable_log_directory_does_not_block_startup(monkeypatch, tmp_path):
+    from pathlib import Path
+    calls = []
+    def denied(*args, **kwargs):
+        raise PermissionError('read-only profile')
+    class FakeApp:
+        def mainloop(self):
+            calls.append('started')
+    monkeypatch.setattr(app_main, 'settings_path', lambda: tmp_path / 'settings.json')
+    monkeypatch.setattr(Path, 'mkdir', denied)
+    monkeypatch.setattr(app_main.logging, 'basicConfig', lambda **kwargs: None)
+    monkeypatch.setattr(app_main, 'YaguaApp', FakeApp)
+    monkeypatch.setattr(app_main, 'apply_ui_scale', lambda: None)
+    app_main.main()
+    assert calls == ['started']

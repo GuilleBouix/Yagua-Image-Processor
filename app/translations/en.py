@@ -466,3 +466,13 @@ TRANSLATIONS = {
     'lqip_copied_full': 'Copied in full: {count} characters.',
     'lqip_copy_failed': 'Could not verify the full copy. Try again or export the result.',
 }
+
+TRANSLATIONS["operation_busy"] = 'An operation is running. Please wait until it finishes.'
+
+TRANSLATIONS['unsupported_frames'] = 'The image has multiple pages or animation. It was not modified.'
+
+TRANSLATIONS['close_when_idle'] = 'An operation is active. Close when finished?'
+
+TRANSLATIONS['restart_when_idle'] = 'An operation is active. Restart when finished?'
+
+TRANSLATIONS['invalid_filename'] = 'The destination filename is invalid.'

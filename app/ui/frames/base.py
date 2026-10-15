@@ -17,21 +17,31 @@ Relacionado con:
 import logging
 import threading
 from pathlib import Path
-from tkinter import filedialog
+from tkinter import filedialog, Text
 
 import customtkinter as ctk
-from PIL import Image
 
 from app.ui import colors, fonts
+from app.ui.lifetime import UiLifetime
 from app.utils import tintar_icono
 from app.modules.compress import formatear_bytes
 from app.translations import t
+from app.ui.operations import operations
 
 
 logger = logging.getLogger(__name__)
 
+def _file_size_label(path):
+    try:
+        return formatear_bytes(path.stat().st_size)
+    except OSError:
+        return t('error_generic')
 
-class BaseFrame(ctk.CTkScrollableFrame):
+
+
+class BaseFrame(UiLifetime, ctk.CTkScrollableFrame):
+    _lista_frame: ctk.CTkFrame | ctk.CTkScrollableFrame
+    _lbl_lista_vacia: ctk.CTkLabel
     """
     Clase base para todos los frames de modulos.
     
@@ -81,6 +91,77 @@ class BaseFrame(ctk.CTkScrollableFrame):
         
         # Construir la estructura del frame
         self._build()
+
+    def _post_ui(self, delay, callback):
+        # Workers use this queue, never Tk.after. Delay is kept for call-site compatibility.
+        if threading.current_thread() is threading.main_thread():
+            self.after(delay, callback)
+        else:
+            operations.post(self, callback)
+
+    def _operation_blocked(self, *, global_job=False):
+        busy = operations.is_busy(None if global_job else self)
+        if busy and hasattr(self, '_lbl_info'):
+            self._lbl_info.configure(text=t('operation_busy'))
+        return busy
+
+    def _submit_job(self, work, *, button=None, text=None, on_success=None, on_error=None):
+        """Freeze controls until the queued result is delivered, including startup errors."""
+        if self._operation_blocked(global_job=True):
+            self._hide_full_overlay()
+            if button is not None:
+                button.configure(state='normal', text=text)
+            return False
+        controls = []
+        def freeze(parent):
+            for widget in parent.winfo_children():
+                if isinstance(widget, (ctk.CTkButton, ctk.CTkEntry, ctk.CTkCheckBox,
+                                       ctk.CTkSlider, ctk.CTkOptionMenu, ctk.CTkComboBox, Text, ctk.CTkSwitch)):
+                    controls.append((widget, widget.cget('state')))
+                    widget.configure(state='disabled')
+                else:
+                    freeze(widget)
+
+        def restore():
+            for widget, state in controls:
+                if widget.winfo_exists():
+                    widget.configure(state=state)
+            if button is not None and button.winfo_exists():
+                button.configure(state='normal', text=text)
+            self._hide_full_overlay()
+
+        def success(result):
+            restore()
+            if on_success is not None:
+                on_success(result)
+            elif callable(result):
+                result()
+            self._show_failures(result)
+
+
+        def failed(error):
+            restore()
+            handler = on_error or getattr(self, '_handle_error', None)
+            if handler is not None:
+                handler(error if on_error else str(error))
+            else:
+                self._lbl_info.configure(text=f"{t('error_generic')}: {t(str(error))}")
+        try:
+            freeze(self)
+            accepted = operations.submit(self, self._title, work, success, failed)
+        except Exception as error:
+            failed(error)
+            return False
+        if not accepted:
+            restore()
+        return accepted
+
+    def _show_failures(self, result):
+        if isinstance(result, dict) and result.get('fallos'):
+            from tkinter import messagebox
+            failures = tuple(result['fallos'])
+            details = '\n'.join(f"{item['ruta']}: {t(item['motivo'])}" for item in failures)
+            operations.post(self, lambda: messagebox.showwarning(t('error_generic'), details, parent=self))
 
     def on_view_shown(self):
         """Hook de lifecycle cuando la vista pasa a estar visible."""
@@ -311,7 +392,7 @@ class BaseFrame(ctk.CTkScrollableFrame):
             panel.grid_columnconfigure(0, weight=1)
             panels.append(panel)
 
-        state = {'narrow': None}
+        state: dict[str, bool | None] = {'narrow': None}
 
         def reflow(event=None):
             width = event.width if event is not None else host.winfo_width()
@@ -333,7 +414,7 @@ class BaseFrame(ctk.CTkScrollableFrame):
                 panels[0].grid(row=0, column=0, padx=(0, 8), pady=0, sticky='nsew')
                 panels[1].grid(row=0, column=1, padx=(8, 0), pady=0, sticky='nsew')
 
-        host.bind('<Configure>', reflow, add='+')
+        host.bind('<Configure>', reflow, add=True)
         host.after(0, reflow)
         if parent is self:
             self._workspace_host = host
@@ -423,6 +504,8 @@ class BaseFrame(ctk.CTkScrollableFrame):
             titulo: Titulo del dialogo (usa traduccion por defecto).
             multi: Si es True, permite seleccionar multiples archivos.
         """
+        if self._operation_blocked():
+            return
         logger.info("%s: explorar (multi=%s)", self.__class__.__name__, multi)
         # Usar titulo por defecto si no se especifica
         if titulo is None:
@@ -432,7 +515,7 @@ class BaseFrame(ctk.CTkScrollableFrame):
         if multi:
             archivos = filedialog.askopenfilenames(
                 title=titulo,
-                filetypes=[('Imagenes', '*.jpg *.jpeg *.png *.webp *.bmp *.tiff *.avif *.heic *.heif *.ico')]
+                filetypes=[(t('images_loaded'), '*.jpg *.jpeg *.png *.webp *.bmp *.tiff *.avif *.heic *.heif *.ico')]
             )
             # Cargar las imagenes seleccionadas
             if archivos:
@@ -441,7 +524,7 @@ class BaseFrame(ctk.CTkScrollableFrame):
             # Seleccion de un solo archivo
             archivo = filedialog.askopenfilename(
                 title=titulo,
-                filetypes=[('Imagenes', '*.jpg *.jpeg *.png *.webp *.bmp *.tiff *.avif *.heic *.heif')]
+                filetypes=[(t('images_loaded'), '*.jpg *.jpeg *.png *.webp *.bmp *.tiff *.avif *.heic *.heif')]
             )
             if archivo:
                 self._cargar_imagenes([archivo])
@@ -453,6 +536,8 @@ class BaseFrame(ctk.CTkScrollableFrame):
         Args:
             rutas: Lista de rutas de archivos a cargar.
         """
+        if self._operation_blocked():
+            return
         logger.info("%s: cargar_imagenes (total=%s)", self.__class__.__name__, len(rutas))
         # Actualizar lista de imagenes
         self._imagenes = rutas
@@ -467,12 +552,8 @@ class BaseFrame(ctk.CTkScrollableFrame):
         for ruta in rutas:
             self._agregar_fila_archivo(ruta)
 
-        # Cargar thumbnails en segundo plano
-        threading.Thread(
-            target=self._cargar_thumbs_en_background,
-            args=(rutas,),
-            daemon=True
-        ).start()
+        from app.ui.file_list import load_thumbs_async
+        load_thumbs_async(rutas, self._filas_lista, self._thumbs, self._post_ui)
 
     def _agregar_fila_archivo(self, ruta):
         """
@@ -513,58 +594,13 @@ class BaseFrame(ctk.CTkScrollableFrame):
         # Label del tamano y extension
         ctk.CTkLabel(
             info,
-            text=f'{formatear_bytes(p.stat().st_size)}  -  {p.suffix.upper().lstrip(".")}',
+            text=f'{_file_size_label(p)}  -  {p.suffix.upper().lstrip(".")}',
             font=fonts.FUENTE_CHICA,
             text_color=colors.TEXT_GRAY, anchor='w'
         ).pack(anchor='w')
 
         # Guardar referencia al label del thumbnail
         self._filas_lista.append(lbl_thumb)
-
-    def _cargar_thumbs_en_background(self, rutas):
-        """
-        Carga thumbnails en segundo plano para no bloquear la UI.
-        
-        Args:
-            rutas: Lista de rutas de archivos para generar thumbnails.
-        """
-        thumbs = []
-        
-        logger.info("%s: cargar_thumbs_en_background (total=%s)", self.__class__.__name__, len(rutas))
-        # Generar thumbnail para cada archivo
-        for ruta in rutas:
-            try:
-                # Abrir y copiar imagen
-                with Image.open(ruta) as img:
-                    img = img.copy()
-                
-                # Redimensionar manteniendo aspecto
-                img.thumbnail((44, 44), Image.Resampling.LANCZOS)
-                
-                # Crear CTkImage
-                thumb = ctk.CTkImage(light_image=img, dark_image=img, size=(44, 44))
-            except Exception as exc:
-                logger.warning("%s: error thumbnail %s", self.__class__.__name__, exc)
-                thumb = None
-            thumbs.append(thumb)
-        
-        # Aplicar thumbnails en el hilo principal
-        self.after(0, lambda: self._aplicar_thumbs(thumbs))
-
-    def _aplicar_thumbs(self, thumbs):
-        """
-        Aplica los thumbnails cargados a los labels correspondientes.
-        
-        Args:
-            thumbs: Lista de CTkImage generados.
-        """
-        # Filtrar thumbnails validos
-        self._thumbs = [t for t in thumbs if t]
-        
-        # Asignar cada thumbnail a su label
-        for indice, thumb in enumerate(thumbs):
-            if thumb and indice < len(self._filas_lista):
-                self._filas_lista[indice].configure(image=thumb)
 
     def _limpiar(self):
         """
@@ -573,6 +609,8 @@ class BaseFrame(ctk.CTkScrollableFrame):
         Elimina todas las imagenes cargadas y restaura
         el label de lista vacia si existe.
         """
+        if self._operation_blocked():
+            return
         logger.info("%s: limpiar", self.__class__.__name__)
         # Reiniciar listas
         self._imagenes = []

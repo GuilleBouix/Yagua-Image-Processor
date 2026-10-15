@@ -19,7 +19,6 @@ import customtkinter as ctk
 from app.ui import colors, fonts
 from app.translations import t
 from app.ui.frames.base import BaseFrame
-from app.ui.operations import operations
 from app.ui.frames.convert.services import (
     batch_convertir_safe,
     FORMATOS_DESTINO,
@@ -183,6 +182,8 @@ class ConvertFrame(BaseFrame):
         Args:
             rutas: Lista de rutas de archivos a cargar.
         """
+        if self._operation_blocked(global_job=False):
+            return
         logger.info("convert.ui: cargar_imagenes (total=%s)", len(rutas))
         limite = 100
         total = len(rutas)
@@ -246,6 +247,8 @@ class ConvertFrame(BaseFrame):
         """
         Inicia el proceso de conversion en segundo plano.
         """
+        if self._operation_blocked(global_job=True):
+            return
         logger.info("convert.ui: click_convertir")
         if not self._imagenes:
             self._lbl_info.configure(text=t('load_images_first_convert'))
@@ -265,41 +268,19 @@ class ConvertFrame(BaseFrame):
         calidad = self._state.calidad.get()
         self._btn_convertir.configure(state='disabled', text=t('converting'))
         self._show_full_overlay(t('processing'))
-        started = operations.submit(
-            self,
-            'convert',
+        started = self._submit_job(
             lambda: batch_convertir_safe(
                 rutas, fmt_destino=fmt_destino, carpeta_salida=carpeta, calidad=calidad
             ),
-            lambda res: self._finalizar(
+            on_success=lambda res: self._finalizar(
                 res['ok'], res['errores'], res['fmt_destino'], res.get('conflictos', 0)
             ),
-            lambda error: self._fallo_conversion(error),
+            on_error=self._fallo_conversion,
+            button=self._btn_convertir, text=t('convert_btn'),
         )
         if not started:
             self._btn_convertir.configure(state='normal', text=t('convert_btn'))
             self._hide_full_overlay()
-
-    def _proceso(self, carpeta):
-        """
-        Ejecuta la conversion en segundo plano.
-        
-        Args:
-            carpeta: Ruta de la carpeta de salida.
-        """
-        logger.info("convert.ui: proceso_interno_inicio (imagenes=%s, fmt=%s)", len(self._imagenes), self._state.fmt_destino.get())
-        res = batch_convertir_safe(
-            self._imagenes,
-            fmt_destino=self._state.fmt_destino.get(),
-            carpeta_salida=carpeta,
-            calidad=self._state.calidad.get(),
-        )
-        self.after(0, lambda: self._finalizar(
-            res['ok'],
-            res['errores'],
-            res['fmt_destino'],
-            res.get('conflictos', 0),
-        ))
 
     def _fallo_conversion(self, error):
         logger.exception("convert.ui: fallo general", exc_info=error)
@@ -319,7 +300,8 @@ class ConvertFrame(BaseFrame):
         self._btn_convertir.configure(state='normal', text=t('convert_btn'))
         self._hide_full_overlay()
         logger.info("convert.ui: finalizar_ok (ok=%s, errores=%s, conflictos=%s)", ok, errores, conflictos)
-        msg = f'{ok} imagen{"es" if ok != 1 else ""} {t("converted_to" if ok == 1 else "converted_to_plural")} {fmt}'
+        noun = t('image_loaded' if ok == 1 else 'images_loaded')
+        msg = f'{ok} {noun} {t("converted_to" if ok == 1 else "converted_to_plural")} {fmt}'
         if errores:
             msg += f'  -  {errores} {t("error_occurred")}'
         if conflictos:

@@ -15,7 +15,6 @@ Relaciones:
 from __future__ import annotations
 
 import logging
-import threading
 from pathlib import Path
 from tkinter import filedialog
 import tkinter as tk
@@ -164,14 +163,14 @@ class PaletteFrame(BaseFrame):
         self._lbl_nombre.configure(text=t('no_image_selected'))
         self._lbl_meta.configure(text=t('select_image_for_palette'))
 
-    def _mostrar_cargado(self, ruta: str):
+    def _mostrar_cargado(self, ruta: str, loaded=None):
         """Actualizar preview con la imagen cargada.
 
         Args:
             ruta: Ruta del archivo de imagen
         """
         self._frame_preview.configure(border_color=colors.ACENTO)
-        preview, w, h, ext = cargar_preview(ruta, (80, 80))
+        preview, w, h, ext = loaded if loaded is not None else cargar_preview(ruta, (80, 80))
         self._preview_img = ctk.CTkImage(
             light_image=preview, dark_image=preview,
             size=(preview.width, preview.height)
@@ -249,20 +248,30 @@ class PaletteFrame(BaseFrame):
 
     def _explorar(self):
         """Abrir dialogo para seleccionar una imagen."""
+        if self._operation_blocked(global_job=False):
+            return
         logger.info("palette.ui: explorar_imagen")
         archivo = filedialog.askopenfilename(
             title=t('select_image_for_palette'),
-            filetypes=[('Imagenes', '*.jpg *.jpeg *.png *.webp *.bmp *.tiff *.avif *.heic *.heif')]
+            filetypes=[(t('images_loaded'), '*.jpg *.jpeg *.png *.webp *.bmp *.tiff *.avif *.heic *.heif')]
         )
         if not archivo:
             logger.info("palette.ui: explorar_cancelado")
             return
-        self._state.ruta = archivo
-        self._state.paleta = []
-        self._mostrar_cargado(archivo)
         n = int(self._seg_n.get())
         self._show_full_overlay(t('processing'))
-        threading.Thread(target=self._proceso_extraccion, args=(n,), daemon=True).start()
+        def work():
+            preview = cargar_preview(archivo, (80, 80))
+            palette, error = extraer_paleta_safe(archivo, n)
+            if error:
+                raise ValueError(error)
+            return preview, palette
+        def loaded(result):
+            preview, palette = result
+            self._state.ruta = archivo
+            self._mostrar_cargado(archivo, preview)
+            self._aplicar_paleta(palette)
+        self._submit_job(work, on_success=loaded)
 
     def _auto_extraer(self, *_):
         """Re-extraer paleta al cambiar la cantidad de colores.
@@ -270,27 +279,30 @@ class PaletteFrame(BaseFrame):
         Args:
             *_: Argumentos ignorados del callback del segmented button
         """
+        if self._operation_blocked(global_job=True):
+            return
         if not self._state.ruta:
             return
         logger.info("palette.ui: auto_extraer")
         n = int(self._seg_n.get())
         self._show_full_overlay(t('processing'))
-        threading.Thread(target=self._proceso_extraccion, args=(n,), daemon=True).start()
+        path = self._state.ruta
+        self._submit_job(lambda: self._proceso_extraccion(n, path))
 
-    def _proceso_extraccion(self, n: int):
+    def _proceso_extraccion(self, n: int, path):
         """Ejecutar extraccion de paleta en hilo separado.
 
         Args:
             n: Numero de colores a extraer
         """
         logger.info("palette.ui: proceso_extraccion_inicio (n=%s)", n)
-        paleta, err = extraer_paleta_safe(self._state.ruta, n)  # type: ignore
+        paleta, err = extraer_paleta_safe(path, n)  # type: ignore
         if err:
             logger.warning("palette.ui: proceso_extraccion_error (%s)", err)
-            self.after(0, self._hide_full_overlay)
-            self.after(0, lambda: self._lbl_info.configure(text=f'{t("error_generic")}: {err}'))
+            self._post_ui(0, self._hide_full_overlay)
+            self._post_ui(0, lambda: self._lbl_info.configure(text=f'{t("error_generic")}: {err}'))
             return
-        self.after(0, lambda: self._aplicar_paleta(paleta))
+        self._post_ui(0, lambda: self._aplicar_paleta(paleta))
 
     def _aplicar_paleta(self, paleta: list[tuple[int, int, int]]):
         """Aplicar la paleta extraida a la interfaz.
@@ -308,6 +320,8 @@ class PaletteFrame(BaseFrame):
 
     def _guardar_imagen(self):
         """Guardar la paleta como imagen PNG."""
+        if self._operation_blocked(global_job=True):
+            return
         logger.info("palette.ui: guardar_imagen")
         if not self._state.paleta:
             self._lbl_info.configure(text=t('save_palette_first'))
@@ -324,20 +338,23 @@ class PaletteFrame(BaseFrame):
         self._btn_guardar.configure(state='disabled', text=t('saving'))
         self._show_full_overlay(t('processing'))
 
+        palette = tuple(self._state.paleta)
         def _proceso():
-            exportar_paleta_imagen(self._state.paleta, ruta)
-            self.after(0, lambda: self._btn_guardar.configure(
+            exportar_paleta_imagen(palette, ruta)
+            self._post_ui(0, lambda: self._btn_guardar.configure(
                 state='normal', text=t('save_palette_btn')
             ))
-            self.after(0, lambda: self._lbl_info.configure(
+            self._post_ui(0, lambda: self._lbl_info.configure(
                 text=f'{t("saved_as")} {Path(ruta).name}'
             ))
-            self.after(0, self._hide_full_overlay)
+            self._post_ui(0, self._hide_full_overlay)
 
-        threading.Thread(target=_proceso, daemon=True).start()
+        self._submit_job(_proceso, button=self._btn_guardar, text=t('save_palette_btn'))
 
     def _limpiar(self):
         """Limpiar estado y reiniciar la interfaz."""
+        if self._operation_blocked(global_job=False):
+            return
         logger.info("palette.ui: limpiar")
         self._state.ruta = None
         self._state.paleta = []

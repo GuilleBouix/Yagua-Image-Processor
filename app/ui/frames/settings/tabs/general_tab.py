@@ -212,6 +212,8 @@ class GeneralTab(ctk.CTkFrame):
         self._btn_apply.grid(row=row, column=0, pady=(0, 16), sticky='w')
 
     def _apply_settings(self):
+        if self._btn_apply.cget('state') == 'disabled':
+            return
         visibles = [k for k, v in self._module_vars.items() if v.get()]
         if 'settings' not in visibles:
             visibles.append('settings')
@@ -232,10 +234,22 @@ class GeneralTab(ctk.CTkFrame):
         self._btn_apply.configure(state='disabled')
         self.after(
             1500,
-            lambda: apply_settings_and_restart(
+            lambda: self._save_and_restart(
                 language=language,
                 theme=theme,
                 ui_scale=scale,
                 visible_modules=visibles,
             ),
         )
+
+
+    def _save_and_restart(self, **options):
+        if not self.winfo_exists():
+            return
+        try:
+            apply_settings_and_restart(**options)
+        except Exception as error:
+            self._set_status(f"{t('error_generic')}: {error}")
+        finally:
+            if self.winfo_exists():
+                self._btn_apply.configure(state='normal')

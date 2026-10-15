@@ -12,7 +12,6 @@ Relacionado con:
 from __future__ import annotations
 
 import logging
-import threading
 from tkinter import filedialog
 
 import customtkinter as ctk
@@ -172,6 +171,8 @@ class CompressFrame(BaseFrame):
         Args:
             rutas: Lista de rutas de archivos a cargar.
         """
+        if self._operation_blocked(global_job=False):
+            return
         logger.info("compress.ui: cargar_imagenes (total=%s)", len(rutas))
         limite = 100
         total = len(rutas)
@@ -204,6 +205,8 @@ class CompressFrame(BaseFrame):
         """
         Inicia el proceso de compresion en segundo plano.
         """
+        if self._operation_blocked(global_job=True):
+            return
         if not self._imagenes:
             self._lbl_info.configure(text=t('load_images_first'))
             return
@@ -214,9 +217,12 @@ class CompressFrame(BaseFrame):
         
         self._btn_comprimir.configure(state='disabled', text=t('compressing'))
         self._show_full_overlay(t('processing'))
-        threading.Thread(target=self._proceso, args=(carpeta,), daemon=True).start()
+        paths = tuple(self._imagenes)
+        quality, strip = self._state.calidad.get(), self._state.quitar_exif.get()
+        self._submit_job(lambda: self._proceso(carpeta, paths, quality, strip),
+                         button=self._btn_comprimir, text=t('compress_btn'))
 
-    def _proceso(self, carpeta):
+    def _proceso(self, carpeta, paths, quality, strip):
         """
         Ejecuta la compresion en segundo plano.
         
@@ -224,12 +230,12 @@ class CompressFrame(BaseFrame):
             carpeta: Ruta de la carpeta de salida.
         """
         res = batch_comprimir(
-            self._imagenes,
+            paths,
             carpeta,
-            calidad=self._state.calidad.get(),
-            quitar_exif=self._state.quitar_exif.get(),
+            calidad=quality,
+            quitar_exif=strip,
         )
-        self.after(0, lambda: self._finalizar(
+        self._post_ui(0, lambda: self._finalizar(
             res['ok'],
             res['total_original'],
             res['total_comprimido'],
@@ -237,6 +243,7 @@ class CompressFrame(BaseFrame):
             res['errores'],
             res.get('conflictos', 0),
         ))
+        return res
 
     def _finalizar(self, n, orig, comp, reduccion, errores=0, conflictos=0):
         """

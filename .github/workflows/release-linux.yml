@@ -49,14 +49,14 @@ jobs:
         shell: bash
         run: |
           ruff check app tests scripts
-          pyright --skipunannotated --pythonpath "$(python -c 'import sys; print(sys.executable)')" app
+          pyright --pythonpath "$(python -c 'import sys; print(sys.executable)')" app
       - name: Tests
         shell: bash
         run: |
           if [[ "$RUNNER_OS" == "Linux" ]]; then
-            xvfb-run -a python -m pytest -q
+            xvfb-run -a python scripts/verify.py -q
           else
-            python -m pytest -q
+            python scripts/verify.py -q
           fi
 
   build_release:

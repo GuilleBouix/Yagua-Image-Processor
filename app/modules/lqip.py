@@ -9,6 +9,7 @@ Relacionado con:
 import base64
 import html
 import io
+from app.utils.output import atomic_write_text
 import json
 import logging
 import re
@@ -191,7 +192,7 @@ def exportar_txt(resultados, ruta_salida, campo='data_uri'):
         lineas.append(res.get(campo, ''))
         lineas.append('')
 
-    Path(ruta_salida).write_text('\n'.join(lineas), encoding='utf-8')
+    atomic_write_text(ruta_salida, '\n'.join(lineas))
 
 
 def exportar_json(resultados, ruta_salida):
@@ -214,7 +215,4 @@ def exportar_json(resultados, ruta_salida):
         }
         for r in resultados
     ]
-    Path(ruta_salida).write_text(
-        json.dumps(datos, ensure_ascii=False, indent=2),
-        encoding='utf-8'
-    )
+    atomic_write_text(ruta_salida, json.dumps(datos, ensure_ascii=False, indent=2))

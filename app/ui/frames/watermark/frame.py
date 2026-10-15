@@ -442,7 +442,7 @@ class WatermarkFrame(BaseFrame):
     def _seleccionar_watermark(self):
         ruta = filedialog.askopenfilename(
             title=t("watermark_select_wm"),
-            filetypes=[("Imágenes", "*.png *.jpg *.jpeg *.webp *.bmp *.heic *.heif"), ("PNG", "*.png")],
+            filetypes=[(t('images_loaded'), "*.png *.jpg *.jpeg *.webp *.bmp *.heic *.heif"), ("PNG", "*.png")],
         )
         if not ruta:
             return
@@ -451,6 +451,8 @@ class WatermarkFrame(BaseFrame):
         self._cargar_preview_wm(ruta)
 
     def _cargar_imagenes(self, rutas):
+        if self._operation_blocked(global_job=False):
+            return
         logger.info("watermark.ui: cargar_imagenes (total=%s)", len(rutas))
         limite = 100
         total = len(rutas)
@@ -523,7 +525,7 @@ class WatermarkFrame(BaseFrame):
             error = exc
 
         try:
-            self.after(
+            self._post_ui(
                 0,
                 lambda: self._aplicar_preview_cargado(
                     tipo, revision, imagen, miniatura, error
@@ -564,7 +566,7 @@ class WatermarkFrame(BaseFrame):
         self._canvas_preview.configure(
             image=None, text=t("watermark_preview_placeholder")
         )
-        self._canvas_preview._ctk_image = None
+        setattr(self._canvas_preview, "_ctk_image", None)
 
     def _invalidar_preview(self):
         self._preview_revision += 1
@@ -623,7 +625,7 @@ class WatermarkFrame(BaseFrame):
             logger.warning("Error en hilo preview watermark: %s", exc)
             resultado = None
         try:
-            self.after(0, lambda: self._actualizar_preview(revision, resultado))
+            self._post_ui(0, lambda: self._actualizar_preview(revision, resultado))
         except Exception:
             logger.debug("watermark.ui: frame cerrado durante calculo de preview")
 
@@ -635,7 +637,7 @@ class WatermarkFrame(BaseFrame):
                 and self._preview_base_bgra is not None
                 and self._preview_wm_bgra is not None
             ):
-                self._preview_job = self.after(0, self._lanzar_hilo_preview)
+                self._preview_job = self._post_ui(0, self._lanzar_hilo_preview)
             return
         self._lbl_preview_status.configure(text="")
         if resultado is None:
@@ -646,8 +648,10 @@ class WatermarkFrame(BaseFrame):
 
     def _limpiar(self):
         """Recarga el frame completo para reiniciar el estado."""
+        if self._operation_blocked(global_job=False):
+            return
         logger.info("watermark.ui: limpiar")
-        self.after(0, self._reload_self)
+        self._post_ui(0, self._reload_self)
 
     def _reload_self(self):
         main = self._find_main_window()
@@ -656,17 +660,18 @@ class WatermarkFrame(BaseFrame):
             return
         try:
             if getattr(main, "frames", {}).get("watermark") is self:
-                main.frames["watermark"] = None
+                getattr(main, "frames")["watermark"] = None
             self.destroy()
         except Exception:
             pass
         try:
-            main.show_module("watermark")
+            getattr(main, "show_module")("watermark")
         except Exception:
             pass
 
     def _find_main_window(self):
-        w = self
+        from tkinter import Misc
+        w: Misc | None = self
         while w is not None:
             if hasattr(w, "show_module") and hasattr(w, "frames"):
                 return w
@@ -731,6 +736,8 @@ class WatermarkFrame(BaseFrame):
     # ------------------------------------------------------------------ #
 
     def _ejecutar(self):
+        if self._operation_blocked(global_job=True):
+            return
         logger.info("watermark.ui: click_aplicar")
         if not self._imagenes:
             self._lbl_info.configure(text=t("load_images_first"))
@@ -749,19 +756,16 @@ class WatermarkFrame(BaseFrame):
         self._state.carpeta_salida.set(carpeta)
         self._btn_aplicar.configure(state="disabled", text=t("processing"))
         self._show_full_overlay(t("processing"))
-        threading.Thread(target=self._proceso, args=(carpeta, ruta_wm), daemon=True).start()
+        paths = tuple(self._imagenes)
+        options = dict(posicion=self._state.posicion.get(), escala=self._state.escala.get() / 100.0,
+                       opacidad=self._state.opacidad.get() / 100.0, margen=self._state.margen.get())
+        self._submit_job(lambda: self._proceso(carpeta, ruta_wm, paths, options),
+                         button=self._btn_aplicar, text=t('watermark_btn'))
 
-    def _proceso(self, carpeta, ruta_wm):
-        res = batch_aplicar_watermark(
-            rutas_imagenes=self._imagenes,
-            ruta_watermark=ruta_wm,
-            carpeta_salida=carpeta,
-            posicion=self._state.posicion.get(),
-            escala=self._state.escala.get() / 100.0,
-            opacidad=self._state.opacidad.get() / 100.0,
-            margen=self._state.margen.get(),
-        )
-        self.after(0, lambda: self._finalizar(res))
+    def _proceso(self, carpeta, ruta_wm, paths, options):
+        res = batch_aplicar_watermark(paths, ruta_wm, carpeta, **options)
+        self._post_ui(0, lambda: self._finalizar(res))
+        return res
 
     def _finalizar(self, res):
         ok      = res.get("ok", 0)

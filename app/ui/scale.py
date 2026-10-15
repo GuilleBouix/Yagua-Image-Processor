@@ -4,24 +4,17 @@ Helpers para gestionar el escalado global de la interfaz.
 
 from __future__ import annotations
 
-import json
 
 import customtkinter as ctk
 
-from app.utils.settings import settings_path
+from app.utils.settings import settings_path, load_settings
 
 DEFAULT_UI_SCALE = 100
 VALID_UI_SCALES = {100, 75, 50}
 
 
 def _load_settings() -> dict:
-    path = settings_path()
-    if not path.exists():
-        return {}
-    try:
-        return json.loads(path.read_text(encoding='utf-8'))
-    except Exception:
-        return {}
+    return load_settings(settings_path())
 
 
 def get_ui_scale_percent() -> int:

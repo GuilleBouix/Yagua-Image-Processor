@@ -11,6 +11,8 @@ import re
 from datetime import datetime
 from pathlib import Path
 
+from app.utils.results import FileFailure, file_failure
+
 logger = logging.getLogger(__name__)
 
 _INVALID_FILENAME_CHARS = re.compile(r'[<>:"/\\|?*\x00-\x1f]+')
@@ -114,6 +116,7 @@ def renombrar_archivos(rutas, opciones):
     Returns:
         Diccionario con ok, errores, conflictos.
     """
+    fallos: list[FileFailure] = []
 
     logger.info("Renombrar: %s archivos", len(rutas))
     ok = 0
@@ -132,6 +135,7 @@ def renombrar_archivos(rutas, opciones):
                 continue
 
             if not _nombre_es_seguro(nombre_nuevo):
+                fallos.append(file_failure(str(ruta), 'invalid_filename'))
                 logger.warning("Nombre de destino inseguro rechazado: %s", nombre_nuevo)
                 errores += 1
                 continue
@@ -146,10 +150,11 @@ def renombrar_archivos(rutas, opciones):
             ok += 1
 
         except Exception as exc:
+            fallos.append(file_failure(str(ruta), exc))
             logger.warning("Error al renombrar %s: %s", ruta, exc)
             errores += 1
 
-    return {
+    return {'fallos': fallos,
         'ok': ok,
         'errores': errores,
         'conflictos': conflictos,

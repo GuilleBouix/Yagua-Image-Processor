@@ -57,9 +57,9 @@ def test_compress_process_uses_selected_quality(ui_root, monkeypatch):
     frame._finalizar = Mock()
     monkeypatch.setattr(frame, "after", lambda delay, callback: callback())
 
-    frame._proceso("output")
+    frame._proceso("output", ("sample.jpg",), 83, True)
 
     batch.assert_called_once_with(
-        ["sample.jpg"], "output", calidad=83, quitar_exif=True
+        ("sample.jpg",), "output", calidad=83, quitar_exif=True
     )
     frame._finalizar.assert_called_once_with(1, 100, 50, 50.0, 0, 0)

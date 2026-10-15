@@ -95,3 +95,18 @@ def test_check_latest_stable_no_falla_si_github_no_responde(monkeypatch):
     monkeypatch.setattr(update_checker.requests, "get", fail_request)
 
     assert update_checker.check_latest_stable("2.0.0") is None
+
+
+def test_update_url_rejects_non_https_and_non_strings(monkeypatch):
+    from app.utils import update_checker
+    class Response:
+        def raise_for_status(self):
+            pass
+        def json(self):
+            return [{'tag_name': 'win-v9.0.0', 'html_url': 'javascript:alert(1)'}]
+    monkeypatch.setattr(update_checker.requests, 'get', lambda *args, **kwargs: Response())
+    monkeypatch.setattr(update_checker, 'get_repo', lambda: 'owner/repo')
+    monkeypatch.setattr(update_checker, 'get_update_platform', lambda: 'windows')
+    info = update_checker.check_latest_stable('2.0.0')
+    assert info is not None
+    assert info.release_url == 'https://github.com/owner/repo/releases/tag/win-v9.0.0'

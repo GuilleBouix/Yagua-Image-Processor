@@ -13,6 +13,7 @@ from pathlib import Path
 from PIL import Image
 
 from app.utils.paths import resource_path
+from app.utils.output import atomic_destination, require_single_frame
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +28,7 @@ def cargar_preview(ruta, size=(80, 80)):
     Returns:
         Tupla con (imagen_preview, ancho_original, alto_original, extension).
     """
+    require_single_frame(ruta)
     with Image.open(ruta) as imagen:
         ancho, alto = imagen.size
         imagen = imagen.convert('RGB')
@@ -52,6 +54,7 @@ def extraer_paleta(ruta, n_colores=6):
     """
 
     logger.info("Extraer paleta: %s (n=%s)", ruta, n_colores)
+    require_single_frame(ruta)
     with Image.open(ruta) as imagen:
         imagen = imagen.convert('RGB')
 
@@ -66,7 +69,7 @@ def extraer_paleta(ruta, n_colores=6):
             return []
 
         # Contar frecuencia de cada color en la imagen cuantizada
-        pixels = list(img_quantized.getdata())
+        pixels = list(img_quantized.get_flattened_data())
         frecuencias = {}
         for px in pixels:
             frecuencias[px] = frecuencias.get(px, 0) + 1
@@ -232,7 +235,8 @@ def exportar_paleta_imagen(paleta, ruta_salida, ancho_swatch=120,
             draw.text((text_x, text_y), hex_str, fill=(180, 180, 190), font=fuente)
 
     # Guardar imagen
-    imagen.save(ruta_salida, 'PNG', optimize=True)
+    with atomic_destination(ruta_salida) as temporary:
+        imagen.save(temporary, 'PNG', optimize=True)
     return ruta_salida
 
 

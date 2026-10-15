@@ -12,7 +12,6 @@ Relacionado con:
 from __future__ import annotations
 
 import logging
-import threading
 from tkinter import filedialog
 
 import customtkinter as ctk
@@ -20,6 +19,7 @@ import customtkinter as ctk
 from app.ui import colors, fonts
 from app.ui.scale import scale_wraplength
 from app.translations import t
+from app.ui.operations import operations
 from app.ui.frames.base import BaseFrame
 from app.ui.frames.remove_bg.state import RemoveBgState
 from app.ui.frames.remove_bg.services import (
@@ -56,7 +56,7 @@ class RemoveBgFrame(BaseFrame):
         # Loader: usamos overlay full-frame (no un componente que empuje el layout).
         # Importante: diferir al siguiente tick para que BaseFrame no lo oculte
         # al finalizar _build().
-        self.after(0, self._inicializar_en_background)
+        self._post_ui(0, self._inicializar_en_background)
 
     def _crear_spinner(self):
         """Deprecated: RemoveBG usa overlay full-frame."""
@@ -64,6 +64,9 @@ class RemoveBgFrame(BaseFrame):
 
     def _inicializar_en_background(self):
         """Inicializa checks pesados sin bloquear la UI."""
+        if operations.is_busy():
+            self.after(100, self._inicializar_en_background)
+            return
         self._show_overlay(t('loading_model'))
 
         def _worker():
@@ -78,9 +81,10 @@ class RemoveBgFrame(BaseFrame):
             except Exception as exc:
                 logger.warning("Error al verificar modelo: %s", exc)
                 modelo_ok = False
-            self.after(0, lambda: self._build_content_ready(disponible, modelo_ok, detalle_error))
+            return disponible, modelo_ok, detalle_error
 
-        threading.Thread(target=_worker, daemon=True).start()
+        self._submit_job(_worker, on_success=lambda result: self._build_content_ready(*result),
+                         on_error=lambda error: self._build_content_ready(False, False, str(error)))
 
     def _build_content_ready(self, disponible: bool, modelo_ok: bool, detalle_error: str | None = None):
         """Construye el contenido una vez finalizados los checks."""
@@ -269,7 +273,7 @@ class RemoveBgFrame(BaseFrame):
         self._ocultar_aviso_primer_uso()
 
         aviso = ctk.CTkFrame(
-            self.content if hasattr(self, 'content') else self,
+            getattr(self, 'content', self),
             corner_radius=8,
             fg_color=colors.SIDEBAR_BG,
             border_width=1,
@@ -335,6 +339,8 @@ class RemoveBgFrame(BaseFrame):
 
     def _cargar_imagenes(self, rutas):
         """Carga las imagenes seleccionadas."""
+        if self._operation_blocked(global_job=False):
+            return
         limite = 10
         total = len(rutas)
         if total > limite:
@@ -353,6 +359,8 @@ class RemoveBgFrame(BaseFrame):
 
     def _procesar(self):
         """Inicia el proceso en segundo plano."""
+        if self._operation_blocked(global_job=True):
+            return
         if not self._imagenes:
             self._lbl_info.configure(text=t('load_images_first'))
             return
@@ -364,24 +372,25 @@ class RemoveBgFrame(BaseFrame):
         self._state.set_model_info(None, False)
         self._btn_procesar.configure(state='disabled', text=t('processing'))
         self._show_overlay(t('analyzing_image'))
-        threading.Thread(target=self._proceso, args=(carpeta,), daemon=True).start()
+        paths, fmt = tuple(self._imagenes), self._formato_salida.get()
+        self._submit_job(lambda: self._proceso(carpeta, paths, fmt), button=self._btn_procesar, text=t('remove_bg_btn'))
 
-    def _proceso(self, carpeta):
+    def _proceso(self, carpeta, paths, fmt):
         """Ejecuta la eliminacion de fondo."""
         try:
             if not modelo_descargado():
-                self.after(0, lambda: self._set_overlay_key('downloading_model'))
+                self._post_ui(0, lambda: self._set_overlay_key('downloading_model'))
                 ensure_model()
 
-            self.after(0, lambda: self._set_overlay_key('loading_model'))
-            self.after(0, lambda: self._set_overlay_key('analyzing_image'))
+            self._post_ui(0, lambda: self._set_overlay_key('loading_model'))
+            self._post_ui(0, lambda: self._set_overlay_key('analyzing_image'))
             res = batch_quitar_fondo(
-                self._imagenes,
+                paths,
                 carpeta,
-                formato_salida=self._formato_salida.get(),
-                status_callback=lambda key: self.after(0, lambda k=key: self._set_overlay_key(k)),
+                formato_salida=fmt,
+                status_callback=lambda key: self._post_ui(0, lambda k=key: self._set_overlay_key(k)),
             )
-            self.after(0, lambda: self._finalizar(
+            self._post_ui(0, lambda: self._finalizar(
                 res['ok'],
                 res['errores'],
                 res.get('conflictos', 0),
@@ -393,7 +402,8 @@ class RemoveBgFrame(BaseFrame):
             msg = str(exc).strip()
             if not msg or msg.lower() == 'none':
                 msg = type(exc).__name__
-            self.after(0, lambda: self._handle_error(msg))
+            self._post_ui(0, lambda: self._handle_error(msg))
+        return locals().get('res')
 
     def _handle_error(self, msg: str):
         """Maneja errores y restaura el estado visual."""

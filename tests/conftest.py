@@ -1,3 +1,4 @@
+import os
 import sys
 from pathlib import Path
 
@@ -27,12 +28,23 @@ def assert_image_size(path: Path, expected_size: tuple[int, int]):
         assert img.size == expected_size
 
 
-@pytest.fixture()
-def ui_root():
+@pytest.fixture(scope="session")
+def tk_session():
     try:
         root = ctk.CTk()
-    except tkinter.TclError:
-        pytest.skip("Tk no disponible en el entorno de test")
+    except tkinter.TclError as error:
+        if os.environ.get('CI') or os.environ.get('YAGUA_REQUIRE_UI') == '1':
+            pytest.fail(f'Tk required for CI tests: {error}')
+        pytest.skip(f'Tk no disponible en el entorno de test: {error}')
+    root.withdraw()
+    yield root
+    root.destroy()
+
+
+@pytest.fixture()
+def ui_root(tk_session):
+    # One Tcl interpreter, a fresh window per test, as in a running desktop app.
+    root = ctk.CTkToplevel(tk_session)
     root.withdraw()
     yield root
     root.destroy()

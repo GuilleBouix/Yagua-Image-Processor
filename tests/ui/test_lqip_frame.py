@@ -94,7 +94,7 @@ def test_generation_uses_snapshot_and_discards_stale_results(ui_root, fixtures_d
         def submit(self, owner, label, work, success, failure):
             submitted.append((work, success))
             return True
-    monkeypatch.setattr(frame_module, 'operations', CapturedCoordinator())
+    monkeypatch.setattr(LqipFrame, '_submit_job', lambda self, work, **options: CapturedCoordinator().submit(self, 'lqip', work, options['on_success'], options['on_error']))
     frame = LqipFrame(ui_root)
     path = str(fixtures_dir / 'sample.png')
     frame._cargar_imagenes([path])
@@ -295,3 +295,19 @@ def test_copy_does_not_report_success_if_clipboard_is_truncated(ui_root, fixture
     frame._copiar()
     assert frame._lbl_info.cget('text') == t('lqip_copy_failed')
     frame.destroy()
+
+
+def test_active_lqip_rejects_programmatic_selection_and_clear(ui_root, fixtures_dir):
+    from app.ui.operations import operations
+    frame = LqipFrame(ui_root)
+    path = str(fixtures_dir / 'sample.png')
+    frame._cargar_imagenes([path])
+    operation = operations.begin(frame, 'test')
+    assert operation is not None
+    try:
+        frame._cargar_imagenes([str(fixtures_dir / 'sample.jpg')])
+        frame._limpiar()
+        assert frame._imagenes == [path]
+    finally:
+        operations.finish(operation.id)
+        frame.destroy()

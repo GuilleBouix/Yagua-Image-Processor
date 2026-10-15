@@ -1,0 +1,25 @@
+{
+  "status": "passed",
+  "frozen": true,
+  "offline": true,
+  "mode": "preflight",
+  "stages": [
+    {
+      "name": "native-imports-and-cpu",
+      "status": "passed"
+    },
+    {
+      "name": "restart-target",
+      "status": "passed"
+    },
+    {
+      "name": "packaged-font-and-render",
+      "status": "passed"
+    }
+  ],
+  "executable_sha256": "c873d68977f42faf3174f5ca9ab066292bb2a4698a37ba21882b1b1f4de18f00",
+  "source_branch": "codex/yagua-v2-readiness",
+  "scope": "Native imports, bundled font/render and restart target. Models, actual restart and full UI are separate acceptance checks.",
+  "source_snapshot_sha256": "610832813729c2ca8ddad5525314c920d79323e7128048451d10ee2617c7186a",
+  "source_files_hashed": 94
+}

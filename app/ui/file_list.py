@@ -18,6 +18,7 @@ import customtkinter as ctk
 from PIL import Image
 
 from app.ui import colors, fonts
+from app.translations import t
 from app.modules.compress import formatear_bytes
 
 
@@ -82,7 +83,10 @@ def add_file_row(container, ruta, filas, *, name_max=32, thumb_size=44, show_ext
     ).pack(anchor='w')
 
     # Obtener tamano formateado
-    size_txt = formatear_bytes(p.stat().st_size)
+    try:
+        size_txt = formatear_bytes(p.stat().st_size)
+    except OSError:
+        size_txt = t('error_generic')
     
     # Construir texto de metadatos
     if show_ext:
@@ -145,6 +149,8 @@ def load_thumbs_async(rutas, filas, thumbs, after_fn, *, thumb_size=44):
         after_fn: Funcion para programar actualizaciones en el hilo principal.
         thumb_size: Tamano maximo del thumbnail en pixeles.
     """
+    rows = tuple(filas)
+    paths = tuple(rutas)
     def _worker():
         """
         Worker que genera thumbnails en segundo plano.
@@ -152,7 +158,7 @@ def load_thumbs_async(rutas, filas, thumbs, after_fn, *, thumb_size=44):
         local_thumbs = []
         
         # Generar thumbnail para cada archivo
-        for ruta in rutas:
+        for ruta in paths:
             try:
                 # Abrir y copiar imagen
                 with Image.open(ruta) as img:
@@ -172,6 +178,8 @@ def load_thumbs_async(rutas, filas, thumbs, after_fn, *, thumb_size=44):
         # Funcion para aplicar thumbnails en el hilo principal
         def _apply():
             # Actualizar lista de thumbnails
+            if tuple(filas) != rows or any(not row.winfo_exists() for row in rows):
+                return
             thumbs[:] = [t for t in local_thumbs if t]
             
             # Aplicar thumbnail a cada label
@@ -180,7 +188,9 @@ def load_thumbs_async(rutas, filas, thumbs, after_fn, *, thumb_size=44):
                     filas[indice].configure(image=thumb)
 
         # Programar aplicacion en hilo principal
-        after_fn(0, _apply)
+        from app.ui.operations import operations
+        if rows:
+            operations.post(rows[0], _apply)
 
     # Iniciar worker en hilo daemon
     threading.Thread(target=_worker, daemon=True).start()

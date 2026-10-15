@@ -13,7 +13,9 @@ from pathlib import Path
 from PIL import Image
 
 from app.utils.image_utils import normalize_common
-from app.utils.output import unique_output_path
+from app.utils.output import unique_output_path, safe_image_output
+
+from app.utils.results import FileFailure, file_failure
 
 logger = logging.getLogger(__name__)
 
@@ -103,6 +105,7 @@ def preset_a_dimensiones(key):
     return PRESETS.get(cat, {}).get(nombre)
 
 
+@safe_image_output
 def redimensionar(ruta_entrada, ruta_salida, ancho=None, alto=None,
                    porcentaje=None, preset_key=None, mantener_ratio=True,
                    resample=Image.Resampling.LANCZOS):
@@ -175,6 +178,7 @@ def redimensionar(ruta_entrada, ruta_salida, ancho=None, alto=None,
         }
 
 
+@safe_image_output
 def recortar(ruta_entrada, ruta_salida, ratio=None,
               izq=0, sup=0, der=None, inf=None):
     """
@@ -236,6 +240,7 @@ def recortar(ruta_entrada, ruta_salida, ratio=None,
         }
 
 
+@safe_image_output
 def agregar_canvas(ruta_entrada, ruta_salida, ancho_final, alto_final,
                    color_fondo=(255, 255, 255), centrar=True):
     """
@@ -400,6 +405,7 @@ def batch_redimensionar(rutas, carpeta_salida, *,
     Returns:
         Diccionario con exitos, errores y conflictos.
     """
+    fallos: list[FileFailure] = []
 
     logger.info("Batch redimensionar: %s archivos -> %s", len(rutas), carpeta_salida)
     errores = 0
@@ -422,10 +428,11 @@ def batch_redimensionar(rutas, carpeta_salida, *,
                 mantener_ratio=mantener_ratio,
             )
         except Exception as exc:
+            fallos.append(file_failure(str(ruta), exc))
             logger.warning("Error al redimensionar %s: %s", ruta, exc)
             errores += 1
     
-    return {'ok': len(rutas) - errores, 'errores': errores, 'conflictos': conflictos}
+    return {'fallos': fallos, 'ok': len(rutas) - errores, 'errores': errores, 'conflictos': conflictos}
 
 
 def batch_recortar(rutas, carpeta_salida, *, ratio=None, sufijo='_crop'):
@@ -441,6 +448,7 @@ def batch_recortar(rutas, carpeta_salida, *, ratio=None, sufijo='_crop'):
     Returns:
         Diccionario con exitos, errores y conflictos.
     """
+    fallos: list[FileFailure] = []
 
     logger.info("Batch recortar: %s archivos -> %s", len(rutas), carpeta_salida)
     errores = 0
@@ -456,10 +464,11 @@ def batch_recortar(rutas, carpeta_salida, *, ratio=None, sufijo='_crop'):
                 conflictos += 1
             recortar(ruta, salida, ratio=ratio)
         except Exception as exc:
+            fallos.append(file_failure(str(ruta), exc))
             logger.warning("Error al recortar %s: %s", ruta, exc)
             errores += 1
     
-    return {'ok': len(rutas) - errores, 'errores': errores, 'conflictos': conflictos}
+    return {'fallos': fallos, 'ok': len(rutas) - errores, 'errores': errores, 'conflictos': conflictos}
 
 
 def batch_canvas(rutas, carpeta_salida, *, ancho, alto, color_fondo, sufijo='_canvas'):
@@ -477,6 +486,7 @@ def batch_canvas(rutas, carpeta_salida, *, ancho, alto, color_fondo, sufijo='_ca
     Returns:
         Diccionario con exitos, errores y conflictos.
     """
+    fallos: list[FileFailure] = []
 
     logger.info("Batch canvas: %s archivos -> %s", len(rutas), carpeta_salida)
     errores = 0
@@ -492,7 +502,8 @@ def batch_canvas(rutas, carpeta_salida, *, ancho, alto, color_fondo, sufijo='_ca
                 conflictos += 1
             agregar_canvas(ruta, salida, ancho, alto, color_fondo=color_fondo)
         except Exception as exc:
+            fallos.append(file_failure(str(ruta), exc))
             logger.warning("Error al aplicar canvas %s: %s", ruta, exc)
             errores += 1
     
-    return {'ok': len(rutas) - errores, 'errores': errores, 'conflictos': conflictos}
+    return {'fallos': fallos, 'ok': len(rutas) - errores, 'errores': errores, 'conflictos': conflictos}

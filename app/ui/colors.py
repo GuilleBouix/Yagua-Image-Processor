@@ -14,9 +14,8 @@ Relacionado con:
 
 from __future__ import annotations
 
-import json
 
-from app.utils.settings import settings_path
+from app.utils.settings import settings_path, load_settings
 
 
 # Tema por defecto al iniciar la aplicacion
@@ -380,7 +379,7 @@ def _load_theme():
     
     try:
         # Leer tema del archivo de configuracion
-        data = json.loads(path.read_text(encoding='utf-8'))
+        data = load_settings(path)
         theme = data.get('theme')
         
         # Verificar que el tema exista

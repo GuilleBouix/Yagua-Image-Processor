@@ -82,3 +82,10 @@ Compilar-Buildear-Pasos.txt
 index.html
 
 prototype-web
+
+# Local manual image test corpus
+/IMAGENES-PRUEBA/
+
+# Local audit build paths and verbose logs
+/audit/*.log
+/audit/local-build-path.txt

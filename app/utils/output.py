@@ -6,6 +6,11 @@ Uso compartido por modulos de procesamiento.
 from __future__ import annotations
 
 import logging
+from contextlib import contextmanager
+from functools import wraps
+from inspect import signature
+import os
+import tempfile
 from pathlib import Path
 from typing import Tuple
 
@@ -54,3 +59,66 @@ def unique_output_path(
             return ruta_alt, True
         contador += 1
 
+
+
+
+
+@contextmanager
+def atomic_destination(destination: str | Path, *, replace: bool = True):
+    """Publish a complete file on the same filesystem; never expose partial bytes.
+
+    replace=False uses a hard link to publish without a check/overwrite race.
+    A filesystem without hard links fails safely rather than replacing a file.
+    """
+    target = Path(destination)
+    fd, name = tempfile.mkstemp(prefix='.yagua-', suffix=target.suffix, dir=target.parent)
+    os.close(fd)
+    temporary = Path(name)
+    try:
+        yield temporary
+        with temporary.open('rb+') as stream:
+            os.fsync(stream.fileno())
+        if replace:
+            os.replace(temporary, target)
+        elif os.name == 'nt':
+            os.rename(temporary, target)
+        else:
+            os.link(temporary, target)
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
+def atomic_write_text(destination: str | Path, text: str) -> None:
+    with atomic_destination(destination) as temporary:
+        temporary.write_text(text, encoding='utf-8')
+
+
+def require_single_frame(path: str | Path) -> None:
+    from PIL import Image
+    with Image.open(path) as image:
+        if getattr(image, 'n_frames', 1) != 1 or getattr(image, 'is_animated', False):
+            raise ValueError('unsupported_frames')
+
+
+def safe_image_output(function):
+    """Protect path-based processors with the common input/output contract."""
+    parameters = signature(function)
+
+    @wraps(function)
+    def guarded(*args, **kwargs):
+        bound = parameters.bind(*args, **kwargs)
+        source = Path(bound.arguments['ruta_entrada'])
+        destination = Path(bound.arguments['ruta_salida'])
+        require_single_frame(source)
+        before = source.stat()
+        same_file = source.resolve() == destination.resolve()
+        with atomic_destination(destination, replace=same_file) as temporary:
+            bound.arguments['ruta_salida'] = str(temporary)
+            result = function(*bound.args, **bound.kwargs)
+            after = source.stat()
+            if (before.st_size, before.st_mtime_ns) != (after.st_size, after.st_mtime_ns):
+                raise OSError('source_changed')
+        if isinstance(result, dict) and 'ruta_salida' in result:
+            result['ruta_salida'] = str(destination)
+        return result
+    return guarded

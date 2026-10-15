@@ -331,6 +331,8 @@ class RenameFrame(BaseFrame):
 
     def _cargar_imagenes(self, rutas):
         """Carga archivos y dispara el preview."""
+        if self._operation_blocked(global_job=False):
+            return
         self.logger.info("rename.ui: cargar_imagenes (total=%s)", len(rutas))
         limite = 100
         total = len(rutas)
@@ -355,14 +357,16 @@ class RenameFrame(BaseFrame):
         """Lanza la generacion del preview en segundo plano."""
         if not self._imagenes:
             return
-        threading.Thread(target=self._generar_preview, daemon=True).start()
+        self._rename_revision = getattr(self, '_rename_revision', 0) + 1
+        revision = self._rename_revision
+        paths, options = tuple(self._imagenes), self._state.obtener_opciones()
+        threading.Thread(target=self._generar_preview, args=(paths, options, revision), daemon=True).start()
 
-    def _generar_preview(self):
+    def _generar_preview(self, paths, opciones, revision):
         """Genera el preview en segundo plano."""
         try:
-            opciones = self._state.obtener_opciones()
-            preview = generar_nombres_preview(self._imagenes, opciones)
-            self.after(0, lambda: self._renderizar_preview(preview))
+            preview = generar_nombres_preview(paths, opciones)
+            self._post_ui(0, lambda: self._renderizar_preview(preview) if revision == self._rename_revision and tuple(self._imagenes) == paths else None)
         except Exception as exc:
             self.logger.warning("Error al generar preview: %s", exc)
 
@@ -406,20 +410,24 @@ class RenameFrame(BaseFrame):
 
     def _renombrar(self):
         """Inicia el renombrado en segundo plano."""
+        if self._operation_blocked(global_job=True):
+            return
         if not self._imagenes:
             self._lbl_info.configure(text=t('load_files_first'))
             return
         self._btn_renombrar.configure(state='disabled', text=t('renaming'))
         self._show_full_overlay(t('processing'))
-        threading.Thread(target=self._proceso, daemon=True).start()
+        paths, options = tuple(self._imagenes), self._state.obtener_opciones()
+        self._submit_job(lambda: self._proceso(paths, options),
+                         button=self._btn_renombrar, text=t('rename_btn'))
 
-    def _proceso(self):
+    def _proceso(self, paths, opciones):
         """Ejecuta el renombrado."""
-        opciones = self._state.obtener_opciones()
-        res = renombrar_archivos(self._imagenes, opciones)
-        self.after(0, lambda: self._finalizar(
+        res = renombrar_archivos(paths, opciones)
+        self._post_ui(0, lambda: self._finalizar(
             res['ok'], res['errores'], res['conflictos']
         ))
+        return res
 
     def _finalizar(self, ok, errores, conflictos):
         """Muestra el resultado y limpia la seleccion."""

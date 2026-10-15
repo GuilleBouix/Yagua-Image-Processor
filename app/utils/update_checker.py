@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from urllib.parse import urlsplit
 import logging
 import os
 import sys
@@ -87,7 +88,11 @@ def check_latest_stable(current_version: str) -> UpdateInfo | None:
             if remote_version is None or remote_version <= cur_v:
                 continue
 
-            release_url = str(release.get("html_url") or "").strip()
+            raw_url = release.get('html_url')
+            release_url = raw_url.strip() if isinstance(raw_url, str) else ''
+            parsed = urlsplit(release_url)
+            if parsed.scheme != 'https' or not parsed.netloc or parsed.username or parsed.password:
+                release_url = ''
             if not release_url:
                 release_url = f"https://github.com/{repo}/releases/tag/{tag_name}"
 

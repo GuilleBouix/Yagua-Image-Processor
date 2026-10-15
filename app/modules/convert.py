@@ -14,7 +14,9 @@ from typing import Callable, TypedDict
 from PIL import Image
 
 from app.utils.image_utils import normalize_common, ensure_rgb_for_jpeg
-from app.utils.output import unique_output_path
+from app.utils.output import unique_output_path, atomic_destination, require_single_frame
+
+from app.utils.results import FileFailure, file_failure
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +32,7 @@ class ConversionResult(TypedDict):
 
 
 class BatchConversionResult(TypedDict):
+    fallos: list[FileFailure]
     ok: int
     errores: int
     fmt_destino: str
@@ -224,13 +227,15 @@ def convertir_imagen(
     ruta_salida = str(ruta_salida_path)
 
     # Abrir y convertir imagen
+    require_single_frame(ruta_entrada)
     with Image.open(ruta_entrada) as imagen:
         fmt_origen = _EXT_A_FMT.get(ruta_archivo.suffix.lower(), 'JPEG')
 
         imagen = _preparar_para(imagen, formato)
         formato_pil = 'HEIF' if formato == 'HEIC' else formato
         argumentos_guardado = _kwargs_para(formato, calidad)
-        imagen.save(ruta_salida, formato_pil, **argumentos_guardado)
+        with atomic_destination(ruta_salida, replace=False) as temporary:
+            imagen.save(temporary, formato_pil, **argumentos_guardado)
 
     return {
         'ruta_entrada': ruta_entrada,
@@ -244,7 +249,7 @@ def convertir_imagen(
 
 
 def batch_convertir(
-    rutas: list[str | Path],
+    rutas: list[str | Path] | tuple[str | Path, ...],
     fmt_destino: str,
     carpeta_salida: str | Path,
     calidad: int = 90,
@@ -277,7 +282,7 @@ def batch_convertir(
 
 
 def batch_convertir_safe(
-    rutas: list[str | Path],
+    rutas: list[str | Path] | tuple[str | Path, ...],
     fmt_destino: str,
     carpeta_salida: str | Path,
     calidad: int = 90,
@@ -298,6 +303,7 @@ def batch_convertir_safe(
             - fmt_destino: Formato de destino.
             - conflictos: Cantidad de archivos renombrados por colision.
     """
+    fallos: list[FileFailure] = []
 
     logger.info("Batch convertir: %s archivos -> %s (%s)", len(rutas), carpeta_salida, fmt_destino)
     resultados = []
@@ -311,11 +317,12 @@ def batch_convertir_safe(
             resultados.append(res)
             if res.get('conflicto'):
                 conflictos += 1
-        except Exception:
+        except Exception as exc:
+            fallos.append(file_failure(str(ruta), exc))
             logger.warning("Error al convertir %s", ruta, exc_info=True)
             errores += 1
     
-    return {
+    return {'fallos': fallos,
         'ok': len(resultados),
         'errores': errores,
         'fmt_destino': fmt_destino.upper(),

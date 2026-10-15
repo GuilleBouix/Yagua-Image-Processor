@@ -59,18 +59,34 @@ jobs:
         shell: pwsh
         run: |
           ruff check app tests scripts
+          if ($LASTEXITCODE -ne 0) { throw 'Ruff failed' }
           $pythonPath = (Get-Command python).Source
-          pyright --skipunannotated --pythonpath $pythonPath app
+          pyright --pythonpath $pythonPath app
 
       - name: Pytest
         shell: pwsh
         run: |
-          python -m pytest -q
+          python scripts/verify.py -q
 
       - name: Build (PyInstaller)
         shell: pwsh
         run: |
           python -m PyInstaller --clean --noconfirm Yagua.spec
+
+      - name: Verify packaged Windows runtime and UI
+        shell: pwsh
+        run: |
+          $env:APPDATA = Join-Path $env:RUNNER_TEMP 'yagua-profile'
+          $env:U2NET_HOME = Join-Path $env:RUNNER_TEMP 'yagua-models'
+          $env:EASYOCR_MODULE_PATH = Join-Path $env:RUNNER_TEMP 'yagua-ocr'
+          $env:YAGUA_PACKAGE_SELFTEST = Join-Path $env:RUNNER_TEMP 'windows-package-report.json'
+          $env:YAGUA_PACKAGE_SELFTEST_MODE = 'full'
+          $process = Start-Process -FilePath 'dist/Yagua/Yagua.exe' -PassThru -WindowStyle Hidden
+          if (-not $process.WaitForExit(900000)) { $process.Kill(); throw 'Package verification timed out' }
+          if (-not (Test-Path $env:YAGUA_PACKAGE_SELFTEST)) { throw 'Package verification report missing' }
+          $report = Get-Content $env:YAGUA_PACKAGE_SELFTEST -Raw | ConvertFrom-Json
+          if ($report.status -ne 'passed') { throw ($report | ConvertTo-Json -Depth 10) }
+          Remove-Item Env:YAGUA_PACKAGE_SELFTEST
 
       - name: Install Inno Setup
         shell: pwsh

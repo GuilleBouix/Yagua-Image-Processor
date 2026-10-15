@@ -16,7 +16,9 @@ from pathlib import Path
 from PIL import Image
 
 from app.utils.image_utils import normalize_common, ensure_rgb_for_jpeg
-from app.utils.output import unique_output_path
+from app.utils.output import unique_output_path, safe_image_output
+
+from app.utils.results import FileFailure, file_failure
 
 logger = logging.getLogger(__name__)
 
@@ -131,6 +133,7 @@ def _kwargs_guardado(imagen, formato, calidad, quitar_exif):
     return {}
 
 
+@safe_image_output
 def comprimir_imagen(ruta_entrada, ruta_salida, calidad=85, quitar_exif=True):
     """
     Comprime una imagen manteniendo su formato original.
@@ -164,13 +167,18 @@ def comprimir_imagen(ruta_entrada, ruta_salida, calidad=85, quitar_exif=True):
     with Image.open(ruta_entrada) as imagen:
         imagen = _preparar_imagen(imagen, formato)
         argumentos_guardado = _kwargs_guardado(imagen, formato, calidad, quitar_exif)
+        if quitar_exif:
+            imagen.info.pop('exif', None)
+            imagen.info.pop('Raw profile type exif', None)
+        if imagen.info.get('icc_profile'):
+            argumentos_guardado['icc_profile'] = imagen.info['icc_profile']
         imagen.save(ruta_salida, formato, **argumentos_guardado)
 
     # Verificar tamano comprimido
     tam_comprimido = Path(ruta_salida).stat().st_size
 
     # Si el comprimido es mas grande, copiar el original
-    if tam_comprimido >= tam_original:
+    if tam_comprimido >= tam_original and not quitar_exif:
         shutil.copy2(ruta_entrada, ruta_salida)
         tam_comprimido = tam_original
 
@@ -256,6 +264,7 @@ def batch_comprimir(rutas, carpeta_salida, calidad=85, quitar_exif=True, sufijo=
             - reduccion_pct: Porcentaje de reduccion total.
             - conflictos: Cantidad de archivos renombrados por colision.
     """
+    fallos: list[FileFailure] = []
 
     logger.info("Batch comprimir: %s archivos -> %s", len(rutas), carpeta_salida)
     resultados = []
@@ -280,6 +289,7 @@ def batch_comprimir(rutas, carpeta_salida, calidad=85, quitar_exif=True, sufijo=
             )
             resultados.append(res)
         except Exception as exc:
+            fallos.append(file_failure(str(ruta), exc))
             logger.warning("Error al comprimir %s: %s", ruta, exc)
             errores += 1
 
@@ -288,7 +298,7 @@ def batch_comprimir(rutas, carpeta_salida, calidad=85, quitar_exif=True, sufijo=
     total_comp = sum(r['tam_comprimido'] for r in resultados) or 0
     reduccion = round((1 - total_comp / total_orig) * 100, 1) if total_orig else 0
     
-    return {
+    return {'fallos': fallos,
         'ok': len(resultados),
         'errores': errores,
         'total_original': total_orig,
