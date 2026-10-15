@@ -1,5 +1,6 @@
 import re
 import io
+from pathlib import Path
 
 import pytest
 
@@ -85,3 +86,17 @@ def test_conversion_profile_probe_reads_exported_files(tmp_path, monkeypatch):
     assert package_selftest._verify_conversion_profiles(tmp_path) == {
         'RGB-JPEG': True, 'RGB-WEBP': True, 'RGBA-JPEG': True, 'RGBA-WEBP': True,
     }
+
+
+def test_frozen_numba_fallback_uses_measured_cache_not_windows_known_folder(tmp_path, monkeypatch):
+    from numba.core import caching
+
+    # Restore the third-party module after testing the process-local override.
+    monkeypatch.setattr(caching, 'AppDirs', caching.AppDirs)
+    monkeypatch.setattr(caching.sys, 'frozen', True, raising=False)
+    measured = tmp_path / 'profile/numba'
+    package_selftest._redirect_probe_numba_cache(measured)
+    nonexistent_source = str(tmp_path / 'frozen-module.py')
+    locator = caching.UserWideCacheLocator.from_function(lambda: None, nonexistent_source)
+    assert locator is not None
+    assert Path(locator.get_cache_path()).is_relative_to(measured)

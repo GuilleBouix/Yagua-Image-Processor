@@ -86,6 +86,8 @@ def main():
     if len([path for path in before if path.endswith(('.pth', '.onnx'))]) != 5:
         raise RuntimeError(f'Expected CRAFT, English, Latin, ISNet and U2NetP: {before}')
     run(args.executable, args.root, 'offline')
+    if not any((args.root / 'caches/numba').rglob('*.nbc')):
+        raise RuntimeError('The frozen PyMatting/Numba cache was not captured in the measured profile')
     after = model_manifest(args.root / 'models')
     if before != after:
         raise RuntimeError('Model cache changed during offline reuse')

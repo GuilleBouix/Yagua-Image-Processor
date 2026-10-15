@@ -237,6 +237,18 @@ def _verify_conversion_profiles(work: Path) -> dict[str, bool]:
     return preserved
 
 
+def _redirect_probe_numba_cache(directory: Path) -> None:
+    # Numba's user-provided locator ignores frozen modules without a source file.
+    # Its fallback queries Windows known folders, ignoring LOCALAPPDATA. Redirect
+    # that fallback only in this disposable verification process, before rembg
+    # imports PyMatting and eagerly compiles its kernels.
+    from types import SimpleNamespace
+    from numba.core import caching
+
+    directory.mkdir(parents=True, exist_ok=True)
+    caching.AppDirs = lambda *args, **kwargs: SimpleNamespace(user_cache_dir=str(directory.resolve()))
+
+
 def _verify_startup() -> None:
     import customtkinter as ctk
     from app.app import YaguaApp
@@ -362,7 +374,12 @@ def run(report_path: Path) -> int:
 
             for fallback in (False, True):
                 model = remove_bg.FALLBACK_MODEL if fallback else remove_bg.DEFAULT_MODEL
-                _stage(result, f'background-init-{model}', lambda: remove_bg._load_session(model))
+
+                def load_background_model():
+                    _redirect_probe_numba_cache(Path(os.environ['NUMBA_CACHE_DIR']))
+                    return remove_bg._load_session(model)
+
+                _stage(result, f'background-init-{model}', load_background_model)
                 _stage(result, f'background-{model}', lambda: verify_background_removal(fallback))
 
             def verify_ui():
