@@ -16,17 +16,14 @@ AppDir:
       - sourceline: "deb [arch=amd64] http://archive.ubuntu.com/ubuntu/ jammy main restricted universe multiverse"
         key_url: "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x871920D1991BC93C"
     include:
-      - libgl1
       - libglib2.0-0
       - libsm6
       - libxext6
       - libxrender1
-      - libgtk-3-0
       - libx11-6
       - libxkbcommon0
       - libfontconfig1
       - libfreetype6
-      - libnss3
       - libgomp1
 
   files:

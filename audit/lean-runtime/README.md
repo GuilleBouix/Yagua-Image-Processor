@@ -11,9 +11,11 @@ Rama: `codex/lean-runtime`. Base de comparación: `1914a11`.
 - Se retiran 45 entradas ajenas a la ejecución, seis pasan a desarrollo y cinco a construcción. Lista exacta: [dependencies.json](dependencies.json).
 - Se conservan Torch, Torchvision, ONNX Runtime, NumPy, SciPy, Numba, llvmlite y PyMatting. No se recortan sus módulos internos ni DLL/SO arbitrarias.
 - Los imports estáticos resuelven la API y las sesiones de rembg. Se excluyen sus comandos/CLI; se conserva su registro de sesiones completo, porque el paquete lo importa al inicializar.
+- Torch conserva todos sus módulos y bibliotecas. Se excluyen exclusivamente sus ejecutables de pruebas C++ y el compilador Protobuf; permanece `torch_shm_manager`.
 - EasyOCR conserva código/configuración compartidos, CRAFT, reconocimiento inglés y latino. Solo se empaquetan recursos de idiomas español/inglés: son las opciones actuales de OCR, independientemente del idioma de la interfaz.
 - Recursos del instalador y macOS quedan en el repositorio. Fuentes, iconos de la app, licencias, metadatos y codecs permanecen en el paquete.
 - La DLL `opencv_videoio_ffmpeg*` es exclusivamente de video. Su exclusión se comprueba con imports nativos, los nueve formatos y OCR real en el ejecutable.
+- Linux: la inspección de dependencias ELF encontró cero consumidores de GTK, OpenGL y Mozilla NSS en el paquete de la app ni en su cierre de dependencias. Se retiran esas tres raíces de la receta; la evidencia previa está en [linux-native-before.json](linux-native-before.json). Se conservan X11, fuentes, OpenMP y las dependencias de Tk. FFmpeg y OpenBLAS de OpenCV en Linux sí están enlazados y permanecen.
 
 Quitar una dependencia del entorno no implica ahorrar su tamaño completo en el ejecutable: algunas ya no se empaquetaban. El ahorro se informa mediante archivos reales.
 
@@ -39,9 +41,13 @@ En cada plataforma:
 2. Construcción de la base y del candidato, secuencialmente en el mismo runner y con entornos nuevos. El único cambio sobre la base es el mismo verificador optativo que usa el candidato; su lógica, requisitos y especificación originales se conservan.
 3. Linux construye AppImage y verifica su runtime y la extracción. Windows construye la carpeta portable y ZIP.
 4. Tres arranques con dibujo de la pantalla inicial, sin red. Se registra tiempo total del proceso, incluido arranque y cierre.
-5. Pruebas online con descarga, luego en un proceso nuevo con sockets bloqueados: español, inglés, ambos; modelos principal y fallback; transparencia, nueve formatos, orientación, píxeles/ICC/EXIF; navegación de todos los módulos, portapapeles y exportación TXT.
+5. Pruebas online con descarga, luego en un proceso nuevo con sockets bloqueados: español, inglés, ambos; modelos principal y fallback; transparencia, nueve formatos, orientación, píxeles/ICC/EXIF; navegación de todos los módulos, portapapeles y exportación TXT. Los SHA256 de los modelos deben conservarse y las nueve conversiones deben decodificar a los mismos píxeles que la base.
 6. Se registran carga de modelos, procesamiento, tiempo y pico de memoria residente del proceso por etapa. Es un pico acumulado, no memoria exclusiva de esa etapa. La descarga online depende de la red; comparar las etapas offline para tiempos de carga/procesamiento.
 7. Inventario congelado: módulos prohibidos, recursos OCR, DLL de video y recursos ajenos a la plataforma.
+
+Los procesos de verificación reciben un perfil de usuario, carpetas de fuentes,
+preferencias y temporales propios antes de importar Tk; también se incluyen esas
+cachés en la medición. No se modifica el perfil real del editor.
 
 Desde el repositorio, con Python 3.13:
 

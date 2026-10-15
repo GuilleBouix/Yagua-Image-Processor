@@ -126,9 +126,13 @@ def main():
         (reports / 'comparison.json').write_text(json.dumps(results, indent=2) + '\n', encoding='utf-8')
     if all('installed_bytes' in results[label] for label in ('baseline', 'candidate')):
         results['saved_bytes'] = results['baseline']['installed_bytes'] - results['candidate']['installed_bytes']
+        roundtrips = [json.loads((reports / label / 'offline.json').read_text(encoding='utf-8'))[
+            'image_roundtrips'] for label in ('baseline', 'candidate')]
+        results['image_contract_matches'] = roundtrips[0] == roundtrips[1]
     (reports / 'comparison.json').write_text(json.dumps(results, indent=2) + '\n', encoding='utf-8')
     print(json.dumps(results, indent=2))
-    return 0 if results['candidate']['within_budget'] and 'error' not in results['baseline'] else 1
+    return 0 if (results['candidate']['within_budget'] and 'error' not in results['baseline']
+                 and results.get('image_contract_matches')) else 1
 
 
 if __name__ == '__main__':

@@ -7,6 +7,8 @@ import re
 import subprocess
 import sys
 
+from scripts.packaging_rules import omit_packaged_file
+
 
 def elf_dependencies(package: Path) -> dict[str, list[str]]:
     """Record actual ELF dependencies, never remove binaries by their size."""
@@ -43,11 +45,23 @@ def audit(package: Path, work: Path, enforce=True) -> dict:
                  if path.is_file() and (path.suffix == '.icns' or path.name in {
                      'installer_icon.ico', 'wizard_image.bmp', 'wizard_small.bmp',
                  })]
+    developer_executables = [str(path.relative_to(package)) for path in files
+                             if path.is_file() and path.parent.name == 'bin'
+                             and path.parent.parent.name == 'torch'
+                             and omit_packaged_file(f'torch/bin/{path.name}')]
     result = {'forbidden_modules': included, 'video_plugins': video,
               'ocr_characters': characters, 'unused_assets': resources,
-              'python_modules': len(names)}
+              'python_modules': len(names), 'developer_executables': developer_executables}
     if sys.platform == 'linux':
         result['elf_needed'] = elf_dependencies(package)
-    if enforce and (included or video or resources or characters != ['en_char.txt', 'es_char.txt']):
+        result['unexpected_system_libraries'] = [
+            path for path in result['elf_needed'] if Path(path).name.startswith((
+                'libgtk-3.', 'libgdk-3.', 'libGL.', 'libGLX.', 'libEGL.', 'libGLdispatch.',
+                'libnss3.', 'libsmime3.', 'libssl3.',
+            ))
+        ]
+    if enforce and (included or video or resources or developer_executables
+                    or result.get('unexpected_system_libraries')
+                    or characters != ['en_char.txt', 'es_char.txt']):
         raise RuntimeError(json.dumps(result, indent=2))
     return result

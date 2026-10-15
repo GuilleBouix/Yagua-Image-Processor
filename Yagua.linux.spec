@@ -20,10 +20,11 @@ a = Analysis(
     cipher=block_cipher,
     noarchive=False,
 )
-# Headless OpenCV still ships a video-only FFmpeg plugin on Windows. Yagua
-# uses Pillow codecs for files and cv2 only for arrays/OCR, never VideoCapture.
-a.binaries = [entry for entry in a.binaries
-              if not Path(entry[0]).name.lower().startswith('opencv_videoio_ffmpeg')]
+# Filter only proven developer programs and the Windows video plugin.
+# Keep all runtime Torch/SciPy modules and DLL/SO dependencies intact.
+for collection in (a.datas, a.binaries):
+    collection[:] = [entry for entry in collection
+                     if not rules['omit_packaged_file'](entry[0])]
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 
 exe = EXE(

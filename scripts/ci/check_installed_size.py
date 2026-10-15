@@ -4,6 +4,7 @@ import argparse
 import json
 from pathlib import Path
 import sys
+from collections import defaultdict
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from scripts.ci.check_linux_size import MAX_BYTES, artifact_size, within_budget
@@ -16,17 +17,38 @@ def measure(app: Path, models: Path, caches: Path, compressed: Path) -> dict:
         raise ValueError('App, models and caches must be separate, non-overlapping paths')
     components = dict(zip(('app', 'models', 'caches'), map(artifact_size, paths)))
     total = sum(components.values())
+    files = []
+    groups = defaultdict(int)
+    aliases = {'cv2': 'OpenCV', 'opencv_python_headless.libs': 'OpenCV',
+               'opencv_python.libs': 'OpenCV', 'PIL': 'Pillow', 'pillow.libs': 'Pillow'}
+    for name, root in zip(components, paths):
+        for path in root.rglob('*'):
+            if not path.is_file() or path.is_symlink():
+                continue
+            size = path.stat().st_size
+            files.append((size, name, root, path))
+            if name != 'app':
+                continue
+            parts = path.relative_to(root).parts
+            if '_internal' in parts:
+                internal = parts.index('_internal') + 1
+                group = parts[internal] if len(parts) > internal + 1 else 'native-and-stdlib'
+                group = aliases.get(group, group.removesuffix('.libs'))
+                if '.dist-info' in group or '.egg-info' in group:
+                    group = 'licenses-and-metadata'
+            else:
+                group = ('linux-system' if parts[0] in {'usr', 'lib', 'etc'}
+                         and parts[:3] != ('usr', 'lib', 'yagua') else 'launcher-and-root')
+            groups[group] += size
     return {
         'limit_bytes': MAX_BYTES, 'components_bytes': components,
         'installed_bytes': total, 'compressed_bytes': artifact_size(compressed),
         'within_budget': within_budget(total),
+        'app_groups_bytes': dict(sorted(groups.items(), key=lambda item: item[1], reverse=True)),
         'largest_files': [
             {'path': str(path.relative_to(root)), 'component': name, 'bytes': size}
             for size, name, root, path in sorted(
-                ((path.stat().st_size, name, root, path)
-                 for name, root in zip(components, paths)
-                 for path in root.rglob('*') if path.is_file() and not path.is_symlink()),
-                key=lambda item: item[0], reverse=True,
+                files, key=lambda item: item[0], reverse=True,
             )[:30]
         ],
     }

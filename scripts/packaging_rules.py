@@ -23,6 +23,19 @@ def assert_clean_environment() -> None:
         )
 
 
+def omit_packaged_file(destination: str) -> bool:
+    """Omit named developer executables, never Torch/SciPy runtime libraries."""
+    path = Path(destination.replace('\\', '/'))
+    if path.name.lower().startswith('opencv_videoio_ffmpeg'):
+        return True
+    if path.parts[:2] == ('torch', 'bin'):
+        return (path.name.startswith('test_') and path.suffix in {'', '.exe'}) or path.name in {
+            'protoc', 'protoc.exe', 'protoc-3.13.0.0',
+            'HashStoreTest', 'FileStoreTest', 'TCPStoreTest',
+        }
+    return False
+
+
 def application_modules(root: Path) -> list[str]:
     """Enumerate only our dynamic registry; never import frames while building."""
     return sorted({

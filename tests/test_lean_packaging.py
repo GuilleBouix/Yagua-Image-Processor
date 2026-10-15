@@ -49,6 +49,27 @@ def test_packaging_rejects_a_test_or_editor_environment(monkeypatch):
         packaging_rules.assert_clean_environment()
 
 
+@pytest.mark.parametrize('destination', [
+    'torch/bin/test_api', 'torch/bin/test_jit', 'torch/bin/test_lazy',
+    'torch/bin/protoc', 'torch/bin/protoc-3.13.0.0', 'torch\\bin\\protoc.exe',
+    'torch/bin/HashStoreTest', 'torch/bin/FileStoreTest', 'torch/bin/TCPStoreTest',
+    'cv2/opencv_videoio_ffmpeg4130_64.dll',
+])
+def test_omit_developer_executables_and_video_plugin(destination):
+    assert packaging_rules.omit_packaged_file(destination)
+
+
+@pytest.mark.parametrize('destination', [
+    'torch/bin/torch_shm_manager', 'torch/lib/libtorch_cpu.so',
+    'torch/bin/test_runtime.dll', 'torch/bin/test_runtime.so',
+    'torch/lib/libtorch_python.so', 'torch/lib/torch_cpu.dll',
+    'scipy/optimize/_highspy/_core.cpython-313-x86_64-linux-gnu.so',
+    'opencv_python_headless.libs/libavcodec-156beeea.so.62.11.100',
+])
+def test_keep_runtime_native_libraries_and_torch_shared_memory_manager(destination):
+    assert not packaging_rules.omit_packaged_file(destination)
+
+
 def test_total_budget_counts_models_and_caches_not_only_app(tmp_path, monkeypatch):
     roots = [tmp_path / name for name in ('app', 'models', 'caches')]
     for root in roots:
@@ -60,6 +81,7 @@ def test_total_budget_counts_models_and_caches_not_only_app(tmp_path, monkeypatc
     report = check_installed_size.measure(*roots, compressed)
     assert report['installed_bytes'] == 12
     assert report['compressed_bytes'] == 2
+    assert sum(report['app_groups_bytes'].values()) == 4
     assert not report['within_budget']
 
 
@@ -118,9 +140,12 @@ def test_probe_isolates_home_fonts_preferences_and_temp_only_in_child(tmp_path, 
 
 
 def test_all_image_codecs_and_metadata_work_without_video(tmp_path):
-    assert package_selftest._verify_image_formats(tmp_path) == [
+    observations = {}
+    assert package_selftest._verify_image_formats(tmp_path, observations) == [
         'JPEG', 'PNG', 'WEBP', 'AVIF', 'HEIC', 'ICO', 'BMP', 'TIFF', 'GIF',
     ]
+    assert len(observations) == 9
+    assert all(len(item['pixel_sha256']) == 64 for item in observations.values())
 
 
 def test_stage_records_time_and_memory_on_failure():
@@ -163,6 +188,20 @@ def test_frozen_audit_accepts_api_and_current_ocr_resources(tmp_path):
     for language in ('en', 'es'):
         (characters / f'{language}_char.txt').write_text(language)
     assert audit(package, tmp_path)['forbidden_modules'] == []
+
+
+def test_frozen_audit_rejects_torch_developer_programs(tmp_path):
+    (tmp_path / 'PYZ-00.toc').write_text(repr(('archive', [])))
+    package = tmp_path / 'package'
+    characters = package / 'easyocr/character'
+    characters.mkdir(parents=True)
+    for language in ('en', 'es'):
+        (characters / f'{language}_char.txt').write_text(language)
+    program = package / 'torch/bin/protoc'
+    program.parent.mkdir(parents=True)
+    program.write_bytes(b'developer executable')
+    with pytest.raises(RuntimeError, match='developer_executables'):
+        audit(package, tmp_path)
 
 
 def test_native_audit_reads_dependencies_without_deleting_files(tmp_path, monkeypatch):

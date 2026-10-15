@@ -161,7 +161,7 @@ def _render_ocr_sample(work: Path):
     return image_path
 
 
-def _verify_image_formats(work: Path) -> list[str]:
+def _verify_image_formats(work: Path, observations: dict | None = None) -> list[str]:
     """Exercise installed encoders/decoders, including native HEIC/AVIF codecs."""
     import hashlib
     from PIL import Image, ImageCms
@@ -180,8 +180,11 @@ def _verify_image_formats(work: Path) -> list[str]:
             if output.size != image.size and fmt != 'ICO':
                 raise RuntimeError(f'Wrong dimensions after {fmt}: {output.size}')
             alpha_min, _ = output.convert('RGBA').getchannel('A').getextrema()
-            if fmt in {'PNG', 'WEBP', 'TIFF'} and alpha_min == 255:
+            if fmt in {'PNG', 'WEBP', 'TIFF', 'AVIF', 'HEIC', 'ICO'} and alpha_min == 255:
                 raise RuntimeError(f'Lost transparency after {fmt}')
+            if observations is not None:
+                observations[fmt] = {'mode': output.mode, 'size': list(output.size),
+                                     'pixel_sha256': hashlib.sha256(output.tobytes()).hexdigest()}
         # The real OCR input path decodes through Pillow then cv2, not FFmpeg.
         if ocr.preprocesar_imagen(result['ruta_salida']).size == 0:
             raise RuntimeError(f'OCR could not decode {fmt}')
@@ -282,8 +285,9 @@ def run(report_path: Path) -> int:
             from PIL import Image, ImageDraw
             from app.modules import ocr, remove_bg
 
+            result['image_roundtrips'] = {}
             result['image_formats'] = _stage(result, 'image-formats-and-metadata',
-                                              lambda: _verify_image_formats(work))
+                lambda: _verify_image_formats(work, result['image_roundtrips']))
 
             def verify_ocr(languages):
                 batch_result = ocr.batch_procesar([str(image_path)], idiomas=languages)
