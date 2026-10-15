@@ -28,6 +28,7 @@ def command(args, cwd, log, env=None):
 
 def validate(label: str, base_ref: str, reports: Path) -> dict:
     from scripts.ci.check_installed_size import measure
+    from scripts.ci.audit_frozen import audit
     destination = reports / label
     destination.mkdir()
     log = destination / 'build.log'
@@ -65,7 +66,8 @@ def validate(label: str, base_ref: str, reports: Path) -> dict:
             # AppImage tooling has its own environment; it cannot contaminate Analysis.
             tools = task / 'tools'
             command([sys.executable, '-m', 'venv', tools], ROOT, log)
-            command([tools / 'bin/python', '-m', 'pip', 'install', 'appimage-builder==1.1.0'], ROOT, log)
+            command([tools / 'bin/python', '-m', 'pip', 'install',
+                     'setuptools==81.0.0', 'appimage-builder==1.1.0'], ROOT, log)
             env.update({
                 'PATH': str(tools / 'bin') + os.pathsep + env['PATH'],
                 'PYTHON_BIN': str(python), 'BUILD_DIR': str(work), 'DIST_DIR': str(dist),
@@ -81,6 +83,8 @@ def validate(label: str, base_ref: str, reports: Path) -> dict:
                      compressed, task / 'runtime-probe', '--preflight'], ROOT, log, env)
             shutil.copy2(task / 'runtime-probe/preflight/selftest.json', destination / 'appimage-runtime.json')
         probe = task / 'probe'
+        inventory = audit(package, work, enforce=label != 'baseline')
+        (destination / 'inventory.json').write_text(json.dumps(inventory, indent=2) + '\n', encoding='utf-8')
         args = [sys.executable, ROOT / 'scripts/ci/probe_package.py', executable, probe]
         if os.name != 'nt':
             args = ['xvfb-run', '-a'] + args

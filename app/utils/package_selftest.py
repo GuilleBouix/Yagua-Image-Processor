@@ -240,6 +240,7 @@ def run(report_path: Path) -> int:
         'stages': [],
     }
     if mode == 'startup':
+        result['offline'] = True
         try:
             if not result['frozen']:
                 raise RuntimeError('Startup probe requires a frozen package')

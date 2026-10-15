@@ -4,6 +4,7 @@ import pytest
 
 from scripts import packaging_rules
 from scripts.ci import check_installed_size
+from scripts.ci.audit_frozen import audit
 from app.utils import package_selftest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -32,6 +33,17 @@ def test_dynamic_registry_modules_are_included_without_importing_ui():
     assert 'app.ui.frames.metadata.frame' in modules
     assert 'app.translations.es' in modules
     assert all(not name.endswith('.__init__') for name in modules)
+
+
+def test_packaging_rejects_a_test_or_editor_environment(monkeypatch):
+    from types import SimpleNamespace
+
+    monkeypatch.setattr(packaging_rules.importlib.metadata, 'distributions', lambda: [
+        SimpleNamespace(metadata={'Name': 'pytest'}),
+        SimpleNamespace(metadata={'Name': 'opencv-python'}),
+    ])
+    with pytest.raises(RuntimeError, match='new venv'):
+        packaging_rules.assert_clean_environment()
 
 
 def test_total_budget_counts_models_and_caches_not_only_app(tmp_path, monkeypatch):
@@ -73,3 +85,31 @@ def test_stage_records_time_and_memory_on_failure():
     assert stage['status'] == 'failed'
     assert stage['seconds'] >= 0
     assert stage['peak_rss_bytes'] > 0
+
+
+def test_frozen_audit_rejects_optional_cli_and_wrong_language_data(tmp_path):
+    work = tmp_path / 'work'
+    work.mkdir()
+    (work / 'PYZ-00.toc').write_text(repr(('archive', [('rembg.cli', 'cli.py', 'PYMODULE')])))
+    package = tmp_path / 'package'
+    characters = package / 'easyocr/character'
+    characters.mkdir(parents=True)
+    (characters / 'kn.txt').write_text('unused')
+    with pytest.raises(RuntimeError, match='rembg.cli'):
+        audit(package, work)
+    result = audit(package, work, enforce=False)
+    assert result['forbidden_modules'] == ['rembg.cli']
+    assert result['ocr_characters'] == ['kn.txt']
+
+
+def test_frozen_audit_accepts_api_and_current_ocr_resources(tmp_path):
+    (tmp_path / 'PYZ-00.toc').write_text(repr(('archive', [
+        ('rembg.sessions.u2netp', 'session.py', 'PYMODULE'),
+        ('easyocr.model.vgg_model', 'model.py', 'PYMODULE'),
+    ])))
+    package = tmp_path / 'package'
+    characters = package / 'easyocr/character'
+    characters.mkdir(parents=True)
+    for language in ('en', 'es'):
+        (characters / f'{language}_char.txt').write_text(language)
+    assert audit(package, tmp_path)['forbidden_modules'] == []

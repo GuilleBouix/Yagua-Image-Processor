@@ -1,14 +1,26 @@
 """Shared PyInstaller policy for Windows and Linux (no application imports)."""
 
 from pathlib import Path
+import importlib.metadata
 
 EXCLUDES = [
     'pandas', 'pytest', '_pytest', 'pytest_cov', 'coverage', 'tkinterdnd2',
-    'rembg.cli', 'rembg.commands', 'torchaudio', 'triton', 'IPython',
+    'rembg.cli', 'rembg.commands', 'rembg.__main__', 'torchaudio', 'triton', 'IPython',
     'matplotlib', 'notebook', 'jupyter',
 ]
 INSTALLER_ASSETS = {'installer_icon.ico', 'wizard_image.bmp', 'wizard_small.bmp'}
 OCR_LANGUAGES = ['en', 'es']
+
+
+def assert_clean_environment() -> None:
+    forbidden = {'pandas', 'pytest', 'pytest-cov', 'coverage', 'tkinterdnd2', 'opencv-python'}
+    installed = {str(dist.metadata.get('Name') or '').lower().replace('_', '-')
+                 for dist in importlib.metadata.distributions()}
+    unexpected = sorted(installed & forbidden)
+    if unexpected:
+        raise RuntimeError(
+            f'Build environment contains {unexpected}. Use a new venv with runtime + build requirements.'
+        )
 
 
 def application_modules(root: Path) -> list[str]:
@@ -32,6 +44,7 @@ def runtime_assets(root: Path) -> list[tuple[str, str]]:
 def build_inputs(root: Path) -> dict:
     from PyInstaller.utils.hooks import collect_data_files, copy_metadata
 
+    assert_clean_environment()
     datas = runtime_assets(root) + collect_data_files('customtkinter')
     # Preserve licenses and distribution metadata, including PyMatting's runtime lookup.
     for line in (root / 'requirements.txt').read_text(encoding='utf-8').splitlines():

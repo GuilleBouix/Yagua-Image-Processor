@@ -122,7 +122,7 @@ jobs:
           "$RUNNER_TEMP/yagua-build/bin/python" -m pip install -r requirements-linux-cpu.txt -r requirements-build.txt
           "$RUNNER_TEMP/yagua-build/bin/python" -m pip check
           python -m venv "$RUNNER_TEMP/yagua-appimage-tools"
-          "$RUNNER_TEMP/yagua-appimage-tools/bin/python" -m pip install appimage-builder==1.1.0
+          "$RUNNER_TEMP/yagua-appimage-tools/bin/python" -m pip install setuptools==81.0.0 appimage-builder==1.1.0
           echo "PYTHON_BIN=$RUNNER_TEMP/yagua-build/bin/python" >> "$GITHUB_ENV"
           echo "$RUNNER_TEMP/yagua-appimage-tools/bin" >> "$GITHUB_PATH"
       - name: Available disk space

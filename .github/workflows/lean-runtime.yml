@@ -3,6 +3,7 @@ name: Lean runtime validation (no publication)
 on:
   push:
     branches: [codex/lean-runtime]
+    paths-ignore: ["audit/**"]
   workflow_dispatch:
 
 permissions:
