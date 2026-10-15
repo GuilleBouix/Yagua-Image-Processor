@@ -1,6 +1,7 @@
 """Run a frozen app with a disposable profile and shared online/offline models."""
 
 import argparse
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -8,11 +9,26 @@ import subprocess
 import time
 
 
-def run(executable: Path, root: Path, label: str, mode='full') -> dict:
-    home = root / label
-    home.mkdir(parents=True, exist_ok=False)
+def model_manifest(root: Path) -> dict:
+    result = {}
+    for path in sorted(root.rglob('*')):
+        if path.is_file():
+            with path.open('rb') as stream:
+                digest = hashlib.file_digest(stream, 'sha256').hexdigest()
+            result[str(path.relative_to(root))] = {'bytes': path.stat().st_size, 'sha256': digest}
+    return result
+
+
+def isolated_environment(root: Path) -> dict:
     env = os.environ.copy()
     paths = {
+        'HOME': root / 'caches/home',
+        'USERPROFILE': root / 'caches/home',
+        'LOCALAPPDATA': root / 'caches/local',
+        'XDG_DATA_HOME': root / 'caches/data',
+        'TEMP': root / 'caches/temp',
+        'TMP': root / 'caches/temp',
+        'TMPDIR': root / 'caches/temp',
         'APPDATA': root / 'caches/profile',
         'XDG_CONFIG_HOME': root / 'caches/config',
         'XDG_CACHE_HOME': root / 'caches/xdg',
@@ -24,11 +40,19 @@ def run(executable: Path, root: Path, label: str, mode='full') -> dict:
     for key, path in paths.items():
         path.mkdir(parents=True, exist_ok=True)
         env[key] = str(path.resolve())
+    return env
+
+
+def run(executable: Path, root: Path, label: str, mode='full') -> dict:
+    home = root / label
+    home.mkdir(parents=True, exist_ok=False)
+    env = isolated_environment(root)
     env.update({
         'OMP_NUM_THREADS': '2', 'OPENBLAS_NUM_THREADS': '2',
         'YAGUA_PACKAGE_SELFTEST': str((home / 'selftest.json').resolve()),
         'YAGUA_PACKAGE_SELFTEST_MODE': mode,
         'YAGUA_PACKAGE_OFFLINE': '1' if label == 'offline' else '0',
+        'PYTHONIOENCODING': 'utf-8',
     })
     started = time.perf_counter()
     with (home / 'process.log').open('w', encoding='utf-8') as log:
@@ -58,15 +82,14 @@ def main():
     for repetition in range(3):
         run(args.executable, args.root, f'startup-{repetition + 1}', 'startup')
     run(args.executable, args.root, 'online')
-    before = {str(path.relative_to(args.root / 'models')): path.stat().st_size
-              for path in (args.root / 'models').rglob('*') if path.is_file()}
+    before = model_manifest(args.root / 'models')
     if len([path for path in before if path.endswith(('.pth', '.onnx'))]) != 5:
         raise RuntimeError(f'Expected CRAFT, English, Latin, ISNet and U2NetP: {before}')
     run(args.executable, args.root, 'offline')
-    after = {str(path.relative_to(args.root / 'models')): path.stat().st_size
-             for path in (args.root / 'models').rglob('*') if path.is_file()}
+    after = model_manifest(args.root / 'models')
     if before != after:
         raise RuntimeError('Model cache changed during offline reuse')
+    (args.root / 'models-manifest.json').write_text(json.dumps(after, indent=2) + '\n', encoding='utf-8')
 
 
 if __name__ == '__main__':

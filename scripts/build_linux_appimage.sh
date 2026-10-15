@@ -54,12 +54,13 @@ PY
 
 "$PYTHON_BIN" scripts/ci/check_linux_size.py "$DIST_DIR/Yagua"
 test -x "$DIST_DIR/Yagua/Yagua"
-mkdir "$BUILD_DIR/preflight-cwd"
-(
-  cd "$BUILD_DIR/preflight-cwd"
-  YAGUA_PACKAGE_SELFTEST="${PREFLIGHT_REPORT:-$DIST_DIR/selftest-preflight.json}" \
-    YAGUA_PACKAGE_SELFTEST_MODE=preflight xvfb-run -a "$DIST_DIR/Yagua/Yagua"
-)
+# Spawn with a disposable home before importing Tk, so font caches and
+# preferences cannot touch the caller's profile.
+xvfb-run -a "$PYTHON_BIN" scripts/ci/probe_package.py \
+  "$DIST_DIR/Yagua/Yagua" "$BUILD_DIR/preflight-probe" --preflight
+preflight_report="${PREFLIGHT_REPORT:-$DIST_DIR/selftest-preflight.json}"
+mkdir -p "$(dirname "$preflight_report")"
+cp "$BUILD_DIR/preflight-probe/preflight/selftest.json" "$preflight_report"
 
 if [[ -n "$APPDIR_PATH" ]]; then
   mkdir -p \

@@ -5,6 +5,9 @@ import pytest
 from scripts import packaging_rules
 from scripts.ci import check_installed_size
 from scripts.ci.audit_frozen import audit
+from scripts.ci import audit_frozen
+from scripts.ci.probe_package import model_manifest
+from scripts.ci import probe_package
 from app.utils import package_selftest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -67,6 +70,53 @@ def test_size_check_rejects_overlapping_components(tmp_path):
         check_installed_size.measure(tmp_path, child, tmp_path, tmp_path)
 
 
+def test_installed_size_cli_rejects_total_at_limit_without_large_files(tmp_path, monkeypatch):
+    roots = {name: tmp_path / name for name in ('app', 'models', 'caches')}
+    for root in roots.values():
+        root.mkdir()
+    compressed = tmp_path / 'download.zip'
+    compressed.write_bytes(b'zip')
+    sizes = {roots['app']: 1_000_000_000, roots['models']: 499_999_999,
+             roots['caches']: 1, compressed: 3}
+    monkeypatch.setattr(check_installed_size, 'artifact_size', lambda path: sizes[path])
+    args = [item for name, root in roots.items() for item in (f'--{name}', str(root))]
+    args += ['--compressed', str(compressed), '--report', str(tmp_path / 'report.json')]
+    assert check_installed_size.main(args) == 1
+    sizes[roots['caches']] = 0
+    assert check_installed_size.main(args) == 0
+
+
+def test_model_manifest_detects_changed_content_even_at_same_size(tmp_path):
+    model = tmp_path / 'model.onnx'
+    model.write_bytes(b'abc')
+    before = model_manifest(tmp_path)
+    model.write_bytes(b'xyz')
+    after = model_manifest(tmp_path)
+    assert before['model.onnx']['bytes'] == after['model.onnx']['bytes']
+    assert before['model.onnx']['sha256'] != after['model.onnx']['sha256']
+
+
+def test_probe_isolates_home_fonts_preferences_and_temp_only_in_child(tmp_path, monkeypatch):
+    import json
+    import os
+    from types import SimpleNamespace
+
+    original_home = os.environ.get('HOME')
+    root = tmp_path / 'probe'
+    captured = {}
+
+    def process(*args, **kwargs):
+        captured.update(kwargs['env'])
+        Path(captured['YAGUA_PACKAGE_SELFTEST']).write_text(json.dumps({'status': 'passed'}))
+        return SimpleNamespace(returncode=0)
+
+    monkeypatch.setattr(probe_package.subprocess, 'run', process)
+    probe_package.run(tmp_path / 'fake-executable', root, 'online', 'preflight')
+    for key in ('HOME', 'USERPROFILE', 'APPDATA', 'LOCALAPPDATA', 'TEMP', 'TMPDIR', 'XDG_CACHE_HOME'):
+        assert Path(captured[key]).is_relative_to(root / 'caches')
+    assert os.environ.get('HOME') == original_home
+
+
 def test_all_image_codecs_and_metadata_work_without_video(tmp_path):
     assert package_selftest._verify_image_formats(tmp_path) == [
         'JPEG', 'PNG', 'WEBP', 'AVIF', 'HEIC', 'ICO', 'BMP', 'TIFF', 'GIF',
@@ -113,3 +163,17 @@ def test_frozen_audit_accepts_api_and_current_ocr_resources(tmp_path):
     for language in ('en', 'es'):
         (characters / f'{language}_char.txt').write_text(language)
     assert audit(package, tmp_path)['forbidden_modules'] == []
+
+
+def test_native_audit_reads_dependencies_without_deleting_files(tmp_path, monkeypatch):
+    from types import SimpleNamespace
+
+    binary = tmp_path / 'cv2.so'
+    binary.write_bytes(b'\x7fELF-not-a-real-image')
+    (tmp_path / 'font.ttf').write_bytes(b'font')
+    monkeypatch.setattr(audit_frozen.subprocess, 'run', lambda *args, **kwargs: SimpleNamespace(
+        stdout='0x0000000000000001 (NEEDED) Shared library: [libstdc++.so.6]\n'
+               '0x0000000000000001 (NEEDED) Shared library: [libgomp.so.1]\n',
+    ))
+    assert audit_frozen.elf_dependencies(tmp_path) == {'cv2.so': ['libstdc++.so.6', 'libgomp.so.1']}
+    assert binary.read_bytes() == b'\x7fELF-not-a-real-image'

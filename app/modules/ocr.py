@@ -42,7 +42,9 @@ def get_reader(idiomas):
             import easyocr
         except ImportError as exc:
             raise ImportError(f'EasyOCR no está disponible. Ejecutá: {OCR_INSTALL_COMMAND}') from exc
-        reader = easyocr.Reader(list(key))
+        # The UI already shows loading state. EasyOCR's Unicode console bar
+        # can abort downloads on Windows consoles using CP1252.
+        reader = easyocr.Reader(list(key), verbose=False)
         _READER_CACHE[key] = reader
         return reader
 

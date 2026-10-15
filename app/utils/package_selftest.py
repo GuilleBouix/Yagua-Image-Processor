@@ -228,7 +228,17 @@ def _verify_startup() -> None:
         app.destroy()
 
 
+def _prepare_probe_stdio() -> None:
+    # Instrumentation only: redirected Windows CI handles may use CP1252 even
+    # in a windowed executable. EasyOCR's progress bar needs Unicode output.
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, 'reconfigure', None)
+        if callable(reconfigure):
+            reconfigure(encoding='utf-8', errors='backslashreplace')
+
+
 def run(report_path: Path) -> int:
+    _prepare_probe_stdio()
     report_path.parent.mkdir(parents=True, exist_ok=True)
     mode = os.environ.get('YAGUA_PACKAGE_SELFTEST_MODE', 'full')
     offline = os.environ.get('YAGUA_PACKAGE_OFFLINE') == '1'

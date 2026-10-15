@@ -1,8 +1,29 @@
 from pathlib import Path
+import io
+import sys
+from types import SimpleNamespace
 
 import pytest
 
 import app.modules.ocr as ocr
+
+
+def test_first_ocr_load_does_not_print_unicode_progress_to_cp1252(monkeypatch):
+    output = io.TextIOWrapper(io.BytesIO(), encoding='cp1252')
+    calls = []
+    reader = object()
+
+    def create(languages, verbose=True):
+        if verbose:
+            output.write('█')  # Raises UnicodeEncodeError with the old call.
+        calls.append((languages, verbose))
+        return reader
+
+    monkeypatch.setitem(sys.modules, 'easyocr', SimpleNamespace(Reader=create))
+    monkeypatch.setattr(ocr, '_READER_CACHE', {})
+    assert ocr.get_reader(['es', 'en']) is reader
+    assert ocr.get_reader(['es', 'en']) is reader
+    assert calls == [(['es', 'en'], False)]
 
 
 def test_ocr_caso_feliz_sin_modelos(monkeypatch, fixtures_dir: Path):

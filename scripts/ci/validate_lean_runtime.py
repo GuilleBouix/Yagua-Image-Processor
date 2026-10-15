@@ -13,6 +13,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import traceback
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -29,6 +30,7 @@ def command(args, cwd, log, env=None):
 def validate(label: str, base_ref: str, reports: Path) -> dict:
     from scripts.ci.check_installed_size import measure
     from scripts.ci.audit_frozen import audit
+    from scripts.ci.probe_package import isolated_environment
     destination = reports / label
     destination.mkdir()
     log = destination / 'build.log'
@@ -55,10 +57,10 @@ def validate(label: str, base_ref: str, reports: Path) -> dict:
         command([python, '-m', 'pip', 'check'], source, log)
         command([python, '-m', 'pip', 'freeze'], source, destination / 'dependencies.txt')
         dist, work = task / 'dist', task / 'work'
-        env = os.environ.copy()
+        env = isolated_environment(task / 'build-profile')
         if os.name == 'nt':
             command([python, '-m', 'PyInstaller', '--clean', '--noconfirm',
-                     '--distpath', dist, '--workpath', work, 'Yagua.spec'], source, log)
+                     '--distpath', dist, '--workpath', work, 'Yagua.spec'], source, log, env)
             package = dist / 'Yagua'
             executable = package / 'Yagua.exe'
             compressed = Path(shutil.make_archive(str(task / 'Yagua-portable'), 'zip', package))
@@ -94,6 +96,10 @@ def validate(label: str, base_ref: str, reports: Path) -> dict:
             if probe.exists():
                 for path in probe.glob('*/selftest.json'):
                     shutil.copy2(path, destination / f'{path.parent.name}.json')
+                for path in probe.glob('*/process.log'):
+                    shutil.copy2(path, destination / f'{path.parent.name}.log')
+                if (probe / 'models-manifest.json').exists():
+                    shutil.copy2(probe / 'models-manifest.json', destination / 'models.json')
         result = measure(package, probe / 'models', probe / 'caches', compressed)
         (destination / 'sizes.json').write_text(json.dumps(result, indent=2) + '\n', encoding='utf-8')
         # Keep analysis evidence and warnings, not multi-gigabyte intermediate envs.
@@ -112,11 +118,17 @@ def main():
     results = {'host': platform.platform(), 'processor': platform.processor(),
                'python': sys.version, 'baseline_ref': args.baseline}
     for label in ('baseline', 'candidate'):
-        results[label] = validate(label, args.baseline, reports)
-    results['saved_bytes'] = results['baseline']['installed_bytes'] - results['candidate']['installed_bytes']
+        try:
+            results[label] = validate(label, args.baseline, reports)
+        except Exception:
+            results[label] = {'error': traceback.format_exc(), 'within_budget': False}
+            print(results[label]['error'], flush=True)
+        (reports / 'comparison.json').write_text(json.dumps(results, indent=2) + '\n', encoding='utf-8')
+    if all('installed_bytes' in results[label] for label in ('baseline', 'candidate')):
+        results['saved_bytes'] = results['baseline']['installed_bytes'] - results['candidate']['installed_bytes']
     (reports / 'comparison.json').write_text(json.dumps(results, indent=2) + '\n', encoding='utf-8')
     print(json.dumps(results, indent=2))
-    return 0 if results['candidate']['within_budget'] else 1
+    return 0 if results['candidate']['within_budget'] and 'error' not in results['baseline'] else 1
 
 
 if __name__ == '__main__':

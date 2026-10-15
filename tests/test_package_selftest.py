@@ -1,8 +1,19 @@
 import re
+import io
 
 import pytest
 
 from app.utils import package_selftest
+
+
+def test_probe_supports_unicode_in_redirected_windows_console(monkeypatch):
+    output = io.BytesIO()
+    stream = io.TextIOWrapper(output, encoding='cp1252')
+    monkeypatch.setattr(package_selftest.sys, 'stdout', stream)
+    package_selftest._prepare_probe_stdio()
+    stream.write('█')
+    stream.flush()
+    assert output.getvalue() == '█'.encode('utf-8')
 
 
 def test_load_inter_font_reports_missing_resource(monkeypatch, tmp_path):
