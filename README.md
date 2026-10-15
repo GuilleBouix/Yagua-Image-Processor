@@ -151,16 +151,63 @@ The commands use the repository's pinned dependencies. Compatibility with other 
 
 ## Requirements and limits
 
-- **Desktop:** Windows or Linux; Linux packages target x86_64. macOS support is experimental.
+### Hardware
+
+For the complete app, including **OCR and background removal**:
+
+| Component | Provisional minimum | Recommended |
+| --- | --- | --- |
+| Processor | Relatively recent Intel/AMD x86-64 CPU with **4 cores** | Modern CPU with **6–8 cores** |
+| System RAM | **8 GB**, with few other applications open | **16 GB**; **32 GB** for very large images and multitasking |
+| Storage | **4 GB free**, plus space for originals and outputs | **SSD with 10 GB free or more**, in addition to your images |
+| Graphics | Integrated graphics are sufficient; no dedicated GPU required | Integrated graphics are sufficient |
+| Internet | For initial model downloads and update checks | Offline use once the required models are downloaded |
+
+**These are practical estimates for the complete app, not validated hardware minimums. Testing on a low-end PC is still pending.** A system with 4 GB of RAM is not recommended for full OCR and background-removal use. Resource usage depends on image resolution, batch size and models; reduce batch size when resources are limited.
+
+The tested package processes images on the **CPU**; you do not need an NVIDIA or other dedicated GPU. Prioritize CPU, RAM and an SSD. Background removal uses ONNX Runtime's CPU execution provider; see the [official ONNX Runtime documentation](https://onnxruntime.ai/docs/api/python/api_summary.html).
+
+### Operating systems
+
+| System | Baseline and validation |
+| --- | --- |
+| Windows | **Windows 10/11, 64-bit**; Windows 11 preferred. ONNX Runtime lists Windows 10 as its minimum supported Windows version. Final installer and portable-package validation on clean Windows 10/11 PCs is still pending. |
+| Linux | **Ubuntu 22.04 x86-64**, the base checked in CI. Other distributions, versions and desktop environments require validation of the final AppImage. |
+| macOS | Experimental support; no validated native package is claimed. |
+
+Current Windows and Linux packages target **x86-64**; there is no validated native ARM version. CI uses Windows Server and Ubuntu 22.04/Xvfb; those checks do not certify all desktop systems. See [ONNX Runtime platform requirements](https://onnxruntime.ai/docs/build/inferencing.html).
+
+<details>
+<summary>Measured resource usage and first model load</summary>
+
+The [package audit](audit/lean-runtime/README.md) records these approximate observations from CI builds tested on October 15, 2026:
+
+| Measurement | Windows | Linux |
+| --- | --- | --- |
+| Peak process RAM observed with several models loaded | **3.0 GB** | **2.6 GB** |
+| App + all models and caches measured in that test | **1.10 GB** | **1.53 GB** |
+| First background-removal model load (ISNet) | **53 seconds** | **39 seconds** |
+
+**These are observations, not guaranteed maximums or processing times.** The RAM test kept several models loaded; large photographs can use more memory. The disk figures cover the measured package, models and caches, not originals, outputs, temporary extraction space or a source-development environment. Model-load times depend on the machine; the session is reused afterward. They are not model-download times or per-image processing times.
+
+</details>
+
+### Runtime and processing
+
 - **From source:** Python 3.13, Tk and the libraries in [`requirements.txt`](requirements.txt). Prebuilt packages do not require a separate Python installation.
-- **Resources:** RAM, disk space and processing time depend on image resolution, batch size and AI models. Keep space for dependencies, downloaded models and outputs; reduce batch size on machines with limited resources. No measured minimum hardware requirements are documented here.
-- **Batch limits:** The table lists current UI limits: one image for Palette, LQIP / Base64 or EXIF editing, 10 for OCR/background removal and 100 for the other listed batch operations.
+- **Batch limits:** The feature table lists current UI limits: one image for Palette, LQIP / Base64 or EXIF editing, 10 for OCR/background removal and 100 for the other listed batch operations.
 - **Codecs:** HEIC/HEIF uses `pillow-heif`, included in source dependencies. AVIF and other formats depend on Pillow codecs and platform. JPEG has no transparency; use PNG or WebP when alpha is needed. PNG compression can reduce the image to 256 colors, so check the result.
-- **AI models:** Downloads can occur on first use or when a newly selected model/language needs one. Offline use requires the models to be present. CPU processing is available; GPU use depends on compatible hardware and libraries.
+- **AI models:** Downloads can occur on first use or when a newly selected model/language needs one. Offline use requires the models to be present. The tested package runs OCR and background removal on CPU.
 
 ### Linux system libraries
 
-AppImage may need FUSE 2 (`libfuse2` on compatible distributions). For source runs, Linux CI installs Tk and these libraries on Ubuntu 22.04:
+AppImage needs **FUSE 2** for its mounted execution mode (`libfuse2` on compatible distributions). If FUSE is unavailable, extraction is an alternative; see the [official AppImage instructions](https://docs.appimage.org/user-guide/troubleshooting/fuse.html). Replace the example filename with the downloaded file:
+
+~~~bash
+./"Yagua-<version>-x86_64.AppImage" --appimage-extract-and-run
+~~~
+
+Extraction needs additional temporary disk space and can slow startup. For source runs, Linux CI installs Tk and these libraries on Ubuntu 22.04:
 
 ~~~bash
 sudo apt-get install python3-tk libgl1 libglib2.0-0 libsm6 libxext6 libxrender1 libgtk-3-0 libgomp1

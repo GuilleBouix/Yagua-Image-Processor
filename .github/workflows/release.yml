@@ -124,7 +124,7 @@ jobs:
       - name: Release notes
         shell: pwsh
         run: |
-          python scripts/ci/extract_release_notes.py "${{ steps.ver.outputs.version }}" | Out-File -Encoding utf8 "release_notes.md"
+          python -X utf8 scripts/ci/extract_release_notes.py "${{ steps.ver.outputs.version }}" | Out-File -Encoding utf8 "release_notes.md"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2

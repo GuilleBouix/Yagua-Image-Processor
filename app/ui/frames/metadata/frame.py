@@ -24,6 +24,7 @@ from tkinter import filedialog, messagebox
 import webbrowser
 
 import customtkinter as ctk
+from PIL import Image, ImageOps
 
 from app.ui import colors, fonts
 from app.ui.scale import scale_wraplength
@@ -45,6 +46,16 @@ from app.ui.frames.metadata.state import MetadataState
 
 
 logger = logging.getLogger(__name__)
+
+
+def _cargar_preview_edicion(ruta: str) -> Image.Image:
+    """Decodifica una copia acotada para visualizar, sin modificar el archivo."""
+    with Image.open(ruta) as imagen:
+        imagen.draft('RGB', (1024, 1024))
+        preview = ImageOps.exif_transpose(imagen)
+        preview.thumbnail((1024, 1024), Image.Resampling.LANCZOS)
+        return preview.convert('RGB')
+
 
 _ENUM_OPTIONS = {
     'ExposureProgram': {
@@ -80,6 +91,9 @@ class MetadataFrame(BaseFrame):
         logger.info("metadata.ui: init")
         self._state = MetadataState()
         self._preview_img: ctk.CTkImage | None = None
+        self._edit_preview_source: Image.Image | None = None
+        self._edit_preview_job = None
+        self._edit_preview_size = None
         self._thumbs: list[ctk.CTkImage] = []
         self._filas_lote: list[ctk.CTkLabel] = []
         self._campos_edit: dict[str, ctk.CTkEntry | ctk.CTkComboBox] = {}
@@ -287,7 +301,43 @@ class MetadataFrame(BaseFrame):
         )
         self._lbl_edit_target.grid(row=0, column=0, padx=16, pady=16, sticky='nw')
 
+        derecha.grid_rowconfigure(1, weight=1)
+        self._lbl_edit_preview = ctk.CTkLabel(
+            derecha, text='', width=1, height=360,
+            fg_color=colors.DROPZONE_BG, corner_radius=8,
+        )
+        self._lbl_edit_preview.grid(row=1, column=0, padx=16, pady=(0, 16), sticky='nsew')
+        self._lbl_edit_preview.bind('<Configure>', self._programar_preview_edicion, add='+')
+
         return f
+
+    def _programar_preview_edicion(self, _event=None):
+        """Agrupa los cambios de tamaño antes de ajustar la imagen al panel."""
+        if self._edit_preview_job is None:
+            self._edit_preview_job = self.after_idle(self._render_preview_edicion)
+
+    def _render_preview_edicion(self):
+        self._edit_preview_job = None
+        source = self._edit_preview_source
+        if source is None:
+            self._lbl_edit_preview.configure(image=None)
+            # CTkLabel no elimina la imagen nativa al recibir image=None.
+            self._lbl_edit_preview._label.configure(image='')
+            self._preview_img = None
+            self._edit_preview_size = None
+            return
+        scale = self._get_widget_scaling()
+        width = max(1, int(self._lbl_edit_preview.winfo_width() / scale) - 24)
+        height = max(1, int(self._lbl_edit_preview.winfo_height() / scale) - 24)
+        size = (id(source), width, height)
+        if size == self._edit_preview_size:
+            return
+        preview = source.copy()
+        preview.thumbnail((width, height), Image.Resampling.LANCZOS)
+        image = ctk.CTkImage(light_image=preview, dark_image=preview, size=preview.size)
+        self._lbl_edit_preview.configure(image=image)
+        self._preview_img = image
+        self._edit_preview_size = size
 
     def _agregar_campo_edicion(self, panel, campo: str, fila: int) -> int:
         etiqueta = t(CAMPOS_EDITABLES[campo])
@@ -519,10 +569,13 @@ class MetadataFrame(BaseFrame):
             meta, error = leer_campos_edicion_safe(archivo)
             if error:
                 raise ValueError(error)
-            return meta
+            return meta, _cargar_preview_edicion(archivo)
 
-        def loaded(meta):
+        def loaded(result):
+            meta, preview = result
             self._state.ruta_edicion = archivo
+            self._edit_preview_source = preview
+            self._programar_preview_edicion()
             self._aplicar_campos_edit(meta)
 
         self._submit_job(_proc, on_success=loaded)
@@ -630,6 +683,15 @@ class MetadataFrame(BaseFrame):
                 state='normal', text=t('save_changes')
             ))
             if ok:
+                try:
+                    preview = _cargar_preview_edicion(ruta)
+                except Exception:
+                    logger.warning('No se pudo actualizar la preview de %s', ruta, exc_info=True)
+                else:
+                    def actualizar_preview():
+                        self._edit_preview_source = preview
+                        self._programar_preview_edicion()
+                    self._post_ui(0, actualizar_preview)
                 msg = f'{t("saved_as_file")} {Path(ruta).name}'
                 if warning == 'no_exif':
                     msg += f'  -  {t("saved_without_exif")}'
@@ -765,6 +827,8 @@ class MetadataFrame(BaseFrame):
 
         if hasattr(self, '_lbl_edit_target'):
             self._lbl_edit_target.configure(text=t('select_image_edit'))
+        self._edit_preview_source = None
+        self._render_preview_edicion()
 
         for w in self._lista_lote.winfo_children():
             w.destroy()

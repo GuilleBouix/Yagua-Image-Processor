@@ -9,7 +9,7 @@ def _extract_section(md: str, header: str) -> str | None:
     # header is like: [Unreleased] or [2.0.0]
     # Accept: ## [X] or ## [X] - DATE
     pattern = re.compile(
-        rf"^##\s+\[{re.escape(header)}\].*$\n(?P<body>.*?)(?=^##\s+\[|\Z)",
+        rf"^##\s+\[{re.escape(header)}\][^\r\n]*\r?\n(?P<body>.*?)(?=^##\s+\[|\Z)",
         re.MULTILINE | re.DOTALL,
     )
     m = pattern.search(md)

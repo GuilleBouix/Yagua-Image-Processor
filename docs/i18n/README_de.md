@@ -155,16 +155,63 @@ Die Befehle verwenden die im Repository festgelegten Abhängigkeitsversionen. Di
 
 ## Voraussetzungen und Grenzen
 
-- **Desktop:** Windows oder Linux; Linux-Pakete sind für x86_64 vorgesehen. macOS-Unterstützung ist experimentell.
+### Hardware
+
+Für die vollständige App einschließlich **OCR und Hintergrundentfernung**:
+
+| Komponente | Vorläufige Mindestanforderung | Empfohlen |
+| --- | --- | --- |
+| Prozessor | Relativ aktuelle Intel/AMD-x86-64-CPU mit **4 Kernen** | Moderne CPU mit **6–8 Kernen** |
+| Arbeitsspeicher des Computers | **8 GB**, mit wenigen anderen geöffneten Anwendungen | **16 GB**; **32 GB** für sehr große Bilder und Multitasking |
+| Speicherplatz | **4 GB frei**, zusätzlich zum Platz für Originale und Ergebnisse | **SSD mit mindestens 10 GB freiem Platz**, zusätzlich zu deinen Bildern |
+| Grafik | Integrierte Grafik reicht aus; keine dedizierte GPU erforderlich | Integrierte Grafik reicht aus |
+| Internet | Für den ersten Modelldownload und die Suche nach Updates | Offline-Nutzung, sobald die benötigten Modelle heruntergeladen sind |
+
+**Dies sind praktische Schätzungen für die vollständige App, keine validierten Hardware-Mindestanforderungen. Tests auf einem Einsteiger-PC stehen noch aus.** Ein Computer mit 4 GB RAM wird für den vollständigen Einsatz von OCR und Hintergrundentfernung nicht empfohlen. Der Ressourcenbedarf hängt von Auflösung, Stapelgröße und Modellen ab; verkleinere Stapel bei begrenzten Ressourcen.
+
+Das getestete Paket verarbeitet Bilder auf der **CPU**; du brauchst weder eine NVIDIA noch eine andere dedizierte Grafikkarte. Priorisiere Prozessor, RAM und SSD. Die Hintergrundentfernung verwendet den CPU-Ausführungsanbieter von ONNX Runtime; siehe die [offizielle ONNX-Runtime-Dokumentation](https://onnxruntime.ai/docs/api/python/api_summary.html).
+
+### Betriebssysteme
+
+| System | Basis und Validierung |
+| --- | --- |
+| Windows | **Windows 10/11, 64 Bit**; vorzugsweise Windows 11. ONNX Runtime nennt Windows 10 als älteste unterstützte Windows-Version. Die Prüfung des endgültigen Installers und portablen Pakets auf sauberen Windows-10/11-PCs steht noch aus. |
+| Linux | **Ubuntu 22.04 x86-64**, die in der CI geprüfte Basis. Andere Distributionen, Versionen und Desktopumgebungen erfordern eine Prüfung des endgültigen AppImage. |
+| macOS | Experimentelle Unterstützung; ein validiertes natives Paket wird nicht zugesichert. |
+
+Aktuelle Windows- und Linux-Pakete sind für **x86-64** vorgesehen; es gibt keine validierte native ARM-Version. Die CI verwendet Windows Server und Ubuntu 22.04/Xvfb; diese Prüfungen zertifizieren nicht alle Desktopsysteme. Siehe die [Plattformvoraussetzungen von ONNX Runtime](https://onnxruntime.ai/docs/build/inferencing.html).
+
+<details>
+<summary>Gemessener Ressourcenbedarf und erstes Laden des Modells</summary>
+
+Die [Paketprüfung](../../audit/lean-runtime/README.md) dokumentiert diese ungefähren Beobachtungen aus CI-Builds, die am 15. Oktober 2026 getestet wurden:
+
+| Messung | Windows | Linux |
+| --- | --- | --- |
+| Beobachtete Spitzen-RAM-Nutzung des Prozesses mit mehreren geladenen Modellen | **3,0 GB** | **2,6 GB** |
+| App + alle in diesem Test gemessenen Modelle und Caches | **1,10 GB** | **1,53 GB** |
+| Erstes Laden des Modells zur Hintergrundentfernung (ISNet) | **53 Sekunden** | **39 Sekunden** |
+
+**Dies sind Beobachtungen, keine garantierten Höchstwerte oder Laufzeiten.** Beim RAM-Test blieben mehrere Modelle geladen; große Fotos können mehr Speicher benötigen. Die Speicherplatzwerte umfassen das gemessene Paket, Modelle und Caches, nicht Originale, Ergebnisse, temporären Platz zum Entpacken oder eine Entwicklungsumgebung für den Quellcode. Ladezeiten hängen vom Computer ab; anschließend wird die Sitzung wiederverwendet. Es sind weder Modelldownloadzeiten noch Verarbeitungszeiten pro Bild.
+
+</details>
+
+### Ausführung und Verarbeitung
+
 - **Quellcode:** Python 3.13, Tk und die Bibliotheken aus [`requirements.txt`](../../requirements.txt). Fertige Pakete benötigen keine separate Python-Installation.
-- **Ressourcen:** RAM, Speicherplatz und Laufzeit hängen von Bildauflösung, Stapelgröße und KI-Modellen ab. Plane Platz für Abhängigkeiten, Modelle und Ergebnisse ein; verkleinere Stapel bei begrenzten Ressourcen. Hier sind keine gemessenen Mindestanforderungen an die Hardware dokumentiert.
-- **Stapel:** Die Tabelle zeigt die aktuellen Oberflächengrenzen: ein Bild für Palette, LQIP / Base64 oder EXIF-Bearbeitung, 10 für OCR/Hintergrundentfernung und 100 für die anderen aufgeführten Stapelvorgänge.
+- **Stapel:** Die Funktionstabelle zeigt die aktuellen Oberflächengrenzen: ein Bild für Palette, LQIP / Base64 oder EXIF-Bearbeitung, 10 für OCR/Hintergrundentfernung und 100 für die anderen aufgeführten Stapelvorgänge.
 - **Codecs:** HEIC/HEIF verwendet `pillow-heif`, das in den Quellcode-Abhängigkeiten enthalten ist. AVIF und andere Formate hängen von Pillow-Codecs und Plattform ab. JPEG unterstützt keine Transparenz; verwende bei Bedarf PNG oder WebP. PNG-Komprimierung kann das Bild auf 256 Farben reduzieren: Prüfe das Ergebnis.
-- **KI-Modelle:** Downloads können beim ersten Einsatz oder bei einer neu gewählten Modell-/Sprachkombination erfolgen. Für Offline-Nutzung müssen die Modelle gespeichert sein. Verarbeitung auf der CPU ist möglich; GPU-Nutzung hängt von kompatibler Hardware und Bibliotheken ab.
+- **KI-Modelle:** Downloads können beim ersten Einsatz oder bei einer neu gewählten Modell-/Sprachkombination erfolgen. Für Offline-Nutzung müssen die Modelle gespeichert sein. Das getestete Paket führt OCR und Hintergrundentfernung auf der CPU aus.
 
 ### Systembibliotheken unter Linux
 
-AppImage kann FUSE 2 benötigen (`libfuse2` auf passenden Distributionen). Für Quellcode-Ausführungen installiert die CI Tk und diese Bibliotheken unter Ubuntu 22.04:
+AppImage benötigt **FUSE 2** für die Ausführung per Einhängen (`libfuse2` auf passenden Distributionen). Falls FUSE nicht verfügbar ist, kannst du das AppImage stattdessen entpacken; siehe die [offizielle AppImage-Anleitung](https://docs.appimage.org/user-guide/troubleshooting/fuse.html). Ersetze den Beispieldateinamen durch den der heruntergeladenen Datei:
+
+~~~bash
+./"Yagua-<version>-x86_64.AppImage" --appimage-extract-and-run
+~~~
+
+Das Entpacken benötigt zusätzlichen temporären Speicherplatz und kann den Start verlangsamen. Für Quellcode-Ausführungen installiert die CI Tk und diese Bibliotheken unter Ubuntu 22.04:
 
 ~~~bash
 sudo apt-get install python3-tk libgl1 libglib2.0-0 libsm6 libxext6 libxrender1 libgtk-3-0 libgomp1

@@ -159,16 +159,63 @@ Os comandos usam as dependências fixadas pelo repositório. As verificações d
 
 ## Requisitos e limites
 
-- **Desktop:** Windows ou Linux; os pacotes Linux são para x86_64. O suporte ao macOS é experimental.
+### Hardware
+
+Para o aplicativo completo, incluindo **OCR e remoção de fundo**:
+
+| Componente | Mínimo provisório | Recomendado |
+| --- | --- | --- |
+| Processador | Intel/AMD x86-64 relativamente recente, com **4 núcleos** | CPU moderna com **6–8 núcleos** |
+| RAM do computador | **8 GB**, com poucos outros aplicativos abertos | **16 GB**; **32 GB** para imagens muito grandes e multitarefa |
+| Armazenamento | **4 GB livres**, além do espaço para originais e resultados | **SSD com 10 GB livres ou mais**, além das suas imagens |
+| Gráficos | Gráficos integrados são suficientes; GPU dedicada não é obrigatória | Gráficos integrados são suficientes |
+| Internet | Para baixar os modelos inicialmente e verificar atualizações | Uso offline com os modelos necessários já baixados |
+
+**São estimativas práticas para o aplicativo completo, não mínimos de hardware validados. Ainda falta testá-los em um computador de entrada.** Não se recomenda um computador com 4 GB de RAM para o uso completo de OCR e remoção de fundo. O consumo depende da resolução, do tamanho do lote e dos modelos; reduza os lotes se os recursos forem limitados.
+
+O pacote testado processa pela **CPU**; você não precisa de uma NVIDIA nem de outra GPU dedicada. Priorize processador, RAM e SSD. A remoção de fundo usa o provedor de execução por CPU do ONNX Runtime; consulte a [documentação oficial do ONNX Runtime](https://onnxruntime.ai/docs/api/python/api_summary.html).
+
+### Sistemas operacionais
+
+| Sistema | Base e validação |
+| --- | --- |
+| Windows | **Windows 10/11 de 64 bits**; preferencialmente Windows 11. O ONNX Runtime estabelece Windows 10 como versão mínima do Windows. A validação do instalador e do portátil finais em PCs limpos com Windows 10/11 ainda está pendente. |
+| Linux | **Ubuntu 22.04 x86-64**, a base verificada pela CI. Outras distribuições, versões e ambientes de desktop precisam de validação do AppImage final. |
+| macOS | Suporte experimental; não se afirma que exista um pacote nativo validado. |
+
+Os pacotes atuais de Windows e Linux são **x86-64**; não há versão nativa validada para ARM. A CI usa Windows Server e Ubuntu 22.04/Xvfb; essas verificações não certificam todos os sistemas de desktop. Consulte os [requisitos de plataforma do ONNX Runtime](https://onnxruntime.ai/docs/build/inferencing.html).
+
+<details>
+<summary>Consumo medido e primeiro carregamento do modelo</summary>
+
+A [auditoria dos pacotes](../../audit/lean-runtime/README.md) registra estas observações aproximadas em compilações de CI testadas em 15 de outubro de 2026:
+
+| Medição | Windows | Linux |
+| --- | --- | --- |
+| Pico de RAM do processo observado com vários modelos carregados | **3,0 GB** | **2,6 GB** |
+| App + todos os modelos e caches medidos nesse teste | **1,10 GB** | **1,53 GB** |
+| Primeiro carregamento do modelo de remoção de fundo (ISNet) | **53 segundos** | **39 segundos** |
+
+**São observações, não máximos nem tempos garantidos.** O teste de RAM manteve vários modelos carregados; fotografias grandes podem consumir mais memória. Os valores de disco cobrem o pacote, modelos e caches medidos, não originais, resultados, espaço temporário de extração nem um ambiente de desenvolvimento pelo código. Os tempos de carregamento dependem do computador; a sessão é reutilizada depois. Não são tempos de download do modelo nem de processamento por imagem.
+
+</details>
+
+### Execução e processamento
+
 - **Código-fonte:** Python 3.13, Tk e as bibliotecas de [`requirements.txt`](../../requirements.txt). Os pacotes compilados não exigem uma instalação separada do Python.
-- **Recursos:** RAM, espaço em disco e tempo dependem da resolução, do tamanho do lote e dos modelos de IA. Reserve espaço para dependências, modelos e resultados; reduza os lotes em máquinas com poucos recursos. Não há requisitos mínimos de hardware medidos documentados aqui.
-- **Lotes:** A tabela mostra os limites atuais da interface: uma imagem para Paleta, LQIP / Base64 ou edição EXIF, 10 para OCR/remoção de fundo e 100 para as outras operações em lote listadas.
+- **Lotes:** A tabela de recursos mostra os limites atuais da interface: uma imagem para Paleta, LQIP / Base64 ou edição EXIF, 10 para OCR/remoção de fundo e 100 para as outras operações em lote listadas.
 - **Codecs:** HEIC/HEIF usa `pillow-heif`, incluído nas dependências do código. AVIF e outros formatos dependem dos codecs do Pillow e da plataforma. JPEG não aceita transparência; use PNG ou WebP quando necessário. A compressão PNG pode reduzir a imagem a 256 cores: confira o resultado.
-- **Modelos de IA:** Downloads podem acontecer no primeiro uso ou ao selecionar um modelo/idioma que precise de outro modelo. O uso offline exige modelos armazenados. É possível processar com CPU; o uso de GPU depende de hardware e bibliotecas compatíveis.
+- **Modelos de IA:** Downloads podem acontecer no primeiro uso ou ao selecionar um modelo/idioma que precise de outro modelo. O uso offline exige modelos armazenados. O pacote testado executa OCR e remoção de fundo pela CPU.
 
 ### Bibliotecas do sistema no Linux
 
-AppImage pode precisar de FUSE 2 (`libfuse2` em distribuições compatíveis). Para execução pelo código, a CI instala Tk e estas bibliotecas no Ubuntu 22.04:
+AppImage precisa de **FUSE 2** para execução por montagem (`libfuse2` em distribuições compatíveis). Se FUSE não estiver disponível, a extração é uma alternativa; consulte as [instruções oficiais do AppImage](https://docs.appimage.org/user-guide/troubleshooting/fuse.html). Substitua o nome de exemplo pelo arquivo baixado:
+
+~~~bash
+./"Yagua-<version>-x86_64.AppImage" --appimage-extract-and-run
+~~~
+
+A extração precisa de espaço temporário adicional e pode tornar a inicialização mais lenta. Para execução pelo código, a CI instala Tk e estas bibliotecas no Ubuntu 22.04:
 
 ~~~bash
 sudo apt-get install python3-tk libgl1 libglib2.0-0 libsm6 libxext6 libxrender1 libgtk-3-0 libgomp1

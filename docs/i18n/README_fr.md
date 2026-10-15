@@ -157,16 +157,63 @@ Ces commandes utilisent les versions de dépendances fixées par le dépôt. Les
 
 ## Prérequis et limites
 
-- **Bureau :** Windows ou Linux ; les paquets Linux ciblent x86_64. La prise en charge de macOS est expérimentale.
+### Matériel
+
+Pour l’application complète, y compris **l’OCR et la suppression d’arrière-plan** :
+
+| Composant | Minimum provisoire | Recommandé |
+| --- | --- | --- |
+| Processeur | Intel/AMD x86-64 relativement récent, **4 cœurs** | CPU moderne de **6 à 8 cœurs** |
+| RAM de l’ordinateur | **8 Go**, avec peu d’autres applications ouvertes | **16 Go** ; **32 Go** pour les très grandes images et le multitâche |
+| Stockage | **4 Go libres**, en plus de l’espace pour les originaux et les résultats | **SSD avec 10 Go libres ou plus**, en plus de vos images |
+| Graphismes | Circuit graphique intégré suffisant ; GPU dédié non obligatoire | Circuit graphique intégré suffisant |
+| Internet | Pour télécharger les modèles au premier usage et rechercher les mises à jour | Utilisation hors ligne une fois les modèles nécessaires téléchargés |
+
+**Ce sont des estimations pratiques pour l’application complète, pas des minima matériels validés. Les essais sur un PC d’entrée de gamme restent à faire.** Un ordinateur avec 4 Go de RAM n’est pas recommandé pour l’usage complet de l’OCR et de la suppression d’arrière-plan. La consommation dépend de la résolution, de la taille du lot et des modèles ; réduisez les lots lorsque les ressources sont limitées.
+
+Le paquet testé effectue le traitement sur le **CPU** ; aucune NVIDIA ni autre carte graphique dédiée n’est nécessaire. Privilégiez processeur, RAM et SSD. La suppression d’arrière-plan utilise le fournisseur d’exécution CPU d’ONNX Runtime ; consultez la [documentation officielle d’ONNX Runtime](https://onnxruntime.ai/docs/api/python/api_summary.html).
+
+### Systèmes d’exploitation
+
+| Système | Base et validation |
+| --- | --- |
+| Windows | **Windows 10/11, 64 bits** ; Windows 11 de préférence. ONNX Runtime indique Windows 10 comme version minimale de Windows. La validation de l’installateur et du paquet portable finaux sur des PC Windows 10/11 propres reste à faire. |
+| Linux | **Ubuntu 22.04 x86-64**, la base vérifiée en CI. Les autres distributions, versions et environnements de bureau nécessitent une validation de l’AppImage final. |
+| macOS | Prise en charge expérimentale ; aucun paquet natif validé n’est annoncé. |
+
+Les paquets Windows et Linux actuels ciblent **x86-64** ; aucune version ARM native n’est validée. La CI utilise Windows Server et Ubuntu 22.04/Xvfb ; ces vérifications ne certifient pas tous les systèmes de bureau. Consultez les [prérequis de plateforme d’ONNX Runtime](https://onnxruntime.ai/docs/build/inferencing.html).
+
+<details>
+<summary>Consommation mesurée et premier chargement du modèle</summary>
+
+L’[audit des paquets](../../audit/lean-runtime/README.md) rapporte ces observations approximatives pour des compilations de CI testées le 15 octobre 2026 :
+
+| Mesure | Windows | Linux |
+| --- | --- | --- |
+| Pic de RAM du processus observé avec plusieurs modèles chargés | **3,0 Go** | **2,6 Go** |
+| App + tous les modèles et caches mesurés lors de cet essai | **1,10 Go** | **1,53 Go** |
+| Premier chargement du modèle de suppression d’arrière-plan (ISNet) | **53 secondes** | **39 secondes** |
+
+**Ce sont des observations, pas des maxima ni des durées garanties.** L’essai de RAM conservait plusieurs modèles chargés ; de grandes photographies peuvent consommer davantage de mémoire. Les chiffres disque couvrent le paquet, les modèles et les caches mesurés, pas les originaux, résultats, fichiers temporaires d’extraction ou un environnement de développement depuis le code. Les temps de chargement dépendent de la machine ; la session est ensuite réutilisée. Ce ne sont ni des temps de téléchargement du modèle ni des temps de traitement par image.
+
+</details>
+
+### Exécution et traitement
+
 - **Code source :** Python 3.13, Tk et les bibliothèques de [`requirements.txt`](../../requirements.txt). Les paquets compilés ne nécessitent pas d’installation séparée de Python.
-- **Ressources :** RAM, espace disque et durée dépendent de la résolution, de la taille du lot et des modèles d’IA. Prévoyez de la place pour les dépendances, les modèles et les résultats ; réduisez les lots si votre machine dispose de peu de ressources. Aucun minimum matériel mesuré n’est documenté ici.
-- **Lots :** Le tableau indique les limites actuelles de l’interface : une image pour Palette, LQIP / Base64 ou modification EXIF, 10 pour OCR/suppression d’arrière-plan et 100 pour les autres opérations par lots indiquées.
+- **Lots :** Le tableau des fonctionnalités indique les limites actuelles de l’interface : une image pour Palette, LQIP / Base64 ou modification EXIF, 10 pour OCR/suppression d’arrière-plan et 100 pour les autres opérations par lots indiquées.
 - **Codecs :** HEIC/HEIF utilise `pillow-heif`, inclus dans les dépendances du code. AVIF et d’autres formats dépendent des codecs Pillow et de la plateforme. JPEG ne gère pas la transparence ; utilisez PNG ou WebP si nécessaire. La compression PNG peut réduire l’image à 256 couleurs : vérifiez le résultat.
-- **Modèles d’IA :** Des téléchargements peuvent avoir lieu au premier usage ou lorsqu’un nouveau modèle/une nouvelle langue nécessite un autre modèle. L’usage hors ligne exige des modèles en cache. Le traitement sur CPU est disponible ; l’usage du GPU dépend du matériel et des bibliothèques compatibles.
+- **Modèles d’IA :** Des téléchargements peuvent avoir lieu au premier usage ou lorsqu’un nouveau modèle/une nouvelle langue nécessite un autre modèle. L’usage hors ligne exige des modèles en cache. Le paquet testé exécute l’OCR et la suppression d’arrière-plan sur CPU.
 
 ### Bibliothèques système sous Linux
 
-AppImage peut nécessiter FUSE 2 (`libfuse2` sur les distributions compatibles). Pour l’exécution depuis le code, la CI installe Tk et ces bibliothèques sur Ubuntu 22.04 :
+AppImage nécessite **FUSE 2** pour son exécution par montage (`libfuse2` sur les distributions compatibles). Si FUSE n’est pas disponible, l’extraction est une alternative ; consultez les [instructions officielles d’AppImage](https://docs.appimage.org/user-guide/troubleshooting/fuse.html). Remplacez le nom d’exemple par celui du fichier téléchargé :
+
+~~~bash
+./"Yagua-<version>-x86_64.AppImage" --appimage-extract-and-run
+~~~
+
+L’extraction nécessite de l’espace temporaire supplémentaire et peut ralentir le démarrage. Pour l’exécution depuis le code, la CI installe Tk et ces bibliothèques sur Ubuntu 22.04 :
 
 ~~~bash
 sudo apt-get install python3-tk libgl1 libglib2.0-0 libsm6 libxext6 libxrender1 libgtk-3-0 libgomp1

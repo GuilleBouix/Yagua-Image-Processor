@@ -5,11 +5,14 @@ import os
 from pathlib import Path
 import sys
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-from scripts.ci.check_linux_size import MAX_BYTES
+ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT))
 
 
 def main() -> None:
+    from scripts.ci.check_linux_size import MAX_BYTES
+    from scripts.ci.extract_release_notes import _extract_section
+
     reports = Path('reports')
     preflight = json.loads((reports / 'selftest-preflight.json').read_text(encoding='utf-8'))
     appimage_runtime = json.loads(
@@ -42,6 +45,9 @@ def main() -> None:
         'CPU only; models download on first use and are not included in the distribution.', '',
         '## Measured sizes', '',
     ]
+    changes = _extract_section((ROOT / 'CHANGELOG.md').read_text(encoding='utf-8'), version)
+    if changes:
+        lines[5:5] = ['## Changes in this release', '', changes, '', '## Package validation', '']
     lines.extend(f"- {Path(item['path']).name}: {item['bytes']:,} bytes"
                  for item in sizes['artifacts'])
     lines.extend(['', f"App + models + caches: {installed['installed_bytes']:,} bytes, strictly below {MAX_BYTES:,}.",

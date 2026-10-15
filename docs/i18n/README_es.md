@@ -159,16 +159,63 @@ Estos comandos usan las dependencias fijadas por el repositorio. Las comprobacio
 
 ## Requisitos y límites
 
-- **Escritorio:** Windows o Linux; los paquetes Linux son para x86_64. El soporte de macOS es experimental.
+### Hardware
+
+Para la app completa, incluyendo **OCR y quitar fondo**:
+
+| Componente | Mínimo provisional | Recomendado |
+| --- | --- | --- |
+| Procesador | Intel/AMD x86-64 relativamente reciente, **4 núcleos** | CPU moderna de **6–8 núcleos** |
+| RAM del equipo | **8 GB**, con pocas aplicaciones abiertas | **16 GB**; **32 GB** para imágenes muy grandes y multitarea |
+| Almacenamiento | **4 GB libres**, más espacio para originales y resultados | **SSD con 10 GB libres o más**, aparte de tus imágenes |
+| Gráficos | Integrados suficientes; sin GPU dedicada obligatoria | Integrados suficientes |
+| Internet | Para descargar inicialmente los modelos y buscar actualizaciones | Uso sin conexión con los modelos necesarios descargados |
+
+**Son estimaciones prácticas para la app completa, no mínimos de hardware validados. Todavía falta probarlos en una PC de gama baja.** No se recomienda un equipo con 4 GB de RAM para el uso completo de OCR y quitar fondo. El consumo depende de la resolución, el tamaño del lote y los modelos; reducí los lotes si tenés pocos recursos.
+
+El paquete probado procesa por **CPU**; no necesitás una NVIDIA ni otra GPU dedicada. Priorizá procesador, RAM y SSD. Quitar fondo usa el proveedor de ejecución por CPU de ONNX Runtime; consultá la [documentación oficial de ONNX Runtime](https://onnxruntime.ai/docs/api/python/api_summary.html).
+
+### Sistemas operativos
+
+| Sistema | Base y validación |
+| --- | --- |
+| Windows | **Windows 10/11 de 64 bits**; preferentemente Windows 11. ONNX Runtime establece Windows 10 como versión mínima de Windows. Falta validar el instalador y el portable finales en PCs limpias con Windows 10/11. |
+| Linux | **Ubuntu 22.04 x86-64**, la base comprobada en CI. Otras distribuciones, versiones y escritorios necesitan validación del AppImage final. |
+| macOS | Soporte experimental; no se afirma que exista un paquete nativo validado. |
+
+Los paquetes actuales de Windows y Linux son **x86-64**; no hay una versión nativa validada para ARM. CI usa Windows Server y Ubuntu 22.04/Xvfb; esas pruebas no certifican todos los sistemas de escritorio. Consultá los [requisitos de plataforma de ONNX Runtime](https://onnxruntime.ai/docs/build/inferencing.html).
+
+<details>
+<summary>Consumo medido y primera carga del modelo</summary>
+
+La [auditoría de paquetes](../../audit/lean-runtime/README.md) registra estas observaciones aproximadas en compilaciones de CI probadas el 15 de octubre de 2026:
+
+| Medición | Windows | Linux |
+| --- | --- | --- |
+| Pico de RAM del proceso observado con varios modelos cargados | **3,0 GB** | **2,6 GB** |
+| App + todos los modelos y cachés medidos en esa prueba | **1,10 GB** | **1,53 GB** |
+| Primera carga del modelo para quitar fondo (ISNet) | **53 segundos** | **39 segundos** |
+
+**Son observaciones, no máximos ni tiempos garantizados.** La prueba de RAM mantuvo varios modelos cargados; las fotografías grandes pueden consumir más memoria. Las cifras de disco cubren el paquete, los modelos y las cachés medidos, no originales, resultados, espacio temporal de extracción ni un entorno de desarrollo desde código. Los tiempos de carga dependen del equipo; después se reutiliza la sesión. No son tiempos de descarga del modelo ni de procesamiento por imagen.
+
+</details>
+
+### Ejecución y procesamiento
+
 - **Desde código:** Python 3.13, Tk y las bibliotecas de [`requirements.txt`](../../requirements.txt). Los paquetes compilados no requieren instalar Python por separado.
-- **Recursos:** La RAM, el espacio en disco y el tiempo dependen de la resolución, el tamaño del lote y los modelos de IA. Reservá espacio para dependencias, modelos y resultados; reducí los lotes si tu equipo tiene pocos recursos. Acá no se indican mínimos de hardware medidos.
-- **Lotes:** La tabla muestra los límites actuales de la interfaz: una imagen para Paleta, LQIP / Base64 o edición EXIF, 10 para OCR/quitar fondo y 100 para las otras operaciones en lote indicadas.
+- **Lotes:** La tabla de funciones muestra los límites actuales de la interfaz: una imagen para Paleta, LQIP / Base64 o edición EXIF, 10 para OCR/quitar fondo y 100 para las otras operaciones en lote indicadas.
 - **Códecs:** HEIC/HEIF usa `pillow-heif`, incluido en las dependencias del código. AVIF y otros formatos dependen de los códecs de Pillow y la plataforma. JPEG no admite transparencia; usá PNG o WebP si la necesitás. La compresión PNG puede reducir la imagen a 256 colores: revisá el resultado.
-- **Modelos de IA:** Puede haber descargas en el primer uso o al elegir un modelo/idioma que necesite otro modelo. Para trabajar sin conexión deben estar guardados. Se puede procesar con CPU; el uso de GPU depende del hardware y las bibliotecas compatibles.
+- **Modelos de IA:** Puede haber descargas en el primer uso o al elegir un modelo/idioma que necesite otro modelo. Para trabajar sin conexión deben estar guardados. El paquete probado ejecuta OCR y quitar fondo por CPU.
 
 ### Bibliotecas del sistema en Linux
 
-AppImage puede necesitar FUSE 2 (`libfuse2` en distribuciones compatibles). Para ejecutar desde código, CI instala Tk y estas bibliotecas en Ubuntu 22.04:
+AppImage necesita **FUSE 2** para ejecutarse mediante montaje (`libfuse2` en distribuciones compatibles). Si FUSE no está disponible, podés usar extracción; consultá las [instrucciones oficiales de AppImage](https://docs.appimage.org/user-guide/troubleshooting/fuse.html). Reemplazá el nombre de ejemplo por el archivo descargado:
+
+~~~bash
+./"Yagua-<version>-x86_64.AppImage" --appimage-extract-and-run
+~~~
+
+La extracción necesita espacio temporal adicional y puede demorar el inicio. Para ejecutar desde código, CI instala Tk y estas bibliotecas en Ubuntu 22.04:
 
 ~~~bash
 sudo apt-get install python3-tk libgl1 libglib2.0-0 libsm6 libxext6 libxrender1 libgtk-3-0 libgomp1

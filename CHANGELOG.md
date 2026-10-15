@@ -2,6 +2,38 @@
 
 Todos los cambios notables del proyecto se documentan en este archivo.
 
+## [2.0.1-rc.5] - 2026-10-15
+
+### Seguridad y estabilidad
+
+- Consolidación de la auditoría: guardado mediante temporales, protección contra sobrescrituras, validaciones y preferencias locales resistentes a errores.
+- Coordinación global de lotes, descarte de callbacks antiguos y cierre/reinicio que espera las operaciones activas.
+- Edición EXIF JPEG sin recomprimir ni perder ICC; rechazo seguro de archivos multipágina no soportados y eliminación efectiva de EXIF al comprimir.
+- Corrección de la primera descarga de OCR en consolas Windows CP1252 y conservación de perfiles ICC RGB al convertir a JPEG/WebP.
+
+### Metadatos e interfaz
+
+- Integración de los ajustes del editor de Metadatos: vista previa de la imagen seleccionada, orientación visual y adaptación al tamaño del panel.
+- Conservación de las mejoras de rendimiento, diseño y módulos actuales.
+
+### Dependencias y publicación
+
+- Separación de dependencias de ejecución, desarrollo y construcción; OpenCV headless en Windows y Linux.
+- Exclusión de herramientas, recursos y dependencias sin uso comprobado, manteniendo modelos, motores, formatos y calidad.
+- Modelos OCR y quitar fondo descargados cuando se necesitan y reutilizados localmente sin internet.
+- Checks de lint, tipado, tests con Tk obligatorio y paquetes reales; verificaciones online/offline, integridad de modelos y máximo instalado de 2 GB incluyendo modelos y cachés.
+
+### Documentación
+
+- Requisitos de PC actualizados en los README en inglés, español, portugués, francés y alemán: mínimo práctico provisional de 8 GB de RAM y CPU de cuatro núcleos; recomendados 16 GB, CPU moderna de seis a ocho núcleos y SSD.
+- Diferenciación entre estimaciones de hardware, mediciones observadas y compatibilidad comprobada.
+
+### Límites de esta prerelease
+
+- Versión de prueba para Windows x86-64 (instalador y portable) y Linux x86-64 (AppImage).
+- La validación de paquetes se realiza automáticamente antes de publicar. Siguen pendientes la aceptación en equipos de gama baja, instalación/desinstalación en equipos limpios y la matriz visual de escritorios Linux.
+- No se garantiza un máximo de RAM ni un tiempo de procesamiento para todas las fotografías. Los modelos deben estar descargados para usar cada opción sin conexión.
+
 ## [2.0.0] - 2026-04-09
 
 ### Nuevas features
