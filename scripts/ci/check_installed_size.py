@@ -64,6 +64,9 @@ def main(argv=None) -> int:
     args.report.parent.mkdir(parents=True, exist_ok=True)
     args.report.write_text(json.dumps(report, indent=2) + '\n', encoding='utf-8')
     print(json.dumps(report, indent=2))
+    if not report['within_budget'] and not args.measure_only:
+        print(f"ERROR: app + models + caches = {report['installed_bytes']:,} bytes; "
+              f"required: < {report['limit_bytes']:,} bytes.", file=sys.stderr)
     return 0 if report['within_budget'] or args.measure_only else 1
 
 

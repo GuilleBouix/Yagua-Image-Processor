@@ -20,6 +20,53 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
 
+def comparison_checks(results: dict) -> list[dict]:
+    checks = []
+    for label in ('baseline', 'candidate'):
+        error = results[label].get('error')
+        checks.append({'name': f'{label}-package', 'status': 'failed' if error else 'passed',
+                       'detail': f'See {label}/build.log' if error else 'Build, imports, UI, models online/offline passed'})
+    candidate = results['candidate']
+    total = candidate.get('installed_bytes')
+    if total is None:
+        checks.append({'name': 'installed-size', 'status': 'skipped', 'detail': 'No complete candidate measurement'})
+    else:
+        limit = candidate.get('limit_bytes', 1_500_000_000)
+        passed = candidate['within_budget']
+        detail = f'App + models + caches: {total:,} bytes; required: < {limit:,} bytes'
+        if not passed:
+            detail += f'; reduce by at least {max(1, total - limit + 1):,} bytes'
+        checks.append({'name': 'installed-size', 'status': 'passed' if passed else 'failed', 'detail': detail})
+    for key, name, detail in (
+        ('image_contract_matches', 'image-pixels', 'Nine formats: same decoded pixels, mode and dimensions'),
+        ('background_contract_matches', 'background-pixels', 'ISNet and U2NetP: same decoded pixels'),
+        ('numba_threading_matches', 'numba-backend', 'Same Numba threading backend as baseline'),
+    ):
+        value = results.get(key)
+        checks.append({'name': name, 'status': 'skipped' if value is None else 'passed' if value else 'failed',
+                       'detail': detail if value is not None else 'Requires both package checks to complete'})
+    return checks
+
+
+def write_summary(results: dict, reports: Path) -> bool:
+    results['checks'] = comparison_checks(results)
+    results['failed_checks'] = [check['name'] for check in results['checks'] if check['status'] == 'failed']
+    lines = ['# Lean runtime validation', '', '| Check | Result | Detail |', '|---|---|---|']
+    for check in results['checks']:
+        lines.append(f"| {check['name']} | {check['status']} | {check['detail']} |")
+        stream = sys.stderr if check['status'] == 'failed' else sys.stdout
+        print(f"{check['status'].upper()}: {check['name']}: {check['detail']}", file=stream, flush=True)
+    if 'saved_bytes' in results:
+        lines += ['', f"Saved bytes: {results['saved_bytes']:,}. Positive means smaller than baseline.",
+                  'The size gate uses the absolute installed total, not the amount saved.']
+    content = '\n'.join(lines) + '\n'
+    (reports / 'summary.md').write_text(content, encoding='utf-8')
+    if path := os.environ.get('GITHUB_STEP_SUMMARY'):
+        with open(path, 'a', encoding='utf-8') as output:
+            output.write(content)
+    return all(check['status'] == 'passed' for check in results['checks'])
+
+
 def command(args, cwd, log, env=None):
     print('RUN', *map(str, args), flush=True)
     with log.open('a', encoding='utf-8') as output:
@@ -134,12 +181,10 @@ def main():
         results['image_contract_matches'] = probes[0]['image_roundtrips'] == probes[1]['image_roundtrips']
         results['background_contract_matches'] = probes[0]['background_roundtrips'] == probes[1]['background_roundtrips']
         results['numba_threading_matches'] = probes[0]['numba_threading_layer'] == probes[1]['numba_threading_layer']
+    passed = write_summary(results, reports)
     (reports / 'comparison.json').write_text(json.dumps(results, indent=2) + '\n', encoding='utf-8')
     print(json.dumps(results, indent=2))
-    return 0 if (results['candidate']['within_budget'] and 'error' not in results['baseline']
-                 and results.get('image_contract_matches')
-                 and results.get('background_contract_matches')
-                 and results.get('numba_threading_matches')) else 1
+    return 0 if passed else 1
 
 
 if __name__ == '__main__':

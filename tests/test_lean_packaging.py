@@ -244,4 +244,34 @@ def test_comparison_rejects_changed_pixels_or_numba_backend(tmp_path, monkeypatc
 
     monkeypatch.setattr(validate_lean_runtime, 'validate', validate)
     monkeypatch.setattr(sys, 'argv', ['validate', '--reports', str(tmp_path / 'reports')])
+    monkeypatch.delenv('GITHUB_STEP_SUMMARY', raising=False)
     assert validate_lean_runtime.main() == (1 if mutation else 0)
+
+
+def test_positive_savings_do_not_bypass_absolute_size_limit(tmp_path, monkeypatch, capsys):
+    from scripts.ci import validate_lean_runtime
+
+    result = {'baseline': {}, 'candidate': {'installed_bytes': 150, 'limit_bytes': 100, 'within_budget': False},
+              'saved_bytes': 50, 'image_contract_matches': True, 'background_contract_matches': True,
+              'numba_threading_matches': True}
+    job_summary = tmp_path / 'github-summary.md'
+    monkeypatch.setenv('GITHUB_STEP_SUMMARY', str(job_summary))
+
+    assert not validate_lean_runtime.write_summary(result, tmp_path)
+    assert result['failed_checks'] == ['installed-size']
+    assert 'reduce by at least 51 bytes' in capsys.readouterr().err
+    assert 'Positive means smaller than baseline' in job_summary.read_text()
+    assert (tmp_path / 'summary.md').is_file()
+
+
+def test_failed_baseline_reports_skipped_comparisons(tmp_path, monkeypatch):
+    from scripts.ci import validate_lean_runtime
+
+    monkeypatch.delenv('GITHUB_STEP_SUMMARY', raising=False)
+    result = {'baseline': {'error': 'Native import failed'},
+              'candidate': {'installed_bytes': 10, 'within_budget': True}}
+    assert not validate_lean_runtime.write_summary(result, tmp_path)
+    assert result['failed_checks'] == ['baseline-package']
+    assert {item['name'] for item in result['checks'] if item['status'] == 'skipped'} == {
+        'image-pixels', 'background-pixels', 'numba-backend',
+    }

@@ -36,6 +36,18 @@ No se incorporan pesos al ejecutable ni se cambia la ubicación habitual de los 
 
 El workflow `Lean runtime validation (no publication)` solo valida. Tiene permiso de lectura, no usa acciones de release y no crea tags.
 
+Instalación, Ruff, Pyright y tests tienen pasos separados. Se reutiliza solamente
+la caché de descargas de pip; cada entorno virtual sigue siendo nuevo. Pip y apt
+reintentan sus descargas, manteniendo los errores de dependencias o tests como
+fallos. No se reintentan ni se omiten comprobaciones funcionales para obtener verde.
+
+`summary.md` y `comparison.json/checks` identifican cada bloqueo: paquete base,
+paquete candidato, total instalado, píxeles o backend Numba. `diagnostics.json`
+registra los pasos incluso si falla la instalación, y se conserva el log de Xvfb.
+`saved_bytes` positivo significa ahorro; el límite bloqueante se aplica al total
+absoluto de app + modelos + cachés. No se añade ningún bypass por variable de
+entorno ni `continue-on-error` a estos controles.
+
 En cada plataforma:
 
 1. Entorno de tests nuevo: instalación y `pip check`, Ruff, Pyright y suite completa, con Tk obligatorio.
