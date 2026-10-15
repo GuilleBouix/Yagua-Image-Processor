@@ -13,7 +13,7 @@ fi
 
 "$PYTHON_BIN" -m pip install --upgrade pip
 "$PYTHON_BIN" -m pip install -r requirements.txt
-"$PYTHON_BIN" -m pip install pyinstaller
+"$PYTHON_BIN" -m pip install -r requirements-build.txt
 
 "$PYTHON_BIN" -m PyInstaller \
   --noconfirm \

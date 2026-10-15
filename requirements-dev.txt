@@ -1,2 +1,9 @@
+# Install alongside the runtime, in a test environment.
+pytest==9.0.2
+pytest-cov==7.1.0
+coverage==7.13.5
+iniconfig==2.3.0
+pluggy==1.6.0
+Pygments==2.19.2
 pyright==1.1.412
 ruff==0.16.8

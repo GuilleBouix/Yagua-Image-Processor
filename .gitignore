@@ -89,3 +89,8 @@ prototype-web
 # Local audit build paths and verbose logs
 /audit/*.log
 /audit/local-build-path.txt
+
+# Isolated lean-runtime build location (machine specific)
+/audit/lean-build-path.txt
+
+/lean-reports/

@@ -1,92 +1,29 @@
 # -*- mode: python ; coding: utf-8 -*-
+from pathlib import Path
+import runpy
 
-import os
-import importlib.metadata as importlib_metadata
-from PyInstaller.utils.hooks import collect_submodules, collect_data_files
-
+project_root = Path(SPECPATH)
+rules = runpy.run_path(str(project_root / 'scripts' / 'packaging_rules.py'))
+inputs = rules['build_inputs'](project_root)
 block_cipher = None
 
-project_root = os.getcwd()
-
-hiddenimports = []
-hiddenimports.append('app.ui.frames')
-hiddenimports += collect_submodules('app.ui.frames')
-hiddenimports += collect_submodules('app.modules')
-hiddenimports += collect_submodules('app.utils')
-hiddenimports += collect_submodules('app.translations')
-hiddenimports += collect_submodules('easyocr')
-hiddenimports += [
-    'easyocr',
-    'pillow_heif',
-    'cv2',
-]
-hiddenimports += [
-    'app.ui.frames.remove_bg',
-    'app.ui.frames.remove_bg.frame',
-    'app.ui.frames.remove_bg.services',
-    'app.ui.frames.remove_bg.state',
-    'app.ui.frames.rename',
-    'app.ui.frames.rename.frame',
-    'app.ui.frames.rename.services',
-    'app.ui.frames.rename.state',
-    'app.ui.frames.lqip',
-    'app.ui.frames.lqip.frame',
-    'app.ui.frames.lqip.services',
-    'app.ui.frames.lqip.state',
-    'app.ui.frames.watermark',
-    'app.ui.frames.watermark.frame',
-    'app.ui.frames.watermark.services',
-    'app.ui.frames.watermark.state',
-    'app.ui.frames.ocr',
-    'app.ui.frames.ocr.frame',
-    'app.ui.frames.ocr.services',
-    'app.ui.frames.ocr.state',
-]
-hiddenimports += collect_submodules('pymatting')
-hiddenimports += collect_submodules('rembg')
-hiddenimports += [
-    'rembg',
-    'onnxruntime',
-    'onnxruntime.capi._pybind_state',
-    'PIL.ImageTk',
-    'PIL._tkinter_finder',
-]
-
-datas = []
-datas += [('assets', 'assets')]
-datas += collect_data_files('customtkinter')
-datas += collect_data_files('app.translations')
-datas += collect_data_files('easyocr')
-
-try:
-    dist = importlib_metadata.distribution('pymatting')
-    if dist is not None and dist._path:
-        datas.append((str(dist._path), dist._path.name))
-except Exception:
-    pass
-
-
 a = Analysis(
-    ['main.py'],
-    pathex=[project_root],
+    [str(project_root / 'main.py')],
+    pathex=[str(project_root)],
     binaries=[],
-    datas=datas,
-    hiddenimports=hiddenimports,
+    datas=inputs['datas'],
+    hiddenimports=inputs['hiddenimports'],
     hookspath=[],
-    hooksconfig={},
+    hooksconfig=inputs['hooksconfig'],
     runtime_hooks=[],
-    excludes=[
-        'torchaudio',
-        'triton',
-        'pandas',
-        'IPython',
-        'matplotlib',
-        'notebook',
-        'jupyter',
-    ],
+    excludes=inputs['excludes'],
     cipher=block_cipher,
     noarchive=False,
 )
+# Headless OpenCV still ships a video-only FFmpeg plugin on Windows. Yagua
+# uses Pillow codecs for files and cv2 only for arrays/OCR, never VideoCapture.
+a.binaries = [entry for entry in a.binaries
+              if not Path(entry[0]).name.lower().startswith('opencv_videoio_ffmpeg')]
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 
 exe = EXE(

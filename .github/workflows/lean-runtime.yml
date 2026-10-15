@@ -1,0 +1,62 @@
+name: Lean runtime validation (no publication)
+
+on:
+  push:
+    branches: [codex/lean-runtime]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-22.04]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 90
+    env:
+      YAGUA_REQUIRE_UI: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Linux build dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-tk xvfb xauth fonts-dejavu-core file desktop-file-utils libfuse2 patchelf squashfs-tools binutils fakeroot strace zsync libgdk-pixbuf2.0-dev libgl1 libglib2.0-0 libsm6 libxext6 libxrender1 libgtk-3-0 libgomp1
+      - name: Create isolated test environment
+        shell: bash
+        run: |
+          python -m venv "$RUNNER_TEMP/yagua-tests"
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            p="$RUNNER_TEMP/yagua-tests/Scripts/python.exe"
+            requirements=requirements.txt
+          else
+            p="$RUNNER_TEMP/yagua-tests/bin/python"
+            requirements=requirements-linux-cpu.txt
+          fi
+          "$p" -m pip install -r "$requirements" -r requirements-dev.txt
+          "$p" -m pip check
+          "$p" -m ruff check app tests scripts
+          "$p" -m pyright --pythonpath "$p" app
+          if [[ "$RUNNER_OS" == "Linux" ]]; then
+            xvfb-run -a "$p" scripts/verify.py -q
+          else
+            "$p" scripts/verify.py -q
+          fi
+      - name: Baseline and candidate frozen packages, online, offline and size
+        run: python scripts/ci/validate_lean_runtime.py --reports lean-reports
+      - name: Upload measurements and failure diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lean-runtime-${{ runner.os }}
+          path: lean-reports/
+          retention-days: 14
+          if-no-files-found: warn

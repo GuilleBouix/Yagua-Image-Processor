@@ -71,22 +71,20 @@ jobs:
       - name: Build (PyInstaller)
         shell: pwsh
         run: |
-          python -m PyInstaller --clean --noconfirm Yagua.spec
+          $buildEnv = Join-Path $env:RUNNER_TEMP 'yagua-build'
+          python -m venv $buildEnv
+          $buildPython = Join-Path $buildEnv 'Scripts/python.exe'
+          & $buildPython -m pip install -r requirements.txt -r requirements-build.txt
+          if ($LASTEXITCODE -ne 0) { throw 'Build dependencies failed' }
+          & $buildPython -m pip check
+          if ($LASTEXITCODE -ne 0) { throw 'Invalid build environment' }
+          & $buildPython -m PyInstaller --clean --noconfirm Yagua.spec
 
       - name: Verify packaged Windows runtime and UI
         shell: pwsh
         run: |
-          $env:APPDATA = Join-Path $env:RUNNER_TEMP 'yagua-profile'
-          $env:U2NET_HOME = Join-Path $env:RUNNER_TEMP 'yagua-models'
-          $env:EASYOCR_MODULE_PATH = Join-Path $env:RUNNER_TEMP 'yagua-ocr'
-          $env:YAGUA_PACKAGE_SELFTEST = Join-Path $env:RUNNER_TEMP 'windows-package-report.json'
-          $env:YAGUA_PACKAGE_SELFTEST_MODE = 'full'
-          $process = Start-Process -FilePath 'dist/Yagua/Yagua.exe' -PassThru -WindowStyle Hidden
-          if (-not $process.WaitForExit(900000)) { $process.Kill(); throw 'Package verification timed out' }
-          if (-not (Test-Path $env:YAGUA_PACKAGE_SELFTEST)) { throw 'Package verification report missing' }
-          $report = Get-Content $env:YAGUA_PACKAGE_SELFTEST -Raw | ConvertFrom-Json
-          if ($report.status -ne 'passed') { throw ($report | ConvertTo-Json -Depth 10) }
-          Remove-Item Env:YAGUA_PACKAGE_SELFTEST
+          python scripts/ci/probe_package.py dist/Yagua/Yagua.exe reports/windows-probe
+          if ($LASTEXITCODE -ne 0) { throw 'Online/offline package checks failed' }
 
       - name: Install Inno Setup
         shell: pwsh
@@ -116,6 +114,12 @@ jobs:
           "$h2  $(Split-Path -Leaf $portable)" | Out-File -Encoding ascii "$portable.sha256"
 
           python scripts/ci/make_latest_json.py $ver (Split-Path -Leaf $setup) $h1 (Split-Path -Leaf $portable) $h2 | Out-File -Encoding utf8 "installer\\latest.json"
+
+      - name: Enforce installed size including all models and caches
+        shell: pwsh
+        run: |
+          python scripts/ci/check_installed_size.py --app dist/Yagua --models reports/windows-probe/models --caches reports/windows-probe/caches --compressed "installer/Yagua_Portable_${{ steps.ver.outputs.version }}.zip" --report reports/windows-installed-size.json
+          if ($LASTEXITCODE -ne 0) { throw 'Installed size exceeds the budget' }
 
       - name: Release notes
         shell: pwsh

@@ -47,18 +47,48 @@ def _wait_for_ui(app, ready, on_ready, on_timeout, timeout_seconds=30.0, clock=t
 def _stage(result: dict, name: str, action):
     print(f'[package-selftest] START {name}', flush=True)
     result['current_stage'] = name
-    item = {'name': name, 'status': 'running'}
+    item: dict = {'name': name, 'status': 'running'}
     result.setdefault('stages', []).append(item)
+    started = time.perf_counter()
     try:
         value = action()
     except Exception:
         item['status'] = 'failed'
         print(f'[package-selftest] FAIL {name}', flush=True)
         raise
+    finally:
+        item['seconds'] = time.perf_counter() - started
+        item['peak_rss_bytes'] = _peak_rss_bytes()
     item['status'] = 'passed'
     result.pop('current_stage', None)
     print(f'[package-selftest] PASS {name}', flush=True)
     return value
+
+
+def _peak_rss_bytes() -> int:
+    """OS peak resident memory, without adding a runtime dependency."""
+    if sys.platform == 'win32':
+        import ctypes
+        from ctypes import wintypes
+
+        class Counters(ctypes.Structure):
+            _fields_ = [('cb', wintypes.DWORD), ('faults', wintypes.DWORD)] + [
+                (name, ctypes.c_size_t) for name in (
+                    'peak_working_set', 'working_set', 'quota_peak_paged', 'quota_paged',
+                    'quota_peak_nonpaged', 'quota_nonpaged', 'pagefile', 'peak_pagefile',
+                )
+            ]
+        counters = Counters()
+        counters.cb = ctypes.sizeof(counters)
+        kernel = ctypes.WinDLL('kernel32', use_last_error=True)
+        kernel.GetCurrentProcess.restype = wintypes.HANDLE
+        psapi = ctypes.WinDLL('psapi', use_last_error=True)
+        psapi.GetProcessMemoryInfo.argtypes = [wintypes.HANDLE, ctypes.c_void_p, wintypes.DWORD]
+        if not psapi.GetProcessMemoryInfo(kernel.GetCurrentProcess(), ctypes.byref(counters), counters.cb):
+            raise ctypes.WinError(ctypes.get_last_error())
+        return counters.peak_working_set
+    import resource
+    return int(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss) * (1 if sys.platform == 'darwin' else 1024)
 
 
 def _deny_network() -> None:
@@ -131,6 +161,73 @@ def _render_ocr_sample(work: Path):
     return image_path
 
 
+def _verify_image_formats(work: Path) -> list[str]:
+    """Exercise installed encoders/decoders, including native HEIC/AVIF codecs."""
+    import hashlib
+    from PIL import Image, ImageCms
+    import piexif
+    import pillow_heif
+    from app.modules import convert, metadata, ocr
+
+    pillow_heif.register_heif_opener()
+    source = work / 'colores ñ.png'
+    image = Image.new('RGBA', (128, 96), (30, 100, 200, 120))
+    image.save(source)
+    for fmt in convert.FORMATOS_DESTINO:
+        result = convert.convertir_imagen(source, fmt, work)
+        with Image.open(result['ruta_salida']) as output:
+            output.load()
+            if output.size != image.size and fmt != 'ICO':
+                raise RuntimeError(f'Wrong dimensions after {fmt}: {output.size}')
+            alpha_min, _ = output.convert('RGBA').getchannel('A').getextrema()
+            if fmt in {'PNG', 'WEBP', 'TIFF'} and alpha_min == 255:
+                raise RuntimeError(f'Lost transparency after {fmt}')
+        # The real OCR input path decodes through Pillow then cv2, not FFmpeg.
+        if ocr.preprocesar_imagen(result['ruta_salida']).size == 0:
+            raise RuntimeError(f'OCR could not decode {fmt}')
+    profile = ImageCms.ImageCmsProfile(ImageCms.createProfile('sRGB')).tobytes()
+    for fmt, suffix in (('JPEG', '.jpg'), ('TIFF', '.tiff')):
+        original = work / f'metadata{suffix}'
+        edited = work / f'metadata-edited{suffix}'
+        exif = piexif.dump({'0th': {piexif.ImageIFD.Make: b'Yagua-test'}, 'Exif': {}})
+        image.convert('RGB').save(original, fmt, exif=exif, icc_profile=profile)
+        with Image.open(original) as before:
+            pixels = hashlib.sha256(before.tobytes()).hexdigest()
+        ok, error = metadata.editar_exif(str(original), str(edited), {'Artist': 'Test'})
+        if not ok:
+            raise RuntimeError(error)
+        with Image.open(edited) as output:
+            if output.info.get('icc_profile') != profile:
+                raise RuntimeError(f'{fmt}: color profile lost')
+            if hashlib.sha256(output.tobytes()).hexdigest() != pixels:
+                raise RuntimeError(f'{fmt}: metadata edit changed pixels')
+        tags = piexif.load(str(edited))
+        if tags['0th'][piexif.ImageIFD.Artist] != b'Test' or tags['0th'][piexif.ImageIFD.Make] != b'Yagua-test':
+            raise RuntimeError(f'{fmt}: EXIF roundtrip failed')
+    rotated = work / 'orientation.jpg'
+    image.convert('RGB').save(rotated, exif=piexif.dump({'0th': {274: 6}}))
+    result = convert.convertir_imagen(rotated, 'PNG', work)
+    with Image.open(result['ruta_salida']) as output:
+        if output.size != (96, 128):
+            raise RuntimeError('EXIF orientation was not applied')
+    return list(convert.FORMATOS_DESTINO)
+
+
+def _verify_startup() -> None:
+    import customtkinter as ctk
+    from app.app import YaguaApp
+    from app.ui import main_window
+    from app.ui.scale import apply_ui_scale
+
+    ctk.set_appearance_mode('dark')
+    ctk.set_default_color_theme('blue')
+    apply_ui_scale()
+    with patch.object(main_window, 'check_latest_stable', return_value=None):
+        app = YaguaApp()
+        app.update_idletasks()
+        app.destroy()
+
+
 def run(report_path: Path) -> int:
     report_path.parent.mkdir(parents=True, exist_ok=True)
     mode = os.environ.get('YAGUA_PACKAGE_SELFTEST_MODE', 'full')
@@ -142,6 +239,17 @@ def run(report_path: Path) -> int:
         'offline': offline,
         'stages': [],
     }
+    if mode == 'startup':
+        try:
+            if not result['frozen']:
+                raise RuntimeError('Startup probe requires a frozen package')
+            _deny_network()
+            _stage(result, 'startup-home', _verify_startup)
+            result['status'] = 'passed'
+        except Exception:
+            result['error'] = traceback.format_exc()
+        report_path.write_text(json.dumps(result, indent=2) + '\n', encoding='utf-8')
+        return 0 if result['status'] == 'passed' else 1
     try:
         if mode not in {'preflight', 'full'}:
             raise RuntimeError(f'Unknown package self-test mode: {mode}')
@@ -163,32 +271,49 @@ def run(report_path: Path) -> int:
             from PIL import Image, ImageDraw
             from app.modules import ocr, remove_bg
 
-            def verify_ocr():
-                batch_result = ocr.batch_procesar([str(image_path)], idiomas=['es', 'en'])
+            result['image_formats'] = _stage(result, 'image-formats-and-metadata',
+                                              lambda: _verify_image_formats(work))
+
+            def verify_ocr(languages):
+                batch_result = ocr.batch_procesar([str(image_path)], idiomas=languages)
                 if batch_result['ok'] != 1 or batch_result['errores'] != 0:
                     raise RuntimeError(f'OCR batch failed: {batch_result}')
                 text = batch_result['textos'][str(image_path)]
                 compact = re.sub(r'\W', '', text.casefold())
                 if 'holayagua123' not in compact or 'hellolinux456' not in compact:
                     raise RuntimeError(f'Unexpected OCR text: {text!r}')
-                if ocr.get_reader(['es', 'en']).device != 'cpu':
+                if ocr.get_reader(languages).device != 'cpu':
                     raise RuntimeError('EasyOCR reader is not using CPU')
                 result['ocr_text'] = text
                 return batch_result
 
-            batch = _stage(result, 'ocr-es-en', verify_ocr)
+            for languages in (['es'], ['en'], ['es', 'en']):
+                label = '-'.join(languages)
+                _stage(result, f'ocr-init-{label}', lambda: ocr.get_reader(languages))
+                batch = _stage(result, f'ocr-{label}', lambda: verify_ocr(languages))
 
-            def verify_background_removal():
+            def verify_background_removal(fallback=False):
                 foreground = Image.new('RGB', (256, 256), 'white')
                 ImageDraw.Draw(foreground).ellipse((55, 30, 200, 230), fill=(180, 35, 45))
                 foreground_path = work / 'foreground.png'
                 foreground.save(foreground_path)
-                removal_result = remove_bg.batch_quitar_fondo([str(foreground_path)], str(work))
+                # Force the default session to fail only in this opt-in verifier;
+                # exercise the application's real compatibility fallback path.
+                load_session = remove_bg._load_session
+
+                def load(model):
+                    if fallback and model == remove_bg.DEFAULT_MODEL:
+                        raise RuntimeError('Self-test: simulate default model unavailable')
+                    return load_session(model)
+
+                with patch.object(remove_bg, '_load_session', side_effect=load):
+                    removal_result = remove_bg.batch_quitar_fondo([str(foreground_path)], str(work))
                 if removal_result['ok'] != 1 or removal_result['errores'] != 0:
                     raise RuntimeError(f'Background removal failed: {removal_result}')
-                if removal_result['used_fallback']:
-                    raise RuntimeError(f'Background model fallback used: {removal_result}')
-                if removal_result['model_used'] != remove_bg.DEFAULT_MODEL:
+                if bool(removal_result['used_fallback']) != fallback:
+                    raise RuntimeError(f'Unexpected fallback state: {removal_result}')
+                expected_model = remove_bg.FALLBACK_MODEL if fallback else remove_bg.DEFAULT_MODEL
+                if removal_result['model_used'] != expected_model:
                     raise RuntimeError(f'Unexpected background model: {removal_result}')
                 output = Image.open(removal_result['resultados'][0]['ruta_salida'])
                 alpha_min, _ = output.getchannel('A').getextrema()
@@ -197,7 +322,10 @@ def run(report_path: Path) -> int:
                 result['background_model'] = removal_result['model_used']
                 result['background_removal'] = 'passed'
 
-            _stage(result, 'background-removal', verify_background_removal)
+            for fallback in (False, True):
+                model = remove_bg.FALLBACK_MODEL if fallback else remove_bg.DEFAULT_MODEL
+                _stage(result, f'background-init-{model}', lambda: remove_bg._load_session(model))
+                _stage(result, f'background-{model}', lambda: verify_background_removal(fallback))
 
             def verify_ui():
                 from app.app import YaguaApp

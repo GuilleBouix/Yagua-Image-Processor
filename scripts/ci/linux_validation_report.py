@@ -19,7 +19,8 @@ def main() -> None:
     assert appimage_runtime['restart_uses_appimage']
     assert online['status'] == offline['status'] == 'passed'
     assert online['frozen'] and offline['frozen'] and offline['offline']
-    assert all(item['bytes'] < 2_000_000_000 for item in sizes['artifacts'])
+    installed = json.loads((reports / 'installed-size.json').read_text(encoding='utf-8'))
+    assert installed['within_budget'] and installed['installed_bytes'] < 1_500_000_000
     (reports / 'sizes.json').write_text(json.dumps(sizes, indent=2) + '\n', encoding='utf-8')
     version = os.environ['RELEASE_VERSION']
     sha = os.environ['GITHUB_SHA']
@@ -32,14 +33,14 @@ def main() -> None:
         'The frozen PyInstaller directory passed native imports, CPU checks and packaged-resource preflight.',
         'The AppImage runtime resolved the original AppImage as its restart target.',
         'The extracted AppImage passed startup, every registered module, real Spanish/English',
-        'OCR, clipboard, TXT export and background removal with the default model.',
+        'OCR in all three language modes, clipboard, TXT export and both background models.',
         'OCR and background removal passed again with network access blocked.',
         'CPU only; models download on first use and are not included in the distribution.', '',
         '## Measured sizes', '',
     ]
     lines.extend(f"- {Path(item['path']).name}: {item['bytes']:,} bytes"
                  for item in sizes['artifacts'])
-    lines.extend(['', 'All distribution sizes are strictly below 2,000,000,000 bytes.',
+    lines.extend(['', f"App + models + caches: {installed['installed_bytes']:,} bytes, strictly below 1,500,000,000.",
                   '', 'Manual testing on an Ubuntu desktop is still pending.',
                   'For a prerelease, this is automated validation, not a stable-release approval.'])
     content = '\n'.join(lines) + '\n'

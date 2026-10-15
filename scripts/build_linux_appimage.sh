@@ -4,11 +4,13 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
-PYTHON_BIN="${PYTHON_BIN:-python3}"
-if [[ -x "$ROOT_DIR/.venv/bin/python" ]]; then
-  PYTHON_BIN="$ROOT_DIR/.venv/bin/python"
-elif [[ -x "$ROOT_DIR/venv/bin/python" ]]; then
-  PYTHON_BIN="$ROOT_DIR/venv/bin/python"
+# An explicit interpreter always wins. Otherwise create a fresh build venv;
+# never install into the editor's .venv or the test environment.
+if [[ -z "${PYTHON_BIN:-}" ]]; then
+  environment_root="$(mktemp -d -t yagua-build-XXXXXXXX)"
+  python3 -m venv "$environment_root/venv"
+  PYTHON_BIN="$environment_root/venv/bin/python"
+  "$PYTHON_BIN" -m pip install -r requirements-linux-cpu.txt -r requirements-build.txt
 fi
 
 SPEC_FILE="${SPEC_FILE:-Yagua.linux.spec}"
@@ -75,7 +77,7 @@ if [[ -n "$APPDIR_PATH" ]]; then
   # Keep library metadata: PyMatting queries it at runtime.
   # Wheel libraries may already have patched ELF layouts. Stripping them again
   # can invalidate LOAD segment alignment (for example NumPy's OpenBLAS).
-  # Keep the binaries intact; the size checks still enforce the 2 GB budget.
+  # Keep the binaries intact; the artifact checks precede the final app + models + cache budget check.
   "$PYTHON_BIN" scripts/ci/check_linux_size.py "$APPDIR_PATH"
 fi
 
