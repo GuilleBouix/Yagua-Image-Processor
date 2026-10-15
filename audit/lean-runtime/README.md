@@ -118,7 +118,19 @@ sin recortar funciones ni calidad. El check de tamaño sigue siendo bloqueante.
 
 Los JSON y la ejecución enlazada conservan el límite histórico de 1.500.000.000
 bytes: Linux falló únicamente ese control. No se modifican esos resultados
-históricos; la nueva ejecución comprobará el máximo actualizado.
+históricos.
+
+### Revalidación con máximo de 2 GB
+
+Commit `ad0891f`, [ejecución 38791061811](https://github.com/GuilleBouix/Yagua-Image-Processor/actions/runs/38791061811):
+**Windows y Linux completaron todos los checks correctamente**, sin publicar releases.
+En ambos pasaron Ruff, Pyright, 313 tests con Tk obligatorio y las construcciones
+comparativas, imports, navegación, OCR/fondo online y offline, igualdad de píxeles
+y backend Numba. Total instalado: **1.102.057.456 bytes en Windows** y
+**1.527.547.175 bytes en Linux**, ambos por debajo de 2.000.000.000.
+El AppImage comprimido conserva sus 341.374.144 bytes. La pequeña variación de
+los totales frente a la medición anterior corresponde a las cachés generadas;
+no se modificó la lógica de la app, los modelos ni la calidad.
 
 | Comprobación | Windows | Linux |
 |---|---|---|
