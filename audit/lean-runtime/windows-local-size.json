@@ -1,4 +1,5 @@
 {
+  "status": "Preliminary local measurement; superseded by windows.json from the complete frozen-package comparison.",
   "limit_bytes": 1500000000,
   "components_bytes": {
     "app": 800661499,

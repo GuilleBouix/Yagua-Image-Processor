@@ -91,9 +91,118 @@ El ZIP/AppImage comprimido se informa aparte. No se cuentan los entornos de desa
 
 ## Resultados
 
-Las mediciones finales y los resultados por plataforma se incorporarán tras completar las construcciones comparativas. Hasta entonces, el objetivo de tamaño y la compatibilidad del paquete reducido no se consideran aprobados.
+Construcciones comparativas del 15/10/2026, base `1914a11` y candidato `414e953`.
+Ejecución: [validación sin publicación](https://github.com/GuilleBouix/Yagua-Image-Processor/actions/runs/38784574599).
+Datos completos: [Windows](windows.json) y [Linux](linux.json).
 
-Las pruebas automáticas no sustituyen probar el instalador/AppImage en equipos limpios ni garantizan velocidad idéntica en otro hardware. No se publica ningún release como parte de este trabajo.
+Tamaños lógicos en bytes; modelos y cachés se suman al paquete descomprimido.
+
+| Sistema | Componente | Antes | Ahora | Ahorro |
+|---|---|---:|---:|---:|
+| Windows | App | 897.579.619 | 799.498.805 | 98.080.814 |
+| Windows | Cinco modelos | 296.925.337 | 296.925.337 | 0 |
+| Windows | Cachés | 5.633.070 | 5.633.330 | -260 |
+| Windows | **Total instalado** | 1.200.138.026 | 1.102.057.472 | 98.080.554 |
+| Windows | ZIP | 331.187.897 | 289.684.789 | 41.503.108 |
+| Linux | App | 1.407.757.758 | 1.224.416.980 | 183.340.778 |
+| Linux | Cinco modelos | 296.925.337 | 296.925.337 | 0 |
+| Linux | Cachés | 6.204.362 | 6.204.818 | -456 |
+| Linux | **Total instalado** | 1.710.887.457 | 1.527.547.135 | 183.340.322 |
+| Linux | AppImage | 392.463.552 | 341.374.144 | 51.089.408 |
+
+**Windows cumple** el límite con 1.102.057.472 bytes.
+**Linux no cumple**: 1.527.547.135 bytes. Debe reducirse al menos 27.547.136 bytes para quedar estrictamente por debajo de 1.500.000.000. El check de tamaño permanece bloqueante y su publicación queda impedida.
+
+| Comprobación | Windows | Linux |
+|---|---|---|
+| Instalación limpia y pip check | Pasa | Pasa |
+| Ruff / Pyright | Pasa / pasa | Pasa / pasa |
+| Suite con Tk obligatorio | 310 tests pasan | 310 tests pasan |
+| Build y carga nativa del paquete | Pasa | Pasa |
+| Arranque y navegación por los 11 módulos | Pasa | Pasa |
+| OCR español, inglés y ambos: online/offline | Pasa | Pasa |
+| ISNet y U2NetP: online/offline | Pasa | Pasa |
+| Modelos conservan sus SHA256 | Pasa | Pasa |
+| Píxeles de nueve conversiones iguales a la base | Pasa | Pasa |
+| Píxeles de ambos modelos de fondo iguales a la base | Pasa | Pasa |
+| ICC RGB JPEG/WebP retenido en candidato | Pasa | Pasa |
+| Límite de tamaño instalado | Pasa | Falla |
+
+No hubo un fallo de compilación en la ejecución final. El bloqueo de Linux corresponde al tamaño total.
+Los modelos ocupan lo mismo antes y después; no se redujeron formatos ni parámetros de calidad.
+
+### Dependencias y recursos retirados por sistema
+
+| Sistema | Retirado del runtime o paquete | Conservado por necesidad |
+|---|---|---|
+| Ambos | 44 entradas sin uso; herramientas de test/build separadas; pandas, tkinterdnd2 y rembg CLI; datos OCR ajenos a es/en; recursos de instalador/macOS en el ejecutable | Todos los módulos y formatos, modelos, fuentes, licencias y metadatos |
+| Windows | OpenCV GUI, plugin FFmpeg de video y protoc de desarrollo | OpenCV headless, TBB/tcmlib, DLL de imagen y bibliotecas numéricas |
+| Linux | OpenCV GUI/Qt, TBB de pip que la base tampoco enlazaba al ejecutar; ejecutables de pruebas C++/protoc de Torch; raíces GTK/OpenGL/NSS/GLib/SM/ICE/xkbcommon | OpenCV y su FFmpeg/OpenBLAS enlazado, X11/Xext/Xrender, fuentes y OpenMP |
+
+### Qué mantiene a Linux por encima del límite
+
+Los wheels fijados siguen incluyendo estas bibliotecas necesarias:
+
+| Familia | Bytes en el candidato Linux | Uso |
+|---|---:|---|
+| torch | 522.670.812 | OCR; libtorch_cpu.so concentra 446.534.944 bytes |
+| llvmlite | 167.766.616 | Compilación de los kernels de Numba/PyMatting |
+| OpenCV | 153.499.857 | Preprocesamiento y sus dependencias nativas enlazadas |
+| scipy | 79.925.185 | Procesamiento y refinado de bordes |
+| numpy | 42.536.549 | Arrays y operaciones numéricas |
+| onnxruntime | 23.587.592 | Inferencia local de quitar fondo |
+| Cinco modelos | 296.925.337 | CRAFT, inglés, latino, ISNet y U2NetP |
+
+También permanecen Python/Tk, Pillow, HEIC/AVIF, scikit-image, Torchvision y el código de los módulos.
+Los tres OpenBLAS de OpenCV, NumPy y SciPy no se intercambian: los consumidores y ABI difieren.
+El hook de Torch ya excluye headers y archivos de desarrollo; se preservan sus módulos y bibliotecas.
+Con estos wheels y las restricciones acordadas no se alcanzó el objetivo Linux. No se recortaron SO/DLL ni se usó strip para forzarlo.
+
+### Velocidad y memoria
+
+Cada par se ejecutó secuencialmente en el mismo runner, con las mismas muestras.
+Arranque: mediana de tres procesos. Modelos: una pasada offline después de la descarga, en proceso nuevo.
+Los datos no acreditan una mejora general de velocidad; los valores individuales dependen del ruido del runner.
+En esta pasada Windows tardó más en OCR español (1,721 a 2,164 s) y en procesar
+ISNet (2,196 a 2,790 s). Hace falta repetir el benchmark para distinguir una
+regresión de la variación del equipo; no se certifica una mejora de rendimiento.
+
+| Sistema | Medición | Antes | Ahora |
+|---|---|---:|---:|
+| Windows | Arranque, segundos | 1.218 | 1.299 |
+| Windows | Carga OCR es, segundos | 2.188 | 2.332 |
+| Windows | Carga OCR en, segundos | 1.827 | 1.861 |
+| Windows | Carga OCR es+en, segundos | 1.750 | 1.716 |
+| Windows | Procesar OCR es, segundos | 1.721 | 2.164 |
+| Windows | Procesar OCR en, segundos | 1.608 | 1.586 |
+| Windows | Procesar OCR es+en, segundos | 1.689 | 1.689 |
+| Windows | Carga ISNet, segundos | 49.895 | 53.060 |
+| Windows | Procesar ISNet, segundos | 2.196 | 2.790 |
+| Windows | Carga U2NetP, segundos | 0.088 | 0.087 |
+| Windows | Procesar U2NetP, segundos | 0.421 | 0.463 |
+| Windows | Pico RAM arranque, bytes | 88.629.248 | 86.990.848 |
+| Windows | Pico RAM todos los modos, bytes | 3.065.671.680 | 3.045.236.736 |
+| Windows | Backend Numba | tbb | tbb |
+| Linux | Arranque, segundos | 0.816 | 0.766 |
+| Linux | Carga OCR es, segundos | 1.854 | 1.828 |
+| Linux | Carga OCR en, segundos | 1.467 | 1.407 |
+| Linux | Carga OCR es+en, segundos | 1.505 | 1.440 |
+| Linux | Procesar OCR es, segundos | 1.576 | 1.545 |
+| Linux | Procesar OCR en, segundos | 1.564 | 1.491 |
+| Linux | Procesar OCR es+en, segundos | 1.532 | 1.468 |
+| Linux | Carga ISNet, segundos | 40.331 | 38.901 |
+| Linux | Procesar ISNet, segundos | 2.028 | 2.058 |
+| Linux | Carga U2NetP, segundos | 0.043 | 0.049 |
+| Linux | Procesar U2NetP, segundos | 0.359 | 0.349 |
+| Linux | Pico RAM arranque, bytes | 92.651.520 | 90.910.720 |
+| Linux | Pico RAM todos los modos, bytes | 2.690.039.808 | 2.590.994.432 |
+| Linux | Backend Numba | omp | omp |
+
+El pico de RAM es acumulado por proceso. La prueba completa mantiene tres lectores OCR y dos sesiones de fondo;
+ese pico no representa la app recién abierta ni el consumo de un único modo.
+
+No se publicó ningún release ni se creó un tag. `main`, el entorno del editor y el borrador de Metadatos quedan intactos.
+Se probaron Windows-latest x64 y Ubuntu 22.04/Xvfb. La instalación en equipos limpios sigue siendo manual.
 
 ## Matriz de comprobación
 
