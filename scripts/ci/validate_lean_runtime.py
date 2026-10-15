@@ -58,6 +58,9 @@ def validate(label: str, base_ref: str, reports: Path) -> dict:
         command([python, '-m', 'pip', 'freeze'], source, destination / 'dependencies.txt')
         dist, work = task / 'dist', task / 'work'
         env = isolated_environment(task / 'build-profile')
+        env.pop('YAGUA_PACKAGE_BASELINE_ALLOW_ICC_LOSS', None)
+        if label == 'baseline':
+            env['YAGUA_PACKAGE_BASELINE_ALLOW_ICC_LOSS'] = '1'
         if os.name == 'nt':
             command([python, '-m', 'PyInstaller', '--clean', '--noconfirm',
                      '--distpath', dist, '--workpath', work, 'Yagua.spec'], source, log, env)

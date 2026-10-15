@@ -60,3 +60,28 @@ def test_wait_for_ui_reports_timeout():
 
     assert outcomes == ['timeout']
     assert not app.callbacks
+
+
+def test_conversion_profile_probe_rejects_missing_profile(tmp_path, monkeypatch):
+    from PIL import Image
+
+    original_save = Image.Image.save
+
+    def lose_profile(image, destination, format=None, **kwargs):
+        if format in ('JPEG', 'WEBP'):
+            kwargs.pop('icc_profile', None)
+        return original_save(image, destination, format, **kwargs)
+
+    monkeypatch.delenv('YAGUA_PACKAGE_BASELINE_ALLOW_ICC_LOSS', raising=False)
+    monkeypatch.setattr(Image.Image, 'save', lose_profile)
+    with pytest.raises(RuntimeError, match='lost ICC profile'):
+        package_selftest._verify_conversion_profiles(tmp_path)
+    monkeypatch.setenv('YAGUA_PACKAGE_BASELINE_ALLOW_ICC_LOSS', '1')
+    assert not any(package_selftest._verify_conversion_profiles(tmp_path).values())
+
+
+def test_conversion_profile_probe_reads_exported_files(tmp_path, monkeypatch):
+    monkeypatch.delenv('YAGUA_PACKAGE_BASELINE_ALLOW_ICC_LOSS', raising=False)
+    assert package_selftest._verify_conversion_profiles(tmp_path) == {
+        'RGB-JPEG': True, 'RGB-WEBP': True, 'RGBA-JPEG': True, 'RGBA-WEBP': True,
+    }

@@ -58,6 +58,8 @@ def audit(package: Path, work: Path, enforce=True) -> dict:
             path for path in result['elf_needed'] if Path(path).name.startswith((
                 'libgtk-3.', 'libgdk-3.', 'libGL.', 'libGLX.', 'libEGL.', 'libGLdispatch.',
                 'libnss3.', 'libsmime3.', 'libssl3.',
+                'libglib-', 'libgio-', 'libgobject-', 'libgmodule-',
+                'libSM.', 'libICE.', 'libxkbcommon',
             ))
         ]
     if enforce and (included or video or resources or developer_executables

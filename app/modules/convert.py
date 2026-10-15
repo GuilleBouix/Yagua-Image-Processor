@@ -230,10 +230,16 @@ def convertir_imagen(
     require_single_frame(ruta_entrada)
     with Image.open(ruta_entrada) as imagen:
         fmt_origen = _EXT_A_FMT.get(ruta_archivo.suffix.lower(), 'JPEG')
+        # JPEG/WebP require an explicit profile argument. Capture it before
+        # flattening alpha, which creates a new image without the source info.
+        # A CMYK/gray profile must never be attached to the normalized RGB data.
+        perfil_icc = imagen.info.get('icc_profile') if imagen.mode in ('RGB', 'RGBA', 'P') else None
 
         imagen = _preparar_para(imagen, formato)
         formato_pil = 'HEIF' if formato == 'HEIC' else formato
         argumentos_guardado = _kwargs_para(formato, calidad)
+        if formato in ('JPEG', 'WEBP') and perfil_icc:
+            argumentos_guardado['icc_profile'] = perfil_icc
         with atomic_destination(ruta_salida, replace=False) as temporary:
             imagen.save(temporary, formato_pil, **argumentos_guardado)
 

@@ -216,6 +216,27 @@ def _verify_image_formats(work: Path, observations: dict | None = None) -> list[
     return list(convert.FORMATOS_DESTINO)
 
 
+def _verify_conversion_profiles(work: Path) -> dict[str, bool]:
+    from PIL import Image, ImageCms
+    from app.modules.convert import convertir_imagen
+
+    profile = ImageCms.ImageCmsProfile(ImageCms.createProfile('sRGB')).tobytes()
+    preserved = {}
+    for mode in ('RGB', 'RGBA'):
+        source = work / f'profile-{mode}.png'
+        Image.new('RGBA', (32, 24), (20, 80, 180, 120)).convert(mode).save(source, icc_profile=profile)
+        for fmt in ('JPEG', 'WEBP'):
+            result = convertir_imagen(source, fmt, work)
+            with Image.open(result['ruta_salida']) as output:
+                retained = output.info.get('icc_profile') == profile
+            preserved[f'{mode}-{fmt}'] = retained
+            # Only historical comparison permits the confirmed pre-existing bug.
+            # Candidate and release validation must preserve every RGB profile.
+            if not retained and os.environ.get('YAGUA_PACKAGE_BASELINE_ALLOW_ICC_LOSS') != '1':
+                raise RuntimeError(f'{mode} -> {fmt}: conversion lost ICC profile')
+    return preserved
+
+
 def _verify_startup() -> None:
     import customtkinter as ctk
     from app.app import YaguaApp
@@ -288,6 +309,8 @@ def run(report_path: Path) -> int:
             result['image_roundtrips'] = {}
             result['image_formats'] = _stage(result, 'image-formats-and-metadata',
                 lambda: _verify_image_formats(work, result['image_roundtrips']))
+            result['conversion_profiles'] = _stage(result, 'conversion-color-profiles',
+                lambda: _verify_conversion_profiles(work))
 
             def verify_ocr(languages):
                 batch_result = ocr.batch_procesar([str(image_path)], idiomas=languages)
