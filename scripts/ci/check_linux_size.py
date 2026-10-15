@@ -1,4 +1,4 @@
-"""Reject distribution artifacts at or above the installed 1.5 GB ceiling.
+"""Reject distribution artifacts at or above the installed 2 GB ceiling.
 
 This preliminary artifact check does not certify the installed total. Use
 check_installed_size.py after the online/offline model checks for that gate.
@@ -12,7 +12,7 @@ import os
 from pathlib import Path
 import stat
 
-MAX_BYTES = 1_500_000_000
+MAX_BYTES = 2_000_000_000
 
 
 def artifact_size(path: Path) -> int:
@@ -46,7 +46,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.report:
         args.report.write_text(encoded + '\n', encoding='utf-8')
     if not all(within_budget(item['bytes']) for item in artifacts):
-        parser.exit(1, 'ERROR: un artefacto alcanza o supera 1.500.000.000 bytes.\n')
+        parser.exit(1, f'ERROR: un artefacto alcanza o supera {MAX_BYTES:,} bytes.\n')
     return 0
 
 

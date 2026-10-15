@@ -21,6 +21,8 @@ sys.path.insert(0, str(ROOT))
 
 
 def comparison_checks(results: dict) -> list[dict]:
+    from scripts.ci.check_linux_size import MAX_BYTES
+
     checks = []
     for label in ('baseline', 'candidate'):
         error = results[label].get('error')
@@ -31,7 +33,7 @@ def comparison_checks(results: dict) -> list[dict]:
     if total is None:
         checks.append({'name': 'installed-size', 'status': 'skipped', 'detail': 'No complete candidate measurement'})
     else:
-        limit = candidate.get('limit_bytes', 1_500_000_000)
+        limit = candidate.get('limit_bytes', MAX_BYTES)
         passed = candidate['within_budget']
         detail = f'App + models + caches: {total:,} bytes; required: < {limit:,} bytes'
         if not passed:

@@ -106,7 +106,7 @@ def test_installed_size_cli_rejects_total_at_limit_without_large_files(tmp_path,
         root.mkdir()
     compressed = tmp_path / 'download.zip'
     compressed.write_bytes(b'zip')
-    sizes = {roots['app']: 1_000_000_000, roots['models']: 499_999_999,
+    sizes = {roots['app']: check_installed_size.MAX_BYTES - 500_000_000, roots['models']: 499_999_999,
              roots['caches']: 1, compressed: 3}
     monkeypatch.setattr(check_installed_size, 'artifact_size', lambda path: sizes[path])
     args = [item for name, root in roots.items() for item in (f'--{name}', str(root))]
@@ -262,6 +262,17 @@ def test_positive_savings_do_not_bypass_absolute_size_limit(tmp_path, monkeypatc
     assert 'reduce by at least 51 bytes' in capsys.readouterr().err
     assert 'Positive means smaller than baseline' in job_summary.read_text()
     assert (tmp_path / 'summary.md').is_file()
+
+
+def test_current_linux_size_uses_shared_two_gb_budget_in_summary():
+    from scripts.ci.check_linux_size import MAX_BYTES, within_budget
+    from scripts.ci.validate_lean_runtime import comparison_checks
+
+    total = 1_527_547_135
+    result = {'baseline': {}, 'candidate': {'installed_bytes': total, 'within_budget': within_budget(total)}}
+    size_check = next(check for check in comparison_checks(result) if check['name'] == 'installed-size')
+    assert size_check['status'] == 'passed'
+    assert f'required: < {MAX_BYTES:,} bytes' in size_check['detail']
 
 
 def test_failed_baseline_reports_skipped_comparisons(tmp_path, monkeypatch):

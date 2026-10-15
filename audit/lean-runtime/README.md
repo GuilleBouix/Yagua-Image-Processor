@@ -79,7 +79,9 @@ Linux requiere las dependencias nativas listadas en el workflow y ejecuta las pr
 
 ## Medición y límite
 
-Límite estricto: **1.500.000.000 bytes**. Se suma el tamaño lógico de archivos regulares de:
+Máximo autorizado: **2.000.000.000 bytes** (2 GB decimales); el check exige quedar
+por debajo de ese valor. El objetivo inicial de 1.500.000.000 bytes se conserva
+como referencia de optimización. Se suma el tamaño lógico de archivos regulares de:
 
 - App portable descomprimida en Windows / AppImage extraído completo en Linux.
 - Los cinco modelos y recursos que descargan sus bibliotecas.
@@ -110,8 +112,13 @@ Tamaños lógicos en bytes; modelos y cachés se suman al paquete descomprimido.
 | Linux | **Total instalado** | 1.710.887.457 | 1.527.547.135 | 183.340.322 |
 | Linux | AppImage | 392.463.552 | 341.374.144 | 51.089.408 |
 
-**Windows cumple** el límite con 1.102.057.472 bytes.
-**Linux no cumple**: 1.527.547.135 bytes. Debe reducirse al menos 27.547.136 bytes para quedar estrictamente por debajo de 1.500.000.000. El check de tamaño permanece bloqueante y su publicación queda impedida.
+**Windows y Linux cumplen el máximo actual de 2 GB**, con 1.102.057.472 y
+1.527.547.135 bytes respectivamente. El usuario autorizó ampliar el máximo
+sin recortar funciones ni calidad. El check de tamaño sigue siendo bloqueante.
+
+Los JSON y la ejecución enlazada conservan el límite histórico de 1.500.000.000
+bytes: Linux falló únicamente ese control. No se modifican esos resultados
+históricos; la nueva ejecución comprobará el máximo actualizado.
 
 | Comprobación | Windows | Linux |
 |---|---|---|
@@ -126,9 +133,9 @@ Tamaños lógicos en bytes; modelos y cachés se suman al paquete descomprimido.
 | Píxeles de nueve conversiones iguales a la base | Pasa | Pasa |
 | Píxeles de ambos modelos de fondo iguales a la base | Pasa | Pasa |
 | ICC RGB JPEG/WebP retenido en candidato | Pasa | Pasa |
-| Límite de tamaño instalado | Pasa | Falla |
+| Límite histórico de 1.500 MB en esa ejecución | Pasa | Falla |
 
-No hubo un fallo de compilación en la ejecución final. El bloqueo de Linux corresponde al tamaño total.
+No hubo un fallo de compilación en esa ejecución. El bloqueo de Linux correspondía al límite anterior.
 Los modelos ocupan lo mismo antes y después; no se redujeron formatos ni parámetros de calidad.
 
 ### Dependencias y recursos retirados por sistema
@@ -139,7 +146,7 @@ Los modelos ocupan lo mismo antes y después; no se redujeron formatos ni parám
 | Windows | OpenCV GUI, plugin FFmpeg de video y protoc de desarrollo | OpenCV headless, TBB/tcmlib, DLL de imagen y bibliotecas numéricas |
 | Linux | OpenCV GUI/Qt, TBB de pip que la base tampoco enlazaba al ejecutar; ejecutables de pruebas C++/protoc de Torch; raíces GTK/OpenGL/NSS/GLib/SM/ICE/xkbcommon | OpenCV y su FFmpeg/OpenBLAS enlazado, X11/Xext/Xrender, fuentes y OpenMP |
 
-### Qué mantiene a Linux por encima del límite
+### Bibliotecas necesarias que mantienen a Linux por encima del objetivo inicial
 
 Los wheels fijados siguen incluyendo estas bibliotecas necesarias:
 

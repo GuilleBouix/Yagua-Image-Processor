@@ -5,8 +5,13 @@ import pytest
 from scripts.ci import check_linux_size as checker
 
 
+def test_authorized_two_gb_ceiling_accepts_current_linux_package():
+    assert checker.MAX_BYTES == 2_000_000_000
+    assert checker.within_budget(1_527_547_135)
+
+
 @pytest.mark.parametrize(('size', 'expected'), [
-    (0, True), (checker.MAX_BYTES - 1, True), (checker.MAX_BYTES, False),
+    (-1, False), (0, True), (checker.MAX_BYTES - 1, True), (checker.MAX_BYTES, False),
     (checker.MAX_BYTES + 1, False),
 ])
 def test_budget_boundary(size, expected):

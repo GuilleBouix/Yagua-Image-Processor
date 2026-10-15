@@ -3,6 +3,10 @@
 import json
 import os
 from pathlib import Path
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from scripts.ci.check_linux_size import MAX_BYTES
 
 
 def main() -> None:
@@ -20,7 +24,7 @@ def main() -> None:
     assert online['status'] == offline['status'] == 'passed'
     assert online['frozen'] and offline['frozen'] and offline['offline']
     installed = json.loads((reports / 'installed-size.json').read_text(encoding='utf-8'))
-    assert installed['within_budget'] and installed['installed_bytes'] < 1_500_000_000
+    assert installed['within_budget'] and installed['installed_bytes'] < MAX_BYTES
     (reports / 'sizes.json').write_text(json.dumps(sizes, indent=2) + '\n', encoding='utf-8')
     version = os.environ['RELEASE_VERSION']
     sha = os.environ['GITHUB_SHA']
@@ -40,7 +44,7 @@ def main() -> None:
     ]
     lines.extend(f"- {Path(item['path']).name}: {item['bytes']:,} bytes"
                  for item in sizes['artifacts'])
-    lines.extend(['', f"App + models + caches: {installed['installed_bytes']:,} bytes, strictly below 1,500,000,000.",
+    lines.extend(['', f"App + models + caches: {installed['installed_bytes']:,} bytes, strictly below {MAX_BYTES:,}.",
                   '', 'Manual testing on an Ubuntu desktop is still pending.',
                   'For a prerelease, this is automated validation, not a stable-release approval.'])
     content = '\n'.join(lines) + '\n'
