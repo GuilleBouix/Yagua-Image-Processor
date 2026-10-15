@@ -54,15 +54,32 @@ def runtime_assets(root: Path) -> list[tuple[str, str]]:
     ]
 
 
+def runtime_distributions(root: Path, marker_environment: dict | None = None) -> list[str]:
+    from packaging.requirements import Requirement
+
+    names = []
+    for line in (root / 'requirements.txt').read_text(encoding='utf-8').splitlines():
+        if '==' not in line:
+            continue
+        requirement = Requirement(line)
+        if requirement.marker is None or requirement.marker.evaluate(marker_environment):
+            names.append(requirement.name)
+    return names
+
+
 def build_inputs(root: Path) -> dict:
     from PyInstaller.utils.hooks import collect_data_files, copy_metadata
 
     assert_clean_environment()
     datas = runtime_assets(root) + collect_data_files('customtkinter')
     # Preserve licenses and distribution metadata, including PyMatting's runtime lookup.
-    for line in (root / 'requirements.txt').read_text(encoding='utf-8').splitlines():
-        if '==' in line:
-            datas.extend(copy_metadata(line.split('==')[0]))
+    for name in runtime_distributions(root):
+        datas.extend(copy_metadata(name))
+        # Intel wheels also put third-party notices outside their dist-info.
+        dist = importlib.metadata.distribution(name)
+        for file in dist.files or ():
+            if 'licensing' in file.parts and not any('.dist-info' in part for part in file.parts):
+                datas.append((str(dist.locate_file(file)), f'licenses/{name}'))
     return {
         'hiddenimports': application_modules(root) + [
             'easyocr.detection', 'easyocr.model.model', 'easyocr.model.vgg_model',

@@ -35,7 +35,6 @@
     "safetensors==0.7.0",
     "shellingham==1.5.4",
     "six==1.17.0",
-    "tbb==2022.3.1",
     "tinycss2==1.5.1",
     "tkinterdnd2==0.4.3",
     "typer==0.24.1",
@@ -64,5 +63,11 @@
   "replaced": {
     "opencv-python==4.13.0.92": "opencv-python-headless==4.13.0.92"
   },
-  "retained_runtime_count": 51
+  "retained_runtime_count": 53,
+  "platform_runtime_counts": {"Windows": 53, "Linux": 51},
+  "retained_indirect_windows_dependencies": [
+    "tbb==2022.3.1; sys_platform == \"win32\"",
+    "tcmlib==1.5.0; sys_platform == \"win32\""
+  ],
+  "tbb_evidence": "Windows baseline PyInstaller resolves tbb12.dll from Library/bin for numba.np.ufunc.tbbpool. Removing tbb creates an unresolved native dependency. Preserve this backend and its baseline tcmlib version. Linux baseline/candidate both lacked libtbb.so.12 and use the existing OpenMP backend."
 }

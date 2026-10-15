@@ -21,6 +21,14 @@ def test_runtime_dependencies_have_no_build_test_or_unused_extras():
     assert {'torch', 'torchvision', 'onnxruntime', 'numpy', 'scipy', 'numba', 'pymatting'} <= names
 
 
+@pytest.mark.parametrize('platform, count, has_tbb', [('win32', 53, True), ('linux', 51, False)])
+def test_runtime_metadata_honors_native_windows_dependency_markers(platform, count, has_tbb):
+    names = packaging_rules.runtime_distributions(ROOT, {'sys_platform': platform})
+    assert len(names) == count
+    assert ('tbb' in names) == has_tbb
+    assert ('tcmlib' in names) == has_tbb
+
+
 def test_assets_preserve_runtime_font_and_icons_without_installer_or_macos():
     assets = packaging_rules.runtime_assets(ROOT)
     names = {Path(source).name for source, _ in assets}
@@ -216,3 +224,24 @@ def test_native_audit_reads_dependencies_without_deleting_files(tmp_path, monkey
     ))
     assert audit_frozen.elf_dependencies(tmp_path) == {'cv2.so': ['libstdc++.so.6', 'libgomp.so.1']}
     assert binary.read_bytes() == b'\x7fELF-not-a-real-image'
+
+
+@pytest.mark.parametrize('mutation', [None, 'image_roundtrips', 'background_roundtrips', 'numba_threading_layer'])
+def test_comparison_rejects_changed_pixels_or_numba_backend(tmp_path, monkeypatch, mutation):
+    import json
+    import sys
+    from scripts.ci import validate_lean_runtime
+
+    def validate(label, base_ref, reports):
+        folder = reports / label
+        folder.mkdir()
+        probe = {'image_roundtrips': {'PNG': 'pixels'},
+                 'background_roundtrips': {'ISNet': 'pixels'}, 'numba_threading_layer': 'tbb'}
+        if label == 'candidate' and mutation:
+            probe[mutation] = 'changed'
+        (folder / 'offline.json').write_text(json.dumps(probe))
+        return {'within_budget': True, 'installed_bytes': 10}
+
+    monkeypatch.setattr(validate_lean_runtime, 'validate', validate)
+    monkeypatch.setattr(sys, 'argv', ['validate', '--reports', str(tmp_path / 'reports')])
+    assert validate_lean_runtime.main() == (1 if mutation else 0)

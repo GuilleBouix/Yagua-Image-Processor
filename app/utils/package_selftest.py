@@ -343,6 +343,7 @@ def run(report_path: Path) -> int:
                 batch = _stage(result, f'ocr-{label}', lambda: verify_ocr(languages))
 
             def verify_background_removal(fallback=False):
+                import hashlib
                 foreground = Image.new('RGB', (256, 256), 'white')
                 ImageDraw.Draw(foreground).ellipse((55, 30, 200, 230), fill=(180, 35, 45))
                 foreground_path = work / 'foreground.png'
@@ -371,6 +372,10 @@ def run(report_path: Path) -> int:
                     raise RuntimeError('Background output is not a transparent 256x256 RGBA image')
                 result['background_model'] = removal_result['model_used']
                 result['background_removal'] = 'passed'
+                result.setdefault('background_roundtrips', {})[expected_model] = {
+                    'mode': output.mode, 'size': list(output.size),
+                    'pixel_sha256': hashlib.sha256(output.tobytes()).hexdigest(),
+                }
 
             for fallback in (False, True):
                 model = remove_bg.FALLBACK_MODEL if fallback else remove_bg.DEFAULT_MODEL
@@ -381,6 +386,9 @@ def run(report_path: Path) -> int:
 
                 _stage(result, f'background-init-{model}', load_background_model)
                 _stage(result, f'background-{model}', lambda: verify_background_removal(fallback))
+
+            import numba
+            result['numba_threading_layer'] = numba.threading_layer()
 
             def verify_ui():
                 from app.app import YaguaApp

@@ -129,13 +129,17 @@ def main():
         (reports / 'comparison.json').write_text(json.dumps(results, indent=2) + '\n', encoding='utf-8')
     if all('installed_bytes' in results[label] for label in ('baseline', 'candidate')):
         results['saved_bytes'] = results['baseline']['installed_bytes'] - results['candidate']['installed_bytes']
-        roundtrips = [json.loads((reports / label / 'offline.json').read_text(encoding='utf-8'))[
-            'image_roundtrips'] for label in ('baseline', 'candidate')]
-        results['image_contract_matches'] = roundtrips[0] == roundtrips[1]
+        probes = [json.loads((reports / label / 'offline.json').read_text(encoding='utf-8'))
+                  for label in ('baseline', 'candidate')]
+        results['image_contract_matches'] = probes[0]['image_roundtrips'] == probes[1]['image_roundtrips']
+        results['background_contract_matches'] = probes[0]['background_roundtrips'] == probes[1]['background_roundtrips']
+        results['numba_threading_matches'] = probes[0]['numba_threading_layer'] == probes[1]['numba_threading_layer']
     (reports / 'comparison.json').write_text(json.dumps(results, indent=2) + '\n', encoding='utf-8')
     print(json.dumps(results, indent=2))
     return 0 if (results['candidate']['within_budget'] and 'error' not in results['baseline']
-                 and results.get('image_contract_matches')) else 1
+                 and results.get('image_contract_matches')
+                 and results.get('background_contract_matches')
+                 and results.get('numba_threading_matches')) else 1
 
 
 if __name__ == '__main__':
