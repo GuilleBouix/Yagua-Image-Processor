@@ -1,6 +1,6 @@
 <div align="center">
 
-[English](../../README.md) · **Español** · [Português](README_pt.md) · [Français](README_fr.md) · [Deutsch](README_de.md)
+[English](../../README.md) · **Español** · [Português](README_pt.md) · [Français](README_fr.md) · [Deutsch](README_de.md) · [Italiano](README_it.md) · [日本語](README_ja.md) · [简体中文](README_zh_cn.md) · [Русский](README_ru.md)
 
 <img src="https://github.com/user-attachments/assets/fc1dacf8-5249-43da-a294-4b20dc423304" width="1000" alt="Banner de Yagua — Procesador de imágenes" />
 
@@ -30,7 +30,7 @@ Yagua reúne tareas habituales de procesamiento de imágenes en una app de escri
 
 El procesamiento corre en tu computadora. Quitar fondo y OCR necesitan una descarga inicial de modelos; después pueden funcionar sin conexión si los modelos necesarios están guardados. Las comprobaciones de actualizaciones consultan GitHub; los enlaces de descarga, donaciones y mapas se abren en el navegador.
 
-La interfaz está disponible en **inglés, español, portugués, francés y alemán**, con temas oscuros y vistas previas donde corresponde.
+La interfaz del código actual admite **inglés, español, portugués, francés, alemán, italiano, japonés, chino simplificado y ruso**, con temas oscuros y vistas previas donde corresponde. Los paquetes publicados pueden incluir menos idiomas; la disponibilidad depende de la versión instalada. El idioma de la interfaz no agrega idiomas de reconocimiento OCR.
 
 <a id="features"></a>
 
@@ -283,7 +283,7 @@ python -m pytest -q
 
 Los tests de interfaz necesitan una pantalla. En Linux sin entorno gráfico, instalá `xvfb` y usá `xvfb-run -a python -m pytest -q`, como hace CI.
 
-Consultá [`CHANGELOG.md`](../../CHANGELOG.md) para el historial. Algunas capturas pueden estar atrasadas respecto del código. Reportá errores, proponé funciones en [Issues](https://github.com/GuilleBouix/Yagua-Image-Processor/issues) o enviá PR con cambios concretos y validación relevante. Si cambiás comportamientos documentados, actualizá los cinco idiomas del README.
+Consultá [`CHANGELOG.md`](../../CHANGELOG.md) para el historial. Algunas capturas pueden estar atrasadas respecto del código. Reportá errores, proponé funciones en [Issues](https://github.com/GuilleBouix/Yagua-Image-Processor/issues) o enviá PR con cambios concretos y validación relevante. Si cambiás comportamientos documentados, actualizá los nueve idiomas del README.
 
 ## Apoyá el proyecto
 

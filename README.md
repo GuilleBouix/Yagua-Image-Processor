@@ -1,6 +1,6 @@
 <div align="center">
 
-**English** · [Español](docs/i18n/README_es.md) · [Português](docs/i18n/README_pt.md) · [Français](docs/i18n/README_fr.md) · [Deutsch](docs/i18n/README_de.md)
+**English** · [Español](docs/i18n/README_es.md) · [Português](docs/i18n/README_pt.md) · [Français](docs/i18n/README_fr.md) · [Deutsch](docs/i18n/README_de.md) · [Italiano](docs/i18n/README_it.md) · [日本語](docs/i18n/README_ja.md) · [简体中文](docs/i18n/README_zh_cn.md) · [Русский](docs/i18n/README_ru.md)
 
 <img src="https://github.com/user-attachments/assets/fc1dacf8-5249-43da-a294-4b20dc423304" width="1000" alt="Yagua — Image Processor banner" />
 
@@ -30,7 +30,7 @@ Yagua brings everyday image tasks into one desktop app for web developers, desig
 
 Image processing runs on your computer. Background removal and OCR need an initial model download, then can work offline with the required models cached. Update checks contact GitHub; opening download, donation or map links uses your browser.
 
-The interface supports **English, Spanish, Portuguese, French and German**, with dark themes and previews where available.
+The current source interface supports **English, Spanish, Portuguese, French, German, Italian, Japanese, Simplified Chinese and Russian**, with dark themes and previews where available. Published packages may include fewer languages; availability depends on your installed release. The interface language does not add OCR recognition languages.
 
 ## Features
 
@@ -273,7 +273,7 @@ python -m pytest -q
 
 UI tests require a display. In headless Linux environments, install `xvfb` and use `xvfb-run -a python -m pytest -q`, as CI does.
 
-See [`CHANGELOG.md`](CHANGELOG.md) for project history. Some screenshots may lag behind the code. Report bugs, suggest features through [Issues](https://github.com/GuilleBouix/Yagua-Image-Processor/issues), or submit focused pull requests with relevant validation. When changing documented behavior, update all five README languages.
+See [`CHANGELOG.md`](CHANGELOG.md) for project history. Some screenshots may lag behind the code. Report bugs, suggest features through [Issues](https://github.com/GuilleBouix/Yagua-Image-Processor/issues), or submit focused pull requests with relevant validation. When changing documented behavior, update all nine README languages.
 
 ## Support the project
 

@@ -1,6 +1,6 @@
 <div align="center">
 
-[English](../../README.md) · [Español](README_es.md) · [Português](README_pt.md) · **Français** · [Deutsch](README_de.md)
+[English](../../README.md) · [Español](README_es.md) · [Português](README_pt.md) · **Français** · [Deutsch](README_de.md) · [Italiano](README_it.md) · [日本語](README_ja.md) · [简体中文](README_zh_cn.md) · [Русский](README_ru.md)
 
 <img src="https://github.com/user-attachments/assets/fc1dacf8-5249-43da-a294-4b20dc423304" width="1000" alt="Bannière Yagua — Traitement d’images" />
 
@@ -30,7 +30,7 @@ Yagua regroupe les tâches courantes de traitement d’images dans une applicati
 
 Le traitement s’effectue sur votre ordinateur. La suppression d’arrière-plan et l’OCR nécessitent un premier téléchargement de modèles, puis peuvent fonctionner hors ligne si les modèles nécessaires sont en cache. Les vérifications de mises à jour contactent GitHub ; les liens de téléchargement, de don et de carte s’ouvrent dans le navigateur.
 
-L’interface propose **l’anglais, l’espagnol, le portugais, le français et l’allemand**, avec des thèmes sombres et des aperçus lorsqu’ils sont disponibles.
+L’interface du code actuel propose **l’anglais, l’espagnol, le portugais, le français, l’allemand, l’italien, le japonais, le chinois simplifié et le russe**, avec des thèmes sombres et des aperçus lorsqu’ils sont disponibles. Les paquets publiés peuvent inclure moins de langues ; leur disponibilité dépend de la version installée. La langue de l’interface n’ajoute pas de langues de reconnaissance OCR.
 
 <a id="features"></a>
 
@@ -281,7 +281,7 @@ python -m pytest -q
 
 Les tests d’interface nécessitent un affichage. Sous Linux sans interface graphique, installez `xvfb` et utilisez `xvfb-run -a python -m pytest -q`, comme le fait la CI.
 
-Consultez [`CHANGELOG.md`](../../CHANGELOG.md) pour l’historique. Certaines captures peuvent être en retard sur le code. Signalez des bugs, proposez des fonctionnalités dans [Issues](https://github.com/GuilleBouix/Yagua-Image-Processor/issues) ou soumettez des PR ciblées avec une validation pertinente. Lorsqu’un comportement documenté change, mettez à jour les cinq langues du README.
+Consultez [`CHANGELOG.md`](../../CHANGELOG.md) pour l’historique. Certaines captures peuvent être en retard sur le code. Signalez des bugs, proposez des fonctionnalités dans [Issues](https://github.com/GuilleBouix/Yagua-Image-Processor/issues) ou soumettez des PR ciblées avec une validation pertinente. Lorsqu’un comportement documenté change, mettez à jour les neuf langues du README.
 
 ## Soutenir le projet
 
