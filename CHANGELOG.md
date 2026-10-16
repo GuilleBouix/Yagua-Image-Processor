@@ -2,6 +2,15 @@
 
 Todos los cambios notables del proyecto se documentan en este archivo.
 
+## [2.0.1-rc.7] - 2026-10-16
+
+### Prueba de actualización en Windows
+
+- Prerelease solo para Windows, con instalador y portable, para comprobar que la RC.6 detecta una versión posterior desde Ajustes.
+- Conserva las funciones, modelos, calidad y nueve idiomas de la RC.6; incluye los README en nueve idiomas y la captura de inicio incorporados a main.
+- La actualización abre la página de descarga; la instalación sigue siendo manual.
+- No se genera una RC.7 de Linux. Las publicaciones anteriores se conservan.
+
 ## [2.0.1-rc.6] - 2026-10-16
 
 ### Idiomas e interfaz
