@@ -9,6 +9,8 @@ import os
 import sys
 from pathlib import Path
 
+from app.languages import AVAILABLE_LANGUAGES
+
 
 def settings_path() -> Path:
     """Retorna la ruta a user_settings.json segun la plataforma."""
@@ -33,7 +35,7 @@ def load_settings(path: Path | None = None) -> dict:
         if not isinstance(data, dict):
             return {}
         validators = {
-            'language': lambda v: isinstance(v, str) and v in ('Español', 'English', 'Portugues', 'Français', 'Deutsch'),
+            'language': lambda v: isinstance(v, str) and v in AVAILABLE_LANGUAGES,
             'theme': lambda v: isinstance(v, str),
             'ui_scale': lambda v: type(v) is int and v in (50, 75, 100),
             'visible_modules': lambda v: isinstance(v, list) and all(isinstance(item, str) for item in v),

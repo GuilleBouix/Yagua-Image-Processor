@@ -1,0 +1,28 @@
+{
+  "version": "Noto Sans CJK 2.004",
+  "revision": "523d033d6cb47f4a80c58a35753646f5c3608a78",
+  "source": "https://github.com/notofonts/noto-cjk/tree/523d033d6cb47f4a80c58a35753646f5c3608a78",
+  "font_bytes": 66939968,
+  "files": {
+    "LICENSE": {
+      "bytes": 4301,
+      "sha256": "6a73f9541c2de74158c0e7cf6b0a58ef774f5a780bf191f2d7ec9cc53efe2bf2"
+    },
+    "NotoSansCJKjp-Bold.otf": {
+      "bytes": 17032620,
+      "sha256": "e53dcb0dcb2922e45d01aae1ebd2f382bb81d4229b18b6b883bd170678af1f76"
+    },
+    "NotoSansCJKjp-Regular.otf": {
+      "bytes": 16467736,
+      "sha256": "68a3fc98800b2a27b371f2fb79991daf3633bd89309d4ffaa6946fd587f375b5"
+    },
+    "NotoSansCJKsc-Bold.otf": {
+      "bytes": 17002248,
+      "sha256": "b5f0d1a190a7f9b43c310a8850630af12553df32c4c050543f9059732d9b4c0a"
+    },
+    "NotoSansCJKsc-Regular.otf": {
+      "bytes": 16437364,
+      "sha256": "2c76254f6fc379fddfce0a7e84fb5385bb135d3e399294f6eeb6680d0365b74b"
+    }
+  }
+}

@@ -1,5 +1,19 @@
 from app.ui.frames.ocr.frame import OcrFrame
 from app.ui.frames.ocr import frame as ocr_frame_module
+from app import translations
+import pytest
+
+
+@pytest.mark.parametrize('language', list(translations.AVAILABLE_LANGUAGES))
+def test_ui_language_does_not_add_ocr_recognition_languages(ui_root, monkeypatch, language):
+    monkeypatch.setattr(translations, '_current_lang', language)
+    monkeypatch.setattr(OcrFrame, '_inicializar_en_background', lambda self: None)
+    frame = OcrFrame(ui_root)
+    options = frame._dropdown_idiomas.cget('values')
+    assert options == [translations.t(key) for key in ('ocr_lang_es_en', 'ocr_lang_es', 'ocr_lang_en')]
+    assert [frame._idiomas_map[label] for label in options] == ['es,en', 'es', 'en']
+    assert frame._state.idiomas.get() == 'es,en'
+    frame.destroy()
 
 
 def test_ocr_frame_build(monkeypatch, ui_root):

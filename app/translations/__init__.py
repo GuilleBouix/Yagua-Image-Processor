@@ -16,21 +16,11 @@ Relacionado con:
 """
 
 from typing import Optional
+from importlib import import_module
 
 from app.utils.settings import settings_path, load_settings, save_settings
+from app.languages import AVAILABLE_LANGUAGES, DEFAULT_LANGUAGE, LANGUAGE_MODULES
 
-
-# Idiomas disponibles en la aplicacion
-AVAILABLE_LANGUAGES = {
-    'Español': 'Español',
-    'English': 'English',
-    'Portugues': 'Portugues',
-    'Français': 'Français',
-    'Deutsch': 'Deutsch',
-}
-
-# Idioma por defecto cuando no hay configuracion guardada
-DEFAULT_LANGUAGE = 'Español'
 
 # Idioma actual (se carga desde settings al inicio)
 _current_lang: Optional[str] = None
@@ -99,22 +89,8 @@ def get_translations(lang=None):
     if lang is None:
         lang = get_language()
     
-    # Importar el modulo de traducciones correspondiente
-    if lang == 'Español':
-        from app.translations.es import TRANSLATIONS
-    elif lang == 'English':
-        from app.translations.en import TRANSLATIONS
-    elif lang == 'Portugues':
-        from app.translations.pt import TRANSLATIONS
-    elif lang == 'Français':
-        from app.translations.fr import TRANSLATIONS
-    elif lang == 'Deutsch':
-        from app.translations.de import TRANSLATIONS
-    else:
-        # Fallback a ingles si el idioma no se reconoce
-        from app.translations.en import TRANSLATIONS
-    
-    return TRANSLATIONS
+    module = LANGUAGE_MODULES.get(lang, 'en')
+    return import_module(f'app.translations.{module}').TRANSLATIONS
 
 
 def t(key: str, lang: str | None = None) -> str:

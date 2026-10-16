@@ -6,6 +6,8 @@ import sys
 import pytest
 
 from app.ui.frames.settings import services
+from app.languages import AVAILABLE_LANGUAGES
+from app.utils.settings import load_settings
 
 
 def test_get_ui_scale_default_si_no_existe(monkeypatch, tmp_path: Path):
@@ -23,7 +25,8 @@ def test_get_ui_scale_fallback_si_es_invalida(monkeypatch, tmp_path: Path):
     assert services.get_ui_scale() == 100
 
 
-def test_apply_settings_guarda_todo_y_reinicia_una_vez(monkeypatch, tmp_path: Path):
+@pytest.mark.parametrize('language', list(AVAILABLE_LANGUAGES))
+def test_apply_settings_guarda_todo_y_reinicia_una_vez(monkeypatch, tmp_path: Path, language):
     path = tmp_path / "user_settings.json"
     path.write_text('{"keep": "value"}', encoding='utf-8')
     monkeypatch.setattr(services, "_settings_path", lambda: path)
@@ -31,7 +34,7 @@ def test_apply_settings_guarda_todo_y_reinicia_una_vez(monkeypatch, tmp_path: Pa
     monkeypatch.setattr(services, "restart_app", lambda: calls.append("restart"))
 
     services.apply_settings_and_restart(
-        language='English',
+        language=language,
         theme='Dracula',
         ui_scale=75,
         visible_modules=['ocr', 'unknown'],
@@ -39,12 +42,13 @@ def test_apply_settings_guarda_todo_y_reinicia_una_vez(monkeypatch, tmp_path: Pa
 
     assert json.loads(path.read_text(encoding='utf-8')) == {
         'keep': 'value',
-        'language': 'English',
+        'language': language,
         'theme': 'Dracula',
         'ui_scale': 75,
         'visible_modules': ['ocr', 'settings'],
     }
     assert calls == ['restart']
+    assert load_settings(path)['language'] == language
 
 
 @pytest.mark.parametrize(

@@ -2,7 +2,7 @@
 import pytest
 import customtkinter as ctk
 from app import translations
-from app.ui import colors
+from app.ui import colors, fonts
 from app.ui.module_registry import iter_all_modules, load_frame_class
 from app.ui.frames.ocr.frame import OcrFrame
 from app.ui.frames.remove_bg.frame import RemoveBgFrame
@@ -13,6 +13,10 @@ from app.ui.operations import operations
 @pytest.mark.parametrize('scale', [1.0, 0.75, 0.5])
 def test_modules_construct_across_language_theme_scale(ui_root, monkeypatch, language, scale):
     monkeypatch.setattr(translations, '_current_lang', language)
+    for name in ('FUENTE_BASE', 'FUENTE_TITULO', 'FUENTE_CHICA'):
+        monkeypatch.setattr(fonts, name, getattr(fonts, name))
+    monkeypatch.setitem(ctk.ThemeManager.theme['CTkFont'], 'family', ctk.ThemeManager.theme['CTkFont']['family'])
+    fonts.inicializar_fuentes(language)
     monkeypatch.setattr(OcrFrame, '_inicializar_en_background', lambda self: None)
     monkeypatch.setattr(RemoveBgFrame, '_inicializar_en_background', lambda self: self._build_content_ready(True, True))
     # Isolate the library's process-global callback registry between root fixtures.

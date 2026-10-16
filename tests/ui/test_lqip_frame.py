@@ -246,7 +246,7 @@ def test_mapped_layout_and_hidden_controls_survive_scaling(ui_root, fixtures_dir
         ctk.set_widget_scaling(1)
 
 
-@pytest.mark.parametrize('language', ['Español', 'English', 'Portugues', 'Français', 'Deutsch'])
+@pytest.mark.parametrize('language', list(translations.AVAILABLE_LANGUAGES))
 def test_translated_modes_and_formats_keep_internal_keys(ui_root, monkeypatch, language):
     monkeypatch.setattr(translations, '_current_lang', language)
     frame = LqipFrame(ui_root)

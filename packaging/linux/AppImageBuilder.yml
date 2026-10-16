@@ -20,6 +20,7 @@ AppDir:
       - libxrender1
       - libx11-6
       - libfontconfig1
+      - libxft2
       - libfreetype6
       - libgomp1
 

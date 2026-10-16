@@ -33,6 +33,9 @@ def test_assets_preserve_runtime_font_and_icons_without_installer_or_macos():
     assets = packaging_rules.runtime_assets(ROOT)
     names = {Path(source).name for source, _ in assets}
     assert {'Inter.ttf', 'icon.ico', 'icon.png', 'ocr.png'} <= names
+    assert {f'NotoSansCJK{region}-{weight}.otf' for region in ('jp', 'sc')
+            for weight in ('Regular', 'Bold')} <= names
+    assert any(Path(source).parts[-2:] == ('noto-cjk', 'LICENSE') for source, _ in assets)
     assert not names.intersection(packaging_rules.INSTALLER_ASSETS)
     assert not any(source.endswith('.icns') for source, _ in assets)
     assert all(Path(source).is_file() for source, _ in assets)
@@ -43,7 +46,18 @@ def test_dynamic_registry_modules_are_included_without_importing_ui():
     assert 'app.ui.frames.ocr.frame' in modules
     assert 'app.ui.frames.metadata.frame' in modules
     assert 'app.translations.es' in modules
+    assert {'app.translations.it', 'app.translations.ja', 'app.translations.zh_cn',
+            'app.translations.ru'} <= set(modules)
+    assert packaging_rules.OCR_LANGUAGES == ['en', 'es']
     assert all(not name.endswith('.__init__') for name in modules)
+
+
+def test_linux_package_keeps_fontconfig_and_xft_for_private_ui_fonts():
+    import yaml
+    # Avoid parsing the workflow's unrelated !ENV interpolation tags.
+    text = (ROOT / 'packaging/linux/AppImageBuilder.yml').read_text(encoding='utf-8')
+    include = text.split('    include:', 1)[1].split('  files:', 1)[0]
+    assert {'libfontconfig1', 'libxft2', 'libfreetype6'} <= set(yaml.safe_load(include))
 
 
 def test_packaging_rejects_a_test_or_editor_environment(monkeypatch):

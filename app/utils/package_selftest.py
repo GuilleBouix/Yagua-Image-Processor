@@ -254,6 +254,24 @@ def _update_checker_name(module) -> str:
     return 'check_latest_update' if hasattr(module, 'check_latest_update') else 'check_latest_stable'
 
 
+def _verify_ui_fonts(app) -> dict:
+    from app.ui import fonts
+    import tkinter.font as tkfont
+
+    # The probe is also overlaid on baseline packages predating bundled CJK fonts.
+    if not hasattr(fonts, 'CJK_FONTS'):
+        return {'baseline': True}
+    registered = fonts.registrar_fuentes()
+    if not all(registered.values()):
+        raise RuntimeError(f'Bundled UI font registration failed: {registered}')
+    required = {'Inter', *fonts.LANGUAGE_FAMILIES.values()}
+    missing = required - set(tkfont.families(app))
+    if missing:
+        raise RuntimeError(f'Bundled UI font families unavailable: {sorted(missing)}')
+    return {'families': sorted(required), 'font_bytes': sum(
+        resource_path(relative).stat().st_size for relative in fonts.CJK_FONTS)}
+
+
 def _verify_startup() -> None:
     import customtkinter as ctk
     from app.app import YaguaApp
@@ -265,8 +283,11 @@ def _verify_startup() -> None:
     apply_ui_scale()
     with patch.object(main_window, _update_checker_name(main_window), return_value=None):
         app = YaguaApp()
-        app.update_idletasks()
-        app.destroy()
+        try:
+            app.update_idletasks()
+            _verify_ui_fonts(app)
+        finally:
+            app.destroy()
 
 
 def _prepare_probe_stdio() -> None:
@@ -402,6 +423,7 @@ def run(report_path: Path) -> int:
 
                 setattr(main_window, _update_checker_name(main_window), lambda _: None)
                 app = YaguaApp()
+                result['ui_fonts'] = _verify_ui_fonts(app)
                 callback_errors: list[str] = []
 
                 def callback_error(kind, value, tb):

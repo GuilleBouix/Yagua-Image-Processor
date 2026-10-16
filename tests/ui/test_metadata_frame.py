@@ -1,11 +1,15 @@
 import customtkinter as ctk
+import pytest
 
 from app.modules.metadata import CAMPOS_EDITABLES, GRUPOS_CAMPOS_EDITABLES
 from app.translations import t
+from app import translations
 from app.ui.frames.metadata.frame import MetadataFrame
 
 
-def test_metadata_frame_build(ui_root):
+@pytest.mark.parametrize('language', list(translations.AVAILABLE_LANGUAGES))
+def test_metadata_frame_build(ui_root, monkeypatch, language):
+    monkeypatch.setattr(translations, '_current_lang', language)
     frame = MetadataFrame(ui_root)
     ui_root.update_idletasks()
 
@@ -31,6 +35,10 @@ def test_metadata_frame_build(ui_root):
     )
     assert frame._sync_dates_var.get() is False
     assert frame._clear_gps_var.get() is False
+    for field, mapping in frame._enum_values.items():
+        assert frame._campos_edit[field].cget('values') == [t('leave_unchanged'), *mapping]
+        assert len(set(mapping.values())) == len(mapping)
+    assert set(frame._orientacion_values.values()) == set(range(1, 9))
     assert set().union(*GRUPOS_CAMPOS_EDITABLES.values(), {"DateTimeOriginal"}) == set(CAMPOS_EDITABLES)
 
     frame._aplicar_campos_edit({
@@ -47,7 +55,9 @@ def test_metadata_frame_build(ui_root):
     assert t("color_srgb") in frame._info_tecnica.cget("text")
 
 
-def test_clear_resets_optional_fields_and_selectors(ui_root):
+@pytest.mark.parametrize('language', list(translations.AVAILABLE_LANGUAGES))
+def test_clear_resets_optional_fields_and_selectors(ui_root, monkeypatch, language):
+    monkeypatch.setattr(translations, '_current_lang', language)
     frame = MetadataFrame(ui_root)
     frame._aplicar_campos_edit({'Artist': 'Author', 'ExposureProgram': '3'})
     frame._sync_dates_var.set(True)

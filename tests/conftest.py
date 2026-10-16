@@ -30,6 +30,8 @@ def assert_image_size(path: Path, expected_size: tuple[int, int]):
 
 @pytest.fixture(scope="session")
 def tk_session():
+    from app.ui import fonts
+    fonts.registrar_fuentes()
     try:
         root = ctk.CTk()
     except tkinter.TclError as error:

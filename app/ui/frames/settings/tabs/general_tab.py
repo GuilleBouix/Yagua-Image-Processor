@@ -43,11 +43,13 @@ class GeneralTab(ctk.CTkFrame):
             anchor='w'
         ).grid(row=0, column=0, padx=(16, 12), pady=16, sticky='w')
 
+        language_font = fonts.fuente_selector_idiomas()
         self._selector_idioma = ctk.CTkOptionMenu(
             panel_idioma,
             values=list(AVAILABLE_LANGUAGES.keys()),
             variable=self._state.lang_var,
-            font=fonts.FUENTE_BASE,
+            font=language_font,
+            dropdown_font=language_font,
             fg_color=colors.SIDEBAR_BG,
             button_color=colors.ACENTO,
             button_hover_color=colors.ACENTO_HOVER,

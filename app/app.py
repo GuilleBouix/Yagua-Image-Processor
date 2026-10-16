@@ -43,6 +43,8 @@ class YaguaApp(ctk.CTk):
         Configura titulo, geometria, fuentes, icono y el
         contenedor principal de la interfaz.
         """
+        # Register before Tk caches available font families.
+        fonts.registrar_fuentes()
         super().__init__()
         
         # Cargar fuentes personalizadas de la aplicacion

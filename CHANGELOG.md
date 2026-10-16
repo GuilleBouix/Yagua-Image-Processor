@@ -2,6 +2,34 @@
 
 Todos los cambios notables del proyecto se documentan en este archivo.
 
+## [2.0.1-rc.6] - 2026-10-16
+
+### Idiomas e interfaz
+
+- Italiano, japonés, chino simplificado y ruso: nueve idiomas de interfaz, con selección y persistencia mediante Ajustes → Aplicar.
+- Fuentes Noto Sans CJK JP/SC Regular y Bold incluidas para uso offline, con licencia y revisión fija; registro privado en Windows y Linux.
+- Nombres nativos legibles en el selector de idiomas y contratos de las opciones conservados. OCR sigue reconociendo únicamente español, inglés y ambos.
+
+### Actualizaciones
+
+- El comprobador detecta la versión superior de cada plataforma entre releases estables y prereleases; ignora borradores y versiones de otro sistema operativo.
+- Un fallo de conexión o de respuesta de GitHub se distingue de «No hay actualizaciones». La comprobación al iniciar sigue sin bloquear la app.
+- La actualización abre una descarga: la instalación sigue siendo manual.
+- Los paquetes RC.4/RC.5 ya publicados conservan el comprobador anterior: para pasar a esta RC hace falta descargarla e instalarla manualmente una vez.
+
+### Paquetes y comprobaciones
+
+- Comprobación de fuentes incluidas y familias disponibles en Tk en los paquetes finales, y conservación de Xft/Fontconfig en Linux.
+- Regresiones de idiomas, parámetros, preferencias, selectores, OCR y errores del actualizador.
+- Las fuentes añaden 66.94 MB sin comprimir. Se mantiene el límite instalado de 2 GB incluyendo modelos y cachés; cada paquete debe superar las verificaciones antes de publicarse.
+- Informes de auditoría fuera del seguimiento de Git, conservados localmente.
+
+### Límites de esta prerelease
+
+- Versión de prueba para instalador y portable Windows x86-64 y AppImage Linux x86-64.
+- Pendientes la revisión lingüística por hablantes nativos y la aceptación visual y de instalación en equipos limpios.
+- Los modelos OCR y quitar fondo siguen descargándose en el primer uso y reutilizándose offline.
+
 ## [2.0.1-rc.5] - 2026-10-15
 
 ### Seguridad y estabilidad
