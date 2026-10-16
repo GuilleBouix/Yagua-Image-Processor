@@ -86,11 +86,7 @@ prototype-web
 # Local manual image test corpus
 /IMAGENES-PRUEBA/
 
-# Local audit build paths and verbose logs
-/audit/*.log
-/audit/local-build-path.txt
-
-# Isolated lean-runtime build location (machine specific)
-/audit/lean-build-path.txt
+# Local audit reports, logs and machine-specific build paths
+/audit/
 
 /lean-reports/

@@ -369,7 +369,7 @@ TRANSLATIONS = {
     'updates_installing': 'Installation...',
     'updates_requires_install': 'Auto-update disponible uniquement pour la version installée.',
     'updates_hash_mismatch': 'Téléchargement invalide.',
-    'updates_error': 'Échec de la mise à jour. Réessayez plus tard.',
+    'updates_error': 'Impossible de vérifier les mises à jour. Vérifiez votre connexion et réessayez.',
     'logs_title': 'Logs',
     'log_date': 'Date',
     'log_level': 'Niveau',

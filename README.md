@@ -30,22 +30,22 @@ Yagua brings everyday image tasks into one desktop app for web developers, desig
 
 Image processing runs on your computer. Background removal and OCR need an initial model download, then can work offline with the required models cached. Update checks contact GitHub; opening download, donation or map links uses your browser.
 
-The interface supports **English, Spanish, Portuguese, French and German**, with dark themes, previews where available and diagnostic logs under **Settings → Logs**.
+The interface supports **English, Spanish, Portuguese, French and German**, with dark themes and previews where available.
 
 ## Features
 
-The table describes the current source code. Packaged releases may include different features; check their release notes.
+The table lists the desktop modules. Availability and controls depend on your installed release; check its release notes.
 
 | Module | What you can do | Formats and outputs | Selection limit |
 | --- | --- | --- | --- |
-| Convert | Change format and adjust quality where supported. | JPEG, PNG, WebP, AVIF, HEIC, ICO, BMP, TIFF, GIF outputs. | 100 images |
+| Convert | Change format and adjust quality where supported. | JPEG, PNG, WebP, AVIF, HEIC, ICO, BMP, TIFF and static GIF outputs. | 100 images |
 | Compress | Reduce file size while keeping the original format. | JPEG, PNG, WebP, AVIF, HEIC/HEIF and other supported raster formats. | 100 images |
 | Resize / Crop / Canvas | Set dimensions, crop or add canvas space; use size presets. | Common raster images, including JPEG, PNG and WebP. | 100 images |
 | Remove background | Remove backgrounds locally with AI. | PNG, WebP or TIFF output with transparency. | 10 images |
 | Color palette | Extract colors, copy HEX/RGB/HSL values and export a palette. | One supported image → colors and a PNG palette. | 1 image |
 | Watermark | Apply an image logo; adjust position, size, opacity and margin. | Supported base images; transparent PNG recommended for the logo. | 100 images + 1 logo |
 | Rename | Preview numbered names, dates and letter case changes. | Changes filenames in their current folder. | 100 files |
-| OCR | Extract text with EasyOCR; copy it or export as TXT. | Supported raster images → text. | 10 images |
+| OCR | Extract Spanish and/or English text with EasyOCR; copy it or export as TXT. | Supported raster images → text. | 10 images |
 | EXIF metadata | Inspect, export, edit fields or remove metadata in batches. | JPEG/TIFF editing; TXT/JSON metadata export. | 1 image for editing; 100 for cleanup |
 | LQIP / Base64 | Generate low-quality placeholders or encode images for the web. | Base64, data URIs, HTML and CSS; TXT/JSON export. | 1 image |
 
@@ -145,7 +145,7 @@ The commands use the repository's pinned dependencies. Compatibility with other 
 
 - **Prepare web images:** Convert up to 100 photos to WebP, choose a quality setting, then resize if needed. Generate LQIP placeholders separately for loading previews on your site.
 - **Prepare product photos:** Load up to 10 images in Remove background and export as PNG or WebP to keep transparency. Add a transparent PNG logo with Watermark if needed.
-- **Extract text:** Load up to 10 clear images in OCR, choose recognition languages, then copy the result or export a TXT file. Review the text for recognition errors.
+- **Extract text:** Load up to 10 clear images in OCR, choose Spanish, English or both, then copy the result or export a TXT file. The interface language does not add OCR recognition languages. Review the text for recognition errors.
 
 <a id="requirements"></a>
 
@@ -180,7 +180,7 @@ Current Windows and Linux packages target **x86-64**; there is no validated nati
 <details>
 <summary>Measured resource usage and first model load</summary>
 
-The [package audit](audit/lean-runtime/README.md) records these approximate observations from CI builds tested on October 15, 2026:
+The package audit records these approximate observations from CI builds tested on October 15, 2026:
 
 | Measurement | Windows | Linux |
 | --- | --- | --- |
@@ -227,19 +227,19 @@ OCR and background removal initialize their engines and may download models. Wai
 
 ### Why is a format unavailable or an image rejected?
 
-Supported inputs differ by module and codec availability. Try a PNG or JPEG copy, review **Settings → Logs**. Export to PNG or WebP if you need transparency.
+Supported inputs differ by module and codec availability. Try a PNG or JPEG copy and review `yagua.log`. Export to PNG or WebP if you need transparency.
 
 ### Why does compression not reduce every image?
 
-An already optimized image may not become smaller. If compression produces a file at least as large as the original, Yagua copies the original to the output instead. Requested metadata removal is therefore not guaranteed by compression; use the dedicated EXIF cleanup module.
+An already optimized image may not become smaller. When EXIF removal is disabled, Yagua copies the original to the output if compression would produce a file at least as large. When EXIF removal is enabled, it saves the processed image even if it is larger, so the original EXIF is not restored by that fallback. For a dedicated EXIF-cleanup workflow, use the metadata module.
 
 ### How do updates work?
 
-Yagua can notify you on startup and lets you check under **Settings → Updates**. The checker looks for newer stable releases with the matching platform prefix (`win-v` or `linux-v`) and excludes prereleases. It opens a download link; it does not automatically install updates. Check Releases manually for test builds and older unprefixed releases.
+Yagua can notify you on startup and lets you check under **Settings → Updates**. It opens a download link; it does not automatically install updates. RC.4/RC.5 packages only look for newer stable releases with the matching platform prefix (`win-v` or `linux-v`); they exclude prereleases and drafts, so they do not detect newer RC builds. Download test builds manually from [GitHub Releases](https://github.com/GuilleBouix/Yagua-Image-Processor/releases). Those packages can also report “No updates available” after a connection failure; if in doubt, check Releases directly, including older releases without a platform prefix.
 
 ### How do I report a problem?
 
-Open a [bug report](https://github.com/GuilleBouix/Yagua-Image-Processor/issues/new?template=bug_report.md) with your Yagua version, OS, module, steps to reproduce and relevant logs. Inspect logs in **Settings → Logs** or locate `yagua.log` at:
+Open a [bug report](https://github.com/GuilleBouix/Yagua-Image-Processor/issues/new?template=bug_report.md) with your Yagua version, OS, module, steps to reproduce and relevant logs. Locate `yagua.log` at:
 
 - Windows: `%APPDATA%\Yagua\yagua.log`
 - Linux: `~/.config/Yagua/yagua.log`

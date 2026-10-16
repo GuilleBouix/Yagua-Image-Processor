@@ -249,6 +249,11 @@ def _redirect_probe_numba_cache(directory: Path) -> None:
     caching.AppDirs = lambda *args, **kwargs: SimpleNamespace(user_cache_dir=str(directory.resolve()))
 
 
+def _update_checker_name(module) -> str:
+    # The same probe also runs against older baseline source snapshots.
+    return 'check_latest_update' if hasattr(module, 'check_latest_update') else 'check_latest_stable'
+
+
 def _verify_startup() -> None:
     import customtkinter as ctk
     from app.app import YaguaApp
@@ -258,7 +263,7 @@ def _verify_startup() -> None:
     ctk.set_appearance_mode('dark')
     ctk.set_default_color_theme('blue')
     apply_ui_scale()
-    with patch.object(main_window, 'check_latest_stable', return_value=None):
+    with patch.object(main_window, _update_checker_name(main_window), return_value=None):
         app = YaguaApp()
         app.update_idletasks()
         app.destroy()
@@ -395,7 +400,7 @@ def run(report_path: Path) -> int:
                 from app.ui import main_window
                 from app.ui.module_registry import iter_all_modules
 
-                main_window.check_latest_stable = lambda _: None
+                setattr(main_window, _update_checker_name(main_window), lambda _: None)
                 app = YaguaApp()
                 callback_errors: list[str] = []
 

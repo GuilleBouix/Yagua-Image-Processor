@@ -9,7 +9,7 @@ import customtkinter as ctk
 from app.ui import colors, fonts
 from app.translations import t
 from app.version import __version__
-from app.utils.update_checker import check_latest_stable
+from app.utils.update_checker import check_latest_update
 
 
 logger = logging.getLogger(__name__)
@@ -150,7 +150,7 @@ class UpdatesTab(ctk.CTkFrame):
 
         def _worker():
             try:
-                info = check_latest_stable(__version__)
+                info = check_latest_update(__version__)
                 if not info:
                     self._post_ui(0, lambda: self._set_status(t("no_updates")))
                     return

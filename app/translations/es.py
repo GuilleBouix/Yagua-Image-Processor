@@ -368,7 +368,7 @@ TRANSLATIONS = {
     'updates_installing': 'Instalando actualización...',
     'updates_requires_install': 'Auto-update solo disponible en la versión instalada.',
     'updates_hash_mismatch': 'Descarga inválida (verificación fallida).',
-    'updates_error': 'No se pudo actualizar. Intentalo más tarde.',
+    'updates_error': 'No se pudieron comprobar las actualizaciones. Revisá tu conexión e intentá de nuevo.',
     'logs_title': 'Logs',
     'log_date': 'Fecha',
     'log_level': 'Nivel',

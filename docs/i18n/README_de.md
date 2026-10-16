@@ -30,24 +30,24 @@ Yagua bündelt alltägliche Aufgaben der Bildverarbeitung in einer Desktop-App f
 
 Die Verarbeitung läuft auf deinem Computer. Hintergrundentfernung und OCR benötigen zunächst einen Modelldownload und können danach offline arbeiten, wenn die benötigten Modelle gespeichert sind. Aktualisierungsprüfungen kontaktieren GitHub; Download-, Spenden- und Kartenlinks öffnen sich im Browser.
 
-Die Oberfläche unterstützt **Englisch, Spanisch, Portugiesisch, Französisch und Deutsch**, mit dunklen Themen, verfügbaren Vorschauen und Diagnoseprotokollen unter **Einstellungen → Protokolle**.
+Die Oberfläche unterstützt **Englisch, Spanisch, Portugiesisch, Französisch und Deutsch**, mit dunklen Themen und verfügbaren Vorschauen.
 
 <a id="features"></a>
 
 ## Funktionen
 
-Die Tabelle beschreibt den aktuellen Quellcode. Veröffentlichte Pakete können andere Funktionen enthalten; lies ihre Versionshinweise.
+Die Tabelle zeigt die Desktopmodule. Verfügbarkeit und Bedienelemente hängen von deiner installierten Version ab; lies ihre Versionshinweise.
 
 | Modul | Möglichkeiten | Formate und Ausgaben | Auswahlgrenze |
 | --- | --- | --- | --- |
-| Konvertieren | Format ändern und die Qualität anpassen, sofern unterstützt. | Ausgaben als JPEG, PNG, WebP, AVIF, HEIC, ICO, BMP, TIFF und GIF. | 100 Bilder |
+| Konvertieren | Format ändern und die Qualität anpassen, sofern unterstützt. | Ausgaben als JPEG, PNG, WebP, AVIF, HEIC, ICO, BMP, TIFF und statisches GIF. | 100 Bilder |
 | Komprimieren | Dateigröße verringern und das ursprüngliche Format behalten. | JPEG, PNG, WebP, AVIF, HEIC/HEIF und weitere unterstützte Rasterformate. | 100 Bilder |
 | Skalieren / Zuschneiden / Leinwand | Abmessungen ändern, zuschneiden oder Fläche hinzufügen; Größenvorlagen verwenden. | Übliche Rasterbilder, darunter JPEG, PNG und WebP. | 100 Bilder |
 | Hintergrund entfernen | Hintergründe lokal mit KI entfernen. | PNG-, WebP- oder TIFF-Ausgabe mit Transparenz. | 10 Bilder |
 | Farbpalette | Farben extrahieren, HEX/RGB/HSL-Werte kopieren und eine Palette exportieren. | Ein unterstütztes Bild → Farben und PNG-Palette. | 1 Bild |
 | Wasserzeichen | Ein Logo hinzufügen; Position, Größe, Deckkraft und Abstand anpassen. | Unterstützte Ausgangsbilder; transparentes PNG für das Logo empfohlen. | 100 Bilder + 1 Logo |
 | Umbenennen | Nummerierung, Datumsangaben und Groß-/Kleinschreibung vorab ansehen. | Ändert Dateinamen im ursprünglichen Ordner. | 100 Dateien |
-| OCR | Text mit EasyOCR erkennen; kopieren oder als TXT exportieren. | Unterstützte Rasterbilder → Text. | 10 Bilder |
+| OCR | Spanischen und/oder englischen Text mit EasyOCR erkennen; kopieren oder als TXT exportieren. | Unterstützte Rasterbilder → Text. | 10 Bilder |
 | EXIF-Metadaten | Anzeigen, exportieren, Felder bearbeiten oder Metadaten im Stapel entfernen. | JPEG/TIFF bearbeiten; Metadaten als TXT/JSON exportieren. | 1 Bild zum Bearbeiten; 100 zum Bereinigen |
 | LQIP / Base64 | Platzhalter geringer Qualität erzeugen oder Bilder für das Web kodieren. | Base64, Daten-URIs, HTML und CSS; TXT/JSON-Export. | 1 Bild |
 
@@ -149,7 +149,7 @@ Die Befehle verwenden die im Repository festgelegten Abhängigkeitsversionen. Di
 
 - **Webbilder vorbereiten:** Konvertiere bis zu 100 Fotos nach WebP, wähle die Qualität und passe bei Bedarf die Größe an. Erzeuge LQIP-Platzhalter separat als Vorschau während des Ladens deiner Website.
 - **Produktfotos vorbereiten:** Lade bis zu 10 Bilder in Hintergrund entfernen und exportiere sie als PNG oder WebP, um Transparenz zu erhalten. Füge bei Bedarf mit Wasserzeichen ein transparentes PNG-Logo hinzu.
-- **Text extrahieren:** Lade bis zu 10 scharfe Bilder in OCR, wähle die Erkennungssprachen und kopiere das Ergebnis oder exportiere eine TXT-Datei. Prüfe den Text auf Erkennungsfehler.
+- **Text extrahieren:** Lade bis zu 10 scharfe Bilder in OCR, wähle Spanisch, Englisch oder beides und kopiere das Ergebnis oder exportiere eine TXT-Datei. Die Oberflächensprache fügt keine OCR-Erkennungssprachen hinzu. Prüfe den Text auf Erkennungsfehler.
 
 <a id="requirements"></a>
 
@@ -184,7 +184,7 @@ Aktuelle Windows- und Linux-Pakete sind für **x86-64** vorgesehen; es gibt kein
 <details>
 <summary>Gemessener Ressourcenbedarf und erstes Laden des Modells</summary>
 
-Die [Paketprüfung](../../audit/lean-runtime/README.md) dokumentiert diese ungefähren Beobachtungen aus CI-Builds, die am 15. Oktober 2026 getestet wurden:
+Die Paketprüfung dokumentiert diese ungefähren Beobachtungen aus CI-Builds, die am 15. Oktober 2026 getestet wurden:
 
 | Messung | Windows | Linux |
 | --- | --- | --- |
@@ -233,19 +233,19 @@ OCR und Hintergrundentfernung initialisieren ihre Engines und laden möglicherwe
 
 ### Warum ist ein Format nicht verfügbar oder wird ein Bild abgelehnt?
 
-Unterstützte Eingaben hängen vom Modul und den verfügbaren Codecs ab. Probiere eine PNG- oder JPEG-Kopie, prüfe **Einstellungen → Protokolle**. Exportiere als PNG oder WebP, wenn du Transparenz benötigst.
+Unterstützte Eingaben hängen vom Modul und den verfügbaren Codecs ab. Probiere eine PNG- oder JPEG-Kopie und prüfe `yagua.log`. Exportiere als PNG oder WebP, wenn du Transparenz benötigst.
 
 ### Warum verkleinert die Komprimierung nicht jedes Bild?
 
-Ein bereits optimiertes Bild wird möglicherweise nicht kleiner. Ist das Ergebnis genauso groß oder größer als das Original, kopiert Yagua stattdessen das Original in die Ausgabe. Die Komprimierung garantiert deshalb auch keine angeforderte Entfernung von Metadaten; verwende das eigene EXIF-Bereinigungsmodul.
+Ein bereits optimiertes Bild wird möglicherweise nicht kleiner. Ist die EXIF-Entfernung deaktiviert, kopiert Yagua das Original in die Ausgabe, wenn die Komprimierung eine genauso große oder größere Datei erzeugen würde. Ist die EXIF-Entfernung aktiviert, speichert es das verarbeitete Bild auch dann, wenn es größer ist, damit dieser Rückgriff auf das Original dessen EXIF nicht wiederherstellt. Verwende für einen eigenen EXIF-Bereinigungsablauf das Metadatenmodul.
 
 ### Wie funktionieren Aktualisierungen?
 
-Yagua kann beim Start informieren und bietet eine Prüfung unter **Einstellungen → Updates**. Gesucht werden neuere stabile Releases mit dem passenden Plattformpräfix (`win-v` oder `linux-v`); Vorabversionen werden ausgeschlossen. Die App öffnet einen Downloadlink und installiert Updates nicht automatisch. Prüfe Releases manuell für Testversionen und ältere Veröffentlichungen ohne Präfix.
+Yagua kann beim Start informieren und bietet eine Prüfung unter **Einstellungen → Updates**. Die App öffnet einen Downloadlink und installiert Updates nicht automatisch. RC.4/RC.5-Pakete suchen nur nach neueren stabilen Releases mit dem passenden Plattformpräfix (`win-v` oder `linux-v`); Vorabversionen und Entwürfe werden ausgeschlossen, sodass neuere RC-Builds nicht erkannt werden. Lade Testversionen manuell über [GitHub Releases](https://github.com/GuilleBouix/Yagua-Image-Processor/releases) herunter. Diese Pakete können auch nach einem Verbindungsfehler «Keine Updates verfügbar» anzeigen; prüfe im Zweifel Releases direkt, auch ältere Veröffentlichungen ohne Plattformpräfix.
 
 ### Wie melde ich ein Problem?
 
-Öffne einen [Fehlerbericht](https://github.com/GuilleBouix/Yagua-Image-Processor/issues/new?template=bug_report.md) mit Yagua-Version, Betriebssystem, Modul, Reproduktionsschritten und relevanten Protokollen. Sieh unter **Einstellungen → Protokolle** nach oder suche `yagua.log` hier:
+Öffne einen [Fehlerbericht](https://github.com/GuilleBouix/Yagua-Image-Processor/issues/new?template=bug_report.md) mit Yagua-Version, Betriebssystem, Modul, Reproduktionsschritten und relevanten Protokollen. Suche `yagua.log` hier:
 
 - Windows: `%APPDATA%\Yagua\yagua.log`
 - Linux: `~/.config/Yagua/yagua.log`

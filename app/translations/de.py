@@ -352,7 +352,7 @@ TRANSLATIONS = {
     'updates_installing': 'Installation...',
     'updates_requires_install': 'Auto-Update nur für installierte Version verfügbar.',
     'updates_hash_mismatch': 'Ungültiger Download (Hash-Fehler).',
-    'updates_error': 'Fehler beim Update. Später versuchen.',
+    'updates_error': 'Updates konnten nicht geprüft werden. Prüfe deine Verbindung und versuche es erneut.',
     'logs_title': 'Protokolle',
     'log_date': 'Datum',
     'log_level': 'Level',

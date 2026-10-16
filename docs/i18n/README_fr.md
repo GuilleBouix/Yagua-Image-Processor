@@ -30,24 +30,24 @@ Yagua regroupe les tâches courantes de traitement d’images dans une applicati
 
 Le traitement s’effectue sur votre ordinateur. La suppression d’arrière-plan et l’OCR nécessitent un premier téléchargement de modèles, puis peuvent fonctionner hors ligne si les modèles nécessaires sont en cache. Les vérifications de mises à jour contactent GitHub ; les liens de téléchargement, de don et de carte s’ouvrent dans le navigateur.
 
-L’interface propose **l’anglais, l’espagnol, le portugais, le français et l’allemand**, avec des thèmes sombres, des aperçus lorsqu’ils sont disponibles et des journaux de diagnostic dans **Paramètres → Logs**.
+L’interface propose **l’anglais, l’espagnol, le portugais, le français et l’allemand**, avec des thèmes sombres et des aperçus lorsqu’ils sont disponibles.
 
 <a id="features"></a>
 
 ## Fonctionnalités
 
-Le tableau décrit le code actuel. Les versions distribuées peuvent proposer des fonctionnalités différentes ; consultez leurs notes de publication.
+Le tableau présente les modules de bureau. Leur disponibilité et leurs commandes dépendent de la version installée ; consultez ses notes de publication.
 
 | Module | Ce que vous pouvez faire | Formats et sorties | Limite de sélection |
 | --- | --- | --- | --- |
-| Convertir | Changer de format et régler la qualité lorsque le format le permet. | Sorties JPEG, PNG, WebP, AVIF, HEIC, ICO, BMP, TIFF et GIF. | 100 images |
+| Convertir | Changer de format et régler la qualité lorsque le format le permet. | Sorties JPEG, PNG, WebP, AVIF, HEIC, ICO, BMP, TIFF et GIF statique. | 100 images |
 | Compresser | Réduire la taille du fichier tout en conservant son format d’origine. | JPEG, PNG, WebP, AVIF, HEIC/HEIF et autres formats matriciels compatibles. | 100 images |
 | Redimensionner / Recadrer / Canevas | Modifier les dimensions, recadrer ou ajouter de l’espace ; utiliser des tailles prédéfinies. | Images matricielles courantes, dont JPEG, PNG et WebP. | 100 images |
 | Supprimer l’arrière-plan | Retirer les arrière-plans localement avec l’IA. | Sortie PNG, WebP ou TIFF avec transparence. | 10 images |
 | Palette de couleurs | Extraire des couleurs, copier les valeurs HEX/RGB/HSL et exporter une palette. | Une image compatible → couleurs et palette PNG. | 1 image |
 | Filigrane | Appliquer un logo ; régler position, taille, opacité et marge. | Images de base compatibles ; PNG transparent conseillé pour le logo. | 100 images + 1 logo |
 | Renommer | Prévisualiser une numérotation, des dates et des changements de casse. | Modifie les noms dans leur dossier d’origine. | 100 fichiers |
-| OCR | Extraire du texte avec EasyOCR ; le copier ou l’exporter en TXT. | Images matricielles compatibles → texte. | 10 images |
+| OCR | Extraire du texte en espagnol et/ou anglais avec EasyOCR ; le copier ou l’exporter en TXT. | Images matricielles compatibles → texte. | 10 images |
 | Métadonnées EXIF | Consulter, exporter, modifier des champs ou supprimer les métadonnées par lots. | Modification JPEG/TIFF ; export des métadonnées en TXT/JSON. | 1 image à modifier ; 100 à nettoyer |
 | LQIP / Base64 | Générer des aperçus de faible qualité ou encoder des images pour le web. | Base64, URI de données, HTML et CSS ; export TXT/JSON. | 1 image |
 
@@ -151,7 +151,7 @@ Ces commandes utilisent les versions de dépendances fixées par le dépôt. Les
 
 - **Préparer des images pour le web :** Convertissez jusqu’à 100 photos en WebP, choisissez la qualité, puis ajustez les dimensions si nécessaire. Générez les aperçus LQIP séparément pour l’affichage pendant le chargement de votre site.
 - **Préparer des photos de produits :** Chargez jusqu’à 10 images dans Supprimer l’arrière-plan et exportez en PNG ou WebP pour conserver la transparence. Ajoutez si nécessaire un logo PNG transparent avec Filigrane.
-- **Extraire du texte :** Chargez jusqu’à 10 images nettes dans OCR, choisissez les langues de reconnaissance, puis copiez le résultat ou exportez un TXT. Relisez le texte pour corriger les erreurs de reconnaissance.
+- **Extraire du texte :** Chargez jusqu’à 10 images nettes dans OCR, choisissez l’espagnol, l’anglais ou les deux, puis copiez le résultat ou exportez un TXT. La langue de l’interface n’ajoute pas de langues de reconnaissance OCR. Relisez le texte pour corriger les erreurs de reconnaissance.
 
 <a id="requirements"></a>
 
@@ -186,7 +186,7 @@ Les paquets Windows et Linux actuels ciblent **x86-64** ; aucune version ARM nat
 <details>
 <summary>Consommation mesurée et premier chargement du modèle</summary>
 
-L’[audit des paquets](../../audit/lean-runtime/README.md) rapporte ces observations approximatives pour des compilations de CI testées le 15 octobre 2026 :
+L’audit des paquets rapporte ces observations approximatives pour des compilations de CI testées le 15 octobre 2026 :
 
 | Mesure | Windows | Linux |
 | --- | --- | --- |
@@ -235,19 +235,19 @@ OCR et la suppression d’arrière-plan initialisent leurs moteurs et peuvent t�
 
 ### Pourquoi un format est-il indisponible ou une image refusée ?
 
-Les entrées acceptées dépendent du module et des codecs disponibles. Essayez une copie PNG ou JPEG, vérifiez **Paramètres → Logs**. Exportez en PNG ou WebP pour conserver la transparence.
+Les entrées acceptées dépendent du module et des codecs disponibles. Essayez une copie PNG ou JPEG et vérifiez `yagua.log`. Exportez en PNG ou WebP pour conserver la transparence.
 
 ### Pourquoi la compression ne réduit-elle pas toutes les images ?
 
-Une image déjà optimisée peut ne pas devenir plus petite. Si le résultat est aussi volumineux ou plus volumineux que l’original, Yagua copie l’original vers la sortie. La compression ne garantit donc pas non plus la suppression demandée des métadonnées ; utilisez le module dédié de nettoyage EXIF.
+Une image déjà optimisée peut ne pas devenir plus petite. Lorsque la suppression EXIF est désactivée, Yagua copie l’original vers la sortie si la compression produit un fichier aussi volumineux ou plus volumineux. Lorsque la suppression EXIF est activée, il enregistre l’image traitée même si elle est plus grande, pour que ce retour à l’original ne restaure pas ses EXIF. Pour un traitement dédié au nettoyage EXIF, utilisez le module de métadonnées.
 
 ### Comment fonctionnent les mises à jour ?
 
-Yagua peut vous avertir au démarrage et permet une vérification dans **Paramètres → Mises à jour**. Il recherche les versions stables plus récentes avec le préfixe de votre plateforme (`win-v` ou `linux-v`) et exclut les préversions. Il ouvre un lien de téléchargement ; il n’installe pas les mises à jour automatiquement. Consultez Releases manuellement pour les versions de test et les anciennes publications sans préfixe.
+Yagua peut vous avertir au démarrage et permet une vérification dans **Paramètres → Mises à jour**. Il ouvre un lien de téléchargement ; il n’installe pas les mises à jour automatiquement. Les paquets RC.4/RC.5 recherchent uniquement les versions stables plus récentes avec le préfixe de votre plateforme (`win-v` ou `linux-v`) ; ils excluent les préversions et les brouillons et ne détectent donc pas les nouvelles RC. Téléchargez les versions de test manuellement depuis [GitHub Releases](https://github.com/GuilleBouix/Yagua-Image-Processor/releases). Ces paquets peuvent aussi indiquer « Aucune mise à jour disponible » après une erreur de connexion ; en cas de doute, consultez Releases directement, y compris les anciennes publications sans préfixe de plateforme.
 
 ### Comment signaler un problème ?
 
-Ouvrez un [rapport de bug](https://github.com/GuilleBouix/Yagua-Image-Processor/issues/new?template=bug_report.md) avec votre version de Yagua, système, module, étapes de reproduction et journaux pertinents. Consultez **Paramètres → Logs** ou cherchez `yagua.log` dans :
+Ouvrez un [rapport de bug](https://github.com/GuilleBouix/Yagua-Image-Processor/issues/new?template=bug_report.md) avec votre version de Yagua, système, module, étapes de reproduction et journaux pertinents. Cherchez `yagua.log` dans :
 
 - Windows: `%APPDATA%\Yagua\yagua.log`
 - Linux: `~/.config/Yagua/yagua.log`

@@ -367,7 +367,7 @@ TRANSLATIONS = {
     'updates_installing': 'Installing update...',
     'updates_requires_install': 'Auto-update is only available in the installed version.',
     'updates_hash_mismatch': 'Invalid download (verification failed).',
-    'updates_error': 'Update failed. Please try again later.',
+    'updates_error': 'Could not check for updates. Check your connection and try again.',
     'logs_title': 'Logs',
     'log_date': 'Date',
     'log_level': 'Level',

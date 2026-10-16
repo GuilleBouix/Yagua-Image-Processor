@@ -19,6 +19,10 @@ class UpdateInfo:
     release_url: str
 
 
+class UpdateCheckError(RuntimeError):
+    """La comprobación falló; no equivale a no encontrar actualizaciones."""
+
+
 def get_repo() -> str:
     # Override opcional (útil para forks / staging).
     return os.environ.get("YAGUA_UPDATE_REPO") or "GuilleBouix/Yagua-Image-Editor"
@@ -51,11 +55,17 @@ def _parse_release_version(tag_name: str, prefix: str) -> Version | None:
         return None
 
 
-def check_latest_stable(current_version: str) -> UpdateInfo | None:
-    """Retorna info de actualización estable si existe, o None.
+def check_latest_update(current_version: str) -> UpdateInfo | None:
+    """Busca versiones publicadas, estables o preliminares, de esta plataforma.
 
-    Fuente: GitHub Releases API filtrando por prefijo de plataforma.
+    None significa que la consulta fue correcta y no hay una versión superior.
+    Los fallos de conexión, HTTP o respuesta se propagan como UpdateCheckError.
     """
+    try:
+        cur_v = Version(str(current_version).strip())
+    except InvalidVersion as exc:
+        raise UpdateCheckError('Invalid installed version') from exc
+
     repo = get_repo()
     prefix = get_release_tag_prefix()
     api_url = f"https://api.github.com/repos/{repo}/releases"
@@ -67,41 +77,35 @@ def check_latest_stable(current_version: str) -> UpdateInfo | None:
         )
         r.raise_for_status()
         payload = r.json()
-        if not isinstance(payload, list):
-            logger.warning("updates: respuesta invalida de releases API")
-            return None
-        try:
-            cur_v = Version(str(current_version).strip())
-        except InvalidVersion as exc:
-            logger.warning("updates: version invalida (%s)", exc)
-            return None
-
-        best_match: tuple[Version, str] | None = None
-        for release in payload:
-            if not isinstance(release, dict):
-                continue
-            if release.get("draft") or release.get("prerelease"):
-                continue
-
-            tag_name = str(release.get("tag_name") or "").strip()
-            remote_version = _parse_release_version(tag_name, prefix)
-            if remote_version is None or remote_version <= cur_v:
-                continue
-
-            raw_url = release.get('html_url')
-            release_url = raw_url.strip() if isinstance(raw_url, str) else ''
-            parsed = urlsplit(release_url)
-            if parsed.scheme != 'https' or not parsed.netloc or parsed.username or parsed.password:
-                release_url = ''
-            if not release_url:
-                release_url = f"https://github.com/{repo}/releases/tag/{tag_name}"
-
-            if best_match is None or remote_version > best_match[0]:
-                best_match = (remote_version, release_url)
-
-        if best_match is None:
-            return None
-        return UpdateInfo(version=str(best_match[0]), release_url=best_match[1])
-    except Exception:
+    except (requests.RequestException, ValueError) as exc:
         logger.exception("updates: fallo comprobando releases API (%s)", api_url)
+        raise UpdateCheckError('Could not query GitHub releases') from exc
+    if not isinstance(payload, list):
+        raise UpdateCheckError('Invalid GitHub releases response')
+
+    best_match: tuple[Version, str, str] | None = None
+    for release in payload:
+        if not isinstance(release, dict) or release.get('draft'):
+            continue
+
+        tag_name = str(release.get('tag_name') or '').strip()
+        remote_version = _parse_release_version(tag_name, prefix)
+        if remote_version is None or remote_version <= cur_v:
+            continue
+
+        raw_url = release.get('html_url')
+        release_url = raw_url.strip() if isinstance(raw_url, str) else ''
+        try:
+            parsed = urlsplit(release_url)
+            valid_url = parsed.scheme == 'https' and bool(parsed.netloc) and not parsed.username and not parsed.password
+        except ValueError:
+            valid_url = False
+        if not valid_url:
+            release_url = f'https://github.com/{repo}/releases/tag/{tag_name}'
+
+        if best_match is None or remote_version > best_match[0]:
+            best_match = (remote_version, tag_name[len(prefix):].strip(), release_url)
+
+    if best_match is None:
         return None
+    return UpdateInfo(version=best_match[1], release_url=best_match[2])

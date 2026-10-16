@@ -7,6 +7,14 @@ import pytest
 from app.utils import package_selftest
 
 
+@pytest.mark.parametrize('symbol', ['check_latest_update', 'check_latest_stable'])
+def test_package_probe_disables_update_network_for_current_and_baseline_sources(symbol):
+    from types import SimpleNamespace
+
+    module = SimpleNamespace(**{symbol: lambda _: None})
+    assert package_selftest._update_checker_name(module) == symbol
+
+
 def test_probe_supports_unicode_in_redirected_windows_console(monkeypatch):
     output = io.BytesIO()
     stream = io.TextIOWrapper(output, encoding='cp1252')

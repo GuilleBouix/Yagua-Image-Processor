@@ -30,24 +30,24 @@ Yagua reúne tareas habituales de procesamiento de imágenes en una app de escri
 
 El procesamiento corre en tu computadora. Quitar fondo y OCR necesitan una descarga inicial de modelos; después pueden funcionar sin conexión si los modelos necesarios están guardados. Las comprobaciones de actualizaciones consultan GitHub; los enlaces de descarga, donaciones y mapas se abren en el navegador.
 
-La interfaz está disponible en **inglés, español, portugués, francés y alemán**, con temas oscuros, vistas previas donde corresponde y registros de diagnóstico en **Ajustes → Logs**.
+La interfaz está disponible en **inglés, español, portugués, francés y alemán**, con temas oscuros y vistas previas donde corresponde.
 
 <a id="features"></a>
 
 ## Funciones
 
-La tabla describe el código actual. Las versiones empaquetadas pueden incluir funciones diferentes; revisá sus notas de publicación.
+La tabla enumera los módulos de escritorio. La disponibilidad y los controles dependen de la versión instalada; revisá sus notas de publicación.
 
 | Módulo | Qué podés hacer | Formatos y salidas | Límite de selección |
 | --- | --- | --- | --- |
-| Convertir | Cambiar de formato y ajustar calidad cuando el formato lo permite. | Salidas JPEG, PNG, WebP, AVIF, HEIC, ICO, BMP, TIFF y GIF. | 100 imágenes |
+| Convertir | Cambiar de formato y ajustar calidad cuando el formato lo permite. | Salidas JPEG, PNG, WebP, AVIF, HEIC, ICO, BMP, TIFF y GIF estático. | 100 imágenes |
 | Comprimir | Reducir el tamaño del archivo conservando su formato original. | JPEG, PNG, WebP, AVIF, HEIC/HEIF y otros formatos ráster compatibles. | 100 imágenes |
 | Redimensionar / Recortar / Lienzo | Cambiar dimensiones, recortar o agregar espacio; usar tamaños predefinidos. | Imágenes ráster habituales, como JPEG, PNG y WebP. | 100 imágenes |
 | Quitar fondo | Eliminar fondos localmente con IA. | Salida PNG, WebP o TIFF con transparencia. | 10 imágenes |
 | Paleta de colores | Extraer colores, copiar valores HEX/RGB/HSL y exportar una paleta. | Una imagen compatible → colores y paleta PNG. | 1 imagen |
 | Marca de agua | Aplicar un logo; ajustar posición, tamaño, opacidad y margen. | Imágenes base compatibles; se recomienda PNG transparente para el logo. | 100 imágenes + 1 logo |
 | Renombrar | Previsualizar numeración, fechas y cambios de mayúsculas/minúsculas. | Cambia los nombres en la carpeta original. | 100 archivos |
-| OCR | Extraer texto con EasyOCR; copiarlo o exportarlo como TXT. | Imágenes ráster compatibles → texto. | 10 imágenes |
+| OCR | Extraer texto en español y/o inglés con EasyOCR; copiarlo o exportarlo como TXT. | Imágenes ráster compatibles → texto. | 10 imágenes |
 | Metadatos EXIF | Consultar, exportar, editar campos o quitar metadatos en lote. | Edición JPEG/TIFF; exportación de metadatos TXT/JSON. | 1 imagen para editar; 100 para limpiar |
 | LQIP / Base64 | Generar placeholders de baja calidad o codificar imágenes para la web. | Base64, data URI, HTML y CSS; exportación TXT/JSON. | 1 imagen |
 
@@ -153,7 +153,7 @@ Estos comandos usan las dependencias fijadas por el repositorio. Las comprobacio
 
 - **Preparar imágenes para la web:** Convertí hasta 100 fotos a WebP, elegí la calidad y después ajustá el tamaño si hace falta. Generá los placeholders LQIP por separado para mostrar vistas previas mientras carga tu sitio.
 - **Preparar fotos de productos:** Cargá hasta 10 imágenes en Quitar fondo y exportá como PNG o WebP para mantener la transparencia. Si hace falta, agregá un logo PNG transparente con Marca de agua.
-- **Extraer texto:** Cargá hasta 10 imágenes nítidas en OCR, elegí los idiomas de reconocimiento y copiá el resultado o exportá un TXT. Revisá el texto por posibles errores de reconocimiento.
+- **Extraer texto:** Cargá hasta 10 imágenes nítidas en OCR, elegí español, inglés o ambos y copiá el resultado o exportá un TXT. El idioma de la interfaz no agrega idiomas de reconocimiento OCR. Revisá el texto por posibles errores de reconocimiento.
 
 <a id="requirements"></a>
 
@@ -188,7 +188,7 @@ Los paquetes actuales de Windows y Linux son **x86-64**; no hay una versión nat
 <details>
 <summary>Consumo medido y primera carga del modelo</summary>
 
-La [auditoría de paquetes](../../audit/lean-runtime/README.md) registra estas observaciones aproximadas en compilaciones de CI probadas el 15 de octubre de 2026:
+La auditoría de paquetes registra estas observaciones aproximadas en compilaciones de CI probadas el 15 de octubre de 2026:
 
 | Medición | Windows | Linux |
 | --- | --- | --- |
@@ -237,19 +237,19 @@ OCR y Quitar fondo inicializan sus motores y pueden descargar modelos. Esperá a
 
 ### ¿Por qué no está disponible un formato o se rechaza una imagen?
 
-Las entradas admitidas dependen del módulo y los códecs disponibles. Probá con una copia PNG o JPEG, revisá **Ajustes → Logs**. Exportá como PNG o WebP si necesitás transparencia.
+Las entradas admitidas dependen del módulo y los códecs disponibles. Probá con una copia PNG o JPEG y revisá `yagua.log`. Exportá como PNG o WebP si necesitás transparencia.
 
 ### ¿Por qué la compresión no reduce todas las imágenes?
 
-Una imagen ya optimizada puede no reducirse. Si el resultado pesa igual o más que el original, Yagua copia el original a la salida. Por eso la compresión tampoco garantiza quitar los metadatos solicitados; usá el módulo específico de limpieza EXIF.
+Una imagen ya optimizada puede no reducirse. Si quitar EXIF está desactivado, Yagua copia el original a la salida cuando la compresión produciría un archivo igual o más grande. Si quitar EXIF está activado, guarda la imagen procesada aunque pese más, para que ese reemplazo por el original no restaure sus EXIF. Para un flujo específico de limpieza EXIF, usá el módulo de metadatos.
 
 ### ¿Cómo funcionan las actualizaciones?
 
-Yagua puede avisarte al iniciar y permite comprobar desde **Ajustes → Actualizaciones**. Busca versiones estables más nuevas con el prefijo de tu plataforma (`win-v` o `linux-v`) y excluye las preliminares. Abre un enlace de descarga; no instala actualizaciones automáticamente. Revisá Releases manualmente para versiones de prueba y publicaciones antiguas sin prefijo.
+Yagua puede avisarte al iniciar y permite comprobar desde **Ajustes → Actualizaciones**. Abre un enlace de descarga; no instala actualizaciones automáticamente. Los paquetes RC.4/RC.5 solo buscan versiones estables más nuevas con el prefijo de tu plataforma (`win-v` o `linux-v`); excluyen preliminares y borradores, así que no detectan nuevas RC. Descargá las versiones de prueba manualmente desde [GitHub Releases](https://github.com/GuilleBouix/Yagua-Image-Processor/releases). Esos paquetes también pueden indicar «No hay actualizaciones» tras un fallo de conexión; si tenés dudas, revisá Releases directamente, incluidas las publicaciones antiguas sin prefijo de plataforma.
 
 ### ¿Cómo reporto un problema?
 
-Abrí un [reporte de error](https://github.com/GuilleBouix/Yagua-Image-Processor/issues/new?template=bug_report.md) con tu versión de Yagua, sistema operativo, módulo, pasos para reproducirlo y logs relevantes. Podés verlos en **Ajustes → Logs** o buscar `yagua.log` en:
+Abrí un [reporte de error](https://github.com/GuilleBouix/Yagua-Image-Processor/issues/new?template=bug_report.md) con tu versión de Yagua, sistema operativo, módulo, pasos para reproducirlo y logs relevantes. Buscá `yagua.log` en:
 
 - Windows: `%APPDATA%\Yagua\yagua.log`
 - Linux: `~/.config/Yagua/yagua.log`

@@ -18,7 +18,7 @@ from app.ui.sidebar import Sidebar
 from app.ui.module_registry import get_module_spec, iter_enabled_modules, load_frame_class
 from app.ui import colors, fonts
 from app.ui.lifetime import UiLifetime
-from app.utils.update_checker import check_latest_stable
+from app.utils.update_checker import check_latest_update
 from app.version import __version__
 from app.ui.frames.home.frame import HomeFrame
 from app.translations import t
@@ -90,7 +90,7 @@ class MainWindow(UiLifetime, ctk.CTkFrame):
         except Exception:
             pass
 
-        # Check de actualizaciones no bloqueante (solo estable) + banner interno.
+        # Check de versiones publicadas, incluidas RC, sin bloquear la interfaz.
         self.after(350, self._check_updates_on_startup)
 
     def _poll_operations(self):
@@ -104,7 +104,11 @@ class MainWindow(UiLifetime, ctk.CTkFrame):
 
     def _check_updates_on_startup(self):
         def _worker():
-            info = check_latest_stable(__version__)
+            try:
+                info = check_latest_update(__version__)
+            except Exception:
+                logger.exception('updates: fallo en la comprobación al iniciar')
+                return
             if not info:
                 return
             operations.post(self, lambda: self._show_update_banner(info.version, info.release_url))
