@@ -1,0 +1,3 @@
+# Keep pinned font/license checksums identical on Windows and Linux checkouts.
+assets/fonts/noto-cjk/LICENSE text eol=lf
+assets/fonts/noto-cjk/*.otf binary

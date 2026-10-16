@@ -65,6 +65,8 @@ def test_bundled_fonts_cover_translations_and_native_language_names(language, re
 
 def test_font_manifest_is_pinned_and_matches_all_bundled_bytes():
     directory = ROOT / 'assets/fonts/noto-cjk'
+    attributes = (ROOT / '.gitattributes').read_text(encoding='utf-8')
+    assert 'assets/fonts/noto-cjk/LICENSE text eol=lf' in attributes
     manifest = json.loads((directory / 'manifest.json').read_text(encoding='utf-8'))
     assert manifest['revision'] == '523d033d6cb47f4a80c58a35753646f5c3608a78'
     assert set(manifest['files']) == {Path(path).name for path in fonts.CJK_FONTS} | {'LICENSE'}
