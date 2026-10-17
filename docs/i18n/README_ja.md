@@ -61,24 +61,28 @@ Yagua は、Web 開発者、デザイナー、写真家など、画像を扱う�
 
 <table>
   <tr>
-    <td align="center" width="33%"><a href="../../assets/screenshots/home.png"><img src="../../assets/screenshots/home.png" width="300" alt="すべてのモジュールを表示したホーム画面" /></a></td>
-    <td align="center" width="33%"><a href="../../assets/screenshots/convert.png"><img src="../../assets/screenshots/convert.png" width="300" alt="選択した画像と出力形式の設定がある形式変換画面" /></a></td>
-    <td align="center" width="33%"><a href="../../assets/screenshots/compress.png"><img src="../../assets/screenshots/compress.png" width="300" alt="品質と EXIF の設定がある圧縮画面" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/home.png"><img src="../../assets/screenshots/home.png" width="450" alt="すべてのモジュールを表示したホーム画面" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/convert.png"><img src="../../assets/screenshots/convert.png" width="450" alt="選択した画像と出力形式の設定がある形式変換画面" /></a></td>
   </tr>
   <tr>
-    <td align="center" width="33%"><a href="../../assets/screenshots/resize.png"><img src="../../assets/screenshots/resize.png" width="300" alt="サイズプリセットと読み込んだ画像を表示したサイズ変更画面" /></a></td>
-    <td align="center" width="33%"><a href="../../assets/screenshots/remove-background.png"><img src="../../assets/screenshots/remove-background.png" width="300" alt="画像を選択した背景除去画面" /></a></td>
-    <td align="center" width="33%"><a href="../../assets/screenshots/palette.png"><img src="../../assets/screenshots/palette.png" width="300" alt="抽出した 8 色と値を表示したパレット" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/compress.png"><img src="../../assets/screenshots/compress.png" width="450" alt="品質と EXIF の設定がある圧縮画面" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/resize.png"><img src="../../assets/screenshots/resize.png" width="450" alt="サイズプリセットと読み込んだ画像を表示したサイズ変更画面" /></a></td>
   </tr>
   <tr>
-    <td align="center" width="33%"><a href="../../assets/screenshots/watermark.png"><img src="../../assets/screenshots/watermark.png" width="300" alt="透かしの設定と結果プレビュー" /></a></td>
-    <td align="center" width="33%"><a href="../../assets/screenshots/rename.png"><img src="../../assets/screenshots/rename.png" width="300" alt="元のファイル名と変更候補を表示する一括ファイル名変更" /></a></td>
-    <td align="center" width="33%"><a href="../../assets/screenshots/ocr.png"><img src="../../assets/screenshots/ocr.png" width="300" alt="英語 OCR の認識結果" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/remove-background.png"><img src="../../assets/screenshots/remove-background.png" width="450" alt="画像を選択した背景除去画面" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/palette.png"><img src="../../assets/screenshots/palette.png" width="450" alt="抽出した 8 色と値を表示したパレット" /></a></td>
   </tr>
   <tr>
-    <td align="center" width="33%"><a href="../../assets/screenshots/metadata.png"><img src="../../assets/screenshots/metadata.png" width="300" alt="メタデータ項目と画像プレビューがある EXIF エディター" /></a></td>
-    <td align="center" width="33%"><a href="../../assets/screenshots/lqip-base64.png"><img src="../../assets/screenshots/lqip-base64.png" width="300" alt="LQIP と元画像の比較および生成された data URI" /></a></td>
-    <td align="center" width="33%"><a href="../../assets/screenshots/settings.png"><img src="../../assets/screenshots/settings.png" width="300" alt="言語、テーマ、表示倍率、表示モジュールの一般設定" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/watermark.png"><img src="../../assets/screenshots/watermark.png" width="450" alt="透かしの設定と結果プレビュー" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/rename.png"><img src="../../assets/screenshots/rename.png" width="450" alt="元のファイル名と変更候補を表示する一括ファイル名変更" /></a></td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="../../assets/screenshots/ocr.png"><img src="../../assets/screenshots/ocr.png" width="450" alt="英語 OCR の認識結果" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/metadata.png"><img src="../../assets/screenshots/metadata.png" width="450" alt="メタデータ項目と画像プレビューがある EXIF エディター" /></a></td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="../../assets/screenshots/lqip-base64.png"><img src="../../assets/screenshots/lqip-base64.png" width="450" alt="LQIP と元画像の比較および生成された data URI" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/settings.png"><img src="../../assets/screenshots/settings.png" width="450" alt="言語、テーマ、表示倍率、表示モジュールの一般設定" /></a></td>
   </tr>
 </table>
 

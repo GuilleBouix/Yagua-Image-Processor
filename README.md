@@ -57,24 +57,28 @@ Yagua screenshots with the interface in English. Click any thumbnail to view the
 
 <table>
   <tr>
-    <td align="center" width="33%"><a href="assets/screenshots/home.png"><img src="assets/screenshots/home.png" width="300" alt="Home screen with all modules" /></a></td>
-    <td align="center" width="33%"><a href="assets/screenshots/convert.png"><img src="assets/screenshots/convert.png" width="300" alt="Conversion with selected images and output format controls" /></a></td>
-    <td align="center" width="33%"><a href="assets/screenshots/compress.png"><img src="assets/screenshots/compress.png" width="300" alt="Compression with quality and EXIF controls" /></a></td>
+    <td align="center" width="50%"><a href="assets/screenshots/home.png"><img src="assets/screenshots/home.png" width="450" alt="Home screen with all modules" /></a></td>
+    <td align="center" width="50%"><a href="assets/screenshots/convert.png"><img src="assets/screenshots/convert.png" width="450" alt="Conversion with selected images and output format controls" /></a></td>
   </tr>
   <tr>
-    <td align="center" width="33%"><a href="assets/screenshots/resize.png"><img src="assets/screenshots/resize.png" width="300" alt="Resizing with a size preset and loaded images" /></a></td>
-    <td align="center" width="33%"><a href="assets/screenshots/remove-background.png"><img src="assets/screenshots/remove-background.png" width="300" alt="Background removal with a selected image" /></a></td>
-    <td align="center" width="33%"><a href="assets/screenshots/palette.png"><img src="assets/screenshots/palette.png" width="300" alt="Extracted palette with eight colors and color values" /></a></td>
+    <td align="center" width="50%"><a href="assets/screenshots/compress.png"><img src="assets/screenshots/compress.png" width="450" alt="Compression with quality and EXIF controls" /></a></td>
+    <td align="center" width="50%"><a href="assets/screenshots/resize.png"><img src="assets/screenshots/resize.png" width="450" alt="Resizing with a size preset and loaded images" /></a></td>
   </tr>
   <tr>
-    <td align="center" width="33%"><a href="assets/screenshots/watermark.png"><img src="assets/screenshots/watermark.png" width="300" alt="Watermark controls and result preview" /></a></td>
-    <td align="center" width="33%"><a href="assets/screenshots/rename.png"><img src="assets/screenshots/rename.png" width="300" alt="Batch renaming with original and proposed filenames" /></a></td>
-    <td align="center" width="33%"><a href="assets/screenshots/ocr.png"><img src="assets/screenshots/ocr.png" width="300" alt="English OCR with recognized text" /></a></td>
+    <td align="center" width="50%"><a href="assets/screenshots/remove-background.png"><img src="assets/screenshots/remove-background.png" width="450" alt="Background removal with a selected image" /></a></td>
+    <td align="center" width="50%"><a href="assets/screenshots/palette.png"><img src="assets/screenshots/palette.png" width="450" alt="Extracted palette with eight colors and color values" /></a></td>
   </tr>
   <tr>
-    <td align="center" width="33%"><a href="assets/screenshots/metadata.png"><img src="assets/screenshots/metadata.png" width="300" alt="EXIF editor with metadata fields and an image preview" /></a></td>
-    <td align="center" width="33%"><a href="assets/screenshots/lqip-base64.png"><img src="assets/screenshots/lqip-base64.png" width="300" alt="LQIP placeholder compared with the original and generated data URI" /></a></td>
-    <td align="center" width="33%"><a href="assets/screenshots/settings.png"><img src="assets/screenshots/settings.png" width="300" alt="General settings with language, theme, scale and visible modules" /></a></td>
+    <td align="center" width="50%"><a href="assets/screenshots/watermark.png"><img src="assets/screenshots/watermark.png" width="450" alt="Watermark controls and result preview" /></a></td>
+    <td align="center" width="50%"><a href="assets/screenshots/rename.png"><img src="assets/screenshots/rename.png" width="450" alt="Batch renaming with original and proposed filenames" /></a></td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="assets/screenshots/ocr.png"><img src="assets/screenshots/ocr.png" width="450" alt="English OCR with recognized text" /></a></td>
+    <td align="center" width="50%"><a href="assets/screenshots/metadata.png"><img src="assets/screenshots/metadata.png" width="450" alt="EXIF editor with metadata fields and an image preview" /></a></td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="assets/screenshots/lqip-base64.png"><img src="assets/screenshots/lqip-base64.png" width="450" alt="LQIP placeholder compared with the original and generated data URI" /></a></td>
+    <td align="center" width="50%"><a href="assets/screenshots/settings.png"><img src="assets/screenshots/settings.png" width="450" alt="General settings with language, theme, scale and visible modules" /></a></td>
   </tr>
 </table>
 
