@@ -61,24 +61,24 @@ Yagua объединяет повседневные операции с изоб
 
 <table>
   <tr>
-    <td align="center" width="33%"><a href="../../assets/screenshots/home.png"><img src="../../assets/screenshots/home.png" width="300" alt="Главная страница со всеми модулями" /><br /><strong>Главная</strong></a></td>
-    <td align="center" width="33%"><a href="../../assets/screenshots/convert.png"><img src="../../assets/screenshots/convert.png" width="300" alt="Преобразование с выбранными изображениями и настройками формата" /><br /><strong>Преобразование</strong></a></td>
-    <td align="center" width="33%"><a href="../../assets/screenshots/compress.png"><img src="../../assets/screenshots/compress.png" width="300" alt="Сжатие с настройками качества и EXIF" /><br /><strong>Сжатие</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/home.png"><img src="../../assets/screenshots/home.png" width="300" alt="Главная страница со всеми модулями" /></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/convert.png"><img src="../../assets/screenshots/convert.png" width="300" alt="Преобразование с выбранными изображениями и настройками формата" /></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/compress.png"><img src="../../assets/screenshots/compress.png" width="300" alt="Сжатие с настройками качества и EXIF" /></a></td>
   </tr>
   <tr>
-    <td align="center" width="33%"><a href="../../assets/screenshots/resize.png"><img src="../../assets/screenshots/resize.png" width="300" alt="Изменение размера с готовым размером и загруженными изображениями" /><br /><strong>Изменение размера</strong></a></td>
-    <td align="center" width="33%"><a href="../../assets/screenshots/remove-background.png"><img src="../../assets/screenshots/remove-background.png" width="300" alt="Удаление фона с выбранным изображением" /><br /><strong>Удаление фона</strong></a></td>
-    <td align="center" width="33%"><a href="../../assets/screenshots/palette.png"><img src="../../assets/screenshots/palette.png" width="300" alt="Извлечённая палитра из восьми цветов с их значениями" /><br /><strong>Палитра цветов</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/resize.png"><img src="../../assets/screenshots/resize.png" width="300" alt="Изменение размера с готовым размером и загруженными изображениями" /></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/remove-background.png"><img src="../../assets/screenshots/remove-background.png" width="300" alt="Удаление фона с выбранным изображением" /></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/palette.png"><img src="../../assets/screenshots/palette.png" width="300" alt="Извлечённая палитра из восьми цветов с их значениями" /></a></td>
   </tr>
   <tr>
-    <td align="center" width="33%"><a href="../../assets/screenshots/watermark.png"><img src="../../assets/screenshots/watermark.png" width="300" alt="Настройки водяного знака и предпросмотр результата" /><br /><strong>Водяной знак</strong></a></td>
-    <td align="center" width="33%"><a href="../../assets/screenshots/rename.png"><img src="../../assets/screenshots/rename.png" width="300" alt="Пакетное переименование с исходными и предлагаемыми именами" /><br /><strong>Пакетное переименование</strong></a></td>
-    <td align="center" width="33%"><a href="../../assets/screenshots/ocr.png"><img src="../../assets/screenshots/ocr.png" width="300" alt="Английский OCR с распознанным текстом" /><br /><strong>OCR</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/watermark.png"><img src="../../assets/screenshots/watermark.png" width="300" alt="Настройки водяного знака и предпросмотр результата" /></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/rename.png"><img src="../../assets/screenshots/rename.png" width="300" alt="Пакетное переименование с исходными и предлагаемыми именами" /></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/ocr.png"><img src="../../assets/screenshots/ocr.png" width="300" alt="Английский OCR с распознанным текстом" /></a></td>
   </tr>
   <tr>
-    <td align="center" width="33%"><a href="../../assets/screenshots/metadata.png"><img src="../../assets/screenshots/metadata.png" width="300" alt="Редактор EXIF с полями метаданных и предпросмотром изображения" /><br /><strong>Метаданные EXIF</strong></a></td>
-    <td align="center" width="33%"><a href="../../assets/screenshots/lqip-base64.png"><img src="../../assets/screenshots/lqip-base64.png" width="300" alt="Сравнение LQIP с оригиналом и созданный data URI" /><br /><strong>LQIP / Base64</strong></a></td>
-    <td align="center" width="33%"><a href="../../assets/screenshots/settings.png"><img src="../../assets/screenshots/settings.png" width="300" alt="Общие настройки языка, темы, масштаба и видимых модулей" /><br /><strong>Настройки</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/metadata.png"><img src="../../assets/screenshots/metadata.png" width="300" alt="Редактор EXIF с полями метаданных и предпросмотром изображения" /></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/lqip-base64.png"><img src="../../assets/screenshots/lqip-base64.png" width="300" alt="Сравнение LQIP с оригиналом и созданный data URI" /></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/settings.png"><img src="../../assets/screenshots/settings.png" width="300" alt="Общие настройки языка, темы, масштаба и видимых модулей" /></a></td>
   </tr>
 </table>
 

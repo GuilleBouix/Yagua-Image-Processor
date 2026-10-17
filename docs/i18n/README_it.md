@@ -61,24 +61,24 @@ Schermate di Yagua con l’interfaccia in inglese. Fai clic su una miniatura per
 
 <table>
   <tr>
-    <td align="center" width="33%"><a href="../../assets/screenshots/home.png"><img src="../../assets/screenshots/home.png" width="300" alt="Schermata iniziale con tutti i moduli" /><br /><strong>Home</strong></a></td>
-    <td align="center" width="33%"><a href="../../assets/screenshots/convert.png"><img src="../../assets/screenshots/convert.png" width="300" alt="Conversione con immagini selezionate e controlli del formato di output" /><br /><strong>Conversione</strong></a></td>
-    <td align="center" width="33%"><a href="../../assets/screenshots/compress.png"><img src="../../assets/screenshots/compress.png" width="300" alt="Compressione con controlli di qualità ed EXIF" /><br /><strong>Compressione</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/home.png"><img src="../../assets/screenshots/home.png" width="300" alt="Schermata iniziale con tutti i moduli" /></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/convert.png"><img src="../../assets/screenshots/convert.png" width="300" alt="Conversione con immagini selezionate e controlli del formato di output" /></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/compress.png"><img src="../../assets/screenshots/compress.png" width="300" alt="Compressione con controlli di qualità ed EXIF" /></a></td>
   </tr>
   <tr>
-    <td align="center" width="33%"><a href="../../assets/screenshots/resize.png"><img src="../../assets/screenshots/resize.png" width="300" alt="Ridimensionamento con dimensione predefinita e immagini caricate" /><br /><strong>Ridimensionamento</strong></a></td>
-    <td align="center" width="33%"><a href="../../assets/screenshots/remove-background.png"><img src="../../assets/screenshots/remove-background.png" width="300" alt="Rimozione dello sfondo con un’immagine selezionata" /><br /><strong>Rimozione dello sfondo</strong></a></td>
-    <td align="center" width="33%"><a href="../../assets/screenshots/palette.png"><img src="../../assets/screenshots/palette.png" width="300" alt="Tavolozza estratta con otto colori e relativi valori" /><br /><strong>Tavolozza colori</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/resize.png"><img src="../../assets/screenshots/resize.png" width="300" alt="Ridimensionamento con dimensione predefinita e immagini caricate" /></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/remove-background.png"><img src="../../assets/screenshots/remove-background.png" width="300" alt="Rimozione dello sfondo con un’immagine selezionata" /></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/palette.png"><img src="../../assets/screenshots/palette.png" width="300" alt="Tavolozza estratta con otto colori e relativi valori" /></a></td>
   </tr>
   <tr>
-    <td align="center" width="33%"><a href="../../assets/screenshots/watermark.png"><img src="../../assets/screenshots/watermark.png" width="300" alt="Controlli della filigrana e anteprima del risultato" /><br /><strong>Filigrana</strong></a></td>
-    <td align="center" width="33%"><a href="../../assets/screenshots/rename.png"><img src="../../assets/screenshots/rename.png" width="300" alt="Rinomina in batch con nomi originali e proposti" /><br /><strong>Rinomina in batch</strong></a></td>
-    <td align="center" width="33%"><a href="../../assets/screenshots/ocr.png"><img src="../../assets/screenshots/ocr.png" width="300" alt="OCR in inglese con il testo riconosciuto" /><br /><strong>OCR</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/watermark.png"><img src="../../assets/screenshots/watermark.png" width="300" alt="Controlli della filigrana e anteprima del risultato" /></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/rename.png"><img src="../../assets/screenshots/rename.png" width="300" alt="Rinomina in batch con nomi originali e proposti" /></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/ocr.png"><img src="../../assets/screenshots/ocr.png" width="300" alt="OCR in inglese con il testo riconosciuto" /></a></td>
   </tr>
   <tr>
-    <td align="center" width="33%"><a href="../../assets/screenshots/metadata.png"><img src="../../assets/screenshots/metadata.png" width="300" alt="Editor EXIF con campi dei metadati e anteprima dell’immagine" /><br /><strong>Metadati EXIF</strong></a></td>
-    <td align="center" width="33%"><a href="../../assets/screenshots/lqip-base64.png"><img src="../../assets/screenshots/lqip-base64.png" width="300" alt="Segnaposto LQIP confrontato con l’originale e URI data generato" /><br /><strong>LQIP / Base64</strong></a></td>
-    <td align="center" width="33%"><a href="../../assets/screenshots/settings.png"><img src="../../assets/screenshots/settings.png" width="300" alt="Impostazioni generali di lingua, tema, scala e moduli visibili" /><br /><strong>Impostazioni</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/metadata.png"><img src="../../assets/screenshots/metadata.png" width="300" alt="Editor EXIF con campi dei metadati e anteprima dell’immagine" /></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/lqip-base64.png"><img src="../../assets/screenshots/lqip-base64.png" width="300" alt="Segnaposto LQIP confrontato con l’originale e URI data generato" /></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/settings.png"><img src="../../assets/screenshots/settings.png" width="300" alt="Impostazioni generali di lingua, tema, scala e moduli visibili" /></a></td>
   </tr>
 </table>
 

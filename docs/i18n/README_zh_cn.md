@@ -61,24 +61,24 @@ Yagua 将日常图像处理任务整合到一个桌面应用中，适合网页�
 
 <table>
   <tr>
-    <td align="center" width="33%"><a href="../../assets/screenshots/home.png"><img src="../../assets/screenshots/home.png" width="300" alt="显示所有模块的首页" /><br /><strong>首页</strong></a></td>
-    <td align="center" width="33%"><a href="../../assets/screenshots/convert.png"><img src="../../assets/screenshots/convert.png" width="300" alt="显示所选图像和输出格式控件的转换页面" /><br /><strong>格式转换</strong></a></td>
-    <td align="center" width="33%"><a href="../../assets/screenshots/compress.png"><img src="../../assets/screenshots/compress.png" width="300" alt="带有质量和 EXIF 设置的压缩页面" /><br /><strong>压缩</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/home.png"><img src="../../assets/screenshots/home.png" width="300" alt="显示所有模块的首页" /></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/convert.png"><img src="../../assets/screenshots/convert.png" width="300" alt="显示所选图像和输出格式控件的转换页面" /></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/compress.png"><img src="../../assets/screenshots/compress.png" width="300" alt="带有质量和 EXIF 设置的压缩页面" /></a></td>
   </tr>
   <tr>
-    <td align="center" width="33%"><a href="../../assets/screenshots/resize.png"><img src="../../assets/screenshots/resize.png" width="300" alt="显示预设尺寸和已加载图像的调整大小页面" /><br /><strong>调整大小</strong></a></td>
-    <td align="center" width="33%"><a href="../../assets/screenshots/remove-background.png"><img src="../../assets/screenshots/remove-background.png" width="300" alt="已选中图像的背景移除页面" /><br /><strong>背景移除</strong></a></td>
-    <td align="center" width="33%"><a href="../../assets/screenshots/palette.png"><img src="../../assets/screenshots/palette.png" width="300" alt="显示提取的八种颜色及其数值的调色板" /><br /><strong>调色板</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/resize.png"><img src="../../assets/screenshots/resize.png" width="300" alt="显示预设尺寸和已加载图像的调整大小页面" /></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/remove-background.png"><img src="../../assets/screenshots/remove-background.png" width="300" alt="已选中图像的背景移除页面" /></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/palette.png"><img src="../../assets/screenshots/palette.png" width="300" alt="显示提取的八种颜色及其数值的调色板" /></a></td>
   </tr>
   <tr>
-    <td align="center" width="33%"><a href="../../assets/screenshots/watermark.png"><img src="../../assets/screenshots/watermark.png" width="300" alt="水印设置和结果预览" /><br /><strong>水印</strong></a></td>
-    <td align="center" width="33%"><a href="../../assets/screenshots/rename.png"><img src="../../assets/screenshots/rename.png" width="300" alt="显示原始文件名和拟定名称的批量重命名页面" /><br /><strong>批量重命名</strong></a></td>
-    <td align="center" width="33%"><a href="../../assets/screenshots/ocr.png"><img src="../../assets/screenshots/ocr.png" width="300" alt="英语 OCR 的识别结果" /><br /><strong>OCR</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/watermark.png"><img src="../../assets/screenshots/watermark.png" width="300" alt="水印设置和结果预览" /></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/rename.png"><img src="../../assets/screenshots/rename.png" width="300" alt="显示原始文件名和拟定名称的批量重命名页面" /></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/ocr.png"><img src="../../assets/screenshots/ocr.png" width="300" alt="英语 OCR 的识别结果" /></a></td>
   </tr>
   <tr>
-    <td align="center" width="33%"><a href="../../assets/screenshots/metadata.png"><img src="../../assets/screenshots/metadata.png" width="300" alt="带有元数据字段和图像预览的 EXIF 编辑器" /><br /><strong>EXIF 元数据</strong></a></td>
-    <td align="center" width="33%"><a href="../../assets/screenshots/lqip-base64.png"><img src="../../assets/screenshots/lqip-base64.png" width="300" alt="LQIP 占位图与原图的对比及生成的 data URI" /><br /><strong>LQIP / Base64</strong></a></td>
-    <td align="center" width="33%"><a href="../../assets/screenshots/settings.png"><img src="../../assets/screenshots/settings.png" width="300" alt="包含语言、主题、缩放和可见模块的一般设置" /><br /><strong>设置</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/metadata.png"><img src="../../assets/screenshots/metadata.png" width="300" alt="带有元数据字段和图像预览的 EXIF 编辑器" /></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/lqip-base64.png"><img src="../../assets/screenshots/lqip-base64.png" width="300" alt="LQIP 占位图与原图的对比及生成的 data URI" /></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/settings.png"><img src="../../assets/screenshots/settings.png" width="300" alt="包含语言、主题、缩放和可见模块的一般设置" /></a></td>
   </tr>
 </table>
 
