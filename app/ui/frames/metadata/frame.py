@@ -39,6 +39,10 @@ from app.ui.frames.metadata.services import (
     preparar_campos_exif,
     CAMPOS_EDITABLES,
     GRUPOS_CAMPOS_EDITABLES,
+    CAMPOS_VISIBLES,
+    GRUPOS_CAMPOS_VISIBLES,
+    OPCIONES_ENUM_EXIF as _ENUM_OPTIONS,
+    ORIENTACIONES_EXIF as _ORIENTATION_OPTIONS,
     leer_campos_edicion_safe,
     batch_limpiar_exif,
 )
@@ -57,33 +61,6 @@ def _cargar_preview_edicion(ruta: str) -> Image.Image:
         return preview.convert('RGB')
 
 
-_ENUM_OPTIONS = {
-    'ExposureProgram': {
-        0: 'enum_not_defined', 1: 'enum_manual', 2: 'enum_program',
-        3: 'enum_aperture_priority', 4: 'enum_shutter_priority',
-        5: 'enum_creative', 6: 'enum_action', 7: 'enum_portrait', 8: 'enum_landscape',
-    },
-    'ExposureMode': {0: 'enum_auto', 1: 'enum_manual', 2: 'enum_auto_bracket'},
-    'MeteringMode': {
-        0: 'enum_meter_unknown', 1: 'enum_average', 2: 'enum_center_weighted',
-        3: 'enum_spot', 4: 'enum_multi_spot', 5: 'enum_pattern',
-        6: 'enum_partial', 255: 'enum_other',
-    },
-    'Flash': {0: 'flash_no', 1: 'flash_yes'},
-    'WhiteBalance': {0: 'wb_auto', 1: 'wb_manual'},
-    'LightSource': {
-        0: 'enum_not_defined', 1: 'light_daylight', 2: 'light_fluorescent',
-        3: 'light_tungsten', 4: 'light_flash', 9: 'light_fine_weather',
-        10: 'light_cloudy', 11: 'light_shade', 255: 'enum_other',
-    },
-}
-_ORIENTATION_OPTIONS = {
-    1: 'orient_normal', 2: 'orient_mirror_horizontal', 3: 'orient_180',
-    4: 'orient_mirror_vertical', 5: 'orient_transpose', 6: 'orient_90_cw',
-    7: 'orient_transverse', 8: 'orient_90_ccw',
-}
-
-
 class MetadataFrame(BaseFrame):
     """Frame principal del modulo de gestion de metadatos EXIF."""
 
@@ -94,6 +71,8 @@ class MetadataFrame(BaseFrame):
         self._edit_preview_source: Image.Image | None = None
         self._edit_preview_job = None
         self._edit_preview_size = None
+        self._metadata_rows = []
+        self._metadata_sections = []
         self._thumbs: list[ctk.CTkImage] = []
         self._filas_lote: list[ctk.CTkLabel] = []
         self._campos_edit: dict[str, ctk.CTkEntry | ctk.CTkComboBox] = {}
@@ -158,8 +137,9 @@ class MetadataFrame(BaseFrame):
             border_width=0, height=320
         )
         self._scroll_meta.grid(row=1, column=0, padx=16, pady=8, sticky='nsew')
-        self._scroll_meta.grid_columnconfigure(0, weight=1)
-        self._scroll_meta.grid_columnconfigure(1, weight=1)
+        self._scroll_meta.grid_columnconfigure(0, weight=2, uniform='metadata-columns')
+        self._scroll_meta.grid_columnconfigure(1, weight=3, uniform='metadata-columns')
+        self._scroll_meta.bind('<Configure>', self._ajustar_filas_metadatos, add='+')
 
         ctk.CTkLabel(
             self._scroll_meta,
@@ -436,52 +416,86 @@ class MetadataFrame(BaseFrame):
             command=comando
         )
 
+    def _valor_metadato_visible(self, nombre: str, valor: str) -> str:
+        """Traduce las opciones conocidas; conserva el código del archivo."""
+        try:
+            codigo = int(valor)
+        except ValueError:
+            return valor
+        clave = None
+        if nombre in _ENUM_OPTIONS:
+            clave = _ENUM_OPTIONS[nombre].get(codigo)
+            if nombre == 'Flash':
+                clave = _ENUM_OPTIONS[nombre].get(codigo & 1)
+        elif nombre == 'Orientation':
+            clave = _ORIENTATION_OPTIONS.get(codigo)
+        elif nombre == 'ColorSpace':
+            clave = {1: 'color_srgb', 65535: 'color_uncalibrated'}.get(codigo)
+        return f'{t(clave)} ({valor})' if clave else valor
+
+    def _ajustar_filas_metadatos(self, _event=None):
+        """Reparte el ancho entre campo y valor, permitiendo varias líneas."""
+        ancho = max(160, int(self._scroll_meta.winfo_width() / self._get_widget_scaling()) - 32)
+        for _, etiqueta, valor in self._metadata_rows:
+            etiqueta.configure(wraplength=max(60, int(ancho * .4) - 12))
+            valor.configure(wraplength=max(80, int(ancho * .6) - 12))
+        for seccion in self._metadata_sections:
+            seccion.configure(wraplength=ancho)
+
     def _renderizar_metadatos(self, metadatos: dict[str, str]):
-        """Renderizar metadatos en el area de scroll.
-
-        Args:
-            metadatos: Diccionario con pares clave-valor de metadatos
-        """
-        for w in self._scroll_meta.winfo_children():
-            w.destroy()
-
-        if not metadatos:
-            ctk.CTkLabel(
-                self._scroll_meta,
-                text=t('no_metadata_image'),
-                font=fonts.FUENTE_CHICA,
-                text_color=colors.TEXT_GRAY
-            ).grid(row=0, column=0, columnspan=2, pady=20)
-            return
-
+        """Presenta campos conocidos por secciones, sin contenedores extra."""
+        self._metadata_rows.clear()
+        self._metadata_sections.clear()
+        for widget in self._scroll_meta.winfo_children():
+            widget.destroy()
+        fila = 0
         gps = metadatos.get('__gps_decimal__')
-
-        for indice, (clave, valor) in enumerate(metadatos.items()):
-            if clave.startswith('__'):
+        for grupo, nombres in GRUPOS_CAMPOS_VISIBLES.items():
+            campos = [
+                nombre for nombre in nombres
+                if CAMPOS_VISIBLES[nombre][0] in metadatos
+                and metadatos[CAMPOS_VISIBLES[nombre][0]].strip()
+            ]
+            if not campos:
                 continue
-
-            ctk.CTkLabel(
-                self._scroll_meta, text=clave,
-                font=fonts.FUENTE_CHICA,
-                text_color=colors.TEXT_GRAY, anchor='w'
-            ).grid(row=indice, column=0, padx=(8, 4), pady=3, sticky='w')
-
-            if 'GPS' in clave and gps:
-                url = f'https://maps.google.com/?q={gps}'
-                lbl = ctk.CTkLabel(
-                    self._scroll_meta, text=f'{valor}  ->  {t("view_on_maps")}',
-                    font=fonts.FUENTE_CHICA,
-                    text_color=colors.ACENTO, anchor='w',
-                    cursor='hand2'
+            seccion = ctk.CTkLabel(
+                self._scroll_meta, text=t(f'metadata_section_{grupo}'),
+                font=fonts.FUENTE_BASE, text_color=colors.TEXT_COLOR,
+                anchor='w', justify='left',
+            )
+            seccion.grid(row=fila, column=0, columnspan=2, padx=8, pady=(12 if fila else 4, 6), sticky='ew')
+            self._metadata_sections.append(seccion)
+            fila += 1
+            for nombre in campos:
+                clave, traduccion = CAMPOS_VISIBLES[nombre]
+                etiqueta = ctk.CTkLabel(
+                    self._scroll_meta, text=t(traduccion),
+                    font=fonts.FUENTE_CHICA, text_color=colors.TEXT_GRAY,
+                    anchor='nw', justify='left',
                 )
-                lbl.grid(row=indice, column=1, padx=(4, 8), pady=3, sticky='w')
-                lbl.bind('<Button-1>', lambda _, u=url: webbrowser.open(u))
-            else:
-                ctk.CTkLabel(
-                    self._scroll_meta, text=valor,
-                    font=fonts.FUENTE_CHICA,
-                    text_color=colors.TEXT_COLOR, anchor='w'
-                ).grid(row=indice, column=1, padx=(4, 8), pady=3, sticky='w')
+                etiqueta.grid(row=fila, column=0, padx=(8, 4), pady=4, sticky='new')
+                texto = self._valor_metadato_visible(nombre, metadatos[clave])
+                es_mapa = nombre in ('GPSLatitude', 'GPSLongitude') and bool(gps)
+                if es_mapa:
+                    texto += f'  →  {t("view_on_maps")}'
+                valor = ctk.CTkLabel(
+                    self._scroll_meta, text=texto, font=fonts.FUENTE_CHICA,
+                    text_color=colors.ACENTO if es_mapa else colors.TEXT_COLOR,
+                    anchor='nw', justify='left',
+                )
+                valor.grid(row=fila, column=1, padx=(4, 8), pady=4, sticky='new')
+                if es_mapa:
+                    valor.configure(cursor='hand2')
+                    url = f'https://maps.google.com/?q={gps}'
+                    valor.bind('<Button-1>', lambda _, u=url: webbrowser.open(u))
+                self._metadata_rows.append((nombre, etiqueta, valor))
+                fila += 1
+        if not self._metadata_rows:
+            ctk.CTkLabel(
+                self._scroll_meta, text=t('no_metadata_image'),
+                font=fonts.FUENTE_CHICA, text_color=colors.TEXT_GRAY,
+            ).grid(row=0, column=0, columnspan=2, pady=20)
+        self._ajustar_filas_metadatos()
 
     def _explorar_ver(self):
         """Abrir dialogo para seleccionar imagen y leer sus metadatos."""
@@ -805,6 +819,8 @@ class MetadataFrame(BaseFrame):
         self._state.metadatos = {}
         self._thumbs.clear()
         self._filas_lote.clear()
+        self._metadata_rows.clear()
+        self._metadata_sections.clear()
 
         for w in self._scroll_meta.winfo_children():
             w.destroy()

@@ -30,6 +30,20 @@ from app.utils.results import FileFailure, file_failure
 logger = logging.getLogger(__name__)
 
 
+class _TiffExifText(str):
+    """Preserve original bytes while Pillow infers the EXIF ASCII tag type.
+
+    Plain bytes make Pillow infer BYTE for some nested EXIF tags. Plain strings
+    lose non-ASCII bytes in its TIFF writer. Latin-1 here is a reversible byte
+    carrier, not the encoding of the user's text (which remains UTF-8).
+    """
+
+    def encode(self, encoding: str = 'utf-8', errors: str = 'strict') -> bytes:
+        if encoding == 'ascii' and errors == 'replace':
+            return super().encode('latin-1')
+        return super().encode(encoding, errors)
+
+
 # Campos EXIF legibles con etiquetas amigables
 _CAMPOS_LEGIBLES = {
     'Make':             'Camara (marca)',
@@ -38,7 +52,7 @@ _CAMPOS_LEGIBLES = {
     'DateTime':         'Fecha y hora',
     'DateTimeOriginal': 'Fecha original',
     'DateTimeDigitized': 'Fecha digitalizada',
-    'ISO':              'ISO',
+    'ISOSpeedRatings':  'ISO',
     'FNumber':          'Apertura',
     'ExposureTime':     'Velocidad obturacion',
     'FocalLength':      'Focal',
@@ -50,6 +64,20 @@ _CAMPOS_LEGIBLES = {
     'ImageLength':      'Alto',
     'GPSLatitude':      'Latitud GPS',
     'GPSLongitude':     'Longitud GPS',
+    'ImageDescription': 'Descripcion de imagen',
+    'UserComment':      'Comentario',
+    'LensMake':         'Lente (marca)',
+    'FocalLengthIn35mmFilm': 'Focal equivalente 35 mm',
+    'ExposureProgram':  'Programa de exposicion',
+    'ExposureMode':     'Modo de exposicion',
+    'ExposureBiasValue': 'Compensacion de exposicion',
+    'MeteringMode':     'Medicion de luz',
+    'WhiteBalance':     'Balance de blancos',
+    'LightSource':      'Fuente de luz',
+    'GPSAltitude':      'Altitud GPS',
+    'GPSImgDirection':  'Direccion GPS',
+    'Orientation':      'Orientacion',
+    'ColorSpace':       'Espacio de color',
 }
 
 # Grupos y claves de traducción que describen las opciones del editor.
@@ -90,6 +118,60 @@ CAMPOS_EDITABLES = {
     'GPSLongitude': 'gps_longitude',
     'GPSAltitude': 'gps_altitude',
     'GPSImgDirection': 'gps_direction',
+}
+
+# El visor reutiliza los campos y grupos del editor; las claves de exportación
+# existentes permanecen estables aunque las etiquetas de la UI se traduzcan.
+GRUPOS_CAMPOS_VISIBLES = {
+    **GRUPOS_CAMPOS_EDITABLES,
+    'dates': ('DateTimeOriginal', 'DateTime', 'DateTimeDigitized'),
+    'orientation': ('ImageWidth', 'ImageLength', 'Orientation', 'ColorSpace'),
+}
+_TRADUCCIONES_VISIBLES = {
+    **CAMPOS_EDITABLES,
+    'DateTime': 'datetime',
+    'DateTimeDigitized': 'metadata_date_digitized',
+    'ImageWidth': 'width',
+    'ImageLength': 'height',
+    'Orientation': 'current_orientation',
+    'ColorSpace': 'color_space',
+}
+CAMPOS_VISIBLES = {
+    nombre: (etiqueta, _TRADUCCIONES_VISIBLES[nombre])
+    for nombre, etiqueta in _CAMPOS_LEGIBLES.items()
+}
+_TAGS_VISIBLES = {
+    detalle['name']: (tag, grupo)
+    for grupo in ('0th', 'Exif', 'GPS')
+    for tag, detalle in piexif.TAGS[grupo].items()
+    if detalle['name'] in CAMPOS_VISIBLES
+}
+
+
+OPCIONES_ENUM_EXIF = {
+    'ExposureProgram': {
+        0: 'enum_not_defined', 1: 'enum_manual', 2: 'enum_program',
+        3: 'enum_aperture_priority', 4: 'enum_shutter_priority',
+        5: 'enum_creative', 6: 'enum_action', 7: 'enum_portrait', 8: 'enum_landscape',
+    },
+    'ExposureMode': {0: 'enum_auto', 1: 'enum_manual', 2: 'enum_auto_bracket'},
+    'MeteringMode': {
+        0: 'enum_meter_unknown', 1: 'enum_average', 2: 'enum_center_weighted',
+        3: 'enum_spot', 4: 'enum_multi_spot', 5: 'enum_pattern',
+        6: 'enum_partial', 255: 'enum_other',
+    },
+    'Flash': {0: 'flash_no', 1: 'flash_yes'},
+    'WhiteBalance': {0: 'wb_auto', 1: 'wb_manual'},
+    'LightSource': {
+        0: 'enum_not_defined', 1: 'light_daylight', 2: 'light_fluorescent',
+        3: 'light_tungsten', 4: 'light_flash', 9: 'light_fine_weather',
+        10: 'light_cloudy', 11: 'light_shade', 255: 'enum_other',
+    },
+}
+ORIENTACIONES_EXIF = {
+    1: 'orient_normal', 2: 'orient_mirror_horizontal', 3: 'orient_180',
+    4: 'orient_mirror_vertical', 5: 'orient_transpose', 6: 'orient_90_cw',
+    7: 'orient_transverse', 8: 'orient_90_ccw',
 }
 
 
@@ -146,125 +228,105 @@ _DATE_FORMATS = (
 
 
 def _fraccion_a_float(val):
-    """
-    Convierte una fraccion (numerador, denominador) a float.
-    
-    Args:
-        val: Tupla (numerador, denominador) o numero directo.
-        
-    Returns:
-        Valor como float.
-    """
+    """Acepta números, racionales de Pillow y pares numerador/denominador."""
     if isinstance(val, tuple) and len(val) == 2:
-        numerator, denominator = val
-        if isinstance(numerator, (int, float)) and isinstance(denominator, (int, float)) and denominator != 0:
-            return float(numerator) / float(denominator)
-        
-        return 0.0
-    if isinstance(val, (int, float)):
-        return float(val)
-    
-    return 0.0
+        number = float(val[0]) / float(val[1])
+    else:
+        number = float(cast(str | int | float, val))
+    if not math.isfinite(number):
+        raise ValueError('Racional EXIF no finito')
+    return number
 
 
 def _formatear_valor(nombre_tag, val):
-    """
-    Convierte valores EXIF a strings legibles.
-    
-    Formatea valores especiales como fracciones, coordenadas
-    GPS y otros tipos de datos EXIF.
-    
-    Args:
-        nombre_tag: Nombre del tag EXIF.
-        val: Valor a formatear.
-        
-    Returns:
-        Cadena legible con el valor formateado.
-    """
-    # Decodificar bytes como UTF-8
-    if isinstance(val, bytes):
+    """Devuelve texto legible sin descartar valores cero."""
+    if nombre_tag == 'UserComment' and isinstance(val, bytes):
         try:
-            return val.decode('utf-8').strip('\x00')
-        except Exception:
-            return val.hex()
-
-    # Formatear numero f/ para apertura
+            return piexif_helper.UserComment.load(val).strip('\x00')
+        except (ValueError, UnicodeError):
+            prefixes = (b'ASCII\x00\x00\x00', b'UNICODE\x00', b'JIS\x00\x00\x00\x00\x00')
+            payload = val[8:] if val.startswith(prefixes) else val
+            return payload.decode('utf-8', errors='replace').strip('\x00')
+    if isinstance(val, bytes):
+        return val.decode('utf-8', errors='replace').strip('\x00')
+    if isinstance(val, str):
+        # Pillow interpreta varios textos EXIF como Latin-1, incluso cuando
+        # fueron escritos en UTF-8 por Yagua.
+        try:
+            return val.encode('latin-1').decode('utf-8').strip('\x00')
+        except (UnicodeEncodeError, UnicodeDecodeError):
+            return val.strip('\x00')
     if nombre_tag == 'FNumber':
-        return f'f/{_fraccion_a_float(val):.1f}'
-
-    # Formatear tiempo de exposicion
+        return f'f/{_fraccion_a_float(val):g}'
     if nombre_tag == 'ExposureTime':
-        f = _fraccion_a_float(val)
-        if f < 1:
-            return f'1/{int(round(1/f))}s'
-        return f'{f:.1f}s'
-
-    # Formatear distancia focal
-    if nombre_tag == 'FocalLength':
-        return f'{_fraccion_a_float(val):.0f}mm'
-
-    # Formatear coordenadas GPS
+        seconds = _fraccion_a_float(val)
+        if 0 < seconds < 1:
+            reciprocal = 1 / seconds
+            if math.isclose(reciprocal, round(reciprocal), rel_tol=1e-6):
+                return f'1/{round(reciprocal)}s'
+        return f'{seconds:g}s'
+    if nombre_tag in ('FocalLength', 'FocalLengthIn35mmFilm'):
+        return f'{_fraccion_a_float(val):g}mm'
+    if nombre_tag == 'ExposureBiasValue':
+        return f'{_fraccion_a_float(val):g} EV'
+    if nombre_tag == 'GPSAltitude':
+        return f'{_fraccion_a_float(val):g} m'
+    if nombre_tag == 'GPSImgDirection':
+        return f'{_fraccion_a_float(val):g}°'
     if nombre_tag in ('GPSLatitude', 'GPSLongitude'):
-        if isinstance(val, (list, tuple)) and len(val) == 3:
-            grados = _fraccion_a_float(val[0])
-            minutos = _fraccion_a_float(val[1])
-            segundos = _fraccion_a_float(val[2])
-            return f'{grados:.0f}° {minutos:.0f}\' {segundos:.2f}"'
-
-    # Formatear tuplas genericas
-    if isinstance(val, tuple):
-        return str(val[0]) if len(val) == 2 and val[1] == 1 else str(val)
-
+        if not isinstance(val, (list, tuple)) or len(val) != 3:
+            raise ValueError('Coordenada EXIF inválida')
+        degrees, minutes, seconds = (_fraccion_a_float(part) for part in val)
+        return f'{degrees:g}° {minutes:g}\' {seconds:.2f}"'
+    if isinstance(val, tuple) and len(val) == 2:
+        return f'{_fraccion_a_float(val):g}'
     return str(val)
 
 
 def leer_metadatos(ruta):
-    """
-    Lee los metadatos EXIF de una imagen.
-    
-    Args:
-        ruta: Ruta de la imagen.
-        
-    Returns:
-        Diccionario con etiqueta legible como clave y valor formateado.
-        Incluye clave especial '__gps_decimal__' para coordenadas GPS.
-    """
-
+    """Lee los campos conocidos y devuelve las claves planas históricas."""
     logger.info("Leer metadatos: %s", ruta)
     resultado = {}
-
     try:
-        # Abrir imagen y obtener datos EXIF
-        with Image.open(ruta) as img:
-            info = img.getexif()
-        if not info:
-            return resultado
-
-        # Obtener mapa de tags numericos a nombres
-        from PIL.ExifTags import TAGS
-        tags_num = {nombre: tag_id for tag_id, nombre in TAGS.items()}
-
-        # Extraer cada campo definido
-        for nombre, etiqueta in _CAMPOS_LEGIBLES.items():
-            num = tags_num.get(nombre)
-            if num and num in info:
-                val = info[num]
-                resultado[etiqueta] = _formatear_valor(nombre, val)
-
-        # Extraer coordenadas GPS para Google Maps
-        gps_info = info.get(34853)  # GPSInfo tag
-        if gps_info:
-            try:
-                lat = _gps_a_decimal(gps_info.get(2), gps_info.get(1, 'N'))
-                lon = _gps_a_decimal(gps_info.get(4), gps_info.get(3, 'E'))
-                if lat and lon:
-                    resultado['__gps_decimal__'] = f'{lat},{lon}'
-            except Exception:
-                pass
-
+        with Image.open(ruta) as imagen:
+            info = imagen.getexif()
+            if not info:
+                return resultado
+            bloques = {'0th': info, 'Exif': {}, 'GPS': {}}
+            for grupo, tag in (('Exif', 34665), ('GPS', 34853)):
+                try:
+                    bloques[grupo] = info.get_ifd(tag)
+                except Exception as exc:
+                    logger.warning("No se pudo leer el bloque EXIF %s: %s", grupo, exc)
+            for nombre, (etiqueta, _) in CAMPOS_VISIBLES.items():
+                try:
+                    tag, grupo = _TAGS_VISIBLES[nombre]
+                    valor = bloques[grupo].get(tag)
+                    if valor is None and nombre in ('ImageWidth', 'ImageLength'):
+                        dimension_tag = 40962 if nombre == 'ImageWidth' else 40963
+                        valor = bloques['Exif'].get(dimension_tag)
+                    if valor is None:
+                        continue
+                    if nombre == 'GPSAltitude' and bloques['GPS'].get(5) == 1:
+                        valor = -_fraccion_a_float(valor)
+                    texto = _formatear_valor(nombre, valor)
+                    if not texto.strip():
+                        continue
+                    if nombre in ('GPSLatitude', 'GPSLongitude'):
+                        reference_tag = 1 if nombre == 'GPSLatitude' else 3
+                        referencia = _gps_referencia(bloques['GPS'], reference_tag, '')
+                        if referencia:
+                            texto += ' ' + referencia
+                    resultado[etiqueta] = texto
+                except Exception as exc:
+                    logger.warning("Se omitió el campo EXIF %s: %s", nombre, exc)
+            gps = bloques['GPS']
+            latitud = _gps_a_decimal(gps.get(2), _gps_referencia(gps, 1, 'N'))
+            longitud = _gps_a_decimal(gps.get(4), _gps_referencia(gps, 3, 'E'))
+            if latitud is not None and longitud is not None:
+                resultado['__gps_decimal__'] = f'{latitud},{longitud}'
     except Exception as exc:
         logger.warning("Error al leer EXIF en %s: %s", ruta, exc)
-
     return resultado
 
 
@@ -393,7 +455,9 @@ def _gps_a_decimal(coordenadas, referencia_gps):
     decimal = grados + minutos / 60 + segundos / 3600
     
     # Aplicar signo negativo para sur y oeste
-    if referencia_gps in ('S', 'W'):
+    if isinstance(referencia_gps, bytes):
+        referencia_gps = referencia_gps.decode('ascii', errors='ignore')
+    if str(referencia_gps).strip().upper() in ('S', 'W'):
         decimal = -decimal
     
     return round(decimal, 6)
@@ -523,6 +587,11 @@ def _editar_exif(ruta_entrada, ruta_salida, request):
                 return False, 'no_exif'
 
             exif_dict = piexif.load(str(ruta_entrada))
+            # Pillow may store TIFF UserComment as BYTE; piexif reads it as a
+            # tuple but requires bytes when serializing the UNDEFINED EXIF tag.
+            comentario = exif_dict['Exif'].get(piexif.ExifIFD.UserComment)
+            if isinstance(comentario, tuple):
+                exif_dict['Exif'][piexif.ExifIFD.UserComment] = bytes(comentario)
             original_exif = deepcopy(exif_dict)
 
             if request.clear_gps:
@@ -616,6 +685,16 @@ def _editar_exif(ruta_entrada, ruta_salida, request):
                 piexif.insert(exif_bytes, Path(ruta_entrada).read_bytes(), str(ruta_salida))
                 return True, None
             opciones_guardado: dict[str, object] = {'exif': exif_bytes}
+            if formato == 'TIFF':
+                exif_tiff = Image.Exif()
+                exif_tiff.load(exif_bytes)
+                # Pillow converts parsed TIFF strings to ASCII with replacement.
+                # Restore the original bytes without changing the ASCII tag type.
+                for tag, bloque in _TEXT_TAGS.values():
+                    if tag in exif_dict[bloque]:
+                        destino = exif_tiff if bloque == '0th' else exif_tiff.get_ifd(34665)
+                        destino[tag] = _TiffExifText(exif_dict[bloque][tag].decode('latin-1'))
+                opciones_guardado['exif'] = exif_tiff
             if imagen.info.get('icc_profile'):
                 opciones_guardado['icc_profile'] = imagen.info['icc_profile']
             if formato == 'JPEG':

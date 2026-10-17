@@ -134,6 +134,7 @@ TRANSLATIONS = {
     'copyright': '版权',
     'software': '软件',
     'datetime': '日期和时间',
+    'metadata_date_digitized': '数字化日期',
     'metadata_section_description': '描述与作者',
     'metadata_section_camera': '相机与镜头',
     'metadata_section_capture': '拍摄参数',

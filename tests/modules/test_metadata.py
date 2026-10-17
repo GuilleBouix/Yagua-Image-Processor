@@ -264,3 +264,49 @@ def test_editar_exif_orienta_pixeles_y_normaliza_tag(tmp_path):
         ]
         assert resultado.getexif().get(piexif.ImageIFD.Orientation) == 1
     assert piexif.load(str(salida))['0th'][piexif.ImageIFD.Make] == b'Camara original'
+
+
+@pytest.mark.parametrize(('formato', 'extension'), [('JPEG', '.jpg'), ('TIFF', '.tiff')])
+@pytest.mark.parametrize('mismo_archivo', [False, True])
+@pytest.mark.parametrize('orientacion', [None, 6])
+def test_editar_textos_unicode_conserva_bytes_y_lectura(
+    tmp_path, formato, extension, mismo_archivo, orientacion,
+):
+    entrada = tmp_path / f'cámara 日本語{extension}'
+    salida = entrada if mismo_archivo else tmp_path / f'copia{extension}'
+    imagen = Image.new('RGB', (3, 2), 'white')
+    imagen.putpixel((0, 0), (255, 0, 0))
+    imagen.save(entrada, formato, icc_profile=b'profile')
+    campos = {
+        nombre: f'{nombre}: Cámara, café, 日本語, 👀'
+        for nombre in (
+            'ImageDescription', 'Artist', 'Copyright', 'Software',
+            'Make', 'Model', 'LensMake', 'LensModel', 'UserComment',
+        )
+    }
+    request, error = preparar_campos_exif(campos, orientation=orientacion)
+    assert error is None
+    assert editar_exif(str(entrada), str(salida), request) == (True, None)
+    leidos = leer_campos_edicion(str(salida))
+    assert {key: leidos[key] for key in campos} == campos
+    exif = piexif.load(str(salida))
+    for nombre, bloque in (('ImageDescription', '0th'), ('LensModel', 'Exif')):
+        tag = getattr(piexif.ImageIFD if bloque == '0th' else piexif.ExifIFD, nombre)
+        assert exif[bloque][tag] == campos[nombre].encode('utf-8')
+    with Image.open(salida) as resultado:
+        assert resultado.info['icc_profile'] == b'profile'
+        if formato == 'TIFF':
+            esperado = imagen if orientacion is None else imagen.transpose(Image.Transpose.ROTATE_270)
+            assert resultado.size == esperado.size
+            assert resultado.tobytes() == esperado.tobytes()
+
+    # Una segunda edición debe conservar los textos que no se modificaron.
+    cambio, error = preparar_campos_exif({'Artist': 'Autora: Zoë, 中文'})
+    assert error is None
+    assert editar_exif(str(salida), str(salida), cambio) == (True, None)
+    campos['Artist'] = 'Autora: Zoë, 中文'
+    leidos = leer_campos_edicion(str(salida))
+    assert {key: leidos[key] for key in campos} == campos
+    contenido = salida.read_bytes()
+    assert editar_exif(str(salida), str(salida), cambio) == (True, None)
+    assert salida.read_bytes() == contenido

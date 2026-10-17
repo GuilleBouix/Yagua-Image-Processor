@@ -134,6 +134,7 @@ TRANSLATIONS = {
     'copyright': 'Copyright',
     'software': 'Software',
     'datetime': 'Data e ora',
+    'metadata_date_digitized': 'Data di digitalizzazione',
     'metadata_section_description': 'Descrizione e autore',
     'metadata_section_camera': 'Fotocamera e obiettivo',
     'metadata_section_capture': 'Impostazioni di scatto',

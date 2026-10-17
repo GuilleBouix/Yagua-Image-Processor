@@ -15,6 +15,10 @@ from app.modules.metadata import (
     MetadataEditRequest,
     CAMPOS_EDITABLES,
     GRUPOS_CAMPOS_EDITABLES,
+    CAMPOS_VISIBLES,
+    GRUPOS_CAMPOS_VISIBLES,
+    OPCIONES_ENUM_EXIF,
+    ORIENTACIONES_EXIF,
     leer_campos_edicion_safe,
     batch_limpiar_exif,
 )
@@ -27,6 +31,10 @@ __all__ = [
     'MetadataEditRequest',
     'CAMPOS_EDITABLES',
     'GRUPOS_CAMPOS_EDITABLES',
+    'CAMPOS_VISIBLES',
+    'GRUPOS_CAMPOS_VISIBLES',
+    'OPCIONES_ENUM_EXIF',
+    'ORIENTACIONES_EXIF',
     'leer_campos_edicion_safe',
     'batch_limpiar_exif',
 ]

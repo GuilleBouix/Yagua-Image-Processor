@@ -172,6 +172,7 @@ TRANSLATIONS = {
     'copyright': 'Copyright',
     'software': 'Logiciel',
     'datetime': 'Date et heure',
+    'metadata_date_digitized': 'Date de numérisation',
     'metadata_section_description': 'Description et auteur',
     'metadata_section_camera': 'Appareil photo et objectif',
     'metadata_section_capture': 'Réglages de prise de vue',
