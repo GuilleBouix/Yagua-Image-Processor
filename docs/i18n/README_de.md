@@ -55,31 +55,30 @@ Die Unterstützung hängt vom Modul, den installierten Codecs und der Plattform 
 
 ## Screenshots
 
-<p align="center">
-  <a href="https://github.com/user-attachments/assets/903c897e-eb48-4b6b-b941-2fbfffb234ce"><img src="https://github.com/user-attachments/assets/903c897e-eb48-4b6b-b941-2fbfffb234ce" width="420" alt="Konvertierungsmodul mit ausgewählten Bildern und Einstellungen für das Ausgabeformat" /></a>
-  <a href="https://github.com/user-attachments/assets/ed7081e4-d106-47db-9744-927be0db9d5d"><img src="https://github.com/user-attachments/assets/ed7081e4-d106-47db-9744-927be0db9d5d" width="420" alt="Modul zur Hintergrundentfernung mit ausgewählten Bildern und Ausgabeeinstellungen" /></a>
-</p>
+Yagua-Screenshots mit englischer Oberfläche. Klicke auf ein Vorschaubild, um es in voller Größe zu öffnen. Anordnung und Bedienelemente können je nach Version abweichen.
 
-<details>
-<summary>Weitere Screenshots: Komprimierung, Größe, Palette, Umbenennung, EXIF, LQIP und Einstellungen</summary>
-
-<p align="center">
-  <a href="https://github.com/user-attachments/assets/f8f57bbb-4cdf-4c5f-8d06-a04b2c3dc1b1"><img src="https://github.com/user-attachments/assets/f8f57bbb-4cdf-4c5f-8d06-a04b2c3dc1b1" width="280" alt="Komprimierungsmodul mit Qualitätsregler und Option zum Entfernen von EXIF" /></a>
-  <a href="https://github.com/user-attachments/assets/381c1f71-debd-47a0-837b-fb8f84e41790"><img src="https://github.com/user-attachments/assets/381c1f71-debd-47a0-837b-fb8f84e41790" width="280" alt="Größenmodul mit Registerkarten für Skalierung, Zuschnitt und Leinwand" /></a>
-  <a href="https://github.com/user-attachments/assets/dfe2dd77-f792-4092-a6d7-82b5e96aa104"><img src="https://github.com/user-attachments/assets/dfe2dd77-f792-4092-a6d7-82b5e96aa104" width="280" alt="Extrahierte Farbpalette mit Farbfeldern und Farbwerten" /></a>
-</p>
-<p align="center">
-  <a href="https://github.com/user-attachments/assets/e3a8f766-84e5-412d-bbaf-acb5936c0380"><img src="https://github.com/user-attachments/assets/e3a8f766-84e5-412d-bbaf-acb5936c0380" width="280" alt="Stapelumbenennung mit ursprünglichen und vorgeschlagenen Dateinamen" /></a>
-  <a href="https://github.com/user-attachments/assets/235fce12-9796-4304-9252-f9e016edf483"><img src="https://github.com/user-attachments/assets/235fce12-9796-4304-9252-f9e016edf483" width="280" alt="EXIF-Editor mit Feldern für Autor, Copyright, Software und Datum" /></a>
-  <a href="https://github.com/user-attachments/assets/8e8824a4-0bdf-44d8-b82f-7e0c2e1fcfe5"><img src="https://github.com/user-attachments/assets/8e8824a4-0bdf-44d8-b82f-7e0c2e1fcfe5" width="280" alt="LQIP- und Base64-Modul mit Größen- und Qualitätseinstellungen für Platzhalter" /></a>
-</p>
-<p align="center">
-  <a href="https://github.com/user-attachments/assets/29131d50-2ea2-40c5-9549-d5878d89119a"><img src="https://github.com/user-attachments/assets/29131d50-2ea2-40c5-9549-d5878d89119a" width="280" alt="Yagua-Einstellungen mit Sprach- und Themenauswahl" /></a>
-</p>
-
-</details>
-
-Dies sind vorhandene Projekt-Screenshots; Layout und Bedienelemente können je nach Version abweichen. Klicke auf ein Bild, um es in voller Größe anzuzeigen.
+<table>
+  <tr>
+    <td align="center" width="33%"><a href="../../assets/screenshots/home.png"><img src="../../assets/screenshots/home.png" width="300" alt="Startseite mit allen Modulen" /><br /><strong>Startseite</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/convert.png"><img src="../../assets/screenshots/convert.png" width="300" alt="Konvertierung mit ausgewählten Bildern und Ausgabeformat" /><br /><strong>Konvertieren</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/compress.png"><img src="../../assets/screenshots/compress.png" width="300" alt="Komprimierung mit Qualitäts- und EXIF-Einstellungen" /><br /><strong>Komprimieren</strong></a></td>
+  </tr>
+  <tr>
+    <td align="center" width="33%"><a href="../../assets/screenshots/resize.png"><img src="../../assets/screenshots/resize.png" width="300" alt="Größenänderung mit Größenvorlage und geladenen Bildern" /><br /><strong>Größe ändern</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/remove-background.png"><img src="../../assets/screenshots/remove-background.png" width="300" alt="Hintergrundentfernung mit ausgewähltem Bild" /><br /><strong>Hintergrund entfernen</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/palette.png"><img src="../../assets/screenshots/palette.png" width="300" alt="Extrahierte Palette mit acht Farben und Farbwerten" /><br /><strong>Farbpalette</strong></a></td>
+  </tr>
+  <tr>
+    <td align="center" width="33%"><a href="../../assets/screenshots/watermark.png"><img src="../../assets/screenshots/watermark.png" width="300" alt="Wasserzeicheneinstellungen und Ergebnisvorschau" /><br /><strong>Wasserzeichen</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/rename.png"><img src="../../assets/screenshots/rename.png" width="300" alt="Stapelumbenennung mit ursprünglichen und vorgeschlagenen Dateinamen" /><br /><strong>Stapelumbenennung</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/ocr.png"><img src="../../assets/screenshots/ocr.png" width="300" alt="Englische OCR mit erkanntem Text" /><br /><strong>OCR</strong></a></td>
+  </tr>
+  <tr>
+    <td align="center" width="33%"><a href="../../assets/screenshots/metadata.png"><img src="../../assets/screenshots/metadata.png" width="300" alt="EXIF-Editor mit Metadatenfeldern und Bildvorschau" /><br /><strong>EXIF-Metadaten</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/lqip-base64.png"><img src="../../assets/screenshots/lqip-base64.png" width="300" alt="LQIP-Platzhalter im Vergleich zum Original und erzeugte Data-URI" /><br /><strong>LQIP / Base64</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/settings.png"><img src="../../assets/screenshots/settings.png" width="300" alt="Allgemeine Einstellungen für Sprache, Thema, Skalierung und sichtbare Module" /><br /><strong>Einstellungen</strong></a></td>
+  </tr>
+</table>
 
 ## Installation
 

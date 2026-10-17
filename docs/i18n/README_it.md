@@ -57,31 +57,30 @@ Il supporto dei formati varia in base al modulo, ai codec installati e alla piat
 
 ## Schermate
 
-<p align="center">
-  <a href="https://github.com/user-attachments/assets/903c897e-eb48-4b6b-b941-2fbfffb234ce"><img src="https://github.com/user-attachments/assets/903c897e-eb48-4b6b-b941-2fbfffb234ce" width="420" alt="Modulo di conversione con immagini selezionate e controlli del formato di output" /></a>
-  <a href="https://github.com/user-attachments/assets/ed7081e4-d106-47db-9744-927be0db9d5d"><img src="https://github.com/user-attachments/assets/ed7081e4-d106-47db-9744-927be0db9d5d" width="420" alt="Modulo di rimozione dello sfondo con immagini selezionate e controlli del formato di output" /></a>
-</p>
+Schermate di Yagua con l’interfaccia in inglese. Fai clic su una miniatura per aprire l’immagine a dimensione intera. Disposizione e controlli possono variare tra le versioni.
 
-<details>
-<summary>Altre schermate: compressione, ridimensionamento, tavolozza, rinomina, EXIF, LQIP e impostazioni</summary>
-
-<p align="center">
-  <a href="https://github.com/user-attachments/assets/f8f57bbb-4cdf-4c5f-8d06-a04b2c3dc1b1"><img src="https://github.com/user-attachments/assets/f8f57bbb-4cdf-4c5f-8d06-a04b2c3dc1b1" width="280" alt="Modulo di compressione con cursore della qualità e opzione di rimozione EXIF" /></a>
-  <a href="https://github.com/user-attachments/assets/381c1f71-debd-47a0-837b-fb8f84e41790"><img src="https://github.com/user-attachments/assets/381c1f71-debd-47a0-837b-fb8f84e41790" width="280" alt="Modulo di ridimensionamento con schede per ridimensionare, ritagliare e modificare la tela" /></a>
-  <a href="https://github.com/user-attachments/assets/dfe2dd77-f792-4092-a6d7-82b5e96aa104"><img src="https://github.com/user-attachments/assets/dfe2dd77-f792-4092-a6d7-82b5e96aa104" width="280" alt="Tavolozza estratta con campioni e valori dei colori" /></a>
-</p>
-<p align="center">
-  <a href="https://github.com/user-attachments/assets/e3a8f766-84e5-412d-bbaf-acb5936c0380"><img src="https://github.com/user-attachments/assets/e3a8f766-84e5-412d-bbaf-acb5936c0380" width="280" alt="Modulo di rinomina in batch con nomi originali e proposti" /></a>
-  <a href="https://github.com/user-attachments/assets/235fce12-9796-4304-9252-f9e016edf483"><img src="https://github.com/user-attachments/assets/235fce12-9796-4304-9252-f9e016edf483" width="280" alt="Editor EXIF con campi per autore, copyright, software e data" /></a>
-  <a href="https://github.com/user-attachments/assets/8e8824a4-0bdf-44d8-b82f-7e0c2e1fcfe5"><img src="https://github.com/user-attachments/assets/8e8824a4-0bdf-44d8-b82f-7e0c2e1fcfe5" width="280" alt="Modulo LQIP e Base64 con controlli per dimensioni e qualità del segnaposto" /></a>
-</p>
-<p align="center">
-  <a href="https://github.com/user-attachments/assets/29131d50-2ea2-40c5-9549-d5878d89119a"><img src="https://github.com/user-attachments/assets/29131d50-2ea2-40c5-9549-d5878d89119a" width="280" alt="Impostazioni di Yagua con selezione della lingua e del tema dell’interfaccia" /></a>
-</p>
-
-</details>
-
-Queste sono le schermate esistenti del progetto; disposizione e controlli possono cambiare tra le versioni. Fai clic su un’immagine per visualizzarla a dimensione intera.
+<table>
+  <tr>
+    <td align="center" width="33%"><a href="../../assets/screenshots/home.png"><img src="../../assets/screenshots/home.png" width="300" alt="Schermata iniziale con tutti i moduli" /><br /><strong>Home</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/convert.png"><img src="../../assets/screenshots/convert.png" width="300" alt="Conversione con immagini selezionate e controlli del formato di output" /><br /><strong>Conversione</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/compress.png"><img src="../../assets/screenshots/compress.png" width="300" alt="Compressione con controlli di qualità ed EXIF" /><br /><strong>Compressione</strong></a></td>
+  </tr>
+  <tr>
+    <td align="center" width="33%"><a href="../../assets/screenshots/resize.png"><img src="../../assets/screenshots/resize.png" width="300" alt="Ridimensionamento con dimensione predefinita e immagini caricate" /><br /><strong>Ridimensionamento</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/remove-background.png"><img src="../../assets/screenshots/remove-background.png" width="300" alt="Rimozione dello sfondo con un’immagine selezionata" /><br /><strong>Rimozione dello sfondo</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/palette.png"><img src="../../assets/screenshots/palette.png" width="300" alt="Tavolozza estratta con otto colori e relativi valori" /><br /><strong>Tavolozza colori</strong></a></td>
+  </tr>
+  <tr>
+    <td align="center" width="33%"><a href="../../assets/screenshots/watermark.png"><img src="../../assets/screenshots/watermark.png" width="300" alt="Controlli della filigrana e anteprima del risultato" /><br /><strong>Filigrana</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/rename.png"><img src="../../assets/screenshots/rename.png" width="300" alt="Rinomina in batch con nomi originali e proposti" /><br /><strong>Rinomina in batch</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/ocr.png"><img src="../../assets/screenshots/ocr.png" width="300" alt="OCR in inglese con il testo riconosciuto" /><br /><strong>OCR</strong></a></td>
+  </tr>
+  <tr>
+    <td align="center" width="33%"><a href="../../assets/screenshots/metadata.png"><img src="../../assets/screenshots/metadata.png" width="300" alt="Editor EXIF con campi dei metadati e anteprima dell’immagine" /><br /><strong>Metadati EXIF</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/lqip-base64.png"><img src="../../assets/screenshots/lqip-base64.png" width="300" alt="Segnaposto LQIP confrontato con l’originale e URI data generato" /><br /><strong>LQIP / Base64</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/settings.png"><img src="../../assets/screenshots/settings.png" width="300" alt="Impostazioni generali di lingua, tema, scala e moduli visibili" /><br /><strong>Impostazioni</strong></a></td>
+  </tr>
+</table>
 
 <a id="installation"></a>
 

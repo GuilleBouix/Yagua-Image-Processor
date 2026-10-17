@@ -57,31 +57,30 @@ La compatibilidad depende del módulo, los códecs instalados y la plataforma. Q
 
 ## Capturas
 
-<p align="center">
-  <a href="https://github.com/user-attachments/assets/903c897e-eb48-4b6b-b941-2fbfffb234ce"><img src="https://github.com/user-attachments/assets/903c897e-eb48-4b6b-b941-2fbfffb234ce" width="420" alt="Módulo de conversión con imágenes seleccionadas y controles de formato de salida" /></a>
-  <a href="https://github.com/user-attachments/assets/ed7081e4-d106-47db-9744-927be0db9d5d"><img src="https://github.com/user-attachments/assets/ed7081e4-d106-47db-9744-927be0db9d5d" width="420" alt="Módulo para quitar fondos con imágenes seleccionadas y controles de formato de salida" /></a>
-</p>
+Capturas de Yagua con la interfaz en inglés. Hacé clic en cualquier miniatura para verla en tamaño completo. La distribución y los controles pueden variar entre versiones.
 
-<details>
-<summary>Más capturas: compresión, tamaño, paleta, renombrado, EXIF, LQIP y ajustes</summary>
-
-<p align="center">
-  <a href="https://github.com/user-attachments/assets/f8f57bbb-4cdf-4c5f-8d06-a04b2c3dc1b1"><img src="https://github.com/user-attachments/assets/f8f57bbb-4cdf-4c5f-8d06-a04b2c3dc1b1" width="280" alt="Módulo de compresión con control de calidad y opción para quitar EXIF" /></a>
-  <a href="https://github.com/user-attachments/assets/381c1f71-debd-47a0-837b-fb8f84e41790"><img src="https://github.com/user-attachments/assets/381c1f71-debd-47a0-837b-fb8f84e41790" width="280" alt="Módulo de tamaño con pestañas para redimensionar, recortar y editar el lienzo" /></a>
-  <a href="https://github.com/user-attachments/assets/dfe2dd77-f792-4092-a6d7-82b5e96aa104"><img src="https://github.com/user-attachments/assets/dfe2dd77-f792-4092-a6d7-82b5e96aa104" width="280" alt="Paleta extraída con muestras de colores y sus valores" /></a>
-</p>
-<p align="center">
-  <a href="https://github.com/user-attachments/assets/e3a8f766-84e5-412d-bbaf-acb5936c0380"><img src="https://github.com/user-attachments/assets/e3a8f766-84e5-412d-bbaf-acb5936c0380" width="280" alt="Renombrado en lote con nombres originales y propuestos" /></a>
-  <a href="https://github.com/user-attachments/assets/235fce12-9796-4304-9252-f9e016edf483"><img src="https://github.com/user-attachments/assets/235fce12-9796-4304-9252-f9e016edf483" width="280" alt="Editor EXIF con campos de autor, copyright, software y fecha" /></a>
-  <a href="https://github.com/user-attachments/assets/8e8824a4-0bdf-44d8-b82f-7e0c2e1fcfe5"><img src="https://github.com/user-attachments/assets/8e8824a4-0bdf-44d8-b82f-7e0c2e1fcfe5" width="280" alt="Módulo LQIP y Base64 con controles de tamaño y calidad del placeholder" /></a>
-</p>
-<p align="center">
-  <a href="https://github.com/user-attachments/assets/29131d50-2ea2-40c5-9549-d5878d89119a"><img src="https://github.com/user-attachments/assets/29131d50-2ea2-40c5-9549-d5878d89119a" width="280" alt="Ajustes de Yagua con selección de idioma y tema" /></a>
-</p>
-
-</details>
-
-Estas son capturas existentes del proyecto; la distribución y los controles pueden variar entre versiones. Hacé clic en una imagen para verla en tamaño completo.
+<table>
+  <tr>
+    <td align="center" width="33%"><a href="../../assets/screenshots/home.png"><img src="../../assets/screenshots/home.png" width="300" alt="Pantalla inicial con todos los módulos" /><br /><strong>Inicio</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/convert.png"><img src="../../assets/screenshots/convert.png" width="300" alt="Conversión con imágenes seleccionadas y controles de formato de salida" /><br /><strong>Convertir</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/compress.png"><img src="../../assets/screenshots/compress.png" width="300" alt="Compresión con controles de calidad y EXIF" /><br /><strong>Comprimir</strong></a></td>
+  </tr>
+  <tr>
+    <td align="center" width="33%"><a href="../../assets/screenshots/resize.png"><img src="../../assets/screenshots/resize.png" width="300" alt="Redimensionado con un tamaño predefinido e imágenes cargadas" /><br /><strong>Redimensionar</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/remove-background.png"><img src="../../assets/screenshots/remove-background.png" width="300" alt="Quitar fondo con una imagen seleccionada" /><br /><strong>Quitar fondo</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/palette.png"><img src="../../assets/screenshots/palette.png" width="300" alt="Paleta extraída con ocho colores y sus valores" /><br /><strong>Paleta de colores</strong></a></td>
+  </tr>
+  <tr>
+    <td align="center" width="33%"><a href="../../assets/screenshots/watermark.png"><img src="../../assets/screenshots/watermark.png" width="300" alt="Controles de marca de agua y vista previa del resultado" /><br /><strong>Marca de agua</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/rename.png"><img src="../../assets/screenshots/rename.png" width="300" alt="Renombrado en lote con nombres originales y propuestos" /><br /><strong>Renombrar en lote</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/ocr.png"><img src="../../assets/screenshots/ocr.png" width="300" alt="OCR en inglés con el texto reconocido" /><br /><strong>OCR</strong></a></td>
+  </tr>
+  <tr>
+    <td align="center" width="33%"><a href="../../assets/screenshots/metadata.png"><img src="../../assets/screenshots/metadata.png" width="300" alt="Editor EXIF con campos de metadatos y vista previa de la imagen" /><br /><strong>Metadatos EXIF</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/lqip-base64.png"><img src="../../assets/screenshots/lqip-base64.png" width="300" alt="Placeholder LQIP comparado con el original y data URI generado" /><br /><strong>LQIP / Base64</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/settings.png"><img src="../../assets/screenshots/settings.png" width="300" alt="Ajustes generales con idioma, tema, escala y módulos visibles" /><br /><strong>Ajustes</strong></a></td>
+  </tr>
+</table>
 
 <a id="installation"></a>
 

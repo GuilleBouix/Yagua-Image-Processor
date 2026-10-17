@@ -57,31 +57,30 @@ Yagua 将日常图像处理任务整合到一个桌面应用中，适合网页�
 
 ## 截图
 
-<p align="center">
-  <a href="https://github.com/user-attachments/assets/903c897e-eb48-4b6b-b941-2fbfffb234ce"><img src="https://github.com/user-attachments/assets/903c897e-eb48-4b6b-b941-2fbfffb234ce" width="420" alt="格式转换模块，显示已选择的图像和输出格式控件" /></a>
-  <a href="https://github.com/user-attachments/assets/ed7081e4-d106-47db-9744-927be0db9d5d"><img src="https://github.com/user-attachments/assets/ed7081e4-d106-47db-9744-927be0db9d5d" width="420" alt="背景移除模块，显示已选择的图像和输出格式控件" /></a>
-</p>
+以上为英文界面的 Yagua 截图。点击任意缩略图可查看原图。布局和控件可能因版本而异。
 
-<details>
-<summary>更多截图：压缩、调整大小、调色板、重命名、EXIF、LQIP 和设置</summary>
-
-<p align="center">
-  <a href="https://github.com/user-attachments/assets/f8f57bbb-4cdf-4c5f-8d06-a04b2c3dc1b1"><img src="https://github.com/user-attachments/assets/f8f57bbb-4cdf-4c5f-8d06-a04b2c3dc1b1" width="280" alt="压缩模块，包含质量滑块和 EXIF 移除选项" /></a>
-  <a href="https://github.com/user-attachments/assets/381c1f71-debd-47a0-837b-fb8f84e41790"><img src="https://github.com/user-attachments/assets/381c1f71-debd-47a0-837b-fb8f84e41790" width="280" alt="调整大小模块，包含缩放、裁剪和画布选项卡" /></a>
-  <a href="https://github.com/user-attachments/assets/dfe2dd77-f792-4092-a6d7-82b5e96aa104"><img src="https://github.com/user-attachments/assets/dfe2dd77-f792-4092-a6d7-82b5e96aa104" width="280" alt="提取出的调色板，显示色块和颜色值" /></a>
-</p>
-<p align="center">
-  <a href="https://github.com/user-attachments/assets/e3a8f766-84e5-412d-bbaf-acb5936c0380"><img src="https://github.com/user-attachments/assets/e3a8f766-84e5-412d-bbaf-acb5936c0380" width="280" alt="批量重命名模块，显示原始文件名和拟定的新名称" /></a>
-  <a href="https://github.com/user-attachments/assets/235fce12-9796-4304-9252-f9e016edf483"><img src="https://github.com/user-attachments/assets/235fce12-9796-4304-9252-f9e016edf483" width="280" alt="EXIF 编辑器，包含作者、版权、软件和日期字段" /></a>
-  <a href="https://github.com/user-attachments/assets/8e8824a4-0bdf-44d8-b82f-7e0c2e1fcfe5"><img src="https://github.com/user-attachments/assets/8e8824a4-0bdf-44d8-b82f-7e0c2e1fcfe5" width="280" alt="LQIP 和 Base64 模块，包含占位图尺寸和质量控件" /></a>
-</p>
-<p align="center">
-  <a href="https://github.com/user-attachments/assets/29131d50-2ea2-40c5-9549-d5878d89119a"><img src="https://github.com/user-attachments/assets/29131d50-2ea2-40c5-9549-d5878d89119a" width="280" alt="Yagua 设置，显示界面语言和主题选择" /></a>
-</p>
-
-</details>
-
-以上为项目现有截图，不同版本的布局和控件可能有所不同。点击图像可查看原图。
+<table>
+  <tr>
+    <td align="center" width="33%"><a href="../../assets/screenshots/home.png"><img src="../../assets/screenshots/home.png" width="300" alt="显示所有模块的首页" /><br /><strong>首页</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/convert.png"><img src="../../assets/screenshots/convert.png" width="300" alt="显示所选图像和输出格式控件的转换页面" /><br /><strong>格式转换</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/compress.png"><img src="../../assets/screenshots/compress.png" width="300" alt="带有质量和 EXIF 设置的压缩页面" /><br /><strong>压缩</strong></a></td>
+  </tr>
+  <tr>
+    <td align="center" width="33%"><a href="../../assets/screenshots/resize.png"><img src="../../assets/screenshots/resize.png" width="300" alt="显示预设尺寸和已加载图像的调整大小页面" /><br /><strong>调整大小</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/remove-background.png"><img src="../../assets/screenshots/remove-background.png" width="300" alt="已选中图像的背景移除页面" /><br /><strong>背景移除</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/palette.png"><img src="../../assets/screenshots/palette.png" width="300" alt="显示提取的八种颜色及其数值的调色板" /><br /><strong>调色板</strong></a></td>
+  </tr>
+  <tr>
+    <td align="center" width="33%"><a href="../../assets/screenshots/watermark.png"><img src="../../assets/screenshots/watermark.png" width="300" alt="水印设置和结果预览" /><br /><strong>水印</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/rename.png"><img src="../../assets/screenshots/rename.png" width="300" alt="显示原始文件名和拟定名称的批量重命名页面" /><br /><strong>批量重命名</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/ocr.png"><img src="../../assets/screenshots/ocr.png" width="300" alt="英语 OCR 的识别结果" /><br /><strong>OCR</strong></a></td>
+  </tr>
+  <tr>
+    <td align="center" width="33%"><a href="../../assets/screenshots/metadata.png"><img src="../../assets/screenshots/metadata.png" width="300" alt="带有元数据字段和图像预览的 EXIF 编辑器" /><br /><strong>EXIF 元数据</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/lqip-base64.png"><img src="../../assets/screenshots/lqip-base64.png" width="300" alt="LQIP 占位图与原图的对比及生成的 data URI" /><br /><strong>LQIP / Base64</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/settings.png"><img src="../../assets/screenshots/settings.png" width="300" alt="包含语言、主题、缩放和可见模块的一般设置" /><br /><strong>设置</strong></a></td>
+  </tr>
+</table>
 
 <a id="installation"></a>
 

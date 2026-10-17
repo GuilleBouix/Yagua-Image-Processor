@@ -57,31 +57,30 @@ Yagua は、Web 開発者、デザイナー、写真家など、画像を扱う�
 
 ## スクリーンショット
 
-<p align="center">
-  <a href="https://github.com/user-attachments/assets/903c897e-eb48-4b6b-b941-2fbfffb234ce"><img src="https://github.com/user-attachments/assets/903c897e-eb48-4b6b-b941-2fbfffb234ce" width="420" alt="選択した画像と出力形式の設定が表示された形式変換モジュール" /></a>
-  <a href="https://github.com/user-attachments/assets/ed7081e4-d106-47db-9744-927be0db9d5d"><img src="https://github.com/user-attachments/assets/ed7081e4-d106-47db-9744-927be0db9d5d" width="420" alt="選択した画像と出力形式の設定が表示された背景除去モジュール" /></a>
-</p>
+英語インターフェースの Yagua のスクリーンショットです。サムネイルをクリックすると原寸の画像を開けます。レイアウトや操作項目はバージョンによって異なる場合があります。
 
-<details>
-<summary>その他の画面：圧縮、サイズ変更、パレット、ファイル名変更、EXIF、LQIP、設定</summary>
-
-<p align="center">
-  <a href="https://github.com/user-attachments/assets/f8f57bbb-4cdf-4c5f-8d06-a04b2c3dc1b1"><img src="https://github.com/user-attachments/assets/f8f57bbb-4cdf-4c5f-8d06-a04b2c3dc1b1" width="280" alt="品質スライダーと EXIF 削除オプションがある圧縮モジュール" /></a>
-  <a href="https://github.com/user-attachments/assets/381c1f71-debd-47a0-837b-fb8f84e41790"><img src="https://github.com/user-attachments/assets/381c1f71-debd-47a0-837b-fb8f84e41790" width="280" alt="サイズ変更、切り抜き、キャンバスのタブがあるサイズ変更モジュール" /></a>
-  <a href="https://github.com/user-attachments/assets/dfe2dd77-f792-4092-a6d7-82b5e96aa104"><img src="https://github.com/user-attachments/assets/dfe2dd77-f792-4092-a6d7-82b5e96aa104" width="280" alt="抽出した色のサンプルと値が表示されたカラーパレット" /></a>
-</p>
-<p align="center">
-  <a href="https://github.com/user-attachments/assets/e3a8f766-84e5-412d-bbaf-acb5936c0380"><img src="https://github.com/user-attachments/assets/e3a8f766-84e5-412d-bbaf-acb5936c0380" width="280" alt="元のファイル名と変更後の候補を表示する一括ファイル名変更モジュール" /></a>
-  <a href="https://github.com/user-attachments/assets/235fce12-9796-4304-9252-f9e016edf483"><img src="https://github.com/user-attachments/assets/235fce12-9796-4304-9252-f9e016edf483" width="280" alt="作成者、著作権、ソフトウェア、日時の項目がある EXIF エディター" /></a>
-  <a href="https://github.com/user-attachments/assets/8e8824a4-0bdf-44d8-b82f-7e0c2e1fcfe5"><img src="https://github.com/user-attachments/assets/8e8824a4-0bdf-44d8-b82f-7e0c2e1fcfe5" width="280" alt="プレースホルダーのサイズと品質を設定できる LQIP / Base64 モジュール" /></a>
-</p>
-<p align="center">
-  <a href="https://github.com/user-attachments/assets/29131d50-2ea2-40c5-9549-d5878d89119a"><img src="https://github.com/user-attachments/assets/29131d50-2ea2-40c5-9549-d5878d89119a" width="280" alt="表示言語とテーマを選択できる Yagua の設定画面" /></a>
-</p>
-
-</details>
-
-これらはプロジェクトの既存のスクリーンショットです。レイアウトや操作項目はバージョンによって異なる場合があります。画像をクリックすると原寸で表示できます。
+<table>
+  <tr>
+    <td align="center" width="33%"><a href="../../assets/screenshots/home.png"><img src="../../assets/screenshots/home.png" width="300" alt="すべてのモジュールを表示したホーム画面" /><br /><strong>ホーム</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/convert.png"><img src="../../assets/screenshots/convert.png" width="300" alt="選択した画像と出力形式の設定がある形式変換画面" /><br /><strong>形式変換</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/compress.png"><img src="../../assets/screenshots/compress.png" width="300" alt="品質と EXIF の設定がある圧縮画面" /><br /><strong>圧縮</strong></a></td>
+  </tr>
+  <tr>
+    <td align="center" width="33%"><a href="../../assets/screenshots/resize.png"><img src="../../assets/screenshots/resize.png" width="300" alt="サイズプリセットと読み込んだ画像を表示したサイズ変更画面" /><br /><strong>サイズ変更</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/remove-background.png"><img src="../../assets/screenshots/remove-background.png" width="300" alt="画像を選択した背景除去画面" /><br /><strong>背景除去</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/palette.png"><img src="../../assets/screenshots/palette.png" width="300" alt="抽出した 8 色と値を表示したパレット" /><br /><strong>カラーパレット</strong></a></td>
+  </tr>
+  <tr>
+    <td align="center" width="33%"><a href="../../assets/screenshots/watermark.png"><img src="../../assets/screenshots/watermark.png" width="300" alt="透かしの設定と結果プレビュー" /><br /><strong>透かし</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/rename.png"><img src="../../assets/screenshots/rename.png" width="300" alt="元のファイル名と変更候補を表示する一括ファイル名変更" /><br /><strong>一括ファイル名変更</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/ocr.png"><img src="../../assets/screenshots/ocr.png" width="300" alt="英語 OCR の認識結果" /><br /><strong>OCR</strong></a></td>
+  </tr>
+  <tr>
+    <td align="center" width="33%"><a href="../../assets/screenshots/metadata.png"><img src="../../assets/screenshots/metadata.png" width="300" alt="メタデータ項目と画像プレビューがある EXIF エディター" /><br /><strong>EXIF メタデータ</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/lqip-base64.png"><img src="../../assets/screenshots/lqip-base64.png" width="300" alt="LQIP と元画像の比較および生成された data URI" /><br /><strong>LQIP / Base64</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/settings.png"><img src="../../assets/screenshots/settings.png" width="300" alt="言語、テーマ、表示倍率、表示モジュールの一般設定" /><br /><strong>設定</strong></a></td>
+  </tr>
+</table>
 
 <a id="installation"></a>
 

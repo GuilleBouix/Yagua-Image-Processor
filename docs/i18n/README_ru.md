@@ -57,31 +57,30 @@ Yagua объединяет повседневные операции с изоб
 
 ## Скриншоты
 
-<p align="center">
-  <a href="https://github.com/user-attachments/assets/903c897e-eb48-4b6b-b941-2fbfffb234ce"><img src="https://github.com/user-attachments/assets/903c897e-eb48-4b6b-b941-2fbfffb234ce" width="420" alt="Модуль преобразования с выбранными изображениями и настройками выходного формата" /></a>
-  <a href="https://github.com/user-attachments/assets/ed7081e4-d106-47db-9744-927be0db9d5d"><img src="https://github.com/user-attachments/assets/ed7081e4-d106-47db-9744-927be0db9d5d" width="420" alt="Модуль удаления фона с выбранными изображениями и настройками выходного формата" /></a>
-</p>
+Скриншоты Yagua с английским интерфейсом. Нажмите на миниатюру, чтобы открыть изображение в полном размере. Расположение и элементы управления могут различаться между версиями.
 
-<details>
-<summary>Другие скриншоты: сжатие, изменение размера, палитра, переименование, EXIF, LQIP и настройки</summary>
-
-<p align="center">
-  <a href="https://github.com/user-attachments/assets/f8f57bbb-4cdf-4c5f-8d06-a04b2c3dc1b1"><img src="https://github.com/user-attachments/assets/f8f57bbb-4cdf-4c5f-8d06-a04b2c3dc1b1" width="280" alt="Модуль сжатия с ползунком качества и опцией удаления EXIF" /></a>
-  <a href="https://github.com/user-attachments/assets/381c1f71-debd-47a0-837b-fb8f84e41790"><img src="https://github.com/user-attachments/assets/381c1f71-debd-47a0-837b-fb8f84e41790" width="280" alt="Модуль изменения размера с вкладками размера, обрезки и холста" /></a>
-  <a href="https://github.com/user-attachments/assets/dfe2dd77-f792-4092-a6d7-82b5e96aa104"><img src="https://github.com/user-attachments/assets/dfe2dd77-f792-4092-a6d7-82b5e96aa104" width="280" alt="Извлечённая палитра с образцами и значениями цветов" /></a>
-</p>
-<p align="center">
-  <a href="https://github.com/user-attachments/assets/e3a8f766-84e5-412d-bbaf-acb5936c0380"><img src="https://github.com/user-attachments/assets/e3a8f766-84e5-412d-bbaf-acb5936c0380" width="280" alt="Модуль пакетного переименования с исходными и предлагаемыми именами файлов" /></a>
-  <a href="https://github.com/user-attachments/assets/235fce12-9796-4304-9252-f9e016edf483"><img src="https://github.com/user-attachments/assets/235fce12-9796-4304-9252-f9e016edf483" width="280" alt="Редактор EXIF с полями автора, авторских прав, программы и даты" /></a>
-  <a href="https://github.com/user-attachments/assets/8e8824a4-0bdf-44d8-b82f-7e0c2e1fcfe5"><img src="https://github.com/user-attachments/assets/8e8824a4-0bdf-44d8-b82f-7e0c2e1fcfe5" width="280" alt="Модуль LQIP и Base64 с настройками размера и качества миниатюры" /></a>
-</p>
-<p align="center">
-  <a href="https://github.com/user-attachments/assets/29131d50-2ea2-40c5-9549-d5878d89119a"><img src="https://github.com/user-attachments/assets/29131d50-2ea2-40c5-9549-d5878d89119a" width="280" alt="Настройки Yagua с выбором языка интерфейса и темы" /></a>
-</p>
-
-</details>
-
-Это существующие скриншоты проекта; расположение и элементы управления могут отличаться между версиями. Нажмите на изображение, чтобы открыть его в полном размере.
+<table>
+  <tr>
+    <td align="center" width="33%"><a href="../../assets/screenshots/home.png"><img src="../../assets/screenshots/home.png" width="300" alt="Главная страница со всеми модулями" /><br /><strong>Главная</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/convert.png"><img src="../../assets/screenshots/convert.png" width="300" alt="Преобразование с выбранными изображениями и настройками формата" /><br /><strong>Преобразование</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/compress.png"><img src="../../assets/screenshots/compress.png" width="300" alt="Сжатие с настройками качества и EXIF" /><br /><strong>Сжатие</strong></a></td>
+  </tr>
+  <tr>
+    <td align="center" width="33%"><a href="../../assets/screenshots/resize.png"><img src="../../assets/screenshots/resize.png" width="300" alt="Изменение размера с готовым размером и загруженными изображениями" /><br /><strong>Изменение размера</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/remove-background.png"><img src="../../assets/screenshots/remove-background.png" width="300" alt="Удаление фона с выбранным изображением" /><br /><strong>Удаление фона</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/palette.png"><img src="../../assets/screenshots/palette.png" width="300" alt="Извлечённая палитра из восьми цветов с их значениями" /><br /><strong>Палитра цветов</strong></a></td>
+  </tr>
+  <tr>
+    <td align="center" width="33%"><a href="../../assets/screenshots/watermark.png"><img src="../../assets/screenshots/watermark.png" width="300" alt="Настройки водяного знака и предпросмотр результата" /><br /><strong>Водяной знак</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/rename.png"><img src="../../assets/screenshots/rename.png" width="300" alt="Пакетное переименование с исходными и предлагаемыми именами" /><br /><strong>Пакетное переименование</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/ocr.png"><img src="../../assets/screenshots/ocr.png" width="300" alt="Английский OCR с распознанным текстом" /><br /><strong>OCR</strong></a></td>
+  </tr>
+  <tr>
+    <td align="center" width="33%"><a href="../../assets/screenshots/metadata.png"><img src="../../assets/screenshots/metadata.png" width="300" alt="Редактор EXIF с полями метаданных и предпросмотром изображения" /><br /><strong>Метаданные EXIF</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/lqip-base64.png"><img src="../../assets/screenshots/lqip-base64.png" width="300" alt="Сравнение LQIP с оригиналом и созданный data URI" /><br /><strong>LQIP / Base64</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/settings.png"><img src="../../assets/screenshots/settings.png" width="300" alt="Общие настройки языка, темы, масштаба и видимых модулей" /><br /><strong>Настройки</strong></a></td>
+  </tr>
+</table>
 
 <a id="installation"></a>
 

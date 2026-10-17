@@ -53,31 +53,30 @@ Format support varies by module, installed codecs and platform. A listed format 
 
 ## Screenshots
 
-<p align="center">
-  <a href="https://github.com/user-attachments/assets/903c897e-eb48-4b6b-b941-2fbfffb234ce"><img src="https://github.com/user-attachments/assets/903c897e-eb48-4b6b-b941-2fbfffb234ce" width="420" alt="Conversion module with selected images and output format controls" /></a>
-  <a href="https://github.com/user-attachments/assets/ed7081e4-d106-47db-9744-927be0db9d5d"><img src="https://github.com/user-attachments/assets/ed7081e4-d106-47db-9744-927be0db9d5d" width="420" alt="Background removal module with selected images and output format controls" /></a>
-</p>
+Yagua screenshots with the interface in English. Click any thumbnail to view the full-size image. Layouts and controls can vary between releases.
 
-<details>
-<summary>More screenshots: compression, resizing, palette, renaming, EXIF, LQIP and settings</summary>
-
-<p align="center">
-  <a href="https://github.com/user-attachments/assets/f8f57bbb-4cdf-4c5f-8d06-a04b2c3dc1b1"><img src="https://github.com/user-attachments/assets/f8f57bbb-4cdf-4c5f-8d06-a04b2c3dc1b1" width="280" alt="Compression module with a quality slider and EXIF removal option" /></a>
-  <a href="https://github.com/user-attachments/assets/381c1f71-debd-47a0-837b-fb8f84e41790"><img src="https://github.com/user-attachments/assets/381c1f71-debd-47a0-837b-fb8f84e41790" width="280" alt="Resize module with resize, crop and canvas tabs" /></a>
-  <a href="https://github.com/user-attachments/assets/dfe2dd77-f792-4092-a6d7-82b5e96aa104"><img src="https://github.com/user-attachments/assets/dfe2dd77-f792-4092-a6d7-82b5e96aa104" width="280" alt="Extracted color palette with swatches and color values" /></a>
-</p>
-<p align="center">
-  <a href="https://github.com/user-attachments/assets/e3a8f766-84e5-412d-bbaf-acb5936c0380"><img src="https://github.com/user-attachments/assets/e3a8f766-84e5-412d-bbaf-acb5936c0380" width="280" alt="Batch rename module showing original and proposed filenames" /></a>
-  <a href="https://github.com/user-attachments/assets/235fce12-9796-4304-9252-f9e016edf483"><img src="https://github.com/user-attachments/assets/235fce12-9796-4304-9252-f9e016edf483" width="280" alt="EXIF editor with author, copyright, software and date fields" /></a>
-  <a href="https://github.com/user-attachments/assets/8e8824a4-0bdf-44d8-b82f-7e0c2e1fcfe5"><img src="https://github.com/user-attachments/assets/8e8824a4-0bdf-44d8-b82f-7e0c2e1fcfe5" width="280" alt="LQIP and Base64 module with placeholder size and quality controls" /></a>
-</p>
-<p align="center">
-  <a href="https://github.com/user-attachments/assets/29131d50-2ea2-40c5-9549-d5878d89119a"><img src="https://github.com/user-attachments/assets/29131d50-2ea2-40c5-9549-d5878d89119a" width="280" alt="Yagua settings with interface language and theme selection" /></a>
-</p>
-
-</details>
-
-These are existing project screenshots; layouts and controls can differ between versions. Click an image to view it at full size.
+<table>
+  <tr>
+    <td align="center" width="33%"><a href="assets/screenshots/home.png"><img src="assets/screenshots/home.png" width="300" alt="Home screen with all modules" /><br /><strong>Home</strong></a></td>
+    <td align="center" width="33%"><a href="assets/screenshots/convert.png"><img src="assets/screenshots/convert.png" width="300" alt="Conversion with selected images and output format controls" /><br /><strong>Convert</strong></a></td>
+    <td align="center" width="33%"><a href="assets/screenshots/compress.png"><img src="assets/screenshots/compress.png" width="300" alt="Compression with quality and EXIF controls" /><br /><strong>Compress</strong></a></td>
+  </tr>
+  <tr>
+    <td align="center" width="33%"><a href="assets/screenshots/resize.png"><img src="assets/screenshots/resize.png" width="300" alt="Resizing with a size preset and loaded images" /><br /><strong>Resize</strong></a></td>
+    <td align="center" width="33%"><a href="assets/screenshots/remove-background.png"><img src="assets/screenshots/remove-background.png" width="300" alt="Background removal with a selected image" /><br /><strong>Remove background</strong></a></td>
+    <td align="center" width="33%"><a href="assets/screenshots/palette.png"><img src="assets/screenshots/palette.png" width="300" alt="Extracted palette with eight colors and color values" /><br /><strong>Color palette</strong></a></td>
+  </tr>
+  <tr>
+    <td align="center" width="33%"><a href="assets/screenshots/watermark.png"><img src="assets/screenshots/watermark.png" width="300" alt="Watermark controls and result preview" /><br /><strong>Watermark</strong></a></td>
+    <td align="center" width="33%"><a href="assets/screenshots/rename.png"><img src="assets/screenshots/rename.png" width="300" alt="Batch renaming with original and proposed filenames" /><br /><strong>Batch rename</strong></a></td>
+    <td align="center" width="33%"><a href="assets/screenshots/ocr.png"><img src="assets/screenshots/ocr.png" width="300" alt="English OCR with recognized text" /><br /><strong>OCR</strong></a></td>
+  </tr>
+  <tr>
+    <td align="center" width="33%"><a href="assets/screenshots/metadata.png"><img src="assets/screenshots/metadata.png" width="300" alt="EXIF editor with metadata fields and an image preview" /><br /><strong>EXIF metadata</strong></a></td>
+    <td align="center" width="33%"><a href="assets/screenshots/lqip-base64.png"><img src="assets/screenshots/lqip-base64.png" width="300" alt="LQIP placeholder compared with the original and generated data URI" /><br /><strong>LQIP / Base64</strong></a></td>
+    <td align="center" width="33%"><a href="assets/screenshots/settings.png"><img src="assets/screenshots/settings.png" width="300" alt="General settings with language, theme, scale and visible modules" /><br /><strong>Settings</strong></a></td>
+  </tr>
+</table>
 
 ## Installation
 

@@ -57,31 +57,30 @@ A compatibilidade depende do módulo, dos codecs instalados e da plataforma. Um 
 
 ## Capturas de tela
 
-<p align="center">
-  <a href="https://github.com/user-attachments/assets/903c897e-eb48-4b6b-b941-2fbfffb234ce"><img src="https://github.com/user-attachments/assets/903c897e-eb48-4b6b-b941-2fbfffb234ce" width="420" alt="Módulo de conversão com imagens selecionadas e controles de formato de saída" /></a>
-  <a href="https://github.com/user-attachments/assets/ed7081e4-d106-47db-9744-927be0db9d5d"><img src="https://github.com/user-attachments/assets/ed7081e4-d106-47db-9744-927be0db9d5d" width="420" alt="Módulo de remoção de fundo com imagens selecionadas e controles de saída" /></a>
-</p>
+Capturas do Yagua com a interface em inglês. Clique em qualquer miniatura para ver a imagem em tamanho completo. O layout e os controles podem variar entre versões.
 
-<details>
-<summary>Mais capturas: compressão, tamanho, paleta, renomeação, EXIF, LQIP e configurações</summary>
-
-<p align="center">
-  <a href="https://github.com/user-attachments/assets/f8f57bbb-4cdf-4c5f-8d06-a04b2c3dc1b1"><img src="https://github.com/user-attachments/assets/f8f57bbb-4cdf-4c5f-8d06-a04b2c3dc1b1" width="280" alt="Módulo de compressão com controle de qualidade e opção para remover EXIF" /></a>
-  <a href="https://github.com/user-attachments/assets/381c1f71-debd-47a0-837b-fb8f84e41790"><img src="https://github.com/user-attachments/assets/381c1f71-debd-47a0-837b-fb8f84e41790" width="280" alt="Módulo de tamanho com abas para redimensionar, recortar e ajustar a tela" /></a>
-  <a href="https://github.com/user-attachments/assets/dfe2dd77-f792-4092-a6d7-82b5e96aa104"><img src="https://github.com/user-attachments/assets/dfe2dd77-f792-4092-a6d7-82b5e96aa104" width="280" alt="Paleta extraída com amostras de cores e seus valores" /></a>
-</p>
-<p align="center">
-  <a href="https://github.com/user-attachments/assets/e3a8f766-84e5-412d-bbaf-acb5936c0380"><img src="https://github.com/user-attachments/assets/e3a8f766-84e5-412d-bbaf-acb5936c0380" width="280" alt="Renomeação em lote com nomes originais e propostos" /></a>
-  <a href="https://github.com/user-attachments/assets/235fce12-9796-4304-9252-f9e016edf483"><img src="https://github.com/user-attachments/assets/235fce12-9796-4304-9252-f9e016edf483" width="280" alt="Editor EXIF com campos de autor, copyright, software e data" /></a>
-  <a href="https://github.com/user-attachments/assets/8e8824a4-0bdf-44d8-b82f-7e0c2e1fcfe5"><img src="https://github.com/user-attachments/assets/8e8824a4-0bdf-44d8-b82f-7e0c2e1fcfe5" width="280" alt="Módulo LQIP e Base64 com controles de tamanho e qualidade do placeholder" /></a>
-</p>
-<p align="center">
-  <a href="https://github.com/user-attachments/assets/29131d50-2ea2-40c5-9549-d5878d89119a"><img src="https://github.com/user-attachments/assets/29131d50-2ea2-40c5-9549-d5878d89119a" width="280" alt="Configurações do Yagua com seleção de idioma e tema" /></a>
-</p>
-
-</details>
-
-Estas são capturas existentes do projeto; a disposição e os controles podem variar entre versões. Clique em uma imagem para vê-la no tamanho original.
+<table>
+  <tr>
+    <td align="center" width="33%"><a href="../../assets/screenshots/home.png"><img src="../../assets/screenshots/home.png" width="300" alt="Tela inicial com todos os módulos" /><br /><strong>Início</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/convert.png"><img src="../../assets/screenshots/convert.png" width="300" alt="Conversão com imagens selecionadas e controles do formato de saída" /><br /><strong>Converter</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/compress.png"><img src="../../assets/screenshots/compress.png" width="300" alt="Compressão com controles de qualidade e EXIF" /><br /><strong>Comprimir</strong></a></td>
+  </tr>
+  <tr>
+    <td align="center" width="33%"><a href="../../assets/screenshots/resize.png"><img src="../../assets/screenshots/resize.png" width="300" alt="Redimensionamento com tamanho predefinido e imagens carregadas" /><br /><strong>Redimensionar</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/remove-background.png"><img src="../../assets/screenshots/remove-background.png" width="300" alt="Remoção de fundo com uma imagem selecionada" /><br /><strong>Remover fundo</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/palette.png"><img src="../../assets/screenshots/palette.png" width="300" alt="Paleta extraída com oito cores e seus valores" /><br /><strong>Paleta de cores</strong></a></td>
+  </tr>
+  <tr>
+    <td align="center" width="33%"><a href="../../assets/screenshots/watermark.png"><img src="../../assets/screenshots/watermark.png" width="300" alt="Controles de marca-d’água e prévia do resultado" /><br /><strong>Marca-d’água</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/rename.png"><img src="../../assets/screenshots/rename.png" width="300" alt="Renomeação em lote com nomes originais e propostos" /><br /><strong>Renomear em lote</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/ocr.png"><img src="../../assets/screenshots/ocr.png" width="300" alt="OCR em inglês com o texto reconhecido" /><br /><strong>OCR</strong></a></td>
+  </tr>
+  <tr>
+    <td align="center" width="33%"><a href="../../assets/screenshots/metadata.png"><img src="../../assets/screenshots/metadata.png" width="300" alt="Editor EXIF com campos de metadados e prévia da imagem" /><br /><strong>Metadados EXIF</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/lqip-base64.png"><img src="../../assets/screenshots/lqip-base64.png" width="300" alt="Placeholder LQIP comparado ao original e data URI gerado" /><br /><strong>LQIP / Base64</strong></a></td>
+    <td align="center" width="33%"><a href="../../assets/screenshots/settings.png"><img src="../../assets/screenshots/settings.png" width="300" alt="Configurações gerais de idioma, tema, escala e módulos visíveis" /><br /><strong>Configurações</strong></a></td>
+  </tr>
+</table>
 
 <a id="installation"></a>
 
