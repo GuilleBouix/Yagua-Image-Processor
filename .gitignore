@@ -90,3 +90,6 @@ prototype-web
 /audit/
 
 /lean-reports/
+
+# Local Markdown content prepared for the documentation website
+/documentacion web/
