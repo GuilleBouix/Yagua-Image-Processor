@@ -6,9 +6,9 @@ import base64
 import io
 import logging
 from dataclasses import dataclass
-from pathlib import Path
 
-from PIL import Image, ImageOps
+from PIL import Image
+from app.ui.image_cache import image_cache
 
 from app.modules.lqip import (
     LqipResult,
@@ -49,13 +49,9 @@ class ItemResult:
 def cargar_original(index: int, path: str) -> SourcePreview:
     """Lee metadata real y una imagen pequeña para visualizar el original."""
     try:
-        size = Path(path).stat().st_size
-        with Image.open(path) as source:
-            dimensions = source.size
-            format_name = source.format or Path(path).suffix.lstrip('.').upper()
-            preview = ImageOps.exif_transpose(source)
-            preview.thumbnail(PREVIEW_SIZE, Image.Resampling.LANCZOS)
-            preview = preview.convert('RGBA')
+        reduced = image_cache.load(path, PREVIEW_SIZE, mode='RGBA')
+        size, dimensions = reduced.bytes, reduced.dimensions
+        format_name, preview = reduced.format, reduced.image
         return SourcePreview(index, path, dimensions, size, format_name, preview)
     except Exception as exc:
         logger.warning('lqip: error en original %s: %s', path, exc)

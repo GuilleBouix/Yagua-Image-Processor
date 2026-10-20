@@ -478,3 +478,51 @@ TRANSLATIONS['close_when_idle'] = 'Hay un proceso activo. ¿Cerrar cuando termin
 TRANSLATIONS['restart_when_idle'] = 'Hay un proceso activo. ¿Reiniciar cuando termine?'
 
 TRANSLATIONS['invalid_filename'] = 'El nombre de destino no es válido.'
+
+
+# Metadata collection and batch operations.
+TRANSLATIONS.update({
+    'meta_search_fields': 'Buscar campo…',
+    'meta_all_sections': 'Todas las secciones',
+    'meta_no_matching_fields': 'No hay campos que coincidan con la búsqueda.',
+    'meta_copy_fields': 'Copiar campos…',
+    'meta_save': 'Guardar…',
+    'meta_cancel': 'Cancelar',
+    'meta_save_scope': '¿Qué imágenes querés guardar?',
+    'meta_field': 'Campo',
+    'meta_value': 'Valor',
+    'meta_copy_summary': '{fields} campos elegidos · {images} imágenes marcadas',
+    'meta_add_images': 'Agregar imágenes',
+    'meta_added': 'Agregadas: {added} · Fuera del límite: {excluded} · Duplicadas: {duplicates}',
+    'meta_apply_fields': 'Aplicar campos a seleccionadas',
+    'meta_apply_help': 'Elegí qué campos copiar a las imágenes marcadas. Sólo se modifican borradores; guardalos después.',
+    'meta_confirm_overwrite': '¿Sobrescribir {count} imágenes originales? Esta acción modifica esos archivos.',
+    'meta_continue': 'Continuar',
+    'meta_copied': 'Copia creada',
+    'meta_copies': 'Crear copias en otra carpeta',
+    'meta_destination': 'Destino de los archivos',
+    'meta_destination_count': 'Archivos que se procesarán: {count}',
+    'meta_discard_drafts': 'Hay cambios pendientes. ¿Descartarlos y vaciar la colección?',
+    'meta_marked': 'Imágenes marcadas',
+    'meta_no_exif': 'Sin metadatos EXIF',
+    'meta_no_selection': 'Marcá al menos una imagen o cargá una imagen activa.',
+    'meta_overwrite': 'Sobrescribir originales',
+    'meta_pending': 'Pendiente',
+    'meta_preview_error': 'No se pudo cargar la preview',
+    'meta_read_error': 'Error de lectura',
+    'meta_read_only': 'Sólo lectura: edición disponible para JPEG/TIFF de una sola imagen',
+    'meta_ready': 'Listo',
+    'meta_result': 'Guardadas: {ok} · Sin cambios: {unchanged} · Errores: {errors}',
+    'meta_saved': 'Original actualizado',
+    'meta_clean_help': 'La limpieza elimina los metadatos de las imágenes marcadas. Los borradores no se guardan.',
+    'meta_clean_selected': 'Limpiar seleccionadas',
+    'meta_current': 'Imagen actual',
+    'meta_save_image': 'Guardar imagen',
+    'meta_save_selected': 'Guardar seleccionadas',
+    'meta_collection_count': 'Archivos: {count}/100 · Marcados: {marked}',
+    'meta_draft': 'Borrador',
+    'meta_mark_all': 'Marcar todas',
+    'meta_unmark_all': 'Desmarcar todas',
+})
+
+TRANSLATIONS["meta_source_changed"] = 'El archivo cambió desde que se cargó. Volvé a seleccionarlo antes de guardar.'

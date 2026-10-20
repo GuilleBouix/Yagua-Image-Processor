@@ -24,6 +24,7 @@ import customtkinter as ctk
 from app.ui import colors, fonts
 from app.translations import t
 from app.ui.frames.base import BaseFrame
+from app.ui.rendering import activate_tab
 from app.ui.frames.resize.services import (
     batch_redimensionar,
     batch_recortar,
@@ -174,15 +175,24 @@ class ResizeFrame(BaseFrame):
             modo: Modo actual (porcentaje, pixels o preset)
         """
         logger.info("resize.ui: actualizar_modo_resize (%s)", modo)
-        for w in self._frame_controles_resize.winfo_children():
-            w.destroy()
-
-        fc = self._frame_controles_resize
+        if not hasattr(self, '_resize_mode_panels'):
+            self._resize_mode_panels = {}
+            self._frame_controles_resize.grid_columnconfigure(0, weight=1)
+        for name, panel in self._resize_mode_panels.items():
+            if name != modo:
+                panel.grid_remove()
 
         if modo == t('pixels'):
             self._frame_ratio.grid()
         else:
             self._frame_ratio.grid_remove()
+
+        if modo in self._resize_mode_panels:
+            self._resize_mode_panels[modo].grid()
+            return
+        fc = ctk.CTkFrame(self._frame_controles_resize, fg_color='transparent')
+        fc.grid(row=0, column=0, sticky='ew')
+        self._resize_mode_panels[modo] = fc
 
         if modo == t('percentage'):
             fc.grid_columnconfigure(0, weight=0)
@@ -190,7 +200,7 @@ class ResizeFrame(BaseFrame):
             fc.grid_columnconfigure(2, weight=0)
 
             self._lbl_pct = ctk.CTkLabel(
-                fc, text='50%', font=fonts.FUENTE_BASE,
+                fc, text=f'{self._state.pct_var.get()}%', font=fonts.FUENTE_BASE,
                 text_color=colors.ACENTO, fg_color='transparent', width=36
             )
 
@@ -424,12 +434,7 @@ class ResizeFrame(BaseFrame):
             tab: Nombre del tab a mostrar
         """
         logger.info("resize.ui: cambiar_tab (%s)", tab)
-        for nombre, frame in self._frames.items():
-            if nombre == tab:
-                frame.grid()
-                frame.tkraise()
-            else:
-                frame.grid_remove()
+        activate_tab(self._frames, tab)
 
     def _ejecutar_resize(self):
         """Ejecutar redimension en hilo separado para no bloquear la UI."""
@@ -588,18 +593,7 @@ class ResizeFrame(BaseFrame):
         """Limpiar todas las imagenes y reiniciar el estado del frame."""
         if self._operation_blocked(global_job=False):
             return
-        self._imagenes = []
-        self._thumbs.clear()
-        self._filas_lista.clear()
-        for w in self._lista_frame.winfo_children():
-            w.destroy()
-        ctk.CTkLabel(
-            self._lista_frame,
-            text=t('no_images'),
-            font=fonts.FUENTE_CHICA,
-            text_color=colors.TEXT_GRAY
-        ).pack(pady=12)
-        self._lbl_info.configure(text='')
+        super()._limpiar()
 
     def _actualizar_fondo_opciones(self, valor: str):
         """Mostrar aviso si se elige transparencia con imagenes incompatibles.

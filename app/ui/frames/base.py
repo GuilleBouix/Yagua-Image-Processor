@@ -117,8 +117,9 @@ class BaseFrame(UiLifetime, ctk.CTkScrollableFrame):
             for widget in parent.winfo_children():
                 if isinstance(widget, (ctk.CTkButton, ctk.CTkEntry, ctk.CTkCheckBox,
                                        ctk.CTkSlider, ctk.CTkOptionMenu, ctk.CTkComboBox, Text, ctk.CTkSwitch)):
-                    controls.append((widget, widget.cget('state')))
-                    widget.configure(state='disabled')
+                    if widget.cget('state') != 'disabled':
+                        controls.append((widget, widget.cget('state')))
+                        widget.configure(state='disabled')
                 else:
                     freeze(widget)
 
@@ -220,7 +221,9 @@ class BaseFrame(UiLifetime, ctk.CTkScrollableFrame):
                 return
             requested_height = self.winfo_reqheight()
             target_height = max(canvas_height, requested_height)
-            self._parent_canvas.itemconfigure(self._create_window_id, height=target_height)
+            if getattr(self, '_viewport_height', None) != target_height:
+                self._viewport_height = target_height
+                self._parent_canvas.itemconfigure(self._create_window_id, height=target_height)
         except Exception:
             logger.debug("%s: viewport height sync omitido", self.__class__.__name__, exc_info=True)
 
@@ -541,19 +544,10 @@ class BaseFrame(UiLifetime, ctk.CTkScrollableFrame):
         logger.info("%s: cargar_imagenes (total=%s)", self.__class__.__name__, len(rutas))
         # Actualizar lista de imagenes
         self._imagenes = rutas
-        self._thumbs.clear()
-        self._filas_lista.clear()
-
-        # Limpiar la lista de archivos
-        for w in self._lista_frame.winfo_children():
-            w.destroy()
-
-        # Agregar fila para cada imagen
-        for ruta in rutas:
-            self._agregar_fila_archivo(ruta)
-
-        from app.ui.file_list import load_thumbs_async
-        load_thumbs_async(rutas, self._filas_lista, self._thumbs, self._post_ui)
+        from app.ui.file_list import FileList
+        if not hasattr(self, '_virtual_file_list'):
+            self._virtual_file_list = FileList(self._lista_frame, self._filas_lista, self._thumbs)
+        self._virtual_file_list.sync(rutas)
 
     def _agregar_fila_archivo(self, ruta):
         """
@@ -617,9 +611,12 @@ class BaseFrame(UiLifetime, ctk.CTkScrollableFrame):
         self._thumbs.clear()
         self._filas_lista.clear()
         
-        # Destruir todas las filas
-        for w in self._lista_frame.winfo_children():
-            w.destroy()
+        if hasattr(self, '_virtual_file_list'):
+            self._virtual_file_list.sync([])
+            self._lbl_info.configure(text='')
+            return
+
+        # No file rows exist until the first load.
         
         # Mostrar label de lista vacia si existe y esta vivo
         if hasattr(self, '_lbl_lista_vacia') and self._lbl_lista_vacia.winfo_exists():

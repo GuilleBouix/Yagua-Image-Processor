@@ -478,3 +478,51 @@ TRANSLATIONS['close_when_idle'] = 'Une opération est active. Fermer après sa f
 TRANSLATIONS['restart_when_idle'] = 'Une opération est active. Redémarrer après sa fin ?'
 
 TRANSLATIONS['invalid_filename'] = 'Le nom du fichier de destination est invalide.'
+
+
+# Metadata collection and batch operations.
+TRANSLATIONS.update({
+    'meta_search_fields': 'Rechercher un champ…',
+    'meta_all_sections': 'Toutes les sections',
+    'meta_no_matching_fields': 'Aucun champ ne correspond à la recherche.',
+    'meta_copy_fields': 'Copier les champs…',
+    'meta_save': 'Enregistrer…',
+    'meta_cancel': 'Annuler',
+    'meta_save_scope': 'Quelles images souhaites-tu enregistrer ?',
+    'meta_field': 'Champ',
+    'meta_value': 'Valeur',
+    'meta_copy_summary': '{fields} champs choisis · {images} images cochées',
+    'meta_add_images': 'Ajouter des images',
+    'meta_added': 'Ajoutées : {added} · Hors limite : {excluded} · Doublons : {duplicates}',
+    'meta_apply_fields': 'Appliquer les champs aux images cochées',
+    'meta_apply_help': 'Choisissez les champs à copier aux images cochées. Seuls les brouillons changent ; enregistrez-les ensuite.',
+    'meta_confirm_overwrite': 'Écraser {count} images originales ? Ces fichiers seront modifiés.',
+    'meta_continue': 'Continuer',
+    'meta_copied': 'Copie créée',
+    'meta_copies': 'Créer des copies dans un autre dossier',
+    'meta_destination': 'Destination des fichiers',
+    'meta_destination_count': 'Fichiers à traiter : {count}',
+    'meta_discard_drafts': 'Des modifications sont en attente. Les abandonner et vider la collection ?',
+    'meta_marked': 'Images cochées',
+    'meta_no_exif': 'Aucune métadonnée EXIF',
+    'meta_no_selection': 'Cochez une image ou chargez une image active.',
+    'meta_overwrite': 'Écraser les originaux',
+    'meta_pending': 'En attente',
+    'meta_preview_error': 'Impossible de charger l’aperçu',
+    'meta_read_error': 'Erreur de lecture',
+    'meta_read_only': 'Lecture seule : édition JPEG/TIFF à une seule image',
+    'meta_ready': 'Prêt',
+    'meta_result': 'Enregistrées : {ok} · Inchangées : {unchanged} · Erreurs : {errors}',
+    'meta_saved': 'Original mis à jour',
+    'meta_clean_help': 'Le nettoyage supprime les métadonnées des images cochées. Les brouillons ne sont pas enregistrés.',
+    'meta_clean_selected': 'Nettoyer les images cochées',
+    'meta_current': 'Image actuelle',
+    'meta_save_image': 'Enregistrer l’image',
+    'meta_save_selected': 'Enregistrer les images cochées',
+    'meta_collection_count': 'Fichiers : {count}/100 · Cochés : {marked}',
+    'meta_draft': 'Brouillon',
+    'meta_mark_all': 'Tout cocher',
+    'meta_unmark_all': 'Tout décocher',
+})
+
+TRANSLATIONS["meta_source_changed"] = 'Le fichier a changé depuis son chargement. Sélectionnez-le à nouveau avant de l’enregistrer.'

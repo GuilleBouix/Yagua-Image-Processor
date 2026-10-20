@@ -1,337 +1,311 @@
-"""Interfaz grafica para gestionar metadatos EXIF de imagenes.
-
-Permite:
-    - Ver: Leer y visualizar metadatos de una imagen
-    - Editar: Modificar campos editables (autor, copyright, software, fecha)
-    - Limpiar: Eliminar todos los metadatos EXIF de multiples imagenes
-
-Relaciones:
-    - BaseFrame: app.ui.frames.base.BaseFrame
-    - Traducciones: app.translations
-    - Colores: app.ui.colors
-    - Fuentes: app.ui.fonts
-    - Utilidades: app.utils (tintar_icono)
-    - Lista de archivos: app.ui.file_list
-    - Servicios: app.ui.frames.metadata.services
-    - Estado: app.ui.frames.metadata.state
-"""
-
+"""Metadata workspace: shared collection, per-image drafts and batch actions."""
 from __future__ import annotations
 
-import logging
 from pathlib import Path
-from tkinter import filedialog, messagebox
+import unicodedata
 import webbrowser
 
 import customtkinter as ctk
-from PIL import Image, ImageOps
 
-from app.ui import colors, fonts
-from app.ui.scale import scale_wraplength
 from app.translations import t
-from app.utils import tintar_icono
-from app.ui.file_list import build_file_list, load_thumbs_async
+from app.ui import colors, fonts
 from app.ui.frames.base import BaseFrame
-from app.ui.frames.metadata.services import (
-    leer_metadatos_safe,
-    editar_exif,
-    exportar_metadatos,
-    preparar_campos_exif,
-    CAMPOS_EDITABLES,
-    GRUPOS_CAMPOS_EDITABLES,
-    CAMPOS_VISIBLES,
-    GRUPOS_CAMPOS_VISIBLES,
-    OPCIONES_ENUM_EXIF as _ENUM_OPTIONS,
-    ORIENTACIONES_EXIF as _ORIENTATION_OPTIONS,
-    leer_campos_edicion_safe,
-    batch_limpiar_exif,
-)
+from app.ui.frames.metadata.collection import MetadataCollection, decode_preview
 from app.ui.frames.metadata.state import MetadataState
+from app.ui.frames.metadata.widgets import MetadataFiles, MetadataPreview
+from app.ui.rendering import configure_changed
+from app.ui.frames.metadata.services import (
+    CAMPOS_EDITABLES, GRUPOS_CAMPOS_EDITABLES, CAMPOS_VISIBLES,
+    GRUPOS_CAMPOS_VISIBLES, OPCIONES_ENUM_EXIF as _ENUM_OPTIONS,
+    ORIENTACIONES_EXIF as _ORIENTATION_OPTIONS,
+)
 
-
-logger = logging.getLogger(__name__)
-
-
-def _cargar_preview_edicion(ruta: str) -> Image.Image:
-    """Decodifica una copia acotada para visualizar, sin modificar el archivo."""
-    with Image.open(ruta) as imagen:
-        imagen.draft('RGB', (1024, 1024))
-        preview = ImageOps.exif_transpose(imagen)
-        preview.thumbnail((1024, 1024), Image.Resampling.LANCZOS)
-        return preview.convert('RGB')
+_cargar_preview_edicion = decode_preview
 
 
 class MetadataFrame(BaseFrame):
-    """Frame principal del modulo de gestion de metadatos EXIF."""
-
     def __init__(self, parent):
-        logger.info("metadata.ui: init")
         self._state = MetadataState()
-        self._preview_img: ctk.CTkImage | None = None
-        self._edit_preview_source: Image.Image | None = None
-        self._edit_preview_job = None
-        self._edit_preview_size = None
+        self._collection = MetadataCollection(self)
+        self._file_views: list[MetadataFiles] = []
+        self._previews: list[MetadataPreview] = []
         self._metadata_rows = []
         self._metadata_sections = []
-        self._thumbs: list[ctk.CTkImage] = []
-        self._filas_lote: list[ctk.CTkLabel] = []
         self._campos_edit: dict[str, ctk.CTkEntry | ctk.CTkComboBox] = {}
         self._enum_values: dict[str, dict[str, str]] = {}
         self._orientacion_values: dict[str, int] = {}
         super().__init__(parent, t('metadata_title'))
 
-    def _build_content(self):
-        """Construir el contenido principal con tabs Ver, Editar y Limpiar."""
-        logger.info("metadata.ui: build_content")
-        self.grid_columnconfigure(0, weight=1)
+    def destroy(self):
+        self._collection.closed.set()
+        super().destroy()
 
-        self._tab = ctk.CTkSegmentedButton(
-            self,
-            values=[t('view'), t('edit'), t('clean_batch')],
-            font=fonts.FUENTE_BASE,
-            selected_color=colors.SEGMENT_SELECTED,
+    def on_view_hidden(self):
+        self._collection.visible = False
+        for pane in self._previews:
+            pane.set_visible(False)
+        self._collection.refresh()
+
+    def on_view_shown(self):
+        super().on_view_shown()
+        self._collection.visible = True
+        self._collection.refresh()
+        self._collection.render_previews()
+
+    def _action(self, parent, key, command):
+        return ctk.CTkButton(parent, text=t(key), height=36, width=1,
+            font=fonts.FUENTE_BASE, fg_color=colors.ACENTO, text_color=colors.TEXT_ACTIVE,
+            hover_color=colors.ACENTO_HOVER, command=command)
+
+    def _crear_lista(self, parent, *, row):
+        files = MetadataFiles(parent, self._state, self._collection.activate,
+                              self._collection.mark, self._collection.mark_all)
+        files.grid(row=row, column=0, padx=16, pady=(0, 12), sticky='ew')
+        self._file_views.append(files)
+        files.tab_frame = parent.master.master
+        files.request_thumbnail = self._collection.request_thumbnail
+        return files
+
+    def _crear_preview(self, parent, *, row, height=180):
+        preview = MetadataPreview(parent, height=height)
+        preview.grid(row=row, column=0, padx=16, pady=16, sticky='nsew')
+        self._previews.append(preview)
+        preview.tab_frame = parent.master.master
+        return preview
+
+    def _build_content(self):
+        self.grid_columnconfigure(0, weight=1)
+        self._tab = ctk.CTkSegmentedButton(self, values=[t('view'), t('edit'), t('clean_batch')],
+            font=fonts.FUENTE_BASE, selected_color=colors.SEGMENT_SELECTED,
             selected_hover_color=colors.SEGMENT_SELECTED_HOVER,
-            unselected_color=colors.PANEL_BG,
-            unselected_hover_color=colors.SIDEBAR_HOVER,
-            text_color=colors.TEXT_COLOR,
-            command=self._cambiar_tab
-        )
+            unselected_color=colors.PANEL_BG, unselected_hover_color=colors.SIDEBAR_HOVER,
+            text_color=colors.TEXT_COLOR, command=self._cambiar_tab)
         self._tab.set(t('view'))
         self._tab.grid(row=1, column=0, padx=28, pady=(0, 8), sticky='ew')
-
         self._contenedor = ctk.CTkFrame(self, fg_color='transparent')
         self._contenedor.grid(row=2, column=0, sticky='nsew')
         self._contenedor.grid_columnconfigure(0, weight=1)
-
-        self._frames: dict[str, ctk.CTkFrame] = {}
-        self._frames[t('view')] = self._build_tab_ver()
-        self._frames[t('edit')] = self._build_tab_editar()
-        self._frames[t('clean_batch')] = self._build_tab_limpiar()
-
-        for f in self._frames.values():
-            f.grid(row=0, column=0, sticky='nsew')
-
+        self._frames = {t('view'): self._build_tab_ver(), t('edit'): self._build_tab_editar(),
+                        t('clean_batch'): self._build_tab_limpiar()}
+        for frame in self._frames.values():
+            frame.grid(row=0, column=0, sticky='nsew')
         self._cambiar_tab(t('view'))
 
-    def _build_tab_ver(self) -> ctk.CTkFrame:
-        """Construir el tab de visualizacion de metadatos."""
-        f = ctk.CTkFrame(self._contenedor, fg_color='transparent')
-        izquierda, derecha = self._crear_workspace(f, row=0, breakpoint=720, padx=16, pady=0)
-        derecha.grid_columnconfigure(0, weight=1)
-        derecha.grid_rowconfigure(1, weight=1)
-
-        btn = self._crear_boton_seleccionar(izquierda, t('select_image_view'), self._explorar_ver)
-        btn.grid(row=0, column=0, padx=16, pady=16, sticky='ew')
-        self._dz_ver = btn
-
-        ctk.CTkLabel(
-            izquierda, text=t('select_image_view'), font=fonts.FUENTE_CHICA,
-            text_color=colors.TEXT_GRAY, justify='left', wraplength=300,
-        ).grid(row=1, column=0, padx=16, pady=(0, 16), sticky='nw')
-
-        panel = derecha
-        panel.grid_columnconfigure(0, weight=1)
-
-        self._scroll_meta = ctk.CTkScrollableFrame(
-            panel, fg_color='transparent',
-            border_width=0, height=320
-        )
+    def _build_tab_ver(self):
+        frame = ctk.CTkFrame(self._contenedor, fg_color='transparent')
+        left, right = self._crear_workspace(frame, row=0, breakpoint=720, padx=16, pady=0)
+        self._dz_ver = self._crear_boton_seleccionar(left, t('meta_add_images'), self._explorar_lote)
+        self._dz_ver.grid(row=0, column=0, padx=16, pady=(16, 8), sticky='ew')
+        self._crear_lista(left, row=1)
+        self._preview_ver = self._crear_preview(left, row=2)
+        ctk.CTkLabel(right, text=t('metadata_title'), anchor='w', font=fonts.FUENTE_BASE).grid(
+            row=0, column=0, padx=16, pady=(16, 0), sticky='ew')
+        self._scroll_meta = ctk.CTkScrollableFrame(right, fg_color='transparent', border_width=0, height=380)
         self._scroll_meta.grid(row=1, column=0, padx=16, pady=8, sticky='nsew')
+        right.grid_rowconfigure(1, weight=1)
         self._scroll_meta.grid_columnconfigure(0, weight=2, uniform='metadata-columns')
         self._scroll_meta.grid_columnconfigure(1, weight=3, uniform='metadata-columns')
         self._scroll_meta.bind('<Configure>', self._ajustar_filas_metadatos, add='+')
+        self._renderizar_metadatos({})
+        self._export_scope = ctk.CTkComboBox(right, values=[t('meta_current'), t('meta_marked')], state='readonly',
+            font=fonts.FUENTE_BASE, fg_color=colors.DROPZONE_BG, text_color=colors.TEXT_COLOR)
+        self._export_scope.set(t('meta_current'))
+        self._export_scope.grid(row=2, column=0, padx=16, pady=8, sticky='ew')
+        actions = ctk.CTkFrame(right, fg_color='transparent')
+        actions.grid(row=3, column=0, padx=16, pady=(0, 16), sticky='ew')
+        actions.grid_columnconfigure((0, 1), weight=1)
+        self._action(actions, 'export_txt', lambda: self._exportar('txt')).grid(row=0, column=0, padx=(0, 6), sticky='ew')
+        self._action(actions, 'export_json', lambda: self._exportar('json')).grid(row=0, column=1, padx=(6, 0), sticky='ew')
+        return frame
 
-        ctk.CTkLabel(
-            self._scroll_meta,
-            text=t('no_metadata'),
-            font=fonts.FUENTE_CHICA,
-            text_color=colors.TEXT_GRAY
-        ).grid(row=0, column=0, columnspan=2, pady=20)
-
-        ctk.CTkLabel(
-            panel, text=t('metadata_title'), font=fonts.FUENTE_BASE,
-            text_color=colors.TEXT_COLOR, anchor='w'
-        ).grid(row=0, column=0, padx=16, pady=(16, 0), sticky='w')
-
-        fila_exp = ctk.CTkFrame(panel, fg_color='transparent')
-        fila_exp.grid(row=2, column=0, padx=16, pady=(0, 16), sticky='ew')
-        fila_exp.grid_columnconfigure((0, 1), weight=1)
-
-        ctk.CTkButton(
-            fila_exp,
-            text=t('export_txt'),
-            height=36, corner_radius=8,
-            font=fonts.FUENTE_BASE,
-            fg_color=colors.ACENTO,
-            text_color=colors.TEXT_ACTIVE,
-            hover_color=colors.ACENTO_HOVER,
-            command=lambda: self._exportar('txt')
-        ).grid(row=0, column=0, padx=(0, 6), sticky='ew')
-
-        ctk.CTkButton(
-            fila_exp,
-            text=t('export_json'),
-            height=36, corner_radius=8,
-            font=fonts.FUENTE_BASE,
-            fg_color=colors.ACENTO,
-            text_color=colors.TEXT_ACTIVE,
-            hover_color=colors.ACENTO_HOVER,
-            command=lambda: self._exportar('json')
-        ).grid(row=0, column=1, padx=(6, 0), sticky='ew')
-
-        return f
+    def _build_tab_limpiar(self):
+        frame = ctk.CTkFrame(self._contenedor, fg_color='transparent')
+        left, right = self._crear_workspace(frame, row=0, breakpoint=720, padx=16, pady=0)
+        self._crear_boton_seleccionar(left, t('meta_add_images'), self._explorar_lote).grid(
+            row=0, column=0, padx=16, pady=(16, 8), sticky='ew')
+        self._lista_lote = self._crear_lista(left, row=1).list
+        self._btn_limpiar_exif = self._action(left, 'meta_clean_selected', self._limpiar_lote)
+        self._btn_limpiar_exif.grid(row=2, column=0, padx=16, pady=(0, 16), sticky='ew')
+        ctk.CTkLabel(left, text=t('meta_clean_help'), text_color=colors.TEXT_GRAY,
+                     font=fonts.FUENTE_CHICA, justify='left', wraplength=300).grid(
+                         row=3, column=0, padx=16, pady=(0, 16), sticky='ew')
+        self._preview_limpiar = self._crear_preview(right, row=0)
+        self._summary = ctk.CTkTextbox(right, height=180, fg_color=colors.DROPZONE_BG,
+                                      text_color=colors.TEXT_COLOR, font=fonts.FUENTE_CHICA, wrap='word')
+        self._summary.grid(row=1, column=0, padx=16, pady=(0, 16), sticky='nsew')
+        self._summary.configure(state='disabled')
+        return frame
 
     def _build_tab_editar(self) -> ctk.CTkFrame:
-        """Construir el tab de edicion de metadatos."""
+        """Keep the collection compact and give the editor most of the workspace."""
         f = ctk.CTkFrame(self._contenedor, fg_color='transparent')
-        izquierda, derecha = self._crear_workspace(f, row=0, breakpoint=720, padx=16, pady=0)
+        izquierda, derecha = self._crear_workspace(
+            f, row=0, column_weights=(2, 3), breakpoint=800, padx=16, pady=0)
+        btn = self._crear_boton_seleccionar(izquierda, t('meta_add_images'), self._explorar_lote)
+        btn.grid(row=0, column=0, padx=16, pady=(16, 8), sticky='ew')
+        self._crear_lista(izquierda, row=1)
+        self._preview_editar = self._crear_preview(izquierda, row=2, height=180)
+        izquierda.grid_rowconfigure(2, weight=1)
+        self._lbl_edit_target = self._preview_editar.name
+        self._lbl_edit_preview = self._preview_editar.image
 
-        btn = self._crear_boton_seleccionar(izquierda, t('select_image_edit'), self._explorar_editar)
-        btn.grid(row=0, column=0, padx=16, pady=16, sticky='ew')
-
-        panel = ctk.CTkScrollableFrame(
-            izquierda, corner_radius=10,
-            fg_color=colors.PANEL_BG,
-            border_width=1,
-            border_color=colors.SIDEBAR_SEPARATOR,
-            height=420,
-        )
+        self._edit_target = ctk.CTkLabel(derecha, text=t('meta_current'), anchor='w',
+            justify='left', font=fonts.FUENTE_BASE, width=1)
+        self._edit_target.grid(row=0, column=0, padx=16, pady=(16, 8), sticky='ew')
+        filters = ctk.CTkFrame(derecha, fg_color='transparent')
+        filters.grid(row=1, column=0, padx=16, pady=(0, 8), sticky='ew')
+        filters.grid_columnconfigure(0, weight=1)
+        self._edit_query = ctk.StringVar()
+        self._edit_search = ctk.CTkEntry(filters, textvariable=self._edit_query,
+            placeholder_text=t('meta_search_fields'), height=36, width=1,
+            font=fonts.FUENTE_BASE, fg_color=colors.DROPZONE_BG,
+            border_color=colors.SIDEBAR_SEPARATOR, text_color=colors.TEXT_COLOR)
+        self._edit_search.grid(row=0, column=0, sticky='ew', padx=(0, 8))
+        groups = [*GRUPOS_CAMPOS_EDITABLES, 'dates', 'orientation']
+        self._edit_sections = {t('meta_all_sections'): None,
+                              **{t(f'metadata_section_{group}'): group for group in groups}}
+        self._edit_section = ctk.CTkComboBox(filters, values=list(self._edit_sections),
+            state='readonly', width=190, height=36, font=fonts.FUENTE_BASE,
+            fg_color=colors.DROPZONE_BG, text_color=colors.TEXT_COLOR,
+            command=lambda _value: self._filtrar_campos())
+        self._edit_section.set(t('meta_all_sections'))
+        self._edit_section.grid(row=0, column=1, sticky='ew')
+        # A bounded viewport keeps the form useful without growing the outer page.
+        viewport = ctk.CTkFrame(derecha, fg_color='transparent', height=350)
+        viewport.grid(row=2, column=0, padx=16, pady=0, sticky='nsew')
+        viewport.grid_propagate(False)
+        viewport.grid_columnconfigure(0, weight=1)
+        viewport.grid_rowconfigure(0, weight=1)
+        derecha.grid_rowconfigure(2, weight=1)
+        panel = ctk.CTkScrollableFrame(viewport, corner_radius=0, fg_color='transparent',
+                                       border_width=0, height=350)
         self._panel_editar = panel
-        panel.grid(row=1, column=0, padx=16, pady=(0, 16), sticky='new')
-        panel.grid_columnconfigure(1, weight=1)
-
-        fila = 0
-        for grupo, campos in GRUPOS_CAMPOS_EDITABLES.items():
-            ctk.CTkLabel(
-                panel, text=t(f'metadata_section_{grupo}'),
-                font=fonts.FUENTE_TITULO, text_color=colors.TEXT_COLOR,
-                anchor='w'
-            ).grid(row=fila, column=0, columnspan=2, padx=16, pady=(14, 4), sticky='ew')
-            fila += 1
+        panel.grid(row=0, column=0, sticky='nsew')
+        panel.grid_columnconfigure(0, weight=1)
+        self._edit_groups = {}
+        self._edit_rows = []
+        for index, grupo in enumerate(groups):
+            section = ctk.CTkFrame(panel, fg_color='transparent')
+            section.grid(row=index, column=0, sticky='ew', pady=(0, 12))
+            section.grid_columnconfigure(0, weight=1)
+            ctk.CTkLabel(section, text=t(f'metadata_section_{grupo}'), font=fonts.FUENTE_BASE,
+                         text_color=colors.TEXT_COLOR, anchor='w').grid(
+                             row=0, column=0, sticky='ew', pady=(6, 8))
+            self._edit_groups[grupo] = section
+            campos = GRUPOS_CAMPOS_EDITABLES.get(grupo, ('DateTimeOriginal',) if grupo == 'dates' else ())
+            fila = 1
             for campo in campos:
-                fila = self._agregar_campo_edicion(panel, campo, fila)
+                row = self._fila_editor(section, grupo, campo, t(CAMPOS_EDITABLES[campo]), fila)
+                self._agregar_campo_edicion(row, campo, 0)
+                fila += 1
             if grupo == 'gps':
                 self._clear_gps_var = ctk.BooleanVar(value=False)
-                ctk.CTkCheckBox(
-                    panel, text=t('clear_gps'), variable=self._clear_gps_var,
+                row = self._fila_editor(section, grupo, 'clear_gps', t('clear_gps'), fila)
+                self._clear_gps_check = ctk.CTkCheckBox(
+                    row, text=t('clear_gps'), variable=self._clear_gps_var,
                     font=fonts.FUENTE_CHICA, text_color=colors.TEXT_COLOR,
-                ).grid(row=fila, column=0, columnspan=2, padx=16, pady=6, sticky='w')
-                fila += 1
-
-        ctk.CTkLabel(
-            panel, text=t('metadata_section_dates'),
-            font=fonts.FUENTE_TITULO, text_color=colors.TEXT_COLOR,
-            anchor='w'
-        ).grid(row=fila, column=0, columnspan=2, padx=16, pady=(14, 4), sticky='ew')
-        fila += 1
-        fila = self._agregar_campo_edicion(panel, 'DateTimeOriginal', fila)
-        self._sync_dates_var = ctk.BooleanVar(value=False)
-        ctk.CTkCheckBox(
-            panel, text=t('sync_dates'), variable=self._sync_dates_var,
-            font=fonts.FUENTE_CHICA, text_color=colors.TEXT_COLOR,
-        ).grid(row=fila, column=0, columnspan=2, padx=16, pady=6, sticky='w')
-        fila += 1
-
-        ctk.CTkLabel(
-            panel, text=t('metadata_section_orientation'),
-            font=fonts.FUENTE_TITULO, text_color=colors.TEXT_COLOR,
-            anchor='w'
-        ).grid(row=fila, column=0, columnspan=2, padx=16, pady=(14, 4), sticky='ew')
-        fila += 1
-        ctk.CTkLabel(
-            panel, text=t('orientation_transform'), font=fonts.FUENTE_BASE,
-            text_color=colors.TEXT_GRAY, anchor='w'
-        ).grid(row=fila, column=0, padx=(16, 12), pady=6, sticky='w')
-        self._combo_orientacion = ctk.CTkComboBox(
-            panel, values=[t('keep_orientation')] + [t(key) for key in _ORIENTATION_OPTIONS.values()],
-            state='readonly', font=fonts.FUENTE_BASE,
-            fg_color=colors.FRAMES_BG, border_color=colors.SIDEBAR_SEPARATOR,
-            text_color=colors.TEXT_COLOR,
-        )
-        self._combo_orientacion.set(t('keep_orientation'))
-        self._orientacion_values = {t(key): value for value, key in _ORIENTATION_OPTIONS.items()}
-        self._combo_orientacion.grid(row=fila, column=1, padx=(0, 16), pady=6, sticky='ew')
-        fila += 1
+                )
+                self._clear_gps_check.grid(row=0, column=0, columnspan=2, pady=8, sticky='w')
+            elif grupo == 'dates':
+                self._sync_dates_var = ctk.BooleanVar(value=False)
+                row = self._fila_editor(section, grupo, 'sync_dates', t('sync_dates'), fila)
+                self._sync_dates_check = ctk.CTkCheckBox(row, text=t('sync_dates'),
+                    variable=self._sync_dates_var, font=fonts.FUENTE_CHICA, text_color=colors.TEXT_COLOR)
+                self._sync_dates_check.grid(row=0, column=0, columnspan=2, pady=8, sticky='w')
+            elif grupo == 'orientation':
+                row = self._fila_editor(section, grupo, 'orientation', t('orientation_transform'), fila)
+                ctk.CTkLabel(row, text=t('orientation_transform'), font=fonts.FUENTE_BASE,
+                             text_color=colors.TEXT_GRAY, anchor='w').grid(row=0, column=0, sticky='w')
+                self._combo_orientacion = ctk.CTkComboBox(row,
+                    values=[t('keep_orientation')] + [t(key) for key in _ORIENTATION_OPTIONS.values()],
+                    state='readonly', height=36, font=fonts.FUENTE_BASE,
+                    fg_color=colors.FRAMES_BG, border_color=colors.SIDEBAR_SEPARATOR,
+                    text_color=colors.TEXT_COLOR)
+                self._combo_orientacion.set(t('keep_orientation'))
+                self._orientacion_values = {t(key): value for value, key in _ORIENTATION_OPTIONS.items()}
+                self._combo_orientacion.grid(row=0, column=1, sticky='ew', padx=(12, 4))
+        self._edit_no_results = ctk.CTkLabel(panel, text=t('meta_no_matching_fields'),
+            font=fonts.FUENTE_BASE, text_color=colors.TEXT_GRAY)
+        self._edit_no_results.grid(row=len(groups), column=0, pady=24)
+        self._edit_no_results.grid_remove()
         self._info_tecnica = ctk.CTkLabel(
-            panel, text='', font=fonts.FUENTE_CHICA,
+            derecha, text='', font=fonts.FUENTE_CHICA, width=1,
             text_color=colors.TEXT_GRAY, anchor='w', justify='left'
         )
-        self._info_tecnica.grid(row=fila, column=0, columnspan=2, padx=16, pady=6, sticky='ew')
-        fila += 1
-
-        self._btn_guardar_edit = ctk.CTkButton(
-            panel,
-            text=t('save_changes'),
-            height=40, corner_radius=8,
-            font=fonts.FUENTE_BASE,
-            fg_color=colors.ACENTO,
-            text_color=colors.TEXT_ACTIVE,
-            hover_color=colors.ACENTO_HOVER,
-            command=self._guardar_edicion
-        )
-        self._btn_guardar_edit.grid(
-            row=fila, column=0, columnspan=2,
-            padx=16, pady=(0, 16), sticky='ew'
-        )
-
-        self._lbl_edit_target = ctk.CTkLabel(
-            derecha, text=t('select_image_edit'),
-            font=fonts.FUENTE_BASE, text_color=colors.TEXT_GRAY,
-            justify='left', wraplength=scale_wraplength(360),
-        )
-        self._lbl_edit_target.grid(row=0, column=0, padx=16, pady=16, sticky='nw')
-
-        derecha.grid_rowconfigure(1, weight=1)
-        self._lbl_edit_preview = ctk.CTkLabel(
-            derecha, text='', width=1, height=360,
-            fg_color=colors.DROPZONE_BG, corner_radius=8,
-        )
-        self._lbl_edit_preview.grid(row=1, column=0, padx=16, pady=(0, 16), sticky='nsew')
-        self._lbl_edit_preview.bind('<Configure>', self._programar_preview_edicion, add='+')
-
+        self._info_tecnica.grid(row=3, column=0, padx=16, pady=(4, 0), sticky='ew')
+        derecha.bind('<Configure>', lambda event: self._ajustar_editor(event.width), add='+')
+        self._edit_query.trace_add('write', lambda *_args: self._filtrar_campos())
+        actions = ctk.CTkFrame(derecha, fg_color='transparent')
+        actions.grid(row=4, column=0, padx=16, pady=(8, 16), sticky='ew')
+        actions.grid_columnconfigure((0, 1), weight=1)
+        self._btn_apply_fields = self._action(actions, 'meta_copy_fields', self._collection.choose_fields)
+        self._btn_apply_fields.configure(fg_color='transparent', border_width=1,
+            border_color=colors.SIDEBAR_SEPARATOR, text_color=colors.TEXT_COLOR,
+            hover_color=colors.SIDEBAR_HOVER)
+        self._btn_apply_fields.grid(row=0, column=0, padx=(0, 6), sticky='ew')
+        self._btn_guardar_edit = self._action(actions, 'meta_save', lambda: self._collection.save(selected=None))
+        self._btn_guardar_edit.grid(row=0, column=1, padx=(6, 0), sticky='ew')
         return f
 
-    def _programar_preview_edicion(self, _event=None):
-        """Agrupa los cambios de tamaño antes de ajustar la imagen al panel."""
-        if self._edit_preview_job is None:
-            self._edit_preview_job = self.after_idle(self._render_preview_edicion)
+    def _fila_editor(self, section, group, field, label, row):
+        container = ctk.CTkFrame(section, fg_color='transparent')
+        container.grid(row=row, column=0, sticky='ew', pady=4)
+        container.grid_columnconfigure(0, weight=2, uniform='edit-fields')
+        container.grid_columnconfigure(1, weight=3, uniform='edit-fields')
+        self._edit_rows.append((group, field, label, container))
+        return container
 
-    def _render_preview_edicion(self):
-        self._edit_preview_job = None
-        source = self._edit_preview_source
-        if source is None:
-            self._lbl_edit_preview.configure(image=None)
-            # CTkLabel no elimina la imagen nativa al recibir image=None.
-            self._lbl_edit_preview._label.configure(image='')
-            self._preview_img = None
-            self._edit_preview_size = None
-            return
-        scale = self._get_widget_scaling()
-        width = max(1, int(self._lbl_edit_preview.winfo_width() / scale) - 24)
-        height = max(1, int(self._lbl_edit_preview.winfo_height() / scale) - 24)
-        size = (id(source), width, height)
-        if size == self._edit_preview_size:
-            return
-        preview = source.copy()
-        preview.thumbnail((width, height), Image.Resampling.LANCZOS)
-        image = ctk.CTkImage(light_image=preview, dark_image=preview, size=preview.size)
-        self._lbl_edit_preview.configure(image=image)
-        self._preview_img = image
-        self._edit_preview_size = size
+    @staticmethod
+    def _texto_busqueda(text):
+        return ''.join(char for char in unicodedata.normalize('NFKD', text.casefold())
+                       if not unicodedata.combining(char))
+
+    def _filtrar_campos(self):
+        query = self._texto_busqueda(self._edit_query.get().strip())
+        selected = self._edit_sections.get(self._edit_section.get())
+        visible_groups = set()
+        for group, field, label, row in self._edit_rows:
+            matches = (selected is None or selected == group) and query in self._texto_busqueda(
+                f'{label} {field} {t(f"metadata_section_{group}")}')
+            if matches:
+                row.grid()
+                visible_groups.add(group)
+            else:
+                row.grid_remove()
+        for group, section in self._edit_groups.items():
+            if group in visible_groups:
+                section.grid()
+            else:
+                section.grid_remove()
+        if visible_groups:
+            self._edit_no_results.grid_remove()
+        else:
+            self._edit_no_results.grid()
+        self._panel_editar._parent_canvas.yview_moveto(0)
+
+    def _ajustar_editor(self, width):
+        logical = max(200, int(width / self._get_widget_scaling()) - 40)
+        self._edit_target.configure(wraplength=logical)
+        self._info_tecnica.configure(wraplength=logical)
+        for _, _, _, row in self._edit_rows:
+            for child in row.winfo_children():
+                if isinstance(child, ctk.CTkLabel):
+                    child.configure(wraplength=max(80, int(logical * .4) - 16))
 
     def _agregar_campo_edicion(self, panel, campo: str, fila: int) -> int:
         etiqueta = t(CAMPOS_EDITABLES[campo])
         ctk.CTkLabel(
             panel, text=etiqueta, font=fonts.FUENTE_BASE,
-            text_color=colors.TEXT_GRAY, anchor='w'
-        ).grid(row=fila, column=0, padx=(16, 12), pady=6, sticky='w')
+            text_color=colors.TEXT_GRAY, anchor='w',
+            justify='left', width=1,
+        ).grid(row=fila, column=0, padx=(0, 12), pady=4, sticky='ew')
 
         if campo in _ENUM_OPTIONS:
             opciones = {t(clave): str(valor) for valor, clave in _ENUM_OPTIONS[campo].items()}
             self._enum_values[campo] = opciones
             widget = ctk.CTkComboBox(
                 panel, values=[t('leave_unchanged')] + list(opciones),
-                state='readonly', font=fonts.FUENTE_BASE,
+                state='readonly', font=fonts.FUENTE_BASE, height=36,
                 fg_color=colors.FRAMES_BG, border_color=colors.SIDEBAR_SEPARATOR,
                 text_color=colors.TEXT_COLOR,
             )
@@ -339,82 +313,15 @@ class MetadataFrame(BaseFrame):
         else:
             placeholder = t('datetime_format_placeholder') if campo == 'DateTimeOriginal' else t('enter_field').format(etiqueta.lower())
             widget = ctk.CTkEntry(
-                panel, font=fonts.FUENTE_BASE,
+                panel, font=fonts.FUENTE_BASE, height=36,
                 fg_color=colors.FRAMES_BG, border_color=colors.SIDEBAR_SEPARATOR,
                 text_color=colors.TEXT_COLOR, placeholder_text=placeholder,
                 placeholder_text_color=colors.TEXT_GRAY,
             )
-        widget.grid(row=fila, column=1, padx=(0, 16), pady=6, sticky='ew')
+        widget.grid(row=fila, column=1, padx=(0, 4), pady=4, sticky='ew')
         self._campos_edit[campo] = widget
         return fila + 1
 
-    def _build_tab_limpiar(self) -> ctk.CTkFrame:
-        """Construir el tab de limpieza de metadatos en lote."""
-        f = ctk.CTkFrame(self._contenedor, fg_color='transparent')
-        izquierda, derecha = self._crear_workspace(f, row=0, breakpoint=720, padx=16, pady=0)
-
-        btn = self._crear_boton_seleccionar(izquierda, t('select_images_clean'), self._explorar_lote)
-        btn.grid(row=0, column=0, padx=16, pady=16, sticky='ew')
-
-        self._lista_lote = ctk.CTkScrollableFrame(
-            derecha, corner_radius=10,
-            fg_color=colors.PANEL_BG,
-            border_width=0,
-            scrollbar_button_color=colors.SIDEBAR_SEPARATOR,
-            scrollbar_button_hover_color=colors.ACENTO_DIMMED,
-            height=420
-        )
-        self._lista_lote.grid(row=0, column=0, padx=16, pady=16, sticky='nsew')
-        self._lista_lote.grid_columnconfigure(0, weight=1)
-
-        self._lbl_lote_vacio = ctk.CTkLabel(
-            self._lista_lote,
-            text=t('no_images'),
-            font=fonts.FUENTE_CHICA,
-            text_color=colors.TEXT_GRAY
-        )
-        self._lbl_lote_vacio.pack(pady=12)
-
-        self._btn_limpiar_exif = ctk.CTkButton(
-            izquierda,
-            text=t('clean_exif'),
-            height=40, corner_radius=8,
-            font=fonts.FUENTE_BASE,
-            fg_color=colors.ACENTO,
-            text_color=colors.TEXT_ACTIVE,
-            hover_color=colors.ACENTO_HOVER,
-            command=self._limpiar_lote
-        )
-        self._btn_limpiar_exif.grid(row=1, column=0, padx=16, pady=(0, 16), sticky='ew')
-
-        return f
-
-    def _crear_boton_seleccionar(self, parent, texto: str, comando) -> ctk.CTkButton:
-        """Crear boton de seleccion con icono.
-
-        Args:
-            parent: Widget padre
-            texto: Texto del boton
-            comando: Funcion de callback
-
-        Returns:
-            Boton CTk configurado
-        """
-        return ctk.CTkButton(
-            parent,
-            text=texto,
-            height=40,
-            corner_radius=8,
-            font=fonts.FUENTE_BASE,
-            fg_color=colors.PANEL_BG,
-            border_width=1,
-            border_color=colors.SIDEBAR_SEPARATOR,
-            text_color=colors.TEXT_COLOR,
-            hover_color=colors.SIDEBAR_HOVER,
-            image=tintar_icono('assets/icons/upload.png', colors.ICON_COLOR),
-            compound='left',
-            command=comando
-        )
 
     def _valor_metadato_visible(self, nombre: str, valor: str) -> str:
         """Traduce las opciones conocidas; conserva el código del archivo."""
@@ -433,94 +340,83 @@ class MetadataFrame(BaseFrame):
             clave = {1: 'color_srgb', 65535: 'color_uncalibrated'}.get(codigo)
         return f'{t(clave)} ({valor})' if clave else valor
 
+
     def _ajustar_filas_metadatos(self, _event=None):
         """Reparte el ancho entre campo y valor, permitiendo varias líneas."""
         ancho = max(160, int(self._scroll_meta.winfo_width() / self._get_widget_scaling()) - 32)
         for _, etiqueta, valor in self._metadata_rows:
-            etiqueta.configure(wraplength=max(60, int(ancho * .4) - 12))
-            valor.configure(wraplength=max(80, int(ancho * .6) - 12))
+            configure_changed(etiqueta, wraplength=max(60, int(ancho * .4) - 12))
+            configure_changed(valor, wraplength=max(80, int(ancho * .6) - 12))
         for seccion in self._metadata_sections:
-            seccion.configure(wraplength=ancho)
+            configure_changed(seccion, wraplength=ancho)
+
 
     def _renderizar_metadatos(self, metadatos: dict[str, str]):
-        """Presenta campos conocidos por secciones, sin contenedores extra."""
-        self._metadata_rows.clear()
-        self._metadata_sections.clear()
-        for widget in self._scroll_meta.winfo_children():
-            widget.destroy()
+        """Update known rows in place; never rebuild the metadata table."""
+        if not hasattr(self, '_meta_row_cache'):
+            self._meta_row_cache = {}
+            self._meta_section_cache = {}
+            self._meta_empty = ctk.CTkLabel(self._scroll_meta, text=t('no_metadata_image'),
+                font=fonts.FUENTE_CHICA, text_color=colors.TEXT_GRAY)
+        previous = {name for name, _, _ in self._metadata_rows}
+        previous_sections = set(self._metadata_sections)
+        self._metadata_rows = []
+        self._metadata_sections = []
         fila = 0
         gps = metadatos.get('__gps_decimal__')
         for grupo, nombres in GRUPOS_CAMPOS_VISIBLES.items():
-            campos = [
-                nombre for nombre in nombres
-                if CAMPOS_VISIBLES[nombre][0] in metadatos
-                and metadatos[CAMPOS_VISIBLES[nombre][0]].strip()
-            ]
+            campos = [name for name in nombres if metadatos.get(CAMPOS_VISIBLES[name][0], '').strip()]
             if not campos:
                 continue
-            seccion = ctk.CTkLabel(
-                self._scroll_meta, text=t(f'metadata_section_{grupo}'),
-                font=fonts.FUENTE_BASE, text_color=colors.TEXT_COLOR,
-                anchor='w', justify='left',
-            )
-            seccion.grid(row=fila, column=0, columnspan=2, padx=8, pady=(12 if fila else 4, 6), sticky='ew')
+            seccion = self._meta_section_cache.get(grupo)
+            if seccion is None:
+                seccion = ctk.CTkLabel(self._scroll_meta, text=t(f'metadata_section_{grupo}'),
+                    font=fonts.FUENTE_BASE, text_color=colors.TEXT_COLOR, anchor='w', justify='left')
+                self._meta_section_cache[grupo] = seccion
+            if seccion not in previous_sections or int(seccion.grid_info().get('row', -1)) != fila:
+                seccion.grid(row=fila, column=0, columnspan=2, padx=8, pady=(12 if fila else 4, 6), sticky='ew')
             self._metadata_sections.append(seccion)
             fila += 1
             for nombre in campos:
                 clave, traduccion = CAMPOS_VISIBLES[nombre]
-                etiqueta = ctk.CTkLabel(
-                    self._scroll_meta, text=t(traduccion),
-                    font=fonts.FUENTE_CHICA, text_color=colors.TEXT_GRAY,
-                    anchor='nw', justify='left',
-                )
-                etiqueta.grid(row=fila, column=0, padx=(8, 4), pady=4, sticky='new')
+                if nombre not in self._meta_row_cache:
+                    etiqueta = ctk.CTkLabel(self._scroll_meta, text=t(traduccion), font=fonts.FUENTE_CHICA,
+                        text_color=colors.TEXT_GRAY, anchor='nw', justify='left')
+                    valor = ctk.CTkLabel(self._scroll_meta, text='', font=fonts.FUENTE_CHICA,
+                        text_color=colors.TEXT_COLOR, anchor='nw', justify='left')
+                    self._meta_row_cache[nombre] = (etiqueta, valor)
+                etiqueta, valor = self._meta_row_cache[nombre]
+                if nombre not in previous or int(etiqueta.grid_info().get('row', -1)) != fila:
+                    etiqueta.grid(row=fila, column=0, padx=(8, 4), pady=4, sticky='new')
+                    valor.grid(row=fila, column=1, padx=(4, 8), pady=4, sticky='new')
                 texto = self._valor_metadato_visible(nombre, metadatos[clave])
                 es_mapa = nombre in ('GPSLatitude', 'GPSLongitude') and bool(gps)
                 if es_mapa:
                     texto += f'  →  {t("view_on_maps")}'
-                valor = ctk.CTkLabel(
-                    self._scroll_meta, text=texto, font=fonts.FUENTE_CHICA,
-                    text_color=colors.ACENTO if es_mapa else colors.TEXT_COLOR,
-                    anchor='nw', justify='left',
-                )
-                valor.grid(row=fila, column=1, padx=(4, 8), pady=4, sticky='new')
-                if es_mapa:
-                    valor.configure(cursor='hand2')
-                    url = f'https://maps.google.com/?q={gps}'
-                    valor.bind('<Button-1>', lambda _, u=url: webbrowser.open(u))
+                configure_changed(valor, text=texto, text_color=colors.ACENTO if es_mapa else colors.TEXT_COLOR,
+                                  cursor='hand2' if es_mapa else '')
+                url = f'https://maps.google.com/?q={gps}' if es_mapa else None
+                if getattr(valor, '_gps_link', None) != url:
+                    valor._gps_link = url
+                    if url:
+                        valor.bind('<Button-1>', lambda _, u=url: webbrowser.open(u))
+                    else:
+                        valor.unbind('<Button-1>')
                 self._metadata_rows.append((nombre, etiqueta, valor))
                 fila += 1
-        if not self._metadata_rows:
-            ctk.CTkLabel(
-                self._scroll_meta, text=t('no_metadata_image'),
-                font=fonts.FUENTE_CHICA, text_color=colors.TEXT_GRAY,
-            ).grid(row=0, column=0, columnspan=2, pady=20)
+        active = {name for name, _, _ in self._metadata_rows}
+        for name in previous - active:
+            for widget in self._meta_row_cache[name]:
+                widget.grid_remove()
+        for section in previous_sections - set(self._metadata_sections):
+            section.grid_remove()
+        if self._metadata_rows:
+            self._meta_empty.grid_remove()
+        else:
+            configure_changed(self._meta_empty, text=t('no_metadata_image'))
+            self._meta_empty.grid(row=0, column=0, columnspan=2, pady=20)
         self._ajustar_filas_metadatos()
 
-    def _explorar_ver(self):
-        """Abrir dialogo para seleccionar imagen y leer sus metadatos."""
-        if self._operation_blocked(global_job=True):
-            return
-        logger.info("metadata.ui: explorar_ver")
-        archivo = filedialog.askopenfilename(
-            title=t('select_image_view'),
-            filetypes=[(t('images_loaded'), '*.jpg *.jpeg *.png *.tiff *.webp *.heic *.heif')]
-        )
-        if not archivo:
-            return
-        self._state.ruta = archivo
-        self._lbl_info.configure(text=t('reading_metadata'))
-        self._show_full_overlay(t('processing'))
-        self._submit_job(lambda: self._leer(archivo))
-
-    def _leer(self, archivo):
-        """Leer metadatos en hilo separado."""
-        meta, err = leer_metadatos_safe(archivo)  # type: ignore
-        if err:
-            self._post_ui(0, self._hide_full_overlay)
-            self._post_ui(0, lambda: self._lbl_info.configure(text=f'{t("error_generic")}: {err}'))
-            return
-        self._post_ui(0, lambda: self._aplicar_metadatos(meta))
 
     def _aplicar_metadatos(self, meta: dict[str, str]):
         """Aplicar metadatos leidos a la interfaz.
@@ -536,63 +432,6 @@ class MetadataFrame(BaseFrame):
             text=f'{n} {t("fields_found")} - {Path(self._state.ruta).name}' if self._state.ruta else ''
         )
 
-    def _exportar(self, fmt: str):
-        """Exportar metadatos al formato seleccionado.
-
-        Args:
-            fmt: Formato de exportacion ('txt' o 'json')
-        """
-        if self._operation_blocked(global_job=True):
-            return
-        logger.info("metadata.ui: exportar (fmt=%s)", fmt)
-        if not self._state.metadatos:
-            self._lbl_info.configure(text=t('export_metadata_first'))
-            return
-        ext = f'.{fmt}'
-        ruta = filedialog.asksaveasfilename(
-            title=t('export_metadata'),
-            defaultextension=ext,
-            filetypes=[(fmt.upper(), f'*{ext}')],
-            initialfile=f'metadatos{ext}'
-        )
-        if not ruta:
-            return
-        try:
-            exportar_metadatos(self._state.metadatos, ruta, fmt)
-        except Exception:
-            logger.exception('Metadata export failed')
-            self._lbl_info.configure(text=t('error_saving'))
-            return
-        self._lbl_info.configure(text=f'{t("exported_as")} {Path(ruta).name}')
-
-    def _explorar_editar(self):
-        """Abrir dialogo para seleccionar imagen y precargar campos editables."""
-        if self._operation_blocked(global_job=True):
-            return
-        logger.info("metadata.ui: explorar_editar")
-        archivo = filedialog.askopenfilename(
-            title=t('select_image_edit'),
-            filetypes=[('JPEG / TIFF', '*.jpg *.jpeg *.tif *.tiff')]
-        )
-        if not archivo:
-            return
-        self._lbl_info.configure(text=t('reading_metadata'))
-        self._show_full_overlay(t('processing'))
-
-        def _proc():
-            meta, error = leer_campos_edicion_safe(archivo)
-            if error:
-                raise ValueError(error)
-            return meta, _cargar_preview_edicion(archivo)
-
-        def loaded(result):
-            meta, preview = result
-            self._state.ruta_edicion = archivo
-            self._edit_preview_source = preview
-            self._programar_preview_edicion()
-            self._aplicar_campos_edit(meta)
-
-        self._submit_job(_proc, on_success=loaded)
 
     def _aplicar_campos_edit(self, meta: dict):
         """Aplicar metadatos a los campos editables."""
@@ -603,16 +442,22 @@ class MetadataFrame(BaseFrame):
                     (label for label, code in self._enum_values[campo].items() if code == str(valor)),
                     t('leave_unchanged'),
                 )
-                widget.set(display)
+                if widget.get() != display:
+                    widget.set(display)
             else:
-                widget.delete(0, 'end')
-                if valor:
-                    widget.insert(0, valor)
+                if widget.get() != str(valor):
+                    widget.delete(0, 'end')
+                    if valor:
+                        widget.insert(0, valor)
         self._loaded_edit_values = {key: (self._enum_values[key].get(widget.get(), '') if key in self._enum_values else widget.get().strip()) for key, widget in self._campos_edit.items()}
         self._sync_dates_var.set(False)
         self._clear_gps_var.set(False)
         self._combo_orientacion.set(t('keep_orientation'))
-        orientation_key = _ORIENTATION_OPTIONS.get(int(meta.get('__orientation__', 1)), 'orient_normal')
+        try:
+            orientation = int(meta.get('__orientation__', 1))
+        except (ValueError, TypeError):
+            orientation = 1
+        orientation_key = _ORIENTATION_OPTIONS.get(orientation, 'orient_normal')
         color_space = meta.get('__color_space__', '')
         if color_space == '1':
             color_space = t('color_srgb')
@@ -631,228 +476,33 @@ class MetadataFrame(BaseFrame):
                 self._lbl_edit_target.configure(text=f'{t("editing")}\n{Path(self._state.ruta_edicion).name}')
         self._hide_full_overlay()
 
-    def _guardar_edicion(self):
-        """Guardar los cambios de metadatos editados."""
-        if self._operation_blocked(global_job=True):
-            return
-        logger.info("metadata.ui: guardar_edicion")
-        if not self._state.ruta_edicion:
-            self._lbl_info.configure(text=t('export_metadata_first'))
-            return
-
-        campos_raw = {}
-        for campo, widget in self._campos_edit.items():
-            valor = widget.get().strip()
-            if campo in self._enum_values:
-                valor = self._enum_values[campo].get(valor, '')
-            campos_raw[campo] = valor
-        original = getattr(self, '_loaded_edit_values', {})
-        changed = {key: value for key, value in campos_raw.items() if value and value != original.get(key, '')}
-        if self._sync_dates_var.get() and campos_raw.get('DateTimeOriginal'):
-            changed['DateTimeOriginal'] = campos_raw['DateTimeOriginal']
-        gps_keys = ('GPSLatitude', 'GPSLongitude', 'GPSAltitude', 'GPSImgDirection')
-        if any(key in changed for key in gps_keys):
-            for key in gps_keys:
-                if campos_raw.get(key):
-                    changed[key] = campos_raw[key]
-        campos_raw = changed
-        if self._clear_gps_var.get():
-            for key in ('GPSLatitude', 'GPSLongitude', 'GPSAltitude', 'GPSImgDirection'):
-                campos_raw.pop(key, None)
-        orientacion = self._orientacion_values.get(self._combo_orientacion.get())
-        campos, err = preparar_campos_exif(
-            campos_raw,
-            sync_dates=self._sync_dates_var.get(),
-            clear_gps=self._clear_gps_var.get(),
-            orientation=orientacion,
-        )
-        if err:
-            mensajes = {
-                'invalid_date': 'invalid_date_format',
-                'invalid_number': 'invalid_metadata_number',
-                'invalid_option': 'invalid_metadata_option',
-                'invalid_gps': 'invalid_gps',
-                'gps_pair': 'gps_pair_required',
-                'gps_conflict': 'gps_clear_conflict',
-                'sync_requires_date': 'sync_date_required',
-                'invalid_orientation': 'invalid_orientation',
-                'empty': 'no_metadata_changes',
-            }
-            self._lbl_info.configure(text=t(mensajes.get(err, 'error_saving')))
-            return
-
-        confirm = messagebox.askyesno(
-            title=t('confirm_overwrite_title'),
-            message=t('confirm_overwrite_msg')
-        )
-        if not confirm:
-            return
-        ruta = self._state.ruta_edicion
-
-        self._btn_guardar_edit.configure(state='disabled', text=t('saving_changes'))
-
-        def _proc():
-            ok, warning = editar_exif(ruta, ruta, campos)  # type: ignore
-            self._post_ui(0, lambda: self._btn_guardar_edit.configure(
-                state='normal', text=t('save_changes')
-            ))
-            if ok:
-                try:
-                    preview = _cargar_preview_edicion(ruta)
-                except Exception:
-                    logger.warning('No se pudo actualizar la preview de %s', ruta, exc_info=True)
-                else:
-                    def actualizar_preview():
-                        self._edit_preview_source = preview
-                        self._programar_preview_edicion()
-                    self._post_ui(0, actualizar_preview)
-                msg = f'{t("saved_as_file")} {Path(ruta).name}'
-                if warning == 'no_exif':
-                    msg += f'  -  {t("saved_without_exif")}'
-            else:
-                msg = t('unsupported_frames') if warning == 'unsupported_frames' else t('error_saving')
-            self._post_ui(0, lambda: self._lbl_info.configure(text=msg))
-
-        self._submit_job(_proc, button=self._btn_guardar_edit, text=t('save_changes'))
 
     def _explorar_lote(self):
-        """Abrir dialogo para seleccionar multiples imagenes a limpiar."""
-        if self._operation_blocked(global_job=False):
-            return
-        logger.info("metadata.ui: explorar_lote")
-        archivos = filedialog.askopenfilenames(
-            title=t('select_images_clean'),
-            filetypes=[(t('images_loaded'), '*.jpg *.jpeg *.png *.tiff *.webp *.heic *.heif')]
-        )
-        if archivos:
-            self._cargar_lote(list(archivos))
+        self._collection.explore()
 
-    def _cargar_lote(self, rutas: list[str]):
-        """Cargar lista de imagenes para procesamiento en lote.
+    def _explorar_ver(self):
+        self._collection.explore()
 
-        Args:
-            rutas: Lista de rutas de archivos seleccionados
-        """
-        if self._operation_blocked(global_job=False):
-            return
-        limite = 100
-        total = len(rutas)
-        if total > limite:
-            rutas = rutas[:limite]
-            msg = t('limit_reached').format(limit=limite, total=total)
-            self._lbl_info.configure(text=msg)
+    def _explorar_editar(self):
+        self._collection.explore()
 
-        self._state.imagenes_lote = rutas
-        build_file_list(
-            self._lista_lote, rutas, self._filas_lote, self._thumbs,
-            thumb_size=44, show_ext=True
-        )
-        load_thumbs_async(rutas, self._filas_lote, self._thumbs, self._post_ui, thumb_size=44)
-        n = len(rutas)
-        self._lbl_info.configure(
-            text=f'{n} {t("images_ready_clean")}'
-        )
+    def _cargar_lote(self, rutas):
+        self._collection.add(rutas)
+
+    def _guardar_edicion(self):
+        self._collection.save()
 
     def _limpiar_lote(self):
-        """Iniciar proceso de limpieza de metadatos en lote."""
-        if self._operation_blocked(global_job=True):
-            return
-        logger.info("metadata.ui: limpiar_lote")
-        if not self._state.imagenes_lote:
-            self._lbl_info.configure(text=t('load_images_first_clean'))
-            return
-        carpeta = filedialog.askdirectory(title=t('select_output_folder_clean'))
-        if not carpeta:
-            logger.info("metadata.ui: limpiar_lote_cancelado (sin_carpeta)")
-            return
-        self._show_full_overlay(t('processing'))
-        self._btn_limpiar_exif.configure(state='disabled', text=t('cleaning'))
-        paths = tuple(self._state.imagenes_lote)
-        self._submit_job(lambda: self._proceso_limpiar(carpeta, paths), button=self._btn_limpiar_exif, text=t('clean_exif'))
+        self._collection.save(selected=True, clean=True)
 
-    def _proceso_limpiar(self, carpeta: str, paths):
-        """Ejecutar limpieza de metadatos en hilo separado.
+    def _exportar(self, fmt):
+        self._collection.export(fmt)
 
-        Args:
-            carpeta: Ruta de la carpeta de salida
-        """
-        logger.info("metadata.ui: proceso_limpiar_inicio (imagenes=%s)", len(paths))
-        res = batch_limpiar_exif(paths, carpeta)
-        self._post_ui(0, lambda: self._btn_limpiar_exif.configure(
-            state='normal', text=t('clean_exif')
-        ))
-        msg = f'{res["ok"]} {t("cleaned")}'
-        if res['errores']:
-            msg += f'  -  {res["errores"]} {t("error_occurred")}'
-        if res.get('conflictos'):
-            msg += f'  -  {res["conflictos"]} {t("conflicts_renamed")}'
-        self._post_ui(0, lambda: self._lbl_info.configure(text=msg))
-        logger.info("metadata.ui: limpiar_lote_fin (ok=%s, errores=%s)", res.get("ok"), res.get("errores"))
-        self._post_ui(0, self._hide_full_overlay)
-        return res
-
-    def _cambiar_tab(self, tab: str):
-        """Cambiar el tab visible en el contenedor.
-
-        Args:
-            tab: Nombre del tab a mostrar
-        """
-        for nombre, frame in self._frames.items():
-            if nombre == tab:
-                frame.tkraise()
+    def _cambiar_tab(self, tab):
+        self._collection.change_tab(tab)
 
     def _limpiar(self):
-        """Limpiar todo el estado y reiniciar la interfaz."""
-        if self._operation_blocked(global_job=False):
-            return
-        logger.info("metadata.ui: limpiar")
-        self._limpiar_todo()
+        self._collection.clear()
 
     def _limpiar_todo(self):
-        """Restaurar estado inicial de todos los componentes."""
-        if self._operation_blocked(global_job=False):
-            return
-        logger.info("metadata.ui: limpiar_todo")
-        self._state.ruta = None
-        self._state.ruta_edicion = None
-        self._state.imagenes_lote = []
-        self._state.metadatos = {}
-        self._thumbs.clear()
-        self._filas_lote.clear()
-        self._metadata_rows.clear()
-        self._metadata_sections.clear()
-
-        for w in self._scroll_meta.winfo_children():
-            w.destroy()
-        ctk.CTkLabel(
-            self._scroll_meta,
-            text=t('no_metadata'),
-            font=fonts.FUENTE_CHICA,
-            text_color=colors.TEXT_GRAY
-        ).grid(row=0, column=0, columnspan=2, pady=20)
-
-        for entry in self._campos_edit.values():
-            if isinstance(entry, ctk.CTkComboBox):
-                entry.set(t('leave_unchanged'))
-            else:
-                entry.delete(0, 'end')
-        self._sync_dates_var.set(False)
-        self._clear_gps_var.set(False)
-        self._combo_orientacion.set(t('keep_orientation'))
-        self._info_tecnica.configure(text='')
-
-        if hasattr(self, '_lbl_edit_target'):
-            self._lbl_edit_target.configure(text=t('select_image_edit'))
-        self._edit_preview_source = None
-        self._render_preview_edicion()
-
-        for w in self._lista_lote.winfo_children():
-            w.destroy()
-        ctk.CTkLabel(
-            self._lista_lote,
-            text=t('no_images'),
-            font=fonts.FUENTE_CHICA,
-            text_color=colors.TEXT_GRAY
-        ).pack(pady=12)
-
-        self._lbl_info.configure(text='')
+        self._collection.clear()

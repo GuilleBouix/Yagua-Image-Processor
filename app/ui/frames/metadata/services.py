@@ -22,6 +22,7 @@ from app.modules.metadata import (
     leer_campos_edicion_safe,
     batch_limpiar_exif,
 )
+from app.modules.metadata_batch import MetadataDraft, MetadataTask, leer_archivo, procesar_lote, exportar_lote
 
 __all__ = [
     'leer_metadatos_safe',
@@ -37,4 +38,5 @@ __all__ = [
     'ORIENTACIONES_EXIF',
     'leer_campos_edicion_safe',
     'batch_limpiar_exif',
+    'MetadataDraft', 'MetadataTask', 'leer_archivo', 'procesar_lote', 'exportar_lote',
 ]

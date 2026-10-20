@@ -12,14 +12,90 @@ Relacionado con:
 
 from __future__ import annotations
 
-import threading
 from pathlib import Path
 import customtkinter as ctk
-from PIL import Image
 
 from app.ui import colors, fonts
 from app.translations import t
 from app.modules.compress import formatear_bytes
+from app.ui.image_cache import ImageRequests
+from app.ui.rendering import VirtualRows, PooledRow, configure_changed
+
+
+class FileList:
+    """File rows recycled as the viewport scrolls, with progressive thumbnails."""
+    def __init__(self, container, filas, thumbs):
+        self.filas, self.thumbs = filas, thumbs
+        self.generation = 0
+        for child in container.winfo_children():
+            child.pack_forget()
+            child.grid_forget()
+        self.empty = ctk.CTkLabel(container, text=t('no_images'), font=fonts.FUENTE_CHICA,
+                                   text_color=colors.TEXT_GRAY)
+        self.virtual = VirtualRows(container, self._create, self._render, row_height=76)
+        self.loader = ImageRequests(self.virtual)
+        self.virtual.on_destroy = self.loader.cancel
+
+    def _create(self, parent):
+        row = PooledRow(parent, fg_color=colors.SIDEBAR_BG, corner_radius=8)
+        row.grid_columnconfigure(1, weight=1)
+        row.thumb = ctk.CTkLabel(row, text='', width=44, height=44)
+        row.thumb.grid(row=0, column=0, rowspan=2, padx=(8, 10), pady=6)
+        row.name_label = ctk.CTkLabel(row, text='', width=1, anchor='w', font=fonts.FUENTE_BASE)
+        row.name_label.grid(row=0, column=1, sticky='ew', padx=(0, 8), pady=(6, 0))
+        row.info_label = ctk.CTkLabel(row, text='', width=1, anchor='w', font=fonts.FUENTE_CHICA, text_color=colors.TEXT_GRAY)
+        row.info_label.grid(row=1, column=1, sticky='ew', padx=(0, 8), pady=(0, 6))
+        row.photo = None
+        row.request_key = None
+        def release():
+            row.thumb.configure(image=None)
+            row.thumb._label.configure(image='')
+            row.photo = None
+            row.request_key = None
+        row.release = release
+        return row
+
+    def _render(self, row, key):
+        path, _occurrence = key
+        request_key = (self.generation, key)
+        if row.request_key == request_key:
+            return
+        if row.request_key is None or row.request_key[1] != key:
+            row.release()
+            configure_changed(row.info_label, text=Path(path).suffix.lstrip('.').upper())
+        row.request_key = request_key
+        name = Path(path).name
+        configure_changed(row.name_label, text=name if len(name) <= 32 else name[:29] + '…')
+        def loaded(result, error):
+            if row.request_key != request_key or row.key != key:
+                return
+            if result is not None:
+                if row.photo is None or row.photo.cget('light_image') is not result.image:
+                    row.photo = ctk.CTkImage(light_image=result.image, dark_image=result.image, size=result.image.size)
+                    row.thumb.configure(image=row.photo)
+                configure_changed(row.info_label, text=f'{formatear_bytes(result.bytes)}  -  {result.format}')
+            else:
+                configure_changed(row.info_label, text=t('error_generic'))
+            self.filas[:] = [item.thumb for item in self.virtual.rows.values()]
+            self.thumbs[:] = [item.photo for item in self.virtual.rows.values() if item.photo is not None]
+        self.loader.request(path, (44, 44), loaded)
+
+    def sync(self, paths):
+        self.generation += 1
+        self.loader.cancel()
+        seen, keys = {}, []
+        for path in paths:
+            path = str(path)
+            occurrence = seen.get(path, 0)
+            seen[path] = occurrence + 1
+            keys.append((path, occurrence))
+        self.virtual.sync(keys)
+        if keys:
+            self.empty.pack_forget()
+        else:
+            self.empty.pack(pady=12)
+            self.filas.clear()
+            self.thumbs.clear()
 
 
 def clear_file_list(container, filas, thumbs):
@@ -150,47 +226,13 @@ def load_thumbs_async(rutas, filas, thumbs, after_fn, *, thumb_size=44):
         thumb_size: Tamano maximo del thumbnail en pixeles.
     """
     rows = tuple(filas)
-    paths = tuple(rutas)
-    def _worker():
-        """
-        Worker que genera thumbnails en segundo plano.
-        """
-        local_thumbs = []
-        
-        # Generar thumbnail para cada archivo
-        for ruta in paths:
-            try:
-                # Abrir y copiar imagen
-                with Image.open(ruta) as img:
-                    img = img.copy()
-                
-                # Redimensionar manteniendo aspecto
-                img.thumbnail((thumb_size, thumb_size), Image.Resampling.LANCZOS)
-                
-                # Crear CTkImage
-                thumb = ctk.CTkImage(light_image=img, dark_image=img, size=(thumb_size, thumb_size))
-            except Exception:
-                # Usar None si falla
-                thumb = None
-            
-            local_thumbs.append(thumb)
-
-        # Funcion para aplicar thumbnails en el hilo principal
-        def _apply():
-            # Actualizar lista de thumbnails
-            if tuple(filas) != rows or any(not row.winfo_exists() for row in rows):
-                return
-            thumbs[:] = [t for t in local_thumbs if t]
-            
-            # Aplicar thumbnail a cada label
-            for indice, thumb in enumerate(local_thumbs):
-                if thumb and indice < len(filas):
-                    filas[indice].configure(image=thumb)
-
-        # Programar aplicacion en hilo principal
-        from app.ui.operations import operations
-        if rows:
-            operations.post(rows[0], _apply)
-
-    # Iniciar worker en hilo daemon
-    threading.Thread(target=_worker, daemon=True).start()
+    if not rows:
+        return
+    loader = ImageRequests(rows[0])
+    for path, row in zip(tuple(rutas), rows):
+        def loaded(result, error, row=row):
+            if result is not None and tuple(filas) == rows and row.winfo_exists():
+                photo = ctk.CTkImage(light_image=result.image, dark_image=result.image, size=result.image.size)
+                thumbs.append(photo)
+                row.configure(image=photo)
+        loader.request(path, (thumb_size, thumb_size), loaded)

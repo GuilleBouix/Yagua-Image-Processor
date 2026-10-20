@@ -87,6 +87,8 @@ def test_callback_failure_does_not_stop_deliveries():
     coordinator.post(owner, lambda: (_ for _ in ()).throw(ValueError('UI error')))
     coordinator.post(owner, lambda: delivered.append('next'))
     coordinator.drain()
+    # Logging the failed callback can consume this tick's 8 ms budget.
+    coordinator.drain()
     assert delivered == ['next']
 
 

@@ -477,3 +477,51 @@ TRANSLATIONS['close_when_idle'] = 'Há um processo ativo. Fechar quando terminar
 TRANSLATIONS['restart_when_idle'] = 'Há um processo ativo. Reiniciar quando terminar?'
 
 TRANSLATIONS['invalid_filename'] = 'O nome do arquivo de destino é inválido.'
+
+
+# Metadata collection and batch operations.
+TRANSLATIONS.update({
+    'meta_search_fields': 'Buscar campo…',
+    'meta_all_sections': 'Todas as seções',
+    'meta_no_matching_fields': 'Nenhum campo corresponde à busca.',
+    'meta_copy_fields': 'Copiar campos…',
+    'meta_save': 'Salvar…',
+    'meta_cancel': 'Cancelar',
+    'meta_save_scope': 'Quais imagens você quer salvar?',
+    'meta_field': 'Campo',
+    'meta_value': 'Valor',
+    'meta_copy_summary': '{fields} campos escolhidos · {images} imagens marcadas',
+    'meta_add_images': 'Adicionar imagens',
+    'meta_added': 'Adicionadas: {added} · Acima do limite: {excluded} · Duplicadas: {duplicates}',
+    'meta_apply_fields': 'Aplicar campos às marcadas',
+    'meta_apply_help': 'Escolha os campos para copiar às imagens marcadas. Só os rascunhos mudam; salve depois.',
+    'meta_confirm_overwrite': 'Sobrescrever {count} imagens originais? Isso modifica esses arquivos.',
+    'meta_continue': 'Continuar',
+    'meta_copied': 'Cópia criada',
+    'meta_copies': 'Criar cópias em outra pasta',
+    'meta_destination': 'Destino dos arquivos',
+    'meta_destination_count': 'Arquivos a processar: {count}',
+    'meta_discard_drafts': 'Há alterações pendentes. Descartar e esvaziar a coleção?',
+    'meta_marked': 'Imagens marcadas',
+    'meta_no_exif': 'Sem metadados EXIF',
+    'meta_no_selection': 'Marque uma imagem ou carregue uma imagem ativa.',
+    'meta_overwrite': 'Sobrescrever originais',
+    'meta_pending': 'Pendente',
+    'meta_preview_error': 'Não foi possível carregar a prévia',
+    'meta_read_error': 'Erro de leitura',
+    'meta_read_only': 'Somente leitura: edição para JPEG/TIFF de uma imagem',
+    'meta_ready': 'Pronto',
+    'meta_result': 'Salvas: {ok} · Sem alterações: {unchanged} · Erros: {errors}',
+    'meta_saved': 'Original atualizado',
+    'meta_clean_help': 'A limpeza remove os metadados das imagens marcadas. Os rascunhos não são salvos.',
+    'meta_clean_selected': 'Limpar marcadas',
+    'meta_current': 'Imagem atual',
+    'meta_save_image': 'Salvar imagem',
+    'meta_save_selected': 'Salvar marcadas',
+    'meta_collection_count': 'Arquivos: {count}/100 · Marcados: {marked}',
+    'meta_draft': 'Rascunho',
+    'meta_mark_all': 'Marcar todas',
+    'meta_unmark_all': 'Desmarcar todas',
+})
+
+TRANSLATIONS["meta_source_changed"] = 'O arquivo mudou desde o carregamento. Selecione-o novamente antes de salvar.'

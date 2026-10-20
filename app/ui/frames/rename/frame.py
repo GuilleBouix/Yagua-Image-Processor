@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import logging
 import threading
+from app.ui.rendering import VirtualRows, PooledRow, configure_changed
 
 import customtkinter as ctk
 
@@ -357,10 +358,34 @@ class RenameFrame(BaseFrame):
         """Lanza la generacion del preview en segundo plano."""
         if not self._imagenes:
             return
+        paths, options = tuple(self._imagenes), self._state.obtener_opciones()
+        signature = (paths, repr(sorted(options.items())))
+        if getattr(self, '_preview_signature', None) == signature:
+            return
+        self._preview_signature = signature
         self._rename_revision = getattr(self, '_rename_revision', 0) + 1
         revision = self._rename_revision
-        paths, options = tuple(self._imagenes), self._state.obtener_opciones()
+        previous = getattr(self, '_preview_job', None)
+        if previous is not None:
+            self.after_cancel(previous)
+        self._preview_job = self.after(60, lambda: self._start_preview(paths, options, revision))
+
+    def _start_preview(self, paths, options, revision):
+        self._preview_job = None
         threading.Thread(target=self._generar_preview, args=(paths, options, revision), daemon=True).start()
+
+    def _limpiar(self):
+        if self._operation_blocked():
+            return
+        self._rename_revision = getattr(self, '_rename_revision', 0) + 1
+        previous = getattr(self, '_preview_job', None)
+        if previous is not None:
+            self.after_cancel(previous)
+        self._preview_job = None
+        self._preview_signature = None
+        self._state.imagenes = []
+        super()._limpiar()
+        self._renderizar_preview([])
 
     def _generar_preview(self, paths, opciones, revision):
         """Genera el preview en segundo plano."""
@@ -377,36 +402,32 @@ class RenameFrame(BaseFrame):
         Args:
             preview: Lista de tuplas (nombre_original, nombre_nuevo).
         """
-        for widget in self._lista_preview.winfo_children():
-            widget.destroy()
-
-        if not preview:
-            ctk.CTkLabel(
-                self._lista_preview,
-                text=t('rename_preview_empty'),
-                font=fonts.FUENTE_CHICA,
-                text_color=colors.TEXT_GRAY
-            ).grid(row=0, column=0, columnspan=2, pady=16)
-            return
-
-        for indice, (original, nuevo) in enumerate(preview):
-            cambio = original != nuevo
-
-            ctk.CTkLabel(
-                self._lista_preview,
-                text=original,
-                font=fonts.FUENTE_CHICA,
-                text_color=colors.TEXT_GRAY,
-                anchor='w'
-            ).grid(row=indice, column=0, padx=(4, 4), pady=2, sticky='w')
-
-            ctk.CTkLabel(
-                self._lista_preview,
-                text=nuevo,
-                font=fonts.FUENTE_CHICA,
-                text_color=colors.ACENTO if cambio else colors.TEXT_GRAY,
-                anchor='w'
-            ).grid(row=indice, column=1, padx=(4, 4), pady=2, sticky='w')
+        if not hasattr(self, '_preview_rows'):
+            for widget in self._lista_preview.winfo_children():
+                if isinstance(widget, ctk.CTkLabel):
+                    widget.grid_remove()
+            def create(parent):
+                row = PooledRow(parent, fg_color='transparent')
+                row.grid_columnconfigure((0, 1), weight=1, uniform='rename-preview')
+                row.original_label = ctk.CTkLabel(row, text='', width=1, font=fonts.FUENTE_CHICA,
+                    text_color=colors.TEXT_GRAY, anchor='w')
+                row.original_label.grid(row=0, column=0, sticky='ew', padx=4)
+                row.new_label = ctk.CTkLabel(row, text='', width=1, font=fonts.FUENTE_CHICA, anchor='w')
+                row.new_label.grid(row=0, column=1, sticky='ew', padx=4)
+                return row
+            def render(row, index):
+                original, nuevo = self._preview_data[index]
+                configure_changed(row.original_label, text=original)
+                configure_changed(row.new_label, text=nuevo, text_color=colors.ACENTO if original != nuevo else colors.TEXT_GRAY)
+            self._preview_rows = VirtualRows(self._lista_preview, create, render, row_height=34)
+            self._preview_empty = ctk.CTkLabel(self._lista_preview, text=t('rename_preview_empty'),
+                font=fonts.FUENTE_CHICA, text_color=colors.TEXT_GRAY)
+        self._preview_data = preview
+        self._preview_rows.sync(range(len(preview)))
+        if preview:
+            self._preview_empty.pack_forget()
+        else:
+            self._preview_empty.pack(pady=16)
 
     def _renombrar(self):
         """Inicia el renombrado en segundo plano."""

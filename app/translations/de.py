@@ -461,3 +461,51 @@ TRANSLATIONS['close_when_idle'] = 'Ein Vorgang läuft. Danach schließen?'
 TRANSLATIONS['restart_when_idle'] = 'Ein Vorgang läuft. Danach neu starten?'
 
 TRANSLATIONS['invalid_filename'] = 'Der Zieldateiname ist ungültig.'
+
+
+# Metadata collection and batch operations.
+TRANSLATIONS.update({
+    'meta_search_fields': 'Feld suchen…',
+    'meta_all_sections': 'Alle Bereiche',
+    'meta_no_matching_fields': 'Keine passenden Felder gefunden.',
+    'meta_copy_fields': 'Felder kopieren…',
+    'meta_save': 'Speichern…',
+    'meta_cancel': 'Abbrechen',
+    'meta_save_scope': 'Welche Bilder möchtest du speichern?',
+    'meta_field': 'Feld',
+    'meta_value': 'Wert',
+    'meta_copy_summary': '{fields} Felder ausgewählt · {images} Bilder markiert',
+    'meta_add_images': 'Bilder hinzufügen',
+    'meta_added': 'Hinzugefügt: {added} · Über Limit: {excluded} · Duplikate: {duplicates}',
+    'meta_apply_fields': 'Felder auf markierte Bilder anwenden',
+    'meta_apply_help': 'Felder zum Kopieren auf markierte Bilder wählen. Nur Entwürfe ändern sich; anschließend speichern.',
+    'meta_confirm_overwrite': '{count} Originalbilder überschreiben? Diese Dateien werden geändert.',
+    'meta_continue': 'Weiter',
+    'meta_copied': 'Kopie erstellt',
+    'meta_copies': 'Kopien in anderem Ordner erstellen',
+    'meta_destination': 'Ausgabeziel',
+    'meta_destination_count': 'Zu verarbeitende Dateien: {count}',
+    'meta_discard_drafts': 'Es gibt ungespeicherte Änderungen. Verwerfen und Sammlung leeren?',
+    'meta_marked': 'Markierte Bilder',
+    'meta_no_exif': 'Keine EXIF-Metadaten',
+    'meta_no_selection': 'Mindestens ein Bild markieren oder ein aktives Bild laden.',
+    'meta_overwrite': 'Originale überschreiben',
+    'meta_pending': 'Ausstehend',
+    'meta_preview_error': 'Vorschau konnte nicht geladen werden',
+    'meta_read_error': 'Lesefehler',
+    'meta_read_only': 'Nur Lesen: Bearbeitung einzelner JPEG/TIFF-Bilder',
+    'meta_ready': 'Bereit',
+    'meta_result': 'Gespeichert: {ok} · Unverändert: {unchanged} · Fehler: {errors}',
+    'meta_saved': 'Original aktualisiert',
+    'meta_clean_help': 'Die Bereinigung entfernt Metadaten markierter Bilder. Entwürfe werden nicht gespeichert.',
+    'meta_clean_selected': 'Markierte bereinigen',
+    'meta_current': 'Aktuelles Bild',
+    'meta_save_image': 'Bild speichern',
+    'meta_save_selected': 'Markierte speichern',
+    'meta_collection_count': 'Dateien: {count}/100 · Markiert: {marked}',
+    'meta_draft': 'Entwurf',
+    'meta_mark_all': 'Alle markieren',
+    'meta_unmark_all': 'Alle abwählen',
+})
+
+TRANSLATIONS["meta_source_changed"] = 'Die Datei wurde seit dem Laden geändert. Vor dem Speichern erneut auswählen.'

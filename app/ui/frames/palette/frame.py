@@ -22,6 +22,7 @@ import tkinter as tk
 import customtkinter as ctk
 
 from app.ui import colors, fonts
+from app.ui.rendering import configure_changed
 from app.translations import t
 from app.ui.frames.base import BaseFrame
 from app.ui.frames.palette.services import (
@@ -133,15 +134,18 @@ class PaletteFrame(BaseFrame):
         self._seg_n.set('6')
         self._seg_n.grid(row=0, column=1, sticky='e')
 
-        self._swatches_frame = ctk.CTkFrame(p, fg_color='transparent')
+        self._swatches_frame = ctk.CTkFrame(p, fg_color='transparent', height=200)
+        self._swatches_frame.grid_propagate(False)
+        self._swatch_pool = []
         self._swatches_frame.grid(row=1, column=0, padx=16, pady=(0, 8), sticky='ew')
 
-        ctk.CTkLabel(
+        self._palette_empty = ctk.CTkLabel(
             self._swatches_frame,
             text=t('load_image_for_palette'),
             font=fonts.FUENTE_CHICA,
             text_color=colors.TEXT_GRAY
-        ).pack(pady=20)
+        )
+        self._palette_empty.grid(row=0, column=0, pady=20)
 
         self._btn_guardar = ctk.CTkButton(
             p,
@@ -188,49 +192,38 @@ class PaletteFrame(BaseFrame):
         Args:
             paleta: Lista de tuplas RGB con los colores extraidos
         """
-        for w in self._swatches_frame.winfo_children():
-            w.destroy()
-
-        n = len(paleta)
-        self._swatches_frame.grid_columnconfigure(
-            tuple(range(n)), weight=1
-        )
-
+        self._palette_empty.grid_remove()
+        for index, (col, canvas, label, buttons) in enumerate(self._swatch_pool):
+            if index >= len(paleta):
+                col.grid_remove()
+            self._swatches_frame.grid_columnconfigure(index, weight=0)
         for indice, color_rgb in enumerate(paleta):
             hex_color = rgb_a_hex(color_rgb)
-
-            col = ctk.CTkFrame(
-                self._swatches_frame, corner_radius=10, fg_color='transparent'
-            )
+            if indice == len(self._swatch_pool):
+                col = ctk.CTkFrame(self._swatches_frame, corner_radius=10, fg_color='transparent')
+                col.grid_columnconfigure(0, weight=1)
+                canvas = tk.Canvas(col, width=50, height=50, bg=hex_color,
+                    highlightthickness=0, bd=0, cursor='hand2')
+                canvas.grid(row=0, column=0, sticky='ew', ipady=6)
+                label = ctk.CTkLabel(col, text='', font=ctk.CTkFont(size=9), text_color=colors.TEXT_GRAY)
+                label.grid(row=1, column=0, pady=(3, 2))
+                buttons = []
+                for row, formato in enumerate(formatos_color(color_rgb), 2):
+                    button = ctk.CTkButton(col, text=formato, width=50, height=20, corner_radius=6,
+                        font=ctk.CTkFont(size=9), fg_color=colors.SIDEBAR_BG,
+                        hover_color=colors.SIDEBAR_HOVER, text_color=colors.TEXT_GRAY)
+                    button.grid(row=row, column=0, pady=1, sticky='ew')
+                    buttons.append(button)
+                self._swatch_pool.append((col, canvas, label, buttons))
+            col, canvas, label, buttons = self._swatch_pool[indice]
+            if getattr(col, '_rgb', None) != color_rgb:
+                col._rgb = color_rgb
+                canvas.configure(bg=hex_color)
+                configure_changed(label, text=hex_color)
+                for button, valor in zip(buttons, formatos_color(color_rgb).values()):
+                    button.configure(command=lambda v=valor: self._copiar(v))
+            self._swatches_frame.grid_columnconfigure(indice, weight=1)
             col.grid(row=0, column=indice, padx=2, pady=(4, 8), sticky='nsew')
-            col.grid_columnconfigure(0, weight=1)
-
-            canvas = tk.Canvas(
-                col, width=50, height=50,
-                bg=hex_color, highlightthickness=0, bd=0, cursor='hand2'
-            )
-            canvas.grid(row=0, column=0, sticky='ew', ipady=6)
-            canvas.create_rectangle(0, 0, 200, 200, fill=hex_color, outline='')
-
-            ctk.CTkLabel(
-                col, text=hex_color,
-                font=ctk.CTkFont(size=9),
-                text_color=colors.TEXT_GRAY,
-                fg_color='transparent'
-            ).grid(row=1, column=0, pady=(3, 2))
-
-            for formato, valor in formatos_color(color_rgb).items():
-                ctk.CTkButton(
-                    col,
-                    text=formato,
-                    width=50, height=20,
-                    corner_radius=6,
-                    font=ctk.CTkFont(size=9),
-                    fg_color=colors.SIDEBAR_BG,
-                    hover_color=colors.SIDEBAR_HOVER,
-                    text_color=colors.TEXT_GRAY,
-                    command=lambda v=valor: self._copiar(v)
-                ).grid(row=col.grid_size()[1], column=0, pady=1, sticky='ew')
 
     def _copiar(self, valor: str):
         """Copiar valor al portapapeles y mostrar confirmacion.
@@ -360,12 +353,7 @@ class PaletteFrame(BaseFrame):
         self._state.paleta = []
         self._preview_img = None
         self._mostrar_vacio()
-        for w in self._swatches_frame.winfo_children():
-            w.destroy()
-        ctk.CTkLabel(
-            self._swatches_frame,
-            text=t('load_image_for_palette'),
-            font=fonts.FUENTE_CHICA,
-            text_color=colors.TEXT_GRAY
-        ).pack(pady=20)
+        for col, *_rest in self._swatch_pool:
+            col.grid_remove()
+        self._palette_empty.grid(row=0, column=0, columnspan=max(1, len(self._swatch_pool)), pady=20)
         self._lbl_info.configure(text='')

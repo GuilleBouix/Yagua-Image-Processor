@@ -14,6 +14,7 @@ from PIL import Image
 from app.modules.compress import formatear_bytes
 from app.translations import t as _translate
 from app.ui import colors, fonts
+from app.ui.rendering import StableRender, configure_changed
 from app.ui.frames.base import BaseFrame
 from app.ui.frames.lqip.services import (
     ItemResult, SourcePreview, cargar_original, exportar_json, exportar_txt,
@@ -49,8 +50,10 @@ class LqipFrame(BaseFrame):
         self._ui_ready = False
         self._source_queue: SimpleQueue[tuple[int, SourcePreview]] = SimpleQueue()
         self._source_job = None
-        self._render_job = None
+        self._preview_renderers = {}
+        self._preview_content = {}
         self._display_images = {}
+        self._display_keys = {}
         self._left_help_labels = []
         self._traces = []
         super().__init__(parent, t('lqip_title'))
@@ -64,7 +67,7 @@ class LqipFrame(BaseFrame):
         self._source_job = self.after(40, self._recibir_originales)
         self._actualizar_validacion()
         self._actualizar_acciones()
-        self._programar_render()
+        self._render_selected()
 
     def _text_label(self, parent, text='', *, muted=False, **kwargs):
         return ctk.CTkLabel(
@@ -91,12 +94,15 @@ class LqipFrame(BaseFrame):
         )
         self._input_card.grid(row=1, column=0, padx=16, pady=(0, 16), sticky='ew')
         self._input_card.grid_columnconfigure(1, weight=1)
+        self._input_viewport = ctk.CTkFrame(self._input_card, width=56, height=56, fg_color='transparent')
+        self._input_viewport.grid(row=0, column=0, rowspan=2, padx=(12, 10), pady=12)
         self._input_thumb = ctk.CTkLabel(
-            self._input_card, text='', width=56, height=56,
+            self._input_viewport, text='', width=1, height=1,
             font=fonts.FUENTE_CHICA, text_color=colors.TEXT_GRAY,
         )
-        self._input_thumb.grid(row=0, column=0, rowspan=2, padx=(12, 10), pady=12)
-        self._input_thumb.bind('<Configure>', self._programar_render, add='+')
+        self._input_thumb.place(relwidth=1, relheight=1)
+        self._preview_renderers['input'] = StableRender(
+            self, self._input_viewport, lambda size: self._dibujar_preview('input', size))
         self._lbl_input_name = self._text_label(self._input_card, t('lqip_select_hint'), wraplength=240)
         self._lbl_input_name.grid(row=0, column=1, padx=(0, 12), pady=(12, 0), sticky='sew')
         self._lbl_input_meta = self._text_label(self._input_card, '', muted=True, wraplength=240)
@@ -233,12 +239,17 @@ class LqipFrame(BaseFrame):
         card.grid_columnconfigure(0, weight=1)
         card.grid_rowconfigure(1, weight=1)
         self._text_label(card, t(title), muted=True).grid(row=0, column=0, padx=10, pady=(6, 0), sticky='w')
+        viewport = ctk.CTkFrame(card, width=1, height=1, fg_color='transparent')
+        viewport.grid(row=1, column=0, padx=10, pady=4, sticky='nsew')
         label = ctk.CTkLabel(
-            card, text=t('lqip_select_hint') if column == 0 else t('lqip_generate_hint'),
+            viewport, text=t('lqip_select_hint') if column == 0 else t('lqip_generate_hint'),
             width=1, height=1, font=fonts.FUENTE_CHICA, text_color=colors.TEXT_GRAY,
             wraplength=220,
         )
-        label.grid(row=1, column=0, padx=10, pady=4, sticky='nsew')
+        label.place(relwidth=1, relheight=1)
+        key = 'original' if column == 0 else 'output'
+        self._preview_renderers[key] = StableRender(
+            self, viewport, lambda size: self._dibujar_preview(key, size))
         meta = self._text_label(card, '', muted=True)
         meta.grid(row=2, column=0, padx=10, pady=(0, 6), sticky='w')
         return label, meta
@@ -359,20 +370,43 @@ class LqipFrame(BaseFrame):
         self._source_job = self.after(40, self._recibir_originales)
 
     def _programar_render(self, _event=None):
-        if self._ui_ready and self._render_job is None:
-            self._render_job = self.after_idle(self._render_selected)
+        if self._ui_ready:
+            for renderer in self._preview_renderers.values():
+                renderer.request()
 
     def _imagen_preview(self, label, image, placeholder, key):
+        previous = self._preview_content.get(key)
+        self._preview_content[key] = (label, image, placeholder)
         if image is None:
+            self._preview_renderers[key].cancel()
+            if self._display_keys.get(key) == (None, placeholder):
+                return
+            self._display_keys[key] = (None, placeholder)
             label.configure(image=None)
             # CTkLabel deja la imagen nativa anterior al configurar image=None.
             label._label.configure(image='')
             self._display_images.pop(key, None)
             label.configure(text=placeholder)
             return
-        scale = self._get_widget_scaling()
-        width = max(1, int(label.winfo_width() / scale))
-        height = max(1, int(label.winfo_height() / scale))
+        if previous is None or previous[1] is not image:
+            label.configure(image=None, text=t('lqip_loading'))
+            label._label.configure(image='')
+            self._display_images.pop(key, None)
+            self._display_keys.pop(key, None)
+        self._preview_renderers[key].request()
+
+    def _dibujar_preview(self, key, measurements):
+        content = self._preview_content.get(key)
+        if content is None or content[1] is None:
+            return
+        label, image, _placeholder = content
+        pixels_x, pixels_y, scale = measurements
+        width = max(1, int(pixels_x / scale))
+        height = max(1, int(pixels_y / scale))
+        signature = (id(image), width, height, scale)
+        if self._display_keys.get(key) == signature:
+            return
+        self._display_keys[key] = signature
         ratio = min(width / image.width, height / image.height)
         size = (max(1, int(image.width * ratio)), max(1, int(image.height * ratio)))
         rendered = image.resize(size, Image.Resampling.BILINEAR)
@@ -383,9 +417,6 @@ class LqipFrame(BaseFrame):
         label.configure(text='')
 
     def _render_selected(self):
-        if self._render_job is not None:
-            self.after_cancel(self._render_job)
-        self._render_job = None
         if not self._ui_ready:
             return
         index = self._selected_index
@@ -395,16 +426,20 @@ class LqipFrame(BaseFrame):
         self._lbl_result_name.configure(text=name)
         self._lbl_input_name.configure(text=name if index is not None else t('lqip_select_hint'))
         input_width = max(120, int(self._left.winfo_width() / self._get_widget_scaling()) - 32)
-        if index is None:
-            self._input_thumb.grid_forget()
-            self._lbl_input_meta.grid_forget()
-            self._lbl_input_name.configure(anchor='center', justify='center', wraplength=max(100, input_width - 24))
-            self._lbl_input_name.grid(row=0, column=0, columnspan=2, padx=12, pady=24, sticky='ew')
-        else:
-            self._input_thumb.grid(row=0, column=0, rowspan=2, padx=(12, 10), pady=12)
-            self._lbl_input_meta.grid(row=1, column=1, padx=(0, 12), pady=(2, 12), sticky='new')
-            self._lbl_input_name.configure(anchor='w', justify='left', wraplength=max(100, input_width - 90))
-            self._lbl_input_name.grid(row=0, column=1, columnspan=1, padx=(0, 12), pady=(12, 0), sticky='sew')
+        empty_layout = index is None
+        if getattr(self, '_empty_input_layout', None) != empty_layout:
+            self._empty_input_layout = empty_layout
+            if empty_layout:
+                self._input_viewport.grid_remove()
+                self._lbl_input_meta.grid_forget()
+                self._lbl_input_name.configure(anchor='center', justify='center')
+                self._lbl_input_name.grid(row=0, column=0, columnspan=2, padx=12, pady=24, sticky='ew')
+            else:
+                self._input_viewport.grid()
+                self._lbl_input_meta.grid(row=1, column=1, padx=(0, 12), pady=(2, 12), sticky='new')
+                self._lbl_input_name.configure(anchor='w', justify='left')
+                self._lbl_input_name.grid(row=0, column=1, columnspan=1, padx=(0, 12), pady=(12, 0), sticky='sew')
+        configure_changed(self._lbl_input_name, wraplength=max(100, input_width - (24 if empty_layout else 90)))
         if source and source.error:
             input_meta = t('lqip_item_error') + ': ' + source.error
         elif source and source.dimensions:
@@ -454,10 +489,13 @@ class LqipFrame(BaseFrame):
         key = self._obtener_clave_campo()
         self._lbl_format_help.configure(text=t('lqip_help_' + key))
         content = self._codigo_seleccionado()
-        self._resultado_preview.configure(state='normal')
-        self._resultado_preview.delete('1.0', 'end')
-        self._resultado_preview.insert('1.0', content[:CODE_PREVIEW_LIMIT] if content else t('lqip_code_hint'))
-        self._resultado_preview.configure(state='disabled')
+        display = content[:CODE_PREVIEW_LIMIT] if content else t('lqip_code_hint')
+        if getattr(self, '_display_code', None) != display:
+            self._display_code = display
+            self._resultado_preview.configure(state='normal')
+            self._resultado_preview.delete('1.0', 'end')
+            self._resultado_preview.insert('1.0', display)
+            self._resultado_preview.configure(state='disabled')
         if len(content) > CODE_PREVIEW_LIMIT:
             self._lbl_abbreviated.grid(row=8, column=0, padx=16, pady=(4, 0), sticky='ew')
         else:
@@ -565,10 +603,21 @@ class LqipFrame(BaseFrame):
         self._cargar_imagenes([])
         self._lbl_info.configure(text='')
 
+    def on_view_hidden(self):
+        for renderer in self._preview_renderers.values():
+            renderer.set_visible(False)
+
+    def on_view_shown(self):
+        super().on_view_shown()
+        for renderer in self._preview_renderers.values():
+            renderer.set_visible(True)
+
     def destroy(self):
         self._revision += 1
         self._source_revision += 1
-        for job in (self._source_job, self._render_job):
+        for renderer in self._preview_renderers.values():
+            renderer.set_visible(False)
+        for job in (self._source_job,):
             if job is not None:
                 self.after_cancel(job)
         for variable, token in self._traces:

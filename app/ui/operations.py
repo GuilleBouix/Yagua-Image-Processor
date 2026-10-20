@@ -9,6 +9,7 @@ from queue import SimpleQueue
 from threading import Thread
 from threading import Lock
 from uuid import uuid4
+from time import perf_counter
 
 
 @dataclass(frozen=True)
@@ -80,6 +81,7 @@ class OperationCoordinator:
         return True
 
     def drain(self, widget_exists=lambda owner: True) -> None:
+        deadline = perf_counter() + .008
         while not self._completions.empty():
             operation, result, error, on_success, on_error = self._completions.get()
             current = self.active
@@ -95,6 +97,8 @@ class OperationCoordinator:
                 self.finish(operation.id)
 
         while not self._deliveries.empty():
+            if perf_counter() >= deadline:
+                break
             owner, callback = self._deliveries.get()
             try:
                 if widget_exists(owner):

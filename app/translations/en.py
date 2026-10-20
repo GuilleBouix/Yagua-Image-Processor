@@ -477,3 +477,51 @@ TRANSLATIONS['close_when_idle'] = 'An operation is active. Close when finished?'
 TRANSLATIONS['restart_when_idle'] = 'An operation is active. Restart when finished?'
 
 TRANSLATIONS['invalid_filename'] = 'The destination filename is invalid.'
+
+
+# Metadata collection and batch operations.
+TRANSLATIONS.update({
+    'meta_search_fields': 'Search fields…',
+    'meta_all_sections': 'All sections',
+    'meta_no_matching_fields': 'No fields match your search.',
+    'meta_copy_fields': 'Copy fields…',
+    'meta_save': 'Save…',
+    'meta_cancel': 'Cancel',
+    'meta_save_scope': 'Which images do you want to save?',
+    'meta_field': 'Field',
+    'meta_value': 'Value',
+    'meta_copy_summary': '{fields} fields selected · {images} images checked',
+    'meta_add_images': 'Add images',
+    'meta_added': 'Added: {added} · Over limit: {excluded} · Duplicates: {duplicates}',
+    'meta_apply_fields': 'Apply fields to checked images',
+    'meta_apply_help': 'Choose fields to copy to checked images. Only drafts change; save them afterwards.',
+    'meta_confirm_overwrite': 'Overwrite {count} original images? This modifies those files.',
+    'meta_continue': 'Continue',
+    'meta_copied': 'Copy created',
+    'meta_copies': 'Create copies in another folder',
+    'meta_destination': 'Output destination',
+    'meta_destination_count': 'Files to process: {count}',
+    'meta_discard_drafts': 'There are pending changes. Discard them and clear the collection?',
+    'meta_marked': 'Checked images',
+    'meta_no_exif': 'No EXIF metadata',
+    'meta_no_selection': 'Check at least one image or load an active image.',
+    'meta_overwrite': 'Overwrite originals',
+    'meta_pending': 'Pending',
+    'meta_preview_error': 'Could not load preview',
+    'meta_read_error': 'Read error',
+    'meta_read_only': 'Read only: editing supports single-frame JPEG/TIFF',
+    'meta_ready': 'Ready',
+    'meta_result': 'Saved: {ok} · Unchanged: {unchanged} · Errors: {errors}',
+    'meta_saved': 'Original updated',
+    'meta_clean_help': 'Cleaning removes metadata from checked images. Drafts are not saved.',
+    'meta_clean_selected': 'Clean checked images',
+    'meta_current': 'Current image',
+    'meta_save_image': 'Save image',
+    'meta_save_selected': 'Save checked images',
+    'meta_collection_count': 'Files: {count}/100 · Checked: {marked}',
+    'meta_draft': 'Draft',
+    'meta_mark_all': 'Check all',
+    'meta_unmark_all': 'Uncheck all',
+})
+
+TRANSLATIONS["meta_source_changed"] = 'The file changed since it was loaded. Select it again before saving.'

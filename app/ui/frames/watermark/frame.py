@@ -21,6 +21,7 @@ import customtkinter as ctk
 from PIL import Image
 
 from app.ui import colors, fonts
+from app.ui.rendering import configure_changed
 from app.ui.scale import scale_wraplength
 from app.translations import t
 from app.ui.frames.base import BaseFrame
@@ -118,6 +119,8 @@ class WatermarkFrame(BaseFrame):
         self._preview_job       = None
         self._preview_activo    = False
         self._preview_revision  = 0
+        self._last_preview_key = None
+        self._preview_input_keys = {}
         self._preview_load_revisions = {"base": 0, "watermark": 0}
         self._wm_thumb_label = None
 
@@ -492,6 +495,17 @@ class WatermarkFrame(BaseFrame):
         self._iniciar_carga_preview("watermark", ruta)
 
     def _iniciar_carga_preview(self, tipo, ruta):
+        try:
+            path = Path(ruta).resolve()
+            stat = path.stat()
+            fingerprint = (str(path), stat.st_size, stat.st_mtime_ns)
+        except OSError:
+            fingerprint = None
+        current = self._preview_base_bgra if tipo == 'base' else self._preview_wm_bgra
+        if fingerprint is not None and self._preview_input_keys.get(tipo) == fingerprint and current is not None:
+            self._disparar_preview()
+            return
+        self._preview_input_keys[tipo] = fingerprint
         self._invalidar_preview()
         self._preview_load_revisions[tipo] += 1
         revision = self._preview_load_revisions[tipo]
@@ -597,14 +611,20 @@ class WatermarkFrame(BaseFrame):
             return
         self._preview_activo = True
         revision = self._preview_revision
-        base = self._preview_base_bgra.copy()
-        wm = self._preview_wm_bgra.copy()
+        base = self._preview_base_bgra
+        wm = self._preview_wm_bgra
         opciones = (
             self._state.posicion.get(),
             self._state.escala.get() / 100.0,
             self._state.opacidad.get() / 100.0,
             max(0, int(self._state.margen.get() * min(base.shape[:2]) / 500)),
         )
+        signature = (id(base), id(wm), *opciones)
+        if signature == self._last_preview_key:
+            self._preview_activo = False
+            return
+        self._pending_preview_key = signature
+        base, wm = base.copy(), wm.copy()
         self._lbl_preview_status.configure(text=t("watermark_calculando"))
         threading.Thread(
             target=self._hilo_preview,
@@ -644,30 +664,44 @@ class WatermarkFrame(BaseFrame):
             return
         if self._preview_base_bgra is None or self._preview_wm_bgra is None:
             return
+        self._last_preview_key = self._pending_preview_key
         self._mostrar_canvas(self._canvas_preview, resultado)
 
     def _limpiar(self):
-        """Recarga el frame completo para reiniciar el estado."""
+        """Reset models and existing widgets without rebuilding the module."""
         if self._operation_blocked(global_job=False):
             return
-        logger.info("watermark.ui: limpiar")
-        self._post_ui(0, self._reload_self)
+        self._invalidar_preview()
+        for key in self._preview_load_revisions:
+            self._preview_load_revisions[key] += 1
+        self._preview_base_bgra = self._preview_wm_bgra = None
+        self._last_preview_key = None
+        self._preview_input_keys.clear()
+        self._imagenes = []
+        self._state.imagenes = []
+        self._state.ruta_watermark.set('')
+        self._state.carpeta_salida.set('')
+        self._state.escala.set(25)
+        self._state.opacidad.set(60)
+        self._state.margen.set(20)
+        self._state.posicion.set('bottom-right')
+        self._combo_preset.set(next(iter(self._preset_label_to_id)))
+        self._combo_pos.set(self._pos_value_to_label['bottom-right'])
+        for label, text in ((self._lbl_escala_val, '25%'), (self._lbl_opac_val, '60%'), (self._lbl_margen_val, '20px')):
+            configure_changed(label, text=text)
+        if hasattr(self, '_wm_row'):
+            self._wm_row.grid_remove()
+        self._wm_placeholder.grid(row=0, column=0, padx=10, pady=10, sticky='w')
+        self._wm_thumb = None
+        if self._wm_thumb_label is not None:
+            self._wm_thumb_label.configure(image=None)
+            self._wm_thumb_label._label.configure(image='')
+        self._mostrar_placeholder_preview()
+        configure_changed(self._lbl_preview_status, text='')
+        configure_changed(self._lbl_info, text='')
 
     def _reload_self(self):
-        main = self._find_main_window()
-        if not main:
-            super()._limpiar()
-            return
-        try:
-            if getattr(main, "frames", {}).get("watermark") is self:
-                getattr(main, "frames")["watermark"] = None
-            self.destroy()
-        except Exception:
-            pass
-        try:
-            getattr(main, "show_module")("watermark")
-        except Exception:
-            pass
+        self._limpiar()
 
     def _find_main_window(self):
         from tkinter import Misc
@@ -680,39 +714,25 @@ class WatermarkFrame(BaseFrame):
 
     def _mostrar_watermark_item(self, ruta):
         """Muestra el watermark seleccionado en el panel izquierdo."""
-        for w in self._wm_frame.winfo_children():
-            w.destroy()
-
-        fila = ctk.CTkFrame(
-            self._wm_frame, fg_color=colors.SIDEBAR_BG, corner_radius=8
-        )
-        fila.grid(row=0, column=0, padx=8, pady=6, sticky="ew")
-        fila.grid_columnconfigure(1, weight=1)
-
-        lbl_thumb = ctk.CTkLabel(
-            fila, text='', width=44, height=44, fg_color='transparent'
-        )
-        lbl_thumb.grid(row=0, column=0, padx=(8, 0), pady=6)
-        self._wm_thumb_label = lbl_thumb
-
-        info = ctk.CTkFrame(fila, fg_color='transparent')
-        info.grid(row=0, column=1, padx=(10, 8), pady=6, sticky='w')
-
-        p = Path(ruta)
-        nombre = p.name if len(p.name) <= 32 else p.name[:29] + '...'
-        ctk.CTkLabel(
-            info, text=nombre,
-            font=fonts.FUENTE_BASE,
-            text_color=colors.TEXT_COLOR, anchor='w'
-        ).pack(anchor='w')
-        ctk.CTkLabel(
-            info,
-            text=f'{formatear_bytes(p.stat().st_size)}  -  {p.suffix.upper().lstrip(".")}',
-            font=fonts.FUENTE_CHICA,
-            text_color=colors.TEXT_GRAY, anchor='w'
-        ).pack(anchor='w')
-
-        self._wm_thumb = None
+        self._wm_placeholder.grid_remove()
+        if not hasattr(self, '_wm_row'):
+            self._wm_row = ctk.CTkFrame(self._wm_frame, fg_color=colors.SIDEBAR_BG, corner_radius=8)
+            self._wm_row.grid_columnconfigure(1, weight=1)
+            self._wm_thumb_label = ctk.CTkLabel(self._wm_row, text='', width=44, height=44)
+            self._wm_thumb_label.grid(row=0, column=0, rowspan=2, padx=(8, 10), pady=6)
+            self._wm_name = ctk.CTkLabel(self._wm_row, text='', font=fonts.FUENTE_BASE, anchor='w')
+            self._wm_name.grid(row=0, column=1, padx=(0, 8), sticky='ew')
+            self._wm_info = ctk.CTkLabel(self._wm_row, text='', font=fonts.FUENTE_CHICA,
+                                       text_color=colors.TEXT_GRAY, anchor='w')
+            self._wm_info.grid(row=1, column=1, padx=(0, 8), sticky='ew')
+        self._wm_row.grid(row=0, column=0, padx=8, pady=6, sticky='ew')
+        path = Path(ruta)
+        configure_changed(self._wm_name, text=path.name if len(path.name) <= 32 else path.name[:29] + '…')
+        try:
+            size = formatear_bytes(path.stat().st_size)
+        except OSError:
+            size = t('error_generic')
+        configure_changed(self._wm_info, text=f'{size}  -  {path.suffix.upper().lstrip(".")}')
 
     def _mostrar_canvas(self, canvas, img_bgra):
         try:

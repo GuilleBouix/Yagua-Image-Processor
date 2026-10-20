@@ -15,6 +15,7 @@ from app.ui import colors, fonts
 from app.utils import tintar_icono
 from app.translations import t
 from app.ui.frames.base import BaseFrame
+from app.ui.rendering import activate_tab
 from app.ui.frames.settings.state import SettingsState
 from app.ui.frames.settings.tabs.general_tab import GeneralTab
 from app.ui.frames.settings.tabs.updates_tab import UpdatesTab
@@ -75,12 +76,7 @@ class SettingsFrame(BaseFrame):
         self._cambiar_tab(t('settings_tab'))
 
     def _cambiar_tab(self, tab: str):
-        for nombre, frame in self._tabs.items():
-            if nombre == tab:
-                frame.grid()
-                frame.tkraise()
-            else:
-                frame.grid_remove()
+        activate_tab(self._tabs, tab)
 
     def _add_donation_button(self):
         logger.info("settings.ui: add_donation_button")
