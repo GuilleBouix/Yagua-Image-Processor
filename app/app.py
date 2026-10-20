@@ -11,21 +11,22 @@ Relacionado con:
 
 import logging
 import sys
+from typing import Any
 from tkinter import messagebox
 import customtkinter as ctk
 from PIL import Image, ImageTk
 
 from app.ui import fonts
 from app.utils.paths import resource_path
-from app.ui.main_window import MainWindow
+from app.ui.lifetime import UiLifetime
+from app.ui.startup import ApplicationStartup
 from app.translations import t
-from app.utils.image_utils import init_heif_support
 from app.ui.operations import operations
 
 logger = logging.getLogger(__name__)
 
 
-class YaguaApp(ctk.CTk):
+class YaguaApp(UiLifetime, ctk.CTk):
     """
     Ventana principal de la aplicacion Yagua.
     
@@ -46,20 +47,28 @@ class YaguaApp(ctk.CTk):
         # Register before Tk caches available font families.
         fonts.registrar_fuentes()
         super().__init__()
+        self.withdraw()
+        self.ready = False
+        self.main_window: Any = None
+        self._startup = None
         
         # Cargar fuentes personalizadas de la aplicacion
         fonts.inicializar_fuentes()
 
-        # Registrar soporte HEIF/HEIC si esta disponible
-        init_heif_support()
         
         # Establecer titulo de la ventana (traducible)
         self.title(t('app_title'))
         
         # Geometria inicial de la ventana
-        self.geometry('1000x500')
+        self.geometry('1000x600')
         
-        # Actualizar para asegurar que la geometria se aplique antes de maximizar
+        self.minsize(900, 600)
+        self._setup_icon()
+        self._startup = ApplicationStartup(self)
+        # Finish CTk's first-window initialization while still hidden. An idle
+        # geometry flush does not do this: Windows mainloop would initialize the
+        # titlebar again, withdraw our already shown splash, and leave it hidden.
+        # This is the only full update before exposing the startup window.
         self.update()
         
         # Maximizar ventana al iniciar
@@ -85,21 +94,19 @@ class YaguaApp(ctk.CTk):
                 h = self.winfo_screenheight()
                 self.geometry(f'{w}x{h}+0+0')
         
-        # Establecer tamano minimo de la ventana
-        self.minsize(900, 600)
-        
         # En macOS, restaurar la ventana al hacer click en el icono del Dock
         if sys.platform == 'darwin':
             self._setup_dock_reopen()
         
-        # Configurar icono de la ventana segun plataforma
-        self._setup_icon()
-        
-        # Crear ventana principal con sidebar y area de contenido
-        self.main_window = MainWindow(self)
-        self.main_window.pack(fill='both', expand=True)
+        self.deiconify()
         self._close_after_operation = False
         self.protocol('WM_DELETE_WINDOW', self._request_close)
+
+    def destroy(self):
+        startup = getattr(self, '_startup', None)
+        if startup is not None:
+            startup.close()
+        super().destroy()
 
     def _request_close(self):
         if not operations.active:

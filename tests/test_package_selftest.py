@@ -7,6 +7,26 @@ import pytest
 from app.utils import package_selftest
 
 
+def test_startup_probe_waits_for_explicit_readiness(monkeypatch):
+    from types import SimpleNamespace
+    app = SimpleNamespace(ready=False, winfo_exists=lambda: True,
+                          _startup=SimpleNamespace(preloader=SimpleNamespace(errors={})))
+    app.update = lambda: setattr(app, 'ready', True)
+    monkeypatch.setattr(package_selftest.time, 'sleep', lambda _seconds: None)
+    package_selftest._await_startup(app)
+    assert app.ready
+
+
+@pytest.mark.parametrize('state', ['timeout', 'closed', 'module_error'])
+def test_startup_probe_reports_failure(state):
+    from types import SimpleNamespace
+    app = SimpleNamespace(ready=state == 'module_error',
+        winfo_exists=lambda: state != 'closed',
+        _startup=SimpleNamespace(preloader=SimpleNamespace(errors={'metadata': 'failed'})))
+    with pytest.raises((RuntimeError, TimeoutError)):
+        package_selftest._await_startup(app, timeout_seconds=0 if state == 'timeout' else 1)
+
+
 @pytest.mark.parametrize('symbol', ['check_latest_update', 'check_latest_stable'])
 def test_package_probe_disables_update_network_for_current_and_baseline_sources(symbol):
     from types import SimpleNamespace

@@ -23,6 +23,7 @@ import customtkinter as ctk
 
 from app.ui import colors, fonts
 from app.ui.lifetime import UiLifetime
+from app.ui.building import finish, steps_for
 from app.utils import tintar_icono
 from app.modules.compress import formatear_bytes
 from app.translations import t
@@ -50,7 +51,7 @@ class BaseFrame(UiLifetime, ctk.CTkScrollableFrame):
     _build_content() para agregar su contenido especifico.
     """
     
-    def __init__(self, parent, title):
+    def __init__(self, parent, title, *, defer_build=False):
         """
         Inicializa el frame base.
         
@@ -90,7 +91,11 @@ class BaseFrame(UiLifetime, ctk.CTkScrollableFrame):
         self.after(0, self._bind_viewport_sync)
         
         # Construir la estructura del frame
-        self._build()
+        self.build_ready = False
+        self._defer_build = defer_build
+        self._build_iterator = self._build_steps()
+        if not defer_build:
+            finish(self._build_iterator)
 
     def _post_ui(self, delay, callback):
         # Workers use this queue, never Tk.after. Delay is kept for call-site compatibility.
@@ -173,6 +178,9 @@ class BaseFrame(UiLifetime, ctk.CTkScrollableFrame):
         return
 
     def _build(self):
+        finish(self._build_steps())
+
+    def _build_steps(self):
         """
         Construye la estructura completa del frame.
         
@@ -180,15 +188,28 @@ class BaseFrame(UiLifetime, ctk.CTkScrollableFrame):
         header, contenido y footer.
         """
         logger.info("%s: build", self.__class__.__name__)
-        self._show_full_overlay(t('processing'))
+        if not self._defer_build:
+            self._show_full_overlay(t('processing'))
         # Configurar columna para ocupar todo el ancho
         self.grid_columnconfigure(0, weight=1)
         
         # Construir cada seccion
         self._build_header()
-        self._build_content()
+        yield
+        yield from steps_for(self._build_content)
+        yield from self._prepare_additional_steps()
         self._build_footer()
+        yield
         self._hide_full_overlay()
+        self.build_ready = True
+        self._on_build_complete()
+
+    def _on_build_complete(self):
+        """Subclass initialization that requires already constructed controls."""
+
+    def _prepare_additional_steps(self):
+        """Optional controls that would otherwise be built on the first mode change."""
+        yield
 
     def _bind_viewport_sync(self):
         """Sincroniza la altura minima del frame con el viewport scrollable."""

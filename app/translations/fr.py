@@ -526,3 +526,15 @@ TRANSLATIONS.update({
 })
 
 TRANSLATIONS["meta_source_changed"] = 'Le fichier a changé depuis son chargement. Sélectionnez-le à nouveau avant de l’enregistrer.'
+
+
+# UI startup and preloading.
+TRANSLATIONS.update({
+    'startup_resources': 'Préparation de Yagua…',
+    'startup_home': 'Préparation de l’accueil…',
+    'startup_module': 'Préparation de {module}…',
+    'startup_enter': 'Ouvrir maintenant',
+    'startup_error': 'Yagua n’a pas pu démarrer. Consulte le journal pour plus d’informations.',
+    'startup_module_error': 'Cet outil n’a pas pu être préparé. Choisis un autre outil et réessaie.',
+    'startup_partial': 'Impossible de préparer : {modules}. Ouvre-les pour réessayer.',
+})

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from app.ui.building import stepwise, steps_for
 import logging
 from pathlib import Path
 from queue import Empty, SimpleQueue
@@ -38,7 +39,7 @@ def _peso(byte_count):
 class LqipFrame(BaseFrame):
     """Entrada y ajustes a la izquierda; comparación y código a la derecha."""
 
-    def __init__(self, parent):
+    def __init__(self, parent, *, defer_build=False):
         self._state = LqipState()
         self._selected_index: int | None = None
         self._results: dict[int, ItemResult] = {}
@@ -56,7 +57,9 @@ class LqipFrame(BaseFrame):
         self._display_keys = {}
         self._left_help_labels = []
         self._traces = []
-        super().__init__(parent, t('lqip_title'))
+        super().__init__(parent, t('lqip_title'), defer_build=defer_build)
+
+    def _on_build_complete(self):
         self._ui_ready = True
         for variable in (
             self._state.modo, self._state.ancho_lqip, self._state.blur,
@@ -64,7 +67,8 @@ class LqipFrame(BaseFrame):
         ):
             token = variable.trace_add('write', self._ajustes_cambiados)
             self._traces.append((variable, token))
-        self._source_job = self.after(40, self._recibir_originales)
+        if not self._defer_build:
+            self._source_job = self.after(40, self._recibir_originales)
         self._actualizar_validacion()
         self._actualizar_acciones()
         self._render_selected()
@@ -77,43 +81,69 @@ class LqipFrame(BaseFrame):
             height=18 if muted else 22, **kwargs,
         )
 
+    @stepwise
     def _build_content(self):
         left, right = self._crear_workspace(column_weights=(2, 3), breakpoint=900)
+        yield
         self._left = left
+        yield
         self._right = right
+        yield
         self._workspace_host.bind('<Configure>', self._schedule_viewport_sync, add=True)
+        yield
         right.grid_rowconfigure(7, weight=1)
+        yield
         self._btn_seleccionar = self._crear_boton_seleccionar(
             left, texto=t('lqip_select_image'),
             comando=lambda: self._explorar(titulo=t('lqip_select_image'), multi=False),
         )
+        yield
         self._btn_seleccionar.grid(row=0, column=0, padx=16, pady=(16, 8), sticky='ew')
+        yield
         self._input_card = ctk.CTkFrame(
             left, fg_color=colors.DROPZONE_BG, corner_radius=8,
             border_width=1, border_color=colors.SIDEBAR_SEPARATOR,
         )
+        yield
         self._input_card.grid(row=1, column=0, padx=16, pady=(0, 16), sticky='ew')
+        yield
         self._input_card.grid_columnconfigure(1, weight=1)
+        yield
         self._input_viewport = ctk.CTkFrame(self._input_card, width=56, height=56, fg_color='transparent')
+        yield
         self._input_viewport.grid(row=0, column=0, rowspan=2, padx=(12, 10), pady=12)
+        yield
         self._input_thumb = ctk.CTkLabel(
             self._input_viewport, text='', width=1, height=1,
             font=fonts.FUENTE_CHICA, text_color=colors.TEXT_GRAY,
         )
+        yield
         self._input_thumb.place(relwidth=1, relheight=1)
+        yield
         self._preview_renderers['input'] = StableRender(
             self, self._input_viewport, lambda size: self._dibujar_preview('input', size))
+        yield
         self._lbl_input_name = self._text_label(self._input_card, t('lqip_select_hint'), wraplength=240)
+        yield
         self._lbl_input_name.grid(row=0, column=1, padx=(0, 12), pady=(12, 0), sticky='sew')
+        yield
         self._lbl_input_meta = self._text_label(self._input_card, '', muted=True, wraplength=240)
+        yield
         self._lbl_input_meta.grid(row=1, column=1, padx=(0, 12), pady=(2, 12), sticky='new')
+        yield
 
         header = ctk.CTkFrame(left, fg_color='transparent')
+        yield
         header.grid(row=3, column=0, padx=16, sticky='ew')
+        yield
         header.grid_columnconfigure(0, weight=1)
+        yield
         self._text_label(header, t('lqip_generation')).grid(row=0, column=0, sticky='w')
+        yield
         self._modo_a_interno = {t('lqip_mode_lqip'): 'lqip', t('lqip_mode_b64'): 'base64'}
+        yield
         self._modo_visible = ctk.StringVar(value=t('lqip_mode_lqip'))
+        yield
         self._seg_modo = ctk.CTkSegmentedButton(
             header, values=list(self._modo_a_interno), variable=self._modo_visible,
             font=fonts.FUENTE_CHICA, selected_color=colors.SIDEBAR_HOVER,
@@ -121,52 +151,86 @@ class LqipFrame(BaseFrame):
             unselected_color=colors.SIDEBAR_BG, unselected_hover_color=colors.SIDEBAR_HOVER,
             text_color=colors.TEXT_COLOR, command=self._cambiar_modo,
         )
+        yield
         self._seg_modo.grid(row=0, column=1, sticky='e')
+        yield
         self._lbl_descripcion = self._text_label(left, t('lqip_mode_lqip_desc'), muted=True, wraplength=330)
+        yield
         self._lbl_descripcion.grid(row=4, column=0, padx=16, pady=(6, 8), sticky='ew')
+        yield
         self._frame_opciones_modo = ctk.CTkFrame(left, fg_color='transparent')
+        yield
         self._frame_opciones_modo.grid(row=5, column=0, padx=16, sticky='ew')
+        yield
         self._frame_opciones_modo.grid_columnconfigure(0, weight=1)
+        yield
         self._lqip_options = ctk.CTkFrame(self._frame_opciones_modo, fg_color='transparent')
+        yield
         self._b64_options = ctk.CTkFrame(self._frame_opciones_modo, fg_color='transparent')
+        yield
         for frame in (self._lqip_options, self._b64_options):
             frame.grid_columnconfigure(0, weight=1)
-        self._entry_width, self._error_width = self._campo_numerico(
+            yield
+        self._entry_width, self._error_width = (yield from steps_for(self._campo_numerico,
             self._lqip_options, 0, 'lqip_width', 'lqip_width_help', self._state.ancho_lqip,
-        )
-        self._entry_blur, self._error_blur = self._campo_numerico(
+        ))
+        yield
+        self._entry_blur, self._error_blur = (yield from steps_for(self._campo_numerico,
             self._lqip_options, 3, 'lqip_blur', 'lqip_blur_help', self._state.blur,
-        )
-        self._lbl_cal_lqip = self._calidad(self._lqip_options, 6, self._state.calidad_lqip, 80)
-        self._lbl_cal_b64 = self._calidad(self._b64_options, 0, self._state.calidad_b64, 100)
+        ))
+        yield
+        self._lbl_cal_lqip = (yield from steps_for(self._calidad, self._lqip_options, 6, self._state.calidad_lqip, 80))
+        yield
+        self._lbl_cal_b64 = (yield from steps_for(self._calidad, self._b64_options, 0, self._state.calidad_b64, 100))
+        yield
         self._lqip_options.grid(row=0, column=0, sticky='ew')
+        yield
         self._btn_procesar = ctk.CTkButton(
             left, text=t('lqip_btn_process'), height=38, font=fonts.FUENTE_BASE,
             fg_color=colors.ACENTO, text_color=colors.TEXT_ACTIVE,
             hover_color=colors.ACENTO_HOVER, command=self._procesar,
         )
+        yield
         self._btn_procesar.grid(row=6, column=0, padx=16, pady=(12, 16), sticky='ew')
+        yield
 
         self._lbl_result_name = self._text_label(right, t('lqip_result'), wraplength=500)
+        yield
         self._lbl_result_name.grid(row=0, column=0, padx=16, pady=(16, 0), sticky='ew')
+        yield
         self._lbl_result_status = self._text_label(right, t('lqip_select_hint'), muted=True, wraplength=500)
+        yield
         self._lbl_result_status.grid(row=1, column=0, padx=16, pady=(2, 8), sticky='ew')
+        yield
         self._comparison = ctk.CTkFrame(right, fg_color='transparent', height=200)
+        yield
         self._comparison.grid(row=2, column=0, padx=16, sticky='ew')
+        yield
         self._comparison.grid_propagate(False)
+        yield
         self._comparison.grid_columnconfigure((0, 1), weight=1, uniform='previews')
+        yield
         self._comparison.grid_rowconfigure(0, weight=1)
-        self._original_label, self._original_meta = self._preview_card(0, 'lqip_original')
-        self._output_label, self._output_meta = self._preview_card(1, 'lqip_result')
+        yield
+        self._original_label, self._original_meta = (yield from steps_for(self._preview_card, 0, 'lqip_original'))
+        yield
+        self._output_label, self._output_meta = (yield from steps_for(self._preview_card, 1, 'lqip_result'))
+        yield
         self._comparison.bind('<Configure>', self._programar_render, add=True)
+        yield
         self._lbl_metrics = self._text_label(right, t('lqip_metrics_hint'), muted=True)
+        yield
         self._lbl_metrics.grid(row=3, column=0, padx=16, pady=(8, 10), sticky='ew')
+        yield
         self._text_label(right, t('lqip_code')).grid(row=4, column=0, padx=16, pady=(0, 6), sticky='w')
+        yield
         self._campo_a_clave = {
             t('lqip_field_data_uri'): 'data_uri', t('lqip_field_html_tag'): 'html_tag',
             t('lqip_field_css_bg'): 'css_bg', t('lqip_field_base64'): 'base64',
         }
+        yield
         self._campo_export = ctk.StringVar(value=t('lqip_field_data_uri'))
+        yield
         self._seg_formato = ctk.CTkSegmentedButton(
             right, values=list(self._campo_a_clave), variable=self._campo_export,
             font=fonts.FUENTE_CHICA, selected_color=colors.SIDEBAR_HOVER,
@@ -174,84 +238,141 @@ class LqipFrame(BaseFrame):
             unselected_color=colors.SIDEBAR_BG, unselected_hover_color=colors.SIDEBAR_HOVER,
             text_color=colors.TEXT_COLOR, command=lambda _: self._actualizar_codigo(),
         )
+        yield
         self._seg_formato.grid(row=5, column=0, padx=16, sticky='ew')
+        yield
         self._lbl_format_help = self._text_label(right, '', muted=True, wraplength=500)
+        yield
         self._lbl_format_help.grid(row=6, column=0, padx=16, pady=(6, 6), sticky='ew')
+        yield
         fixed = tkfont.nametofont('TkFixedFont').actual('family')
+        yield
         self._resultado_preview = ctk.CTkTextbox(
             right, height=140, corner_radius=8, font=ctk.CTkFont(family=fixed, size=12),
             fg_color=colors.SIDEBAR_BG, border_width=1,
             border_color=colors.SIDEBAR_SEPARATOR, text_color=colors.TEXT_COLOR, wrap='char',
         )
+        yield
         self._resultado_preview._y_scrollbar.configure(height=120)
+        yield
         self._resultado_preview._textbox.configure(exportselection=False)
+        yield
         self._resultado_preview._textbox.bind('<<Copy>>', self._copiar_desde_preview)
+        yield
         self._resultado_preview.grid(row=7, column=0, padx=16, sticky='nsew')
+        yield
         self._lbl_abbreviated = self._text_label(right, t('lqip_abbreviated'), muted=True, wraplength=500)
+        yield
         self._lbl_abbreviated.grid(row=8, column=0, padx=16, pady=(4, 0), sticky='ew')
+        yield
         self._lbl_abbreviated.grid_forget()
+        yield
         actions = ctk.CTkFrame(right, fg_color='transparent')
+        yield
         actions.grid(row=9, column=0, padx=16, pady=(12, 16), sticky='ew')
+        yield
         actions.grid_columnconfigure((0, 1), weight=1, uniform='actions')
+        yield
         self._btn_copiar = self._action_button(actions, 'lqip_btn_copy', self._copiar)
+        yield
         self._btn_copiar.grid(row=0, column=0, padx=(0, 4), sticky='ew')
+        yield
         self._btn_guardar = self._action_button(actions, 'lqip_btn_save', self._guardar)
+        yield
         self._btn_guardar.grid(row=0, column=1, padx=(4, 0), sticky='ew')
+        yield
         left.bind('<Configure>', self._ajustar_textos, add='+')
+        yield
         right.bind('<Configure>', self._ajustar_textos, add='+')
+        yield
         self._actualizar_codigo()
+        yield
 
+    @stepwise
     def _campo_numerico(self, parent, row, title, help_key, variable):
         self._text_label(parent, t(title)).grid(row=row, column=0, sticky='w')
+        yield
         entry = ctk.CTkEntry(
             parent, textvariable=variable, width=80, font=fonts.FUENTE_BASE,
             fg_color=colors.SIDEBAR_BG, border_color=colors.SIDEBAR_SEPARATOR,
             text_color=colors.TEXT_COLOR,
         )
+        yield
         entry.grid(row=row, column=1, sticky='e')
+        yield
         help_label = self._text_label(parent, t(help_key), muted=True, wraplength=330)
+        yield
         help_label.grid(row=row + 1, column=0, columnspan=2, sticky='ew', pady=(0, 6))
+        yield
         self._left_help_labels.append(help_label)
+        yield
         error = self._text_label(parent, '', muted=False, wraplength=330)
+        yield
         self._left_help_labels.append(error)
+        yield
         error.grid(row=row + 2, column=0, columnspan=2, sticky='w', pady=(0, 4))
+        yield
         error.grid_forget()
+        yield
         return entry, error
 
+    @stepwise
     def _calidad(self, parent, row, variable, maximum):
         self._text_label(parent, t('lqip_quality')).grid(row=row, column=0, sticky='w')
+        yield
         value = self._text_label(parent, str(variable.get()))
+        yield
         value.grid(row=row, column=1, sticky='e')
+        yield
         slider = ctk.CTkSlider(
             parent, from_=10, to=maximum, number_of_steps=maximum - 10, variable=variable,
             button_color=colors.ACENTO, button_hover_color=colors.ACENTO_HOVER,
             progress_color=colors.ACENTO, fg_color=colors.SIDEBAR_SEPARATOR,
         )
+        yield
         slider.grid(row=row + 1, column=0, columnspan=2, pady=(2, 0), sticky='ew')
+        yield
         help_label = self._text_label(parent, t('lqip_quality_help'), muted=True, wraplength=330)
+        yield
         help_label.grid(row=row + 2, column=0, columnspan=2, sticky='ew', pady=(0, 2))
+        yield
         self._left_help_labels.append(help_label)
+        yield
         return value
 
+    @stepwise
     def _preview_card(self, column, title):
         card = ctk.CTkFrame(self._comparison, fg_color=colors.SIDEBAR_BG, corner_radius=8)
+        yield
         card.grid(row=0, column=column, padx=(0, 4) if column == 0 else (4, 0), sticky='nsew')
+        yield
         card.grid_columnconfigure(0, weight=1)
+        yield
         card.grid_rowconfigure(1, weight=1)
+        yield
         self._text_label(card, t(title), muted=True).grid(row=0, column=0, padx=10, pady=(6, 0), sticky='w')
+        yield
         viewport = ctk.CTkFrame(card, width=1, height=1, fg_color='transparent')
+        yield
         viewport.grid(row=1, column=0, padx=10, pady=4, sticky='nsew')
+        yield
         label = ctk.CTkLabel(
             viewport, text=t('lqip_select_hint') if column == 0 else t('lqip_generate_hint'),
             width=1, height=1, font=fonts.FUENTE_CHICA, text_color=colors.TEXT_GRAY,
             wraplength=220,
         )
+        yield
         label.place(relwidth=1, relheight=1)
+        yield
         key = 'original' if column == 0 else 'output'
+        yield
         self._preview_renderers[key] = StableRender(
             self, viewport, lambda size: self._dibujar_preview(key, size))
+        yield
         meta = self._text_label(card, '', muted=True)
+        yield
         meta.grid(row=2, column=0, padx=10, pady=(0, 6), sticky='w')
+        yield
         return label, meta
 
     def _action_button(self, parent, key, command):
@@ -263,6 +384,8 @@ class LqipFrame(BaseFrame):
         )
 
     def _ajustar_textos(self, event=None):
+        if not self._ui_ready:
+            return
         scale = self._get_widget_scaling()
         if event is not None and event.widget is self._left:
             width = max(120, int(event.width / scale) - 32)
@@ -609,6 +732,8 @@ class LqipFrame(BaseFrame):
 
     def on_view_shown(self):
         super().on_view_shown()
+        if self._source_job is None:
+            self._source_job = self.after(40, self._recibir_originales)
         for renderer in self._preview_renderers.values():
             renderer.set_visible(True)
 

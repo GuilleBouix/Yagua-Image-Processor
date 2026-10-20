@@ -16,6 +16,7 @@ Relaciones:
 
 from __future__ import annotations
 
+from app.ui.building import stepwise, steps_for
 import logging
 from tkinter import filedialog
 
@@ -44,17 +45,27 @@ logger = logging.getLogger(__name__)
 class ResizeFrame(BaseFrame):
     """Frame principal del modulo de redimension, recorte y canvas."""
 
-    def __init__(self, parent):
+    def __init__(self, parent, *, defer_build=False):
         logger.info("resize.ui: init")
         self._state = ResizeState()
-        super().__init__(parent, t('resize_title'))
+        super().__init__(parent, t('resize_title'), defer_build=defer_build)
 
+    def _prepare_additional_steps(self):
+        if self._defer_build:
+            for mode in (t('pixels'), t('preset'), t('percentage')):
+                yield from steps_for(self._actualizar_modo_resize, mode)
+
+    @stepwise
     def _build_content(self):
         """Construir el contenido principal del frame con tabs."""
         logger.info("resize.ui: build_content")
+        yield
         izquierda, derecha = self._crear_workspace()
+        yield
         izquierda.grid_rowconfigure(2, weight=1)
+        yield
         derecha.grid_rowconfigure(1, weight=1)
+        yield
 
         self._tab = ctk.CTkSegmentedButton(
             izquierda,
@@ -67,19 +78,28 @@ class ResizeFrame(BaseFrame):
             text_color=colors.TEXT_COLOR,
             command=self._cambiar_tab
         )
+        yield
         self._tab.set(t('resize_tab'))
+        yield
         self._tab.grid(row=0, column=0, padx=16, pady=(16, 8), sticky='ew')
+        yield
 
         self._btn_seleccionar = self._crear_boton_seleccionar(izquierda)
+        yield
         self._btn_seleccionar.grid(row=1, column=0, padx=16, pady=(0, 8), sticky='ew')
+        yield
 
         ctk.CTkLabel(
             derecha, text=t('files_loaded').capitalize(), font=fonts.FUENTE_BASE,
             text_color=colors.TEXT_COLOR, anchor='w'
         ).grid(row=0, column=0, padx=16, pady=(16, 8), sticky='w')
+        yield
         self._lista_frame = self._crear_lista_archivos(derecha, height=420)
+        yield
         self._lista_frame.grid(row=1, column=0, padx=16, pady=(0, 16), sticky='nsew')
+        yield
         self._lista_frame.grid_columnconfigure(0, weight=1)
+        yield
 
         self._lbl_lista_vacia = ctk.CTkLabel(
             self._lista_frame,
@@ -87,38 +107,55 @@ class ResizeFrame(BaseFrame):
             font=fonts.FUENTE_CHICA,
             text_color=colors.TEXT_GRAY
         )
+        yield
         self._lbl_lista_vacia.pack(pady=12)
+        yield
 
         self._contenedor = ctk.CTkFrame(izquierda, fg_color='transparent')
+        yield
         self._contenedor.grid(row=2, column=0, padx=16, pady=(0, 16), sticky='nsew')
+        yield
         self._contenedor.grid_columnconfigure(0, weight=1)
+        yield
 
         self._frames: dict[str, ctk.CTkFrame] = {
-            t('resize_tab'): self._build_tab_resize(),
-            t('crop_tab'): self._build_tab_crop(),
-            t('canvas_tab'): self._build_tab_canvas(),
+            t('resize_tab'): (yield from steps_for(self._build_tab_resize)),
+            t('crop_tab'): (yield from steps_for(self._build_tab_crop)),
+            t('canvas_tab'): (yield from steps_for(self._build_tab_canvas)),
         }
+        yield
         for f in self._frames.values():
             f.grid(row=0, column=0, sticky='ew')
+            yield
 
         self._cambiar_tab(t('resize_tab'))
+        yield
 
-    def _build_tab_resize(self) -> ctk.CTkFrame:
+    @stepwise
+    def _build_tab_resize(self):
         """Construir el tab de redimension con controles de modo."""
         f = ctk.CTkFrame(self._contenedor, fg_color='transparent')
+        if self._defer_build:
+            f.grid(row=0, column=0, sticky='nsew')
+        yield
         f.grid_columnconfigure(0, weight=1)
+        yield
 
         panel = ctk.CTkFrame(
             f, corner_radius=12, fg_color=colors.PANEL_BG,
             border_width=1, border_color=colors.SIDEBAR_SEPARATOR
         )
+        yield
         panel.grid(row=0, column=0, sticky='ew')
+        yield
         panel.grid_columnconfigure(1, weight=1)
+        yield
 
         ctk.CTkLabel(
             panel, text=t('mode'), font=fonts.FUENTE_BASE,
             text_color=colors.TEXT_GRAY, anchor='w'
         ).grid(row=0, column=0, padx=(16, 12), pady=(16, 8), sticky='w')
+        yield
 
         ctk.CTkSegmentedButton(
             panel,
@@ -132,17 +169,23 @@ class ResizeFrame(BaseFrame):
             text_color=colors.TEXT_COLOR,
             command=self._actualizar_modo_resize
         ).grid(row=0, column=1, padx=(0, 16), pady=(16, 8), sticky='w')
+        yield
 
         self._frame_controles_resize = ctk.CTkFrame(panel, fg_color='transparent')
+        yield
         self._frame_controles_resize.grid(
             row=1, column=0, columnspan=2, padx=16, pady=(0, 8), sticky='ew'
         )
+        yield
         self._frame_controles_resize.grid_columnconfigure(1, weight=1)
+        yield
 
         self._frame_ratio = ctk.CTkFrame(panel, fg_color='transparent')
+        yield
         self._frame_ratio.grid(
             row=2, column=0, columnspan=2, padx=16, pady=(0, 8), sticky='ew'
         )
+        yield
         ctk.CTkCheckBox(
             self._frame_ratio,
             text=t('maintain_aspect'),
@@ -154,6 +197,7 @@ class ResizeFrame(BaseFrame):
             border_color=colors.SIDEBAR_SEPARATOR,
             checkmark_color=colors.TEXT_ACTIVE,
         ).pack(anchor='w')
+        yield
 
         self._btn_resize = ctk.CTkButton(
             panel, text=t('resize_tab'), height=40, corner_radius=8,
@@ -161,13 +205,17 @@ class ResizeFrame(BaseFrame):
             text_color=colors.TEXT_ACTIVE, hover_color=colors.ACENTO_HOVER,
             command=self._ejecutar_resize
         )
+        yield
         self._btn_resize.grid(
             row=3, column=0, columnspan=2, padx=16, pady=(0, 16), sticky='ew'
         )
+        yield
 
-        self._actualizar_modo_resize(t('percentage'))
+        (yield from steps_for(self._actualizar_modo_resize, t('percentage')))
+        yield
         return f
 
+    @stepwise
     def _actualizar_modo_resize(self, modo: str):
         """Actualizar controles segun el modo de redimension seleccionado.
 
@@ -175,34 +223,48 @@ class ResizeFrame(BaseFrame):
             modo: Modo actual (porcentaje, pixels o preset)
         """
         logger.info("resize.ui: actualizar_modo_resize (%s)", modo)
+        yield
         if not hasattr(self, '_resize_mode_panels'):
             self._resize_mode_panels = {}
+            yield
             self._frame_controles_resize.grid_columnconfigure(0, weight=1)
+            yield
         for name, panel in self._resize_mode_panels.items():
             if name != modo:
                 panel.grid_remove()
+                yield
 
         if modo == t('pixels'):
             self._frame_ratio.grid()
+            yield
         else:
             self._frame_ratio.grid_remove()
+            yield
 
         if modo in self._resize_mode_panels:
             self._resize_mode_panels[modo].grid()
+            yield
             return
         fc = ctk.CTkFrame(self._frame_controles_resize, fg_color='transparent')
+        yield
         fc.grid(row=0, column=0, sticky='ew')
+        yield
         self._resize_mode_panels[modo] = fc
+        yield
 
         if modo == t('percentage'):
             fc.grid_columnconfigure(0, weight=0)
+            yield
             fc.grid_columnconfigure(1, weight=1)
+            yield
             fc.grid_columnconfigure(2, weight=0)
+            yield
 
             self._lbl_pct = ctk.CTkLabel(
                 fc, text=f'{self._state.pct_var.get()}%', font=fonts.FUENTE_BASE,
                 text_color=colors.ACENTO, fg_color='transparent', width=36
             )
+            yield
 
             ctk.CTkSlider(
                 fc, from_=1, to=200, variable=self._state.pct_var,
@@ -212,19 +274,26 @@ class ResizeFrame(BaseFrame):
                 fg_color=colors.SIDEBAR_SEPARATOR,
                 command=lambda v: self._lbl_pct.configure(text=f'{int(v)}%')
             ).grid(row=0, column=0, columnspan=2, sticky='ew', padx=(0, 8))
+            yield
 
             self._lbl_pct.grid(row=0, column=2)
+            yield
 
         elif modo == t('pixels'):
             fc.grid_columnconfigure(0, weight=0)
+            yield
             fc.grid_columnconfigure(1, weight=0)
+            yield
             fc.grid_columnconfigure(2, weight=0)
+            yield
             fc.grid_columnconfigure(3, weight=0)
+            yield
 
             ctk.CTkLabel(
                 fc, text=t('width'), font=fonts.FUENTE_CHICA,
                 text_color=colors.TEXT_GRAY
             ).grid(row=0, column=0, padx=(0, 4), sticky='w')
+            yield
 
             self._entry_ancho = ctk.CTkEntry(
                 fc, width=90, font=fonts.FUENTE_BASE,
@@ -234,12 +303,15 @@ class ResizeFrame(BaseFrame):
                 placeholder_text='1920',
                 placeholder_text_color=colors.TEXT_GRAY
             )
+            yield
             self._entry_ancho.grid(row=0, column=1, padx=(0, 16))
+            yield
 
             ctk.CTkLabel(
                 fc, text=t('height'), font=fonts.FUENTE_CHICA,
                 text_color=colors.TEXT_GRAY
             ).grid(row=0, column=2, padx=(0, 4), sticky='w')
+            yield
 
             self._entry_alto = ctk.CTkEntry(
                 fc, width=90, font=fonts.FUENTE_BASE,
@@ -249,10 +321,13 @@ class ResizeFrame(BaseFrame):
                 placeholder_text='1080',
                 placeholder_text_color=colors.TEXT_GRAY
             )
+            yield
             self._entry_alto.grid(row=0, column=3)
+            yield
 
         elif modo == t('preset'):
             fc.grid_columnconfigure(0, weight=1)
+            yield
 
             ctk.CTkOptionMenu(
                 fc,
@@ -267,23 +342,33 @@ class ResizeFrame(BaseFrame):
                 dropdown_text_color=colors.TEXT_COLOR,
                 dropdown_hover_color=colors.SIDEBAR_HOVER,
             ).grid(row=0, column=0, sticky='ew')
+            yield
 
-    def _build_tab_crop(self) -> ctk.CTkFrame:
+    @stepwise
+    def _build_tab_crop(self):
         """Construir el tab de recorte con selector de proporcion."""
         f = ctk.CTkFrame(self._contenedor, fg_color='transparent')
+        if self._defer_build:
+            f.grid(row=0, column=0, sticky='nsew')
+        yield
         f.grid_columnconfigure(0, weight=1)
+        yield
 
         panel = ctk.CTkFrame(
             f, corner_radius=12, fg_color=colors.PANEL_BG,
             border_width=1, border_color=colors.SIDEBAR_SEPARATOR
         )
+        yield
         panel.grid(row=0, column=0, sticky='ew')
+        yield
         panel.grid_columnconfigure(1, weight=1)
+        yield
 
         ctk.CTkLabel(
             panel, text=t('ratio'), font=fonts.FUENTE_BASE,
             text_color=colors.TEXT_GRAY, anchor='w'
         ).grid(row=0, column=0, padx=(16, 12), pady=(16, 8), sticky='w')
+        yield
 
         ctk.CTkOptionMenu(
             panel,
@@ -298,6 +383,7 @@ class ResizeFrame(BaseFrame):
             dropdown_text_color=colors.TEXT_COLOR,
             dropdown_hover_color=colors.SIDEBAR_HOVER,
         ).grid(row=0, column=1, padx=(0, 16), pady=(16, 8), sticky='w')
+        yield
 
         ctk.CTkLabel(
             panel,
@@ -305,6 +391,7 @@ class ResizeFrame(BaseFrame):
             font=fonts.FUENTE_CHICA,
             text_color=colors.TEXT_GRAY, anchor='w'
         ).grid(row=1, column=0, columnspan=2, padx=16, pady=(0, 8), sticky='w')
+        yield
 
         self._btn_crop = ctk.CTkButton(
             panel, text=t('crop_tab'), height=40, corner_radius=8,
@@ -312,30 +399,43 @@ class ResizeFrame(BaseFrame):
             text_color=colors.TEXT_ACTIVE, hover_color=colors.ACENTO_HOVER,
             command=self._ejecutar_crop
         )
+        yield
         self._btn_crop.grid(
             row=2, column=0, columnspan=2, padx=16, pady=(0, 16), sticky='ew'
         )
+        yield
         return f
 
-    def _build_tab_canvas(self) -> ctk.CTkFrame:
+    @stepwise
+    def _build_tab_canvas(self):
         """Construir el tab de canvas con entradas de tamano y color de fondo."""
         f = ctk.CTkFrame(self._contenedor, fg_color='transparent')
+        if self._defer_build:
+            f.grid(row=0, column=0, sticky='nsew')
+        yield
         f.grid_columnconfigure(0, weight=1)
+        yield
 
         panel = ctk.CTkFrame(
             f, corner_radius=12, fg_color=colors.PANEL_BG,
             border_width=1, border_color=colors.SIDEBAR_SEPARATOR
         )
+        yield
         panel.grid(row=0, column=0, sticky='ew')
+        yield
         panel.grid_columnconfigure(1, weight=1)
+        yield
 
         ctk.CTkLabel(
             panel, text=t('size'), font=fonts.FUENTE_BASE,
             text_color=colors.TEXT_GRAY, anchor='w'
         ).grid(row=0, column=0, padx=(16, 12), pady=(16, 8), sticky='w')
+        yield
 
         fila_dim = ctk.CTkFrame(panel, fg_color='transparent')
+        yield
         fila_dim.grid(row=0, column=1, padx=(0, 16), pady=(16, 8), sticky='w')
+        yield
 
         self._canvas_ancho = ctk.CTkEntry(
             fila_dim, width=80, font=fonts.FUENTE_BASE,
@@ -345,12 +445,15 @@ class ResizeFrame(BaseFrame):
             placeholder_text='1080',
             placeholder_text_color=colors.TEXT_GRAY
         )
+        yield
         self._canvas_ancho.pack(side='left', padx=(0, 8))
+        yield
 
         ctk.CTkLabel(
             fila_dim, text=t('x_symbol'), font=fonts.FUENTE_BASE,
             text_color=colors.TEXT_GRAY
         ).pack(side='left', padx=(0, 8))
+        yield
 
         self._canvas_alto = ctk.CTkEntry(
             fila_dim, width=80, font=fonts.FUENTE_BASE,
@@ -360,12 +463,15 @@ class ResizeFrame(BaseFrame):
             placeholder_text='1080',
             placeholder_text_color=colors.TEXT_GRAY
         )
+        yield
         self._canvas_alto.pack(side='left')
+        yield
 
         ctk.CTkLabel(
             panel, text=t('background'), font=fonts.FUENTE_BASE,
             text_color=colors.TEXT_GRAY, anchor='w'
         ).grid(row=1, column=0, padx=(16, 12), pady=8, sticky='w')
+        yield
 
         ctk.CTkSegmentedButton(
             panel,
@@ -379,15 +485,18 @@ class ResizeFrame(BaseFrame):
             text_color=colors.TEXT_COLOR,
             command=self._actualizar_fondo_opciones
         ).grid(row=1, column=1, padx=(0, 16), pady=8, sticky='w')
+        yield
 
         self._lbl_aviso_fondo = ctk.CTkLabel(
             panel, text='',
             font=fonts.FUENTE_CHICA,
             text_color=colors.TEXT_GRAY, anchor='w'
         )
+        yield
         self._lbl_aviso_fondo.grid(
             row=2, column=0, columnspan=2, padx=16, pady=(0, 4), sticky='w'
         )
+        yield
 
         self._btn_canvas = ctk.CTkButton(
             panel, text=t('apply_canvas'), height=40, corner_radius=8,
@@ -395,9 +504,11 @@ class ResizeFrame(BaseFrame):
             text_color=colors.TEXT_ACTIVE, hover_color=colors.ACENTO_HOVER,
             command=self._ejecutar_canvas
         )
+        yield
         self._btn_canvas.grid(
             row=2, column=0, columnspan=2, padx=16, pady=(0, 16), sticky='ew'
         )
+        yield
         return f
 
     def _cargar_imagenes(self, rutas: list[str]):

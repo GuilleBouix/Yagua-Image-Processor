@@ -14,6 +14,7 @@ Relaciones:
 
 from __future__ import annotations
 
+from app.ui.building import stepwise
 import logging
 from pathlib import Path
 from tkinter import filedialog
@@ -41,21 +42,26 @@ logger = logging.getLogger(__name__)
 class PaletteFrame(BaseFrame):
     """Frame principal del modulo de extraccion de paleta de colores."""
 
-    def __init__(self, parent):
+    def __init__(self, parent, *, defer_build=False):
         logger.info("palette.ui: init")
         self._state = PaletteState()
         self._preview_img: ctk.CTkImage | None = None
-        super().__init__(parent, t('palette_title'))
+        super().__init__(parent, t('palette_title'), defer_build=defer_build)
 
+    @stepwise
     def _build_content(self):
         """Construir el contenido principal del frame."""
         logger.info("palette.ui: build_content")
+        yield
         self.grid_columnconfigure(0, weight=1)
+        yield
 
         self._btn_seleccionar = self._crear_boton_seleccionar(
             self, t('select_image_for_palette'), self._explorar
         )
+        yield
         self._btn_seleccionar.grid(row=1, column=0, padx=28, pady=8, sticky='ew')
+        yield
 
         self._frame_preview = ctk.CTkFrame(
             self,
@@ -65,17 +71,25 @@ class PaletteFrame(BaseFrame):
             border_color=colors.ACENTO_DIMMED,
             fg_color=colors.PANEL_BG,
         )
+        yield
         self._frame_preview.grid(row=2, column=0, padx=28, pady=8, sticky='ew')
+        yield
         self._frame_preview.grid_propagate(False)
+        yield
         self._frame_preview.grid_columnconfigure(0, weight=1)
+        yield
         self._frame_preview.grid_columnconfigure(1, weight=1)
+        yield
         self._frame_preview.grid_rowconfigure(0, weight=1)
+        yield
 
         self._lbl_preview = ctk.CTkLabel(
             self._frame_preview, text='',
             width=80, height=80, fg_color='transparent'
         )
+        yield
         self._lbl_preview.grid(row=0, column=0, padx=(14, 12), pady=10, sticky='w')
+        yield
 
         self._lbl_nombre = ctk.CTkLabel(
             self._frame_preview, text='',
@@ -83,7 +97,9 @@ class PaletteFrame(BaseFrame):
             text_color=colors.TEXT_COLOR,
             fg_color='transparent', anchor='w'
         )
+        yield
         self._lbl_nombre.grid(row=0, column=1, sticky='w', pady=(16, 2))
+        yield
 
         self._lbl_meta = ctk.CTkLabel(
             self._frame_preview, text='',
@@ -91,9 +107,12 @@ class PaletteFrame(BaseFrame):
             text_color=colors.TEXT_GRAY,
             fg_color='transparent', anchor='w'
         )
+        yield
         self._lbl_meta.grid(row=0, column=1, sticky='w', pady=(38, 0))
+        yield
 
         self._mostrar_vacio()
+        yield
 
         self._panel_paleta = ctk.CTkFrame(
             self,
@@ -102,9 +121,13 @@ class PaletteFrame(BaseFrame):
             border_width=1,
             border_color=colors.SIDEBAR_SEPARATOR
         )
+        yield
         self._panel_paleta.grid(row=2, column=0, padx=28, pady=8, sticky='ew')
+        yield
         self._panel_paleta.grid_columnconfigure(0, weight=1)
+        yield
         self._construir_panel_paleta()
+        yield
 
     def _construir_panel_paleta(self):
         """Construir el panel con selector de cantidad y swatches de color."""

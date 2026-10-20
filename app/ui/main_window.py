@@ -9,6 +9,7 @@ Relacionado con:
     - app/ui/frames/: Frames de cada modulo.
 """
 
+from app.ui.building import finish, stepwise, steps_for
 import logging
 import threading
 import webbrowser
@@ -37,7 +38,7 @@ class MainWindow(UiLifetime, ctk.CTkFrame):
         - Content: Area donde se muestran los frames de cada modulo.
     """
     
-    def __init__(self, parent):
+    def __init__(self, parent, *, defer_build=False, auto_updates=True):
         """
         Inicializa la ventana principal.
         
@@ -50,11 +51,23 @@ class MainWindow(UiLifetime, ctk.CTkFrame):
         self.frames = {}
         self._active_view_key = None
         self._active_view = None
+        self._defer_build = defer_build
+        self._auto_updates = auto_updates
+        self._updates_started = False
+        self.build_ready = False
+        self._preloader = None
         self._poll_operations()
 
         # Construir la estructura de la ventana
-        self._build()
+        self._build_iterator = self._build_steps()
+        if not defer_build:
+            finish(self._build_iterator)
+
+    def _build_steps(self):
+        yield from steps_for(self._build)
+        self.build_ready = True
   
+    @stepwise
     def _build(self):
         """
         Construye los componentes de la ventana principal.
@@ -63,35 +76,65 @@ class MainWindow(UiLifetime, ctk.CTkFrame):
         donde se mostraran los frames de cada modulo.
         """
         # Crear sidebar y posicionar a la izquierda
-        self.sidebar = Sidebar(self, on_select=self.show_module)
+        if self._defer_build:
+            self.sidebar = Sidebar(self, on_select=self.show_module, defer_build=True)
+            self.sidebar.pack(side='left', fill='y')
+            yield from self.sidebar._build_iterator
+        else:
+            self.sidebar = Sidebar(self, on_select=self.show_module)
+        yield
         setattr(self.sidebar, "on_home", self.show_home)
+        yield
         self.sidebar.pack(side='left', fill='y')
+        yield
         
         # Crear area de contenido y posicionar a la derecha
         self.content = ctk.CTkFrame(self, corner_radius=0)
+        yield
         self.content.pack(side='left', fill='both', expand=True)
+        yield
         
         # Inicializar slots para frames lazy-loaded
         first_key = None
+        yield
         for spec in iter_enabled_modules():
             self.frames[spec.key] = None
+            yield
             if first_key is None:
                 first_key = spec.key
+                yield
 
         # Pantalla inicial (no aparece en sidebar)
-        self._home = HomeFrame(self.content)
+        if self._defer_build:
+            self._home = HomeFrame(self.content, defer_build=True)
+            self._get_view_host(self._home).place(x=0, y=0, relwidth=1, relheight=1)
+            yield from self._home._build_iterator
+        else:
+            self._home = HomeFrame(self.content)
+        yield
         set_home_navigation = getattr(self._home, "set_on_select", None)
+        yield
         if callable(set_home_navigation):
             set_home_navigation(self.show_module)
+            yield
         self._show_view(self._home, key=None)
+        yield
         # Sidebar sin selección activa hasta que el usuario elija un módulo
         try:
             self.sidebar.set_active(None)
+            yield
         except Exception:
             pass
 
         # Check de versiones publicadas, incluidas RC, sin bloquear la interfaz.
-        self.after(350, self._check_updates_on_startup)
+        if self._auto_updates:
+            self.start_updates()
+        yield
+
+    def start_updates(self):
+        if not self._updates_started:
+            self._updates_started = True
+            self.after(350, self._check_updates_on_startup)
 
     def _poll_operations(self):
         if not self.winfo_exists():
@@ -198,6 +241,24 @@ class MainWindow(UiLifetime, ctk.CTkFrame):
         if key not in self.frames:
             return
 
+        self._navigation_revision = getattr(self, '_navigation_revision', 0) + 1
+        revision = self._navigation_revision
+        spec = get_module_spec(key)
+        if self._preloader is not None and self.frames[key] is None and spec and spec.preload_ui:
+            self._show_module_loading(key, t('startup_module').format(module=t(spec.label_key)))
+            def ready(frame):
+                if self._navigation_revision == revision:
+                    self._show_view(frame, key=key)
+                    self.sidebar.set_active(key)
+            def failed(_error):
+                if self._navigation_revision == revision:
+                    self._loading_label.configure(text=t('startup_module_error'))
+            self._preloader.ensure(key, ready, failed)
+            return
+
+        if self._preloader is not None and not self._preloader.running:
+            self._preloader.pause()
+
         previous_key = self._active_view_key
         logger.info("navigation: show_module from=%s to=%s", previous_key, key)
 
@@ -223,8 +284,24 @@ class MainWindow(UiLifetime, ctk.CTkFrame):
 
     def show_home(self):
         """Vuelve a Inicio al activar el logo del panel lateral."""
+        self._navigation_revision = getattr(self, '_navigation_revision', 0) + 1
+        if self._preloader is not None and not self._preloader.running:
+            self._preloader.pause()
         self._show_view(self._home, key=None)
         self.sidebar.set_active(None)
+
+    def _show_module_loading(self, key, text):
+        if not hasattr(self, '_loading_view'):
+            self._loading_view = ctk.CTkFrame(self.content, fg_color=colors.FRAMES_BG, corner_radius=0)
+            self._loading_label = ctk.CTkLabel(self._loading_view, text='',
+                text_color=colors.TEXT_GRAY, font=fonts.FUENTE_BASE, wraplength=360, justify='center')
+            self._loading_label.place(relx=.5, rely=.5, anchor='center')
+        self._loading_label.configure(text=text)
+        self._show_view(self._loading_view, key=key)
+        self.sidebar.set_active(key)
+
+    def show_preload_errors(self, labels):
+        self._home.show_preload_errors(labels)
 
     def _show_view(self, view, key):
         """Oculta la vista activa y muestra la nueva de forma explicita."""

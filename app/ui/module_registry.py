@@ -39,6 +39,7 @@ class ModuleSpec:
     icon_path: str
     frame_import: str
     enabled: bool = True
+    preload_ui: bool = False
 
 
 # Registro de todos los modulos disponibles
@@ -48,18 +49,21 @@ _MODULE_SPECS = [
         'convert',
         'assets/icons/convert.png',
         'app.ui.frames.convert.frame:ConvertFrame',
+        preload_ui=True,
     ),
     ModuleSpec(
         'compress',
         'compress',
         'assets/icons/compress.png',
         'app.ui.frames.compress.frame:CompressFrame',
+        preload_ui=True,
     ),
     ModuleSpec(
         'resize',
         'resize',
         'assets/icons/resize.png',
         'app.ui.frames.resize.frame:ResizeFrame',
+        preload_ui=True,
     ),
     ModuleSpec(
         'remove_bg',
@@ -72,18 +76,21 @@ _MODULE_SPECS = [
         'palette',
         'assets/icons/palette.png',
         'app.ui.frames.palette.frame:PaletteFrame',
+        preload_ui=True,
     ),
     ModuleSpec(
         "watermark",
         "watermark",
         "assets/icons/watermark.png",
         "app.ui.frames.watermark.frame:WatermarkFrame",
+        preload_ui=True,
     ),
     ModuleSpec(
         'rename',
         'rename',
         'assets/icons/rename.png',
         'app.ui.frames.rename.frame:RenameFrame',
+        preload_ui=True,
     ),
     ModuleSpec(
         'ocr',
@@ -96,18 +103,21 @@ _MODULE_SPECS = [
         'metadata',
         'assets/icons/metadata.png',
         'app.ui.frames.metadata.frame:MetadataFrame',
+        preload_ui=True,
     ),
     ModuleSpec(
         'lqip',
         'lqip',
         'assets/icons/lqip.png',
         'app.ui.frames.lqip.frame:LqipFrame',
+        preload_ui=True,
     ),
     ModuleSpec(
         'settings',
         'settings',
         'assets/icons/settings.png',
         'app.ui.frames.settings.frame:SettingsFrame',
+        preload_ui=True,
     )
 ]
 

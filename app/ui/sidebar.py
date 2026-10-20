@@ -11,6 +11,7 @@ Relacionado con:
     - app/translations/__init__.py: Traducciones de labels.
 """
 
+from app.ui.building import finish, stepwise, steps_for
 import logging
 import webbrowser
 from PIL import Image
@@ -43,7 +44,7 @@ class Sidebar(ctk.CTkFrame):
     y un enlace al repositorio de GitHub.
     """
     
-    def __init__(self, parent, on_select):
+    def __init__(self, parent, on_select, *, defer_build=False):
         """
         Inicializa la barra lateral.
         
@@ -60,14 +61,18 @@ class Sidebar(ctk.CTkFrame):
         
         # Guardar callback para navegacion entre modulos
         self.on_select = on_select
+        self._active_key = None
         self.on_home = None
         
         # Diccionario para guardar referencias a los botones
         self.buttons = {}
         
         # Construir la estructura de la sidebar
-        self._build()
+        self._build_iterator = steps_for(self._build)
+        if not defer_build:
+            finish(self._build_iterator)
 
+    @stepwise
     def _build(self):
         """
         Construye los elementos de la barra lateral.
@@ -77,20 +82,27 @@ class Sidebar(ctk.CTkFrame):
         """
         # Cargar imagen del logo
         ruta_icono = resource_path('assets/icon.png')
+        yield
         try:
             imagen = Image.open(ruta_icono).convert('RGBA')
+            yield
         except Exception as exc:
             # Usar imagen vacia si no se puede cargar el logo
             logger.warning("No se pudo cargar el logo: %s", exc)
+            yield
             imagen = None
+            yield
         
         # Calcular tamano proporcional del logo
         if imagen:
             w, h = imagen.size
+            yield
             if w > h:
                 new_size = (LOGO_SIZE, int(h * LOGO_SIZE / w))
+                yield
             else:
                 new_size = (int(w * LOGO_SIZE / h), LOGO_SIZE)
+                yield
             
             # Crear imagen para CTk
             imagen_ctk = ctk.CTkImage(
@@ -98,13 +110,20 @@ class Sidebar(ctk.CTkFrame):
                 dark_image=imagen,
                 size=new_size
             )
+            yield
             logo = ctk.CTkLabel(self, image=imagen_ctk, text='')
+            yield
         else:
             logo = ctk.CTkLabel(self, text='')
+            yield
         self.logo = logo
+        yield
         logo.pack(pady=(20, 10))
+        yield
         logo.configure(cursor='hand2')
+        yield
         logo.bind('<Button-1>', lambda _event: self.on_home() if callable(self.on_home) else None)
+        yield
 
         # Crear linea separadora
         separador = ctk.CTkFrame(
@@ -112,9 +131,12 @@ class Sidebar(ctk.CTkFrame):
             height=2,
             fg_color=colors.SIDEBAR_SEPARATOR
         )
+        yield
         separador.pack(fill='x', padx=20, pady=(10, 20))
+        yield
 
         specs = list(iter_enabled_modules())
+        yield
         if len(specs) > 1:
             # Contenedor scrollable solo si hay mas de un modulo
             self._modules_container = ctk.CTkScrollableFrame(
@@ -125,17 +147,22 @@ class Sidebar(ctk.CTkFrame):
                 scrollbar_button_color=colors.SIDEBAR_SEPARATOR,
                 scrollbar_button_hover_color=colors.SIDEBAR_HOVER
             )
+            yield
         else:
             self._modules_container = ctk.CTkFrame(self, fg_color='transparent', corner_radius=0)
+            yield
         self._modules_container.pack(fill='both', expand=True, padx=0, pady=(0, 10))
+        yield
 
         # Crear botones para cada modulo habilitado
         for spec in specs:
             # Tintar icono con el color del tema
             icon_ctk = tintar_icono(spec.icon_path, colors.ICON_COLOR)
+            yield
             
             # Obtener label traducible
             label = t(spec.label_key)
+            yield
             
             # Crear boton del modulo
             btn = ctk.CTkButton(
@@ -151,15 +178,21 @@ class Sidebar(ctk.CTkFrame):
                 font=fonts.FUENTE_BASE,
                 command=lambda k=spec.key: self.on_select(k)
             )
+            yield
             btn.pack(pady=3, padx=10, fill='x')
+            yield
             
             # Guardar referencia al boton para actualizar estado
             self.buttons[spec.key] = {'btn': btn, 'icon_path': spec.icon_path}
+            yield
 
         # Crear footer con enlace a GitHub
         self._frame_footer = ctk.CTkFrame(self, fg_color='transparent')
+        yield
         self._frame_footer.pack(side='bottom', pady=(0, 10), fill='x', padx=10)
+        yield
         self._frame_footer.grid_columnconfigure((0, 1), weight=1)
+        yield
 
         # Label "Developed by"
         ctk.CTkLabel(
@@ -169,6 +202,7 @@ class Sidebar(ctk.CTkFrame):
             text_color=colors.TEXT_GRAY,
             anchor='e'
         ).grid(row=0, column=0, sticky='e')
+        yield
 
         # Label clickeable de GitHub
         lbl_link = ctk.CTkLabel(
@@ -179,13 +213,17 @@ class Sidebar(ctk.CTkFrame):
             cursor='hand2',
             anchor='w'
         )
+        yield
         lbl_link.grid(row=0, column=1, sticky='w')
+        yield
         
         # Abrir GitHub al hacer clic
         lbl_link.bind('<Button-1>', lambda _: webbrowser.open(GITHUB_URL))
+        yield
 
         # Boton de donacion
         icon_donar = tintar_icono('assets/icons/heart.png', '#FFFFFF')
+        yield
         btn_donar = ctk.CTkButton(
             self._frame_footer,
             text=t('donate'),
@@ -202,7 +240,9 @@ class Sidebar(ctk.CTkFrame):
             border_color=colors.SIDEBAR_SEPARATOR,
             command=lambda: webbrowser.open(DONATION_URL)
         )
+        yield
         btn_donar.grid(row=1, column=0, columnspan=2, pady=(8, 0), sticky='ew')
+        yield
 
     def set_active(self, key):
         """
@@ -214,7 +254,15 @@ class Sidebar(ctk.CTkFrame):
         Args:
             key: Identificador del modulo activo.
         """
-        for module_key, data in self.buttons.items():
+        if self._active_key == key:
+            return
+        previous, self._active_key = self._active_key, key
+        # Unchanged buttons already have their inactive style. Recreating all
+        # eleven PhotoImages here causes a visible X11 pause at startup.
+        for module_key in (previous, key):
+            data = self.buttons.get(module_key)
+            if data is None:
+                continue
             btn = data['btn']
             icon_path = data['icon_path']
             

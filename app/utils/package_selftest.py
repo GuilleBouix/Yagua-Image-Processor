@@ -272,6 +272,20 @@ def _verify_ui_fonts(app) -> dict:
         resource_path(relative).stat().st_size for relative in fonts.CJK_FONTS)}
 
 
+def _await_startup(app, timeout_seconds=60.0):
+    deadline = time.monotonic() + timeout_seconds
+    while not app.ready and time.monotonic() < deadline:
+        if not app.winfo_exists():
+            raise RuntimeError('Application closed during startup')
+        app.update()
+        time.sleep(.002)
+    if not app.ready:
+        raise TimeoutError('Application UI did not finish startup')
+    preloader = app._startup.preloader
+    if preloader and preloader.errors:
+        raise RuntimeError(f'UI preload failed: {preloader.errors}')
+
+
 def _verify_startup() -> None:
     import customtkinter as ctk
     from app.app import YaguaApp
@@ -284,6 +298,7 @@ def _verify_startup() -> None:
     with patch.object(main_window, _update_checker_name(main_window), return_value=None):
         app = YaguaApp()
         try:
+            _await_startup(app)
             app.update_idletasks()
             _verify_ui_fonts(app)
         finally:
@@ -423,6 +438,7 @@ def run(report_path: Path) -> int:
 
                 setattr(main_window, _update_checker_name(main_window), lambda _: None)
                 app = YaguaApp()
+                _await_startup(app)
                 result['ui_fonts'] = _verify_ui_fonts(app)
                 callback_errors: list[str] = []
 

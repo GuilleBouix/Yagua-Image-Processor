@@ -17,10 +17,31 @@ Relacionado con:
     - app/ui/frames/lqip_frame.py: Placeholder de LQIP.
 """
 
-from app.ui.frames.compress import CompressFrame
-from app.ui.frames.convert import ConvertFrame
-from app.ui.frames.metadata import MetadataFrame
-from app.ui.frames.palette import PaletteFrame
-from app.ui.frames.placeholder_frame import PlaceholderFrame
-from app.ui.frames.resize import ResizeFrame
-from app.ui.frames.settings import SettingsFrame
+from importlib import import_module
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from app.ui.frames.compress import CompressFrame
+    from app.ui.frames.convert import ConvertFrame
+    from app.ui.frames.metadata import MetadataFrame
+    from app.ui.frames.palette import PaletteFrame
+    from app.ui.frames.placeholder_frame import PlaceholderFrame
+    from app.ui.frames.resize import ResizeFrame
+    from app.ui.frames.settings import SettingsFrame
+
+_EXPORTS = {
+    'CompressFrame': 'compress', 'ConvertFrame': 'convert',
+    'MetadataFrame': 'metadata', 'PaletteFrame': 'palette',
+    'PlaceholderFrame': 'placeholder_frame', 'ResizeFrame': 'resize',
+    'SettingsFrame': 'settings',
+}
+__all__ = ['CompressFrame', 'ConvertFrame', 'MetadataFrame', 'PaletteFrame',
+           'PlaceholderFrame', 'ResizeFrame', 'SettingsFrame']
+
+
+def __getattr__(name):
+    if name not in _EXPORTS:
+        raise AttributeError(name)
+    value = getattr(import_module(f'app.ui.frames.{_EXPORTS[name]}'), name)
+    globals()[name] = value
+    return value

@@ -476,3 +476,15 @@ TRANSLATIONS.update({
 })
 
 TRANSLATIONS["meta_source_changed"] = '文件加载后发生了变化。请重新选择后再保存。'
+
+
+# UI startup and preloading.
+TRANSLATIONS.update({
+    'startup_resources': '正在准备 Yagua…',
+    'startup_home': '正在准备主页…',
+    'startup_module': '正在准备{module}…',
+    'startup_enter': '立即进入',
+    'startup_error': '无法启动 Yagua。请查看日志了解详情。',
+    'startup_module_error': '无法准备此工具。请选择其他工具后重试。',
+    'startup_partial': '无法准备：{modules}。打开工具即可重试。',
+})

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from app.ui.building import finish, stepwise, steps_for
 import logging
 import webbrowser
 
@@ -20,7 +21,7 @@ GITHUB_REPOSITORY_URL = 'https://github.com/GuilleBouix/Yagua-Image-Processor'
 class HomeFrame(ctk.CTkScrollableFrame):
     """Pantalla inicial de bienvenida (solo visual)."""
 
-    def __init__(self, parent):
+    def __init__(self, parent, *, defer_build=False):
         super().__init__(
             parent,
             fg_color=colors.FRAMES_BG,
@@ -32,7 +33,9 @@ class HomeFrame(ctk.CTkScrollableFrame):
         logger.info("home.ui: init")
         self._on_select = None
         self._viewport_sync_job = None
-        self._build()
+        self._build_iterator = steps_for(self._build)
+        if not defer_build:
+            finish(self._build_iterator)
         self.after(0, self._bind_viewport_sync)
 
     def set_on_select(self, callback):
@@ -82,42 +85,58 @@ class HomeFrame(ctk.CTkScrollableFrame):
         except Exception:
             logger.debug("home.ui: viewport height sync omitido", exc_info=True)
 
+    @stepwise
     def _build(self):
         self.grid_columnconfigure(0, weight=1)
+        yield
 
         content = ctk.CTkFrame(self, fg_color="transparent")
+        yield
         content.grid(row=0, column=0, padx=28, pady=(24, 28), sticky="nsew")
+        yield
         content.grid_columnconfigure((0, 1), weight=1, uniform="home-tools")
+        yield
 
         header = ctk.CTkFrame(
             content, corner_radius=12, fg_color=colors.PANEL_BG,
             border_width=1, border_color=colors.SIDEBAR_SEPARATOR,
         )
+        yield
         header.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, 20))
+        yield
         header.grid_columnconfigure(0, weight=1)
+        yield
         ctk.CTkLabel(
             header, text=t("app_title"), font=fonts.FUENTE_TITULO,
             text_color=colors.TEXT_COLOR, anchor="w",
         ).grid(row=0, column=0, padx=20, pady=(18, 5), sticky="w")
+        yield
         self._lbl_hint = ctk.CTkLabel(
             header, text=t("home_hint"), font=fonts.FUENTE_BASE,
             text_color=colors.TEXT_GRAY, anchor="w",
             wraplength=scale_wraplength(700), justify="left",
         )
+        yield
         self._lbl_hint.grid(row=1, column=0, padx=20, pady=(0, 16), sticky="w")
+        yield
 
         self._github_icon = tintar_icono('assets/icons/github.png', colors.ICON_COLOR)
+        yield
         if self._github_icon is not None:
             self._github_icon.configure(size=(30, 30))
+            yield
         self._btn_github = ctk.CTkButton(
             header, text='', image=self._github_icon,
             width=44, height=44, corner_radius=8,
             fg_color='transparent', hover_color=colors.SIDEBAR_HOVER,
             cursor='hand2', command=lambda: webbrowser.open(GITHUB_REPOSITORY_URL),
         )
+        yield
         self._btn_github.grid(row=0, column=1, rowspan=2, padx=20, pady=16, sticky='e')
+        yield
 
         self._tool_buttons = []
+        yield
         for index, spec in enumerate(iter_enabled_modules()):
             button = ctk.CTkButton(
                 content,
@@ -135,23 +154,34 @@ class HomeFrame(ctk.CTkScrollableFrame):
                 font=fonts.FUENTE_BASE,
                 command=lambda key=spec.key: self._seleccionar(key),
             )
+            yield
             row = 1 + index // 2
+            yield
             column = index % 2
+            yield
             button.grid(
                 row=row, column=column, padx=(0, 8) if column == 0 else (8, 0),
                 pady=5, sticky="ew",
             )
+            yield
             self._tool_buttons.append(button)
+            yield
 
         self._lbl_version = ctk.CTkLabel(
             content, text=f"{t('current_version')}: v{__version__}",
             font=fonts.FUENTE_CHICA, text_color=colors.TEXT_GRAY,
         )
+        yield
         self._lbl_version.grid(
             row=1 + (len(self._tool_buttons) + 1) // 2,
             column=0, columnspan=2, pady=(14, 0), sticky="w",
         )
+        yield
 
     def _seleccionar(self, key):
         if callable(self._on_select):
             self._on_select(key)
+
+    def show_preload_errors(self, labels):
+        self._lbl_version.configure(text=t('startup_partial').format(modules=labels),
+                                    wraplength=600, justify='left')

@@ -11,6 +11,7 @@ Relacionado con:
 
 from __future__ import annotations
 
+from app.ui.building import stepwise, steps_for
 import logging
 from tkinter import filedialog
 
@@ -35,7 +36,7 @@ class CompressFrame(BaseFrame):
     compresion EXIF, y comprimir las imagenes seleccionadas.
     """
     
-    def __init__(self, parent):
+    def __init__(self, parent, *, defer_build=False):
         """
         Inicializa el frame de compresion.
         
@@ -44,8 +45,9 @@ class CompressFrame(BaseFrame):
         """
         logger.info("compress.ui: init")
         self._state = CompressState()
-        super().__init__(parent, t('compress_title'))
+        super().__init__(parent, t('compress_title'), defer_build=defer_build)
 
+    @stepwise
     def _build_content(self):
         """
         Construye el contenido especifico del modulo.
@@ -55,10 +57,14 @@ class CompressFrame(BaseFrame):
         y boton de comprimir.
         """
         logger.info("compress.ui: build_content")
+        yield
         self.grid_rowconfigure(3, weight=1)
+        yield
 
         self._btn_seleccionar = self._crear_boton_seleccionar(self)
+        yield
         self._btn_seleccionar.grid(row=1, column=0, padx=24, pady=(0, 12), sticky='ew')
+        yield
 
         self._panel_opciones = ctk.CTkFrame(
             self,
@@ -67,23 +73,34 @@ class CompressFrame(BaseFrame):
             border_width=1,
             border_color=colors.SIDEBAR_SEPARATOR
         )
+        yield
         self._panel_opciones.grid(row=4, column=0, padx=24, pady=(0, 12), sticky='ew')
+        yield
         self._panel_opciones.grid_columnconfigure(1, weight=1)
-        self._construir_opciones()
+        yield
+        (yield from steps_for(self._construir_opciones))
+        yield
 
         # Lista de archivos seleccionados
         ctk.CTkLabel(
             self, text=t('files_loaded').capitalize(), font=fonts.FUENTE_BASE,
             text_color=colors.TEXT_COLOR, anchor='w'
         ).grid(row=2, column=0, padx=24, pady=(0, 8), sticky='w')
+        yield
         self._lista_frame = self._crear_lista_archivos(self, height=220)
+        yield
         self._lista_frame.grid(row=3, column=0, padx=24, pady=(0, 12), sticky='nsew')
+        yield
         self._lista_frame.grid_columnconfigure(0, weight=1)
+        yield
 
         # Label de lista vacia
         self._lbl_lista_vacia = self._crear_lista_vacia(self._lista_frame)
+        yield
         self._lbl_lista_vacia.pack(pady=12)
+        yield
 
+    @stepwise
     def _construir_opciones(self):
         """
         Construye los controles del panel de opciones.
@@ -92,6 +109,7 @@ class CompressFrame(BaseFrame):
         boton de comprimir.
         """
         p = self._panel_opciones
+        yield
 
         # Label de calidad
         ctk.CTkLabel(
@@ -99,11 +117,15 @@ class CompressFrame(BaseFrame):
             font=fonts.FUENTE_BASE,
             text_color=colors.TEXT_GRAY, anchor='w'
         ).grid(row=0, column=0, padx=(16, 12), pady=(16, 8), sticky='w')
+        yield
 
         # Fila con slider y valor de calidad
         fila_cal = ctk.CTkFrame(p, fg_color='transparent')
+        yield
         fila_cal.grid(row=0, column=1, padx=(0, 16), pady=(16, 8), sticky='ew')
+        yield
         fila_cal.grid_columnconfigure(0, weight=1)
+        yield
 
         # Slider de calidad
         self._slider = ctk.CTkSlider(
@@ -117,7 +139,9 @@ class CompressFrame(BaseFrame):
             progress_color=colors.ACENTO,
             fg_color=colors.SIDEBAR_SEPARATOR,
         )
+        yield
         self._slider.grid(row=0, column=0, sticky='ew', padx=(0, 10))
+        yield
 
         # Label que muestra el valor actual de calidad
         self._lbl_calidad = ctk.CTkLabel(
@@ -127,7 +151,9 @@ class CompressFrame(BaseFrame):
             fg_color='transparent',
             width=28
         )
+        yield
         self._lbl_calidad.grid(row=0, column=1)
+        yield
 
         # Label de eliminar EXIF
         ctk.CTkLabel(
@@ -135,6 +161,7 @@ class CompressFrame(BaseFrame):
             font=fonts.FUENTE_BASE,
             text_color=colors.TEXT_GRAY, anchor='w'
         ).grid(row=1, column=0, padx=(16, 12), pady=(8, 16), sticky='w')
+        yield
 
         # Toggle de eliminar EXIF
         ctk.CTkSwitch(
@@ -146,6 +173,7 @@ class CompressFrame(BaseFrame):
             button_hover_color=colors.ACENTO_HOVER,
             fg_color=colors.SIDEBAR_SEPARATOR,
         ).grid(row=1, column=1, padx=(0, 16), pady=(8, 16), sticky='w')
+        yield
 
         # Boton de comprimir
         self._btn_comprimir = ctk.CTkButton(
@@ -159,7 +187,9 @@ class CompressFrame(BaseFrame):
             hover_color=colors.ACENTO_HOVER,
             command=self._comprimir
         )
+        yield
         self._btn_comprimir.grid(row=2, column=0, columnspan=2, padx=16, pady=(0, 16), sticky='ew')
+        yield
 
     def _cargar_imagenes(self, rutas):
         """

@@ -7,6 +7,7 @@ Tabs:
 
 from __future__ import annotations
 
+from app.ui.building import stepwise, steps_for
 import logging
 import customtkinter as ctk
 import webbrowser
@@ -29,18 +30,25 @@ PAYPAL_DONATION_URL = 'https://paypal.me/guillebouix?locale.x=es_XC&country.x=AR
 class SettingsFrame(BaseFrame):
     """Frame principal del modulo de ajustes de la aplicacion."""
 
-    def __init__(self, parent):
+    def __init__(self, parent, *, defer_build=False):
         logger.info("settings.ui: init")
         self._state = SettingsState()
-        super().__init__(parent, t('settings_title'))
+        super().__init__(parent, t('settings_title'), defer_build=defer_build)
 
+    @stepwise
     def _build_content(self):
         logger.info("settings.ui: build_content")
+        yield
         self.grid_columnconfigure(0, weight=1)
-        self._add_donation_button()
-        self._build_tabs()
+        yield
+        (yield from steps_for(self._add_donation_button))
+        yield
+        (yield from steps_for(self._build_tabs))
+        yield
         self._btn_limpiar.grid_remove()
+        yield
 
+    @stepwise
     def _build_tabs(self):
         self._tab = ctk.CTkSegmentedButton(
             self,
@@ -53,36 +61,62 @@ class SettingsFrame(BaseFrame):
             text_color=colors.TEXT_COLOR,
             command=self._cambiar_tab
         )
+        yield
         self._tab.set(t('settings_tab'))
+        yield
         self._tab.grid(row=1, column=0, padx=28, pady=(0, 12), sticky='ew')
+        yield
 
         self._tabs_container = ctk.CTkFrame(self, fg_color='transparent')
+        yield
         self._tabs_container.grid(row=2, column=0, padx=28, pady=(0, 12), sticky='nsew')
+        yield
         self._tabs_container.grid_columnconfigure(0, weight=1)
+        yield
         self.grid_rowconfigure(2, weight=1)
+        yield
 
-        general_tab = GeneralTab(self._tabs_container, state=self._state, set_status=self._set_status)
+        general_tab = GeneralTab(self._tabs_container, state=self._state, set_status=self._set_status,
+                                 defer_build=self._defer_build)
+        if self._defer_build:
+            general_tab.grid(row=0, column=0, sticky='nsew')
+            yield from general_tab._build_iterator
+        yield
+        updates_tab = UpdatesTab(self._tabs_container, defer_build=self._defer_build)
+        if self._defer_build:
+            updates_tab.grid(row=0, column=0, sticky='nsew')
+            yield from updates_tab._build_iterator
         self._tabs = {
             t('settings_tab'): general_tab,
-            t('updates_tab'): UpdatesTab(self._tabs_container),
+            t('updates_tab'): updates_tab,
         }
+        yield
         self._selector_idioma = general_tab._selector_idioma
+        yield
         self._selector_tema = general_tab._selector_tema
+        yield
         self._selector_escala = general_tab._selector_escala
+        yield
         self._btn_apply = general_tab._btn_apply
+        yield
         for f in self._tabs.values():
             f.grid(row=0, column=0, sticky='nsew')
+            yield
 
         self._cambiar_tab(t('settings_tab'))
+        yield
 
     def _cambiar_tab(self, tab: str):
         activate_tab(self._tabs, tab)
 
+    @stepwise
     def _add_donation_button(self):
         logger.info("settings.ui: add_donation_button")
+        yield
         if not hasattr(self, '_title_row') or not self._title_row.winfo_exists():
             return
         icon_donar = tintar_icono('assets/icons/heart.png', '#000000')
+        yield
         btn = ctk.CTkButton(
             self._title_row,
             text=t('donate_paypal_btn'),
@@ -98,7 +132,9 @@ class SettingsFrame(BaseFrame):
             border_width=0,
             command=lambda: webbrowser.open(PAYPAL_DONATION_URL)
         )
+        yield
         btn.grid(row=0, column=2, padx=(8, 0), sticky='e')
+        yield
 
     def _set_status(self, text: str):
         self._lbl_info.configure(text=text)

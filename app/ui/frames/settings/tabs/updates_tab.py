@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from app.ui.building import finish, stepwise, steps_for
 import logging
 import threading
 import webbrowser
@@ -22,13 +23,16 @@ class UpdatesTab(ctk.CTkFrame):
         from app.ui.operations import operations
         operations.post(self, callback)
 
-    def __init__(self, parent):
+    def __init__(self, parent, *, defer_build=False):
         super().__init__(parent, fg_color="transparent")
         self.grid_columnconfigure(0, weight=1)
         self._worker_activo = False
         self._download_url: str | None = None
-        self._build()
+        self._build_iterator = steps_for(self._build)
+        if not defer_build:
+            finish(self._build_iterator)
 
+    @stepwise
     def _build(self):
         panel = ctk.CTkFrame(
             self,
@@ -37,8 +41,11 @@ class UpdatesTab(ctk.CTkFrame):
             border_width=1,
             border_color=colors.SIDEBAR_SEPARATOR,
         )
+        yield
         panel.grid(row=0, column=0, sticky="ew")
+        yield
         panel.grid_columnconfigure(0, weight=1)
+        yield
 
         ctk.CTkLabel(
             panel,
@@ -47,6 +54,7 @@ class UpdatesTab(ctk.CTkFrame):
             text_color=colors.TEXT_COLOR,
             anchor="w",
         ).grid(row=0, column=0, padx=16, pady=(16, 4), sticky="w")
+        yield
 
         self._lbl_version = ctk.CTkLabel(
             panel,
@@ -55,7 +63,9 @@ class UpdatesTab(ctk.CTkFrame):
             text_color=colors.TEXT_GRAY,
             anchor="w",
         )
+        yield
         self._lbl_version.grid(row=1, column=0, padx=16, pady=(0, 6), sticky="w")
+        yield
 
         self._lbl_update_status = ctk.CTkLabel(
             panel,
@@ -64,7 +74,9 @@ class UpdatesTab(ctk.CTkFrame):
             text_color=colors.TEXT_COLOR,
             anchor="w",
         )
+        yield
         self._lbl_update_status.grid(row=2, column=0, padx=16, pady=(0, 8), sticky="w")
+        yield
 
         self._btn_check_updates = ctk.CTkButton(
             panel,
@@ -78,7 +90,9 @@ class UpdatesTab(ctk.CTkFrame):
             hover_color=colors.ACENTO_HOVER,
             command=self._check_updates,
         )
+        yield
         self._btn_check_updates.grid(row=3, column=0, padx=16, pady=(0, 10), sticky="w")
+        yield
 
         # Botón de descarga (se muestra solo si hay update)
         self._btn_download = ctk.CTkButton(
@@ -95,8 +109,11 @@ class UpdatesTab(ctk.CTkFrame):
             hover_color=colors.SIDEBAR_HOVER,
             command=self._abrir_release,
         )
+        yield
         self._btn_download.grid(row=4, column=0, padx=16, pady=(0, 16), sticky="w")
+        yield
         self._btn_download.grid_remove()
+        yield
 
         self._lbl_manual = ctk.CTkLabel(
             panel,
@@ -105,8 +122,11 @@ class UpdatesTab(ctk.CTkFrame):
             text_color=colors.TEXT_GRAY,
             anchor="w",
         )
+        yield
         self._lbl_manual.grid(row=5, column=0, padx=16, pady=(0, 16), sticky="w")
+        yield
         self._lbl_manual.grid_remove()
+        yield
 
     def _set_status(self, text: str):
         if self._lbl_update_status.winfo_exists():

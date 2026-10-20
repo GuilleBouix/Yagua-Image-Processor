@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from app.ui.building import finish, stepwise, steps_for
 import logging
 import customtkinter as ctk
 
@@ -17,13 +18,16 @@ logger = logging.getLogger(__name__)
 class GeneralTab(ctk.CTkFrame):
     """Tab Ajustes: idioma, tema, modulos visibles."""
 
-    def __init__(self, parent, *, state, set_status):
+    def __init__(self, parent, *, state, set_status, defer_build=False):
         super().__init__(parent, fg_color='transparent')
         self._state = state
         self._set_status = set_status
         self.grid_columnconfigure(0, weight=1)
-        self._build()
+        self._build_iterator = steps_for(self._build)
+        if not defer_build:
+            finish(self._build_iterator)
 
+    @stepwise
     def _build(self):
         panel_idioma = ctk.CTkFrame(
             self,
@@ -32,8 +36,11 @@ class GeneralTab(ctk.CTkFrame):
             border_width=1,
             border_color=colors.SIDEBAR_SEPARATOR
         )
+        yield
         panel_idioma.grid(row=0, column=0, pady=(0, 12), sticky='ew')
+        yield
         panel_idioma.grid_columnconfigure(1, weight=1)
+        yield
 
         ctk.CTkLabel(
             panel_idioma,
@@ -42,8 +49,10 @@ class GeneralTab(ctk.CTkFrame):
             text_color=colors.TEXT_GRAY,
             anchor='w'
         ).grid(row=0, column=0, padx=(16, 12), pady=16, sticky='w')
+        yield
 
         language_font = fonts.fuente_selector_idiomas()
+        yield
         self._selector_idioma = ctk.CTkOptionMenu(
             panel_idioma,
             values=list(AVAILABLE_LANGUAGES.keys()),
@@ -58,7 +67,9 @@ class GeneralTab(ctk.CTkFrame):
             dropdown_text_color=colors.TEXT_COLOR,
             dropdown_hover_color=colors.SIDEBAR_HOVER,
         )
+        yield
         self._selector_idioma.grid(row=0, column=1, padx=(0, 16), pady=16, sticky='w')
+        yield
 
         panel_tema = ctk.CTkFrame(
             self,
@@ -67,8 +78,11 @@ class GeneralTab(ctk.CTkFrame):
             border_width=1,
             border_color=colors.SIDEBAR_SEPARATOR
         )
+        yield
         panel_tema.grid(row=1, column=0, pady=(0, 12), sticky='ew')
-        panel_tema.grid_columnconfigure(1, weight=1)
+        yield
+        panel_tema.grid_columnconfigure((0, 1), weight=1, uniform='appearance')
+        yield
 
         ctk.CTkLabel(
             panel_tema,
@@ -76,7 +90,8 @@ class GeneralTab(ctk.CTkFrame):
             font=fonts.FUENTE_BASE,
             text_color=colors.TEXT_GRAY,
             anchor='w'
-        ).grid(row=0, column=0, padx=(16, 12), pady=16, sticky='w')
+        ).grid(row=0, column=0, padx=16, pady=(12, 4), sticky='w')
+        yield
 
         self._selector_tema = ctk.CTkOptionMenu(
             panel_tema,
@@ -91,30 +106,27 @@ class GeneralTab(ctk.CTkFrame):
             dropdown_text_color=colors.TEXT_COLOR,
             dropdown_hover_color=colors.SIDEBAR_HOVER,
         )
-        self._selector_tema.grid(row=0, column=1, padx=(0, 16), pady=16, sticky='w')
+        yield
+        self._selector_tema.grid(row=1, column=0, padx=16, pady=(0, 6), sticky='w')
+        yield
 
-        self._build_scale_panel(row=2)
-        self._build_modules_panel(row=3)
-        self._build_apply_button(row=4)
+        (yield from steps_for(self._build_scale_panel, panel_tema))
+        yield
+        (yield from steps_for(self._build_modules_panel, row=2))
+        yield
+        (yield from steps_for(self._build_apply_button, row=3))
+        yield
 
-    def _build_scale_panel(self, row=0):
-        panel_scale = ctk.CTkFrame(
-            self,
-            corner_radius=12,
-            fg_color=colors.PANEL_BG,
-            border_width=1,
-            border_color=colors.SIDEBAR_SEPARATOR
-        )
-        panel_scale.grid(row=row, column=0, pady=(0, 12), sticky='ew')
-        panel_scale.grid_columnconfigure(1, weight=1)
-
+    @stepwise
+    def _build_scale_panel(self, panel_scale):
         ctk.CTkLabel(
             panel_scale,
             text=t('ui_scale'),
             font=fonts.FUENTE_BASE,
             text_color=colors.TEXT_GRAY,
             anchor='w'
-        ).grid(row=0, column=0, padx=(16, 12), pady=(16, 6), sticky='w')
+        ).grid(row=0, column=1, padx=16, pady=(12, 4), sticky='w')
+        yield
 
         self._selector_escala = ctk.CTkSegmentedButton(
             panel_scale,
@@ -127,16 +139,30 @@ class GeneralTab(ctk.CTkFrame):
             unselected_hover_color=colors.SIDEBAR_HOVER,
             text_color=colors.TEXT_COLOR,
         )
-        self._selector_escala.grid(row=0, column=1, padx=(0, 16), pady=(16, 6), sticky='w')
+        yield
+        self._selector_escala.grid(row=1, column=1, padx=16, pady=(0, 6), sticky='w')
+        yield
 
-        ctk.CTkLabel(
+        hint = ctk.CTkLabel(
             panel_scale,
             text=t('ui_scale_hint'),
             font=fonts.FUENTE_CHICA,
             text_color=colors.TEXT_GRAY,
-            anchor='w'
-        ).grid(row=1, column=0, columnspan=2, padx=(16, 12), pady=(0, 16), sticky='w')
+            anchor='w', justify='left', width=1, wraplength=500,
+        )
+        yield
+        hint.grid(row=2, column=0, columnspan=2, padx=16, pady=(0, 12), sticky='ew')
+        yield
 
+        def fit_hint(event):
+            width = max(120, int(event.width / panel_scale._get_widget_scaling()) - 32)
+            if hint.cget('wraplength') != width:
+                hint.configure(wraplength=width)
+
+        panel_scale.bind('<Configure>', fit_hint, add=True)
+        yield
+
+    @stepwise
     def _build_modules_panel(self, row=0):
         panel_modulos = ctk.CTkFrame(
             self,
@@ -145,9 +171,13 @@ class GeneralTab(ctk.CTkFrame):
             border_width=1,
             border_color=colors.SIDEBAR_SEPARATOR
         )
+        yield
         panel_modulos.grid(row=row, column=0, pady=(0, 16), sticky='ew')
+        yield
         panel_modulos.grid_columnconfigure(0, weight=1)
+        yield
         panel_modulos.grid_columnconfigure(1, weight=1)
+        yield
 
         ctk.CTkLabel(
             panel_modulos,
@@ -156,6 +186,7 @@ class GeneralTab(ctk.CTkFrame):
             text_color=colors.TEXT_GRAY,
             anchor='w'
         ).grid(row=0, column=0, padx=(16, 12), pady=(16, 6), sticky='w')
+        yield
 
         ctk.CTkLabel(
             panel_modulos,
@@ -164,19 +195,29 @@ class GeneralTab(ctk.CTkFrame):
             text_color=colors.TEXT_GRAY,
             anchor='w'
         ).grid(row=1, column=0, columnspan=2, padx=(16, 12), pady=(0, 10), sticky='w')
+        yield
 
         visibles = get_visible_modules()
+        yield
         if not visibles:
             visibles = [m.key for m in iter_all_modules()]
+            yield
         visibles_set = set(visibles)
+        yield
         visibles_set.add('settings')
+        yield
 
         self._module_vars = {}
+        yield
         start_row = 2
+        yield
         for idx, spec in enumerate(iter_all_modules()):
             is_settings = spec.key == 'settings'
+            yield
             var = ctk.BooleanVar(value=(spec.key in visibles_set))
+            yield
             self._module_vars[spec.key] = var
+            yield
 
             switch = ctk.CTkSwitch(
                 panel_modulos,
@@ -190,13 +231,20 @@ class GeneralTab(ctk.CTkFrame):
                 button_color=colors.SIDEBAR_BG,
                 button_hover_color=colors.SIDEBAR_HOVER,
             )
+            yield
             if is_settings:
                 switch.configure(state='disabled')
+                yield
             row = start_row + (idx // 2)
+            yield
             col = idx % 2
+            yield
             pad_left = (16, 12) if col == 0 else (8, 12)
+            yield
             switch.grid(row=row, column=col, padx=pad_left, pady=6, sticky='w')
+            yield
 
+    @stepwise
     def _build_apply_button(self, row=0):
         self._btn_apply = ctk.CTkButton(
             self,
@@ -211,7 +259,9 @@ class GeneralTab(ctk.CTkFrame):
             border_width=0,
             command=self._apply_settings,
         )
+        yield
         self._btn_apply.grid(row=row, column=0, pady=(0, 16), sticky='w')
+        yield
 
     def _apply_settings(self):
         if self._btn_apply.cget('state') == 'disabled':
