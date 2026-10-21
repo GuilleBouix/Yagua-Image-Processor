@@ -9,12 +9,13 @@ Relacionado con:
 
 import logging
 from pathlib import Path
-from typing import Callable, TypedDict
+from typing import Any, Callable, TypedDict, NotRequired, cast
 
 from PIL import Image
 
 from app.utils.image_utils import normalize_common, ensure_rgb_for_jpeg
-from app.utils.output import unique_output_path, atomic_destination, require_single_frame
+from app.utils.output import unique_output_path, safe_image_output, DiscardOutput
+from app.utils.saving import get_plan, run_plan, canonical_format
 
 from app.utils.results import FileFailure, file_failure
 
@@ -23,12 +24,13 @@ logger = logging.getLogger(__name__)
 
 class ConversionResult(TypedDict):
     ruta_entrada: str | Path
-    ruta_salida: str
+    ruta_salida: str | None
     fmt_origen: str
     fmt_destino: str
     tam_original: int
     tam_resultado: int
     conflicto: bool
+    estado: NotRequired[str]
 
 
 class BatchConversionResult(TypedDict):
@@ -37,6 +39,29 @@ class BatchConversionResult(TypedDict):
     errores: int
     fmt_destino: str
     conflictos: int
+    resultados: NotRequired[list]
+    sin_mejora: NotRequired[int]
+
+
+@safe_image_output
+def _convertir_a_ruta(ruta_entrada, ruta_salida, formato, calidad) -> ConversionResult:
+    size = Path(ruta_entrada).stat().st_size
+    with Image.open(ruta_entrada) as original:
+        origin = canonical_format(original.format or '')
+        profile = original.info.get('icc_profile') if original.mode in ('RGB', 'RGBA', 'P') else None
+        image = _preparar_para(original, formato)
+        options = _kwargs_para(formato, calidad)
+        if formato in ('JPEG', 'WEBP') and profile:
+            options['icc_profile'] = profile
+        image.save(ruta_salida, canonical_format(formato), **options)
+    final = Path(ruta_salida).stat().st_size
+    result: dict[str, Any] = dict(ruta_entrada=str(ruta_entrada), ruta_salida=ruta_salida,
+                  fmt_origen=origin, fmt_destino=formato, tam_original=size,
+                  tam_resultado=final, estado='saved', conflicto=False)
+    if origin == canonical_format(formato) and final >= size:
+        result.update(estado='unchanged', ruta_salida=None, tam_resultado=size, tam_candidato=final)
+        raise DiscardOutput(result)
+    return cast(ConversionResult, result)
 
 
 # Lista de formatos de destino disponibles
@@ -188,6 +213,7 @@ def convertir_imagen(
     fmt_destino: str,
     carpeta_salida: str | Path,
     calidad: int = 90,
+    *, output_policy=None,
 ) -> ConversionResult:
     """
     Convierte una imagen al formato destino.
@@ -214,44 +240,26 @@ def convertir_imagen(
     # Validar formato
     if formato not in _FMT_A_EXT:
         raise ValueError(f'Formato destino no soportado: {formato}')
+
+    if output_policy is not None:
+        result = run_plan(get_plan(output_policy, (ruta_entrada,), carpeta_salida, formato),
+                          lambda source, target: _convertir_a_ruta(source, target, formato, calidad))['resultados'][0]
+        if result['estado'] == 'error':
+            raise OSError(result['error'])
+        return cast(ConversionResult, result)
     
     # Obtener extension del formato
     extension = _FMT_A_EXT[formato]
     
-    ruta_archivo = Path(ruta_entrada)
-
     # Construir ruta de salida sin sobrescribir
     ruta_salida_path, conflicto = unique_output_path(
         carpeta_salida, ruta_entrada, extension=extension
     )
     ruta_salida = str(ruta_salida_path)
 
-    # Abrir y convertir imagen
-    require_single_frame(ruta_entrada)
-    with Image.open(ruta_entrada) as imagen:
-        fmt_origen = _EXT_A_FMT.get(ruta_archivo.suffix.lower(), 'JPEG')
-        # JPEG/WebP require an explicit profile argument. Capture it before
-        # flattening alpha, which creates a new image without the source info.
-        # A CMYK/gray profile must never be attached to the normalized RGB data.
-        perfil_icc = imagen.info.get('icc_profile') if imagen.mode in ('RGB', 'RGBA', 'P') else None
-
-        imagen = _preparar_para(imagen, formato)
-        formato_pil = 'HEIF' if formato == 'HEIC' else formato
-        argumentos_guardado = _kwargs_para(formato, calidad)
-        if formato in ('JPEG', 'WEBP') and perfil_icc:
-            argumentos_guardado['icc_profile'] = perfil_icc
-        with atomic_destination(ruta_salida, replace=False) as temporary:
-            imagen.save(temporary, formato_pil, **argumentos_guardado)
-
-    return {
-        'ruta_entrada': ruta_entrada,
-        'ruta_salida': ruta_salida,
-        'fmt_origen': fmt_origen,
-        'fmt_destino': formato,
-        'tam_original': ruta_archivo.stat().st_size,
-        'tam_resultado': Path(ruta_salida).stat().st_size,
-        'conflicto': conflicto,
-    }
+    result = _convertir_a_ruta(ruta_entrada, ruta_salida, formato, calidad)
+    result['conflicto'] = conflicto if result.get('estado') == 'saved' else False
+    return cast(ConversionResult, result)
 
 
 def batch_convertir(
@@ -260,6 +268,7 @@ def batch_convertir(
     carpeta_salida: str | Path,
     calidad: int = 90,
     progress_cb: Callable[[int, int], None] | None = None,
+    *, output_policy=None,
 ) -> list[ConversionResult]:
     """
     Convierte multiples imagenes al formato destino.
@@ -274,6 +283,13 @@ def batch_convertir(
     Returns:
         Lista de diccionarios con resultados individuales.
     """
+    if output_policy is not None:
+        if fmt_destino.upper() not in _FMT_A_EXT:
+            raise ValueError('invalid_option')
+        plan = get_plan(output_policy, rutas, carpeta_salida, fmt_destino)
+        result = run_plan(plan, lambda source, target: _convertir_a_ruta(
+            source, target, fmt_destino.upper(), calidad), progress_cb=progress_cb)
+        return cast(list[ConversionResult], result['resultados'])
     resultados = []
     
     for indice, ruta in enumerate(rutas):
@@ -292,6 +308,7 @@ def batch_convertir_safe(
     fmt_destino: str,
     carpeta_salida: str | Path,
     calidad: int = 90,
+    *, output_policy=None,
 ) -> BatchConversionResult:
     """
     Convierte multiples imagenes con manejo de errores.
@@ -309,6 +326,13 @@ def batch_convertir_safe(
             - fmt_destino: Formato de destino.
             - conflictos: Cantidad de archivos renombrados por colision.
     """
+    if output_policy is not None:
+        if fmt_destino.upper() not in _FMT_A_EXT:
+            raise ValueError('invalid_option')
+        result = run_plan(get_plan(output_policy, rutas, carpeta_salida, fmt_destino),
+                          lambda source, target: _convertir_a_ruta(source, target, fmt_destino.upper(), calidad))
+        result['fmt_destino'] = fmt_destino.upper()
+        return cast(BatchConversionResult, result)
     fallos: list[FileFailure] = []
 
     logger.info("Batch convertir: %s archivos -> %s (%s)", len(rutas), carpeta_salida, fmt_destino)
@@ -329,7 +353,9 @@ def batch_convertir_safe(
             errores += 1
     
     return {'fallos': fallos,
-        'ok': len(resultados),
+        'ok': sum(r.get('estado') != 'unchanged' for r in resultados),
+        'sin_mejora': sum(r.get('estado') == 'unchanged' for r in resultados),
+        'resultados': resultados,
         'errores': errores,
         'fmt_destino': fmt_destino.upper(),
         'conflictos': conflictos,

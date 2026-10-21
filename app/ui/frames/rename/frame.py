@@ -17,7 +17,7 @@ from app.ui.rendering import VirtualRows, PooledRow, configure_changed
 
 import customtkinter as ctk
 
-from app.ui import colors, fonts
+from app.ui import colors, fonts, styles
 from app.translations import t
 from app.ui.frames.base import BaseFrame
 from app.ui.frames.rename.services import generar_nombres_preview, renombrar_archivos
@@ -33,6 +33,7 @@ FORMATOS_FECHA = {
 class RenameFrame(BaseFrame):
     """Frame del modulo de renombrado en lote."""
 
+    design_system = True
     logger = logging.getLogger(__name__)
     def __init__(self, parent, *, defer_build=False):
         """Inicializa el frame."""
@@ -52,7 +53,7 @@ class RenameFrame(BaseFrame):
         yield
         izquierda.grid_rowconfigure(4, weight=1)
         yield
-        derecha.grid_rowconfigure(0, weight=1)
+        derecha.grid_rowconfigure(2, weight=1)
         yield
         # Boton seleccionar
         self._btn_seleccionar = self._crear_boton_seleccionar(izquierda)
@@ -63,10 +64,7 @@ class RenameFrame(BaseFrame):
         # Panel de opciones
         panel = ctk.CTkFrame(
             izquierda,
-            corner_radius=12,
-            fg_color=colors.PANEL_BG,
-            border_width=1,
-            border_color=colors.SIDEBAR_SEPARATOR
+            **styles.surface('panel'),
         )
         yield
         panel.grid(row=1, column=0, padx=16, pady=(0, 16), sticky='new')
@@ -76,15 +74,12 @@ class RenameFrame(BaseFrame):
         (yield from steps_for(self._construir_opciones, panel))
         yield
 
-        self._btn_renombrar = ctk.CTkButton(
+        self._btn_renombrar = self._new_button(
             izquierda,
+            role='primary',
             text=t('rename_btn'),
             height=40,
-            corner_radius=8,
             font=fonts.FUENTE_BASE,
-            fg_color=colors.ACENTO,
-            text_color=colors.TEXT_ACTIVE,
-            hover_color=colors.ACENTO_HOVER,
             command=self._renombrar,
         )
         yield
@@ -107,22 +102,8 @@ class RenameFrame(BaseFrame):
         self._lbl_lista_vacia.pack(pady=8)
         yield
 
-        # Panel de preview
-        panel_prev = ctk.CTkFrame(
-            derecha,
-            corner_radius=12,
-            fg_color=colors.PANEL_BG,
-            border_width=1,
-            border_color=colors.SIDEBAR_SEPARATOR
-        )
-        yield
-        panel_prev.grid(row=0, column=0, padx=16, pady=(16, 16), sticky='nsew')
-        yield
-        panel_prev.grid_rowconfigure(2, weight=1)
-        yield
-        panel_prev.grid_columnconfigure(0, weight=1)
-        yield
-        (yield from steps_for(self._construir_preview, panel_prev))
+        # Preview directamente en el panel derecho del workspace.
+        (yield from steps_for(self._construir_preview, derecha))
         yield
 
         # Vincular todas las variables al preview
@@ -140,35 +121,17 @@ class RenameFrame(BaseFrame):
             p: Frame padre del panel.
         """
         # Seccion: Prefijo + numeracion
-        card_num = ctk.CTkFrame(
+        styles.CheckBox(
             p,
-            fg_color=colors.SIDEBAR_BG,
-            corner_radius=8,
-            border_width=1,
-            border_color=colors.SIDEBAR_SEPARATOR
-        )
-        yield
-        card_num.grid(row=0, column=0, columnspan=2, padx=12, pady=(12, 6), sticky='ew')
-        yield
-        card_num.grid_columnconfigure(1, weight=1)
-        yield
-
-        ctk.CTkCheckBox(
-            card_num,
             text=t('rename_numbering'),
             variable=self._state.numeracion_activa,
             font=fonts.FUENTE_BASE,
-            text_color=colors.TEXT_COLOR,
-            fg_color=colors.ACENTO,
-            hover_color=colors.ACENTO_HOVER,
-            border_color=colors.SIDEBAR_SEPARATOR,
-            checkmark_color=colors.TEXT_ACTIVE,
-        ).grid(row=0, column=0, padx=(12, 8), pady=10, sticky='w')
+        ).grid(row=0, column=0, padx=(16, 8), pady=(16, 8), sticky='w')
         yield
 
-        fila_num = ctk.CTkFrame(card_num, fg_color='transparent')
+        fila_num = ctk.CTkFrame(p, fg_color='transparent')
         yield
-        fila_num.grid(row=0, column=1, padx=(0, 12), pady=10, sticky='w')
+        fila_num.grid(row=0, column=1, padx=(0, 16), pady=(16, 8), sticky='w')
         yield
 
         ctk.CTkLabel(
@@ -178,15 +141,11 @@ class RenameFrame(BaseFrame):
         ).pack(side='left', padx=(0, 6))
         yield
 
-        ctk.CTkEntry(
+        styles.Entry(
             fila_num,
             textvariable=self._state.prefijo,
             font=fonts.FUENTE_BASE,
-            fg_color=colors.FRAMES_BG,
-            border_color=colors.SIDEBAR_SEPARATOR,
-            text_color=colors.TEXT_COLOR,
             placeholder_text=t('rename_placeholder'),
-            placeholder_text_color=colors.TEXT_GRAY,
             width=140
         ).pack(side='left', padx=(0, 16))
         yield
@@ -198,112 +157,62 @@ class RenameFrame(BaseFrame):
         ).pack(side='left', padx=(0, 6))
         yield
 
-        ctk.CTkEntry(
+        styles.Entry(
             fila_num,
             textvariable=self._state.inicio,
             font=fonts.FUENTE_BASE,
-            fg_color=colors.FRAMES_BG,
-            border_color=colors.SIDEBAR_SEPARATOR,
-            text_color=colors.TEXT_COLOR,
             width=52
         ).pack(side='left')
         yield
 
         # Seccion: Agregar fecha
-        card_fecha = ctk.CTkFrame(
+        styles.CheckBox(
             p,
-            fg_color=colors.SIDEBAR_BG,
-            corner_radius=8,
-            border_width=1,
-            border_color=colors.SIDEBAR_SEPARATOR
-        )
-        yield
-        card_fecha.grid(row=1, column=0, columnspan=2, padx=12, pady=6, sticky='ew')
-        yield
-        card_fecha.grid_columnconfigure(1, weight=1)
-        yield
-
-        ctk.CTkCheckBox(
-            card_fecha,
             text=t('rename_date'),
             variable=self._state.fecha_activa,
             font=fonts.FUENTE_BASE,
-            text_color=colors.TEXT_COLOR,
-            fg_color=colors.ACENTO,
-            hover_color=colors.ACENTO_HOVER,
-            border_color=colors.SIDEBAR_SEPARATOR,
-            checkmark_color=colors.TEXT_ACTIVE,
-        ).grid(row=0, column=0, padx=(12, 8), pady=10, sticky='w')
+        ).grid(row=1, column=0, padx=(16, 8), pady=8, sticky='w')
         yield
 
-        fila_fecha = ctk.CTkFrame(card_fecha, fg_color='transparent')
+        fila_fecha = ctk.CTkFrame(p, fg_color='transparent')
         yield
-        fila_fecha.grid(row=0, column=1, padx=(0, 12), pady=10, sticky='w')
+        fila_fecha.grid(row=1, column=1, padx=(0, 16), pady=8, sticky='w')
         yield
 
-        ctk.CTkSegmentedButton(
+        styles.SegmentedButton(
             fila_fecha,
             values=[t('rename_prefix_pos'), t('rename_suffix_pos')],
             variable=self._posicion_fecha_label,
             font=fonts.FUENTE_CHICA,
-            selected_color=colors.SEGMENT_SELECTED,
-            selected_hover_color=colors.SEGMENT_SELECTED_HOVER,
-            unselected_color=colors.SIDEBAR_BG,
-            unselected_hover_color=colors.SIDEBAR_HOVER,
-            text_color=colors.TEXT_COLOR,
             command=self._on_posicion_fecha_change
         ).pack(side='left', padx=(0, 16))
         yield
 
-        ctk.CTkOptionMenu(
+        styles.OptionField(
             fila_fecha,
+            width=140,
             values=list(FORMATOS_FECHA.keys()),
             variable=self._formato_fecha_label,
             font=fonts.FUENTE_BASE,
-            fg_color=colors.SIDEBAR_BG,
-            button_color=colors.ACENTO,
-            button_hover_color=colors.ACENTO_HOVER,
-            text_color=colors.TEXT_COLOR,
-            dropdown_fg_color=colors.PANEL_BG,
-            dropdown_text_color=colors.TEXT_COLOR,
-            dropdown_hover_color=colors.SIDEBAR_HOVER,
             command=self._on_formato_fecha_change
         ).pack(side='left')
         yield
 
         # Seccion: Capitalizacion
-        card_case = ctk.CTkFrame(
-            p,
-            fg_color=colors.SIDEBAR_BG,
-            corner_radius=8,
-            border_width=1,
-            border_color=colors.SIDEBAR_SEPARATOR
-        )
-        yield
-        card_case.grid(row=2, column=0, columnspan=2, padx=12, pady=(6, 12), sticky='ew')
-        yield
-        card_case.grid_columnconfigure(1, weight=1)
-        yield
-
         ctk.CTkLabel(
-            card_case, text=t('rename_case'),
+            p, text=t('rename_case'),
             font=fonts.FUENTE_BASE,
             text_color=colors.TEXT_COLOR, anchor='w'
-        ).grid(row=0, column=0, padx=(12, 8), pady=10, sticky='w')
+        ).grid(row=2, column=0, padx=(16, 8), pady=(8, 16), sticky='w')
         yield
 
-        ctk.CTkSegmentedButton(
-            card_case,
+        styles.SegmentedButton(
+            p,
             values=[t('rename_case_lower'), t('rename_case_upper')],
             variable=self._caso_label,
             font=fonts.FUENTE_CHICA,
-            selected_color=colors.SEGMENT_SELECTED,
-            selected_hover_color=colors.SEGMENT_SELECTED_HOVER,
-            unselected_color=colors.SIDEBAR_BG,
-            unselected_hover_color=colors.SIDEBAR_HOVER,
-            text_color=colors.TEXT_COLOR,
             command=self._aplicar_capitalizacion
-        ).grid(row=0, column=1, padx=(0, 12), pady=10, sticky='w')
+        ).grid(row=2, column=1, padx=(0, 16), pady=(8, 16), sticky='w')
         yield
 
     @stepwise
@@ -330,7 +239,7 @@ class RenameFrame(BaseFrame):
         yield
 
         # Cabeceras
-        cab = ctk.CTkFrame(p, fg_color=colors.SIDEBAR_BG, corner_radius=6)
+        cab = ctk.CTkFrame(p, **styles.surface('list'))
         yield
         cab.grid(row=1, column=0, padx=16, pady=(0, 4), sticky='ew')
         yield
@@ -354,11 +263,9 @@ class RenameFrame(BaseFrame):
         # Lista scrolleable
         self._lista_preview = ctk.CTkScrollableFrame(
             p,
-            fg_color='transparent',
-            border_width=0,
             height=120,
-            scrollbar_button_color=colors.SIDEBAR_SEPARATOR,
-            scrollbar_button_hover_color=colors.ACENTO_DIMMED,
+            **styles.surface('list'),
+            **styles.scrollbar(),
         )
         yield
         self._lista_preview.grid(row=2, column=0, padx=16, pady=(0, 10), sticky='nsew')
@@ -369,6 +276,12 @@ class RenameFrame(BaseFrame):
         # Placeholder inicial
         self._renderizar_preview([])
         yield
+
+    def _on_build_complete(self):
+        super()._on_build_complete()
+        for frame in (self, self._lista_frame, self._lista_preview):
+            if isinstance(frame, ctk.CTkScrollableFrame):
+                frame._scrollbar.configure(corner_radius=0, width=6, border_spacing=1)
 
     def _vincular_variables(self):
         """
@@ -472,7 +385,7 @@ class RenameFrame(BaseFrame):
                 if isinstance(widget, ctk.CTkLabel):
                     widget.grid_remove()
             def create(parent):
-                row = PooledRow(parent, fg_color='transparent')
+                row = PooledRow(parent, corner_radius=0, fg_color='transparent')
                 row.grid_columnconfigure((0, 1), weight=1, uniform='rename-preview')
                 row.original_label = ctk.CTkLabel(row, text='', width=1, font=fonts.FUENTE_CHICA,
                     text_color=colors.TEXT_GRAY, anchor='w')

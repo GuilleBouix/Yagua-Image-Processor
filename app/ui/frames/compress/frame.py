@@ -13,11 +13,10 @@ from __future__ import annotations
 
 from app.ui.building import stepwise, steps_for
 import logging
-from tkinter import filedialog
 
 import customtkinter as ctk
 
-from app.ui import colors, fonts
+from app.ui import colors, fonts, styles
 from app.translations import t
 from app.ui.frames.base import BaseFrame
 from app.ui.frames.compress.services import (
@@ -36,6 +35,8 @@ class CompressFrame(BaseFrame):
     compresion EXIF, y comprimir las imagenes seleccionadas.
     """
     
+    design_system = True
+
     def __init__(self, parent, *, defer_build=False):
         """
         Inicializa el frame de compresion.
@@ -68,10 +69,7 @@ class CompressFrame(BaseFrame):
 
         self._panel_opciones = ctk.CTkFrame(
             self,
-            corner_radius=10,
-            fg_color=colors.SIDEBAR_BG,
-            border_width=1,
-            border_color=colors.SIDEBAR_SEPARATOR
+            **styles.surface('panel'),
         )
         yield
         self._panel_opciones.grid(row=4, column=0, padx=24, pady=(0, 12), sticky='ew')
@@ -137,7 +135,7 @@ class CompressFrame(BaseFrame):
             button_color=colors.ACENTO,
             button_hover_color=colors.ACENTO_HOVER,
             progress_color=colors.ACENTO,
-            fg_color=colors.SIDEBAR_SEPARATOR,
+            fg_color=styles.palette().border,
         )
         yield
         self._slider.grid(row=0, column=0, sticky='ew', padx=(0, 10))
@@ -164,31 +162,26 @@ class CompressFrame(BaseFrame):
         yield
 
         # Toggle de eliminar EXIF
-        ctk.CTkSwitch(
+        self._switch_exif = styles.Switch(
             p, text='',
             variable=self._state.quitar_exif,
             onvalue=True, offvalue=False,
-            progress_color=colors.ACENTO,
-            button_color=colors.ACENTO,
-            button_hover_color=colors.ACENTO_HOVER,
-            fg_color=colors.SIDEBAR_SEPARATOR,
-        ).grid(row=1, column=1, padx=(0, 16), pady=(8, 16), sticky='w')
+        )
+        self._switch_exif.grid(row=1, column=1, padx=(0, 16), pady=(8, 16), sticky='w')
         yield
 
+        yield from self._build_save_selector(p, 2, columnspan=2)
+
         # Boton de comprimir
-        self._btn_comprimir = ctk.CTkButton(
+        self._btn_comprimir = self._new_button(
             p,
+            role='primary',
             text=t('compress_btn'),
-            height=40,
-            corner_radius=8,
             font=fonts.FUENTE_BASE,
-            fg_color=colors.ACENTO,
-            text_color=colors.TEXT_ACTIVE,
-            hover_color=colors.ACENTO_HOVER,
             command=self._comprimir
         )
         yield
-        self._btn_comprimir.grid(row=2, column=0, columnspan=2, padx=16, pady=(0, 16), sticky='ew')
+        self._btn_comprimir.grid(row=3, column=0, columnspan=2, padx=16, pady=(0, 16), sticky='ew')
         yield
 
     def _cargar_imagenes(self, rutas):
@@ -241,16 +234,14 @@ class CompressFrame(BaseFrame):
             self._lbl_info.configure(text=t('load_images_first'))
             return
         
-        carpeta = filedialog.askdirectory(title=t('select_output_folder'))
-        if not carpeta:
-            return
-        
-        self._btn_comprimir.configure(state='disabled', text=t('compressing'))
-        self._show_full_overlay(t('processing'))
         paths = tuple(self._imagenes)
         quality, strip = self._state.calidad.get(), self._state.quitar_exif.get()
-        self._submit_job(lambda: self._proceso(carpeta, paths, quality, strip),
-                         button=self._btn_comprimir, text=t('compress_btn'))
+        def start(folder, plan):
+            self._show_full_overlay(t('processing'))
+            self._submit_job(lambda: batch_comprimir(paths, folder, calidad=quality,
+                quitar_exif=strip, output_policy=plan), button=self._btn_comprimir,
+                text=t('compress_btn'), on_success=lambda res: self._finish_save(res, strip=strip))
+        self._prepare_save(paths, None, start)
 
     def _proceso(self, carpeta, paths, quality, strip):
         """

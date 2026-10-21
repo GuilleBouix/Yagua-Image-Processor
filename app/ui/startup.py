@@ -11,7 +11,7 @@ import customtkinter as ctk
 from PIL import Image
 
 from app.translations import t
-from app.ui import colors, fonts
+from app.ui import fonts, styles
 from app.ui.building import BuildTask
 from app.ui.module_registry import get_module_spec, iter_enabled_modules
 from app.ui.rendering import StableRender
@@ -22,8 +22,9 @@ logger = logging.getLogger(__name__)
 
 class LoadingScreen(ctk.CTkFrame):
     def __init__(self, parent, enter):
-        super().__init__(parent, fg_color=colors.FRAMES_BG, corner_radius=0)
-        card = ctk.CTkFrame(self, fg_color='transparent')
+        palette = styles.palette()
+        super().__init__(parent, fg_color=palette.background, corner_radius=0)
+        card = ctk.CTkFrame(self, fg_color='transparent', corner_radius=0)
         card.place(relx=.5, rely=.5, anchor='center')
         card.grid_columnconfigure(0, weight=1)
         try:
@@ -34,18 +35,16 @@ class LoadingScreen(ctk.CTkFrame):
         except OSError:
             self.logo = None
         ctk.CTkLabel(card, image=self.logo, text='' if self.logo else 'Yagua',
-                     font=fonts.FUENTE_TITULO).grid(row=0, column=0, pady=(0, 24))
+                     font=fonts.FUENTE_TITULO, text_color=palette.text).grid(row=0, column=0, pady=(0, 24))
         self.status = ctk.CTkLabel(card, text=t('startup_resources'), font=fonts.FUENTE_BASE,
-            text_color=colors.TEXT_COLOR, width=360, wraplength=360, justify='center')
-        self.status.grid(row=1, column=0, pady=(0, 14), sticky='ew')
+            text_color=palette.text, width=360, wraplength=360, justify='center')
+        self.status.grid(row=1, column=0, pady=(0, 16), sticky='ew')
         self.progress = ctk.CTkProgressBar(card, width=360, height=6,
-            fg_color=colors.SIDEBAR_SEPARATOR, progress_color=colors.ACENTO)
+            corner_radius=0, fg_color=palette.inset, progress_color=palette.primary)
         self.progress.set(0)
         self.progress.grid(row=2, column=0, sticky='ew')
-        self.button = ctk.CTkButton(card, text=t('startup_enter'), command=enter,
-            height=36, width=160, font=fonts.FUENTE_BASE,
-            fg_color=colors.PANEL_BG, hover_color=colors.SIDEBAR_HOVER,
-            text_color=colors.TEXT_COLOR, border_width=1, border_color=colors.SIDEBAR_SEPARATOR)
+        self.button = styles.Button(card, role='secondary', text=t('startup_enter'), command=enter,
+            height=40, width=160, font=fonts.FUENTE_BASE)
         self.button.grid(row=3, column=0, pady=(24, 0))
         self.place(x=0, y=0, relwidth=1, relheight=1)
 

@@ -142,7 +142,7 @@ def test_sidebar_changes_only_the_previous_and_new_selection(monkeypatch):
     from app.ui import sidebar
     painted = []
     monkeypatch.setattr(sidebar, 'tintar_icono', lambda *args: args)
-    buttons = {key: {'btn': SimpleNamespace(configure=lambda key=key, **values: painted.append(key)),
+    buttons = {key: {'btn': SimpleNamespace(set_selected=lambda _selected, _image, key=key: painted.append(key)),
                      'icon_path': key} for key in ('convert', 'compress', 'metadata')}
     view = SimpleNamespace(buttons=buttons, _active_key=None)
     sidebar.Sidebar.set_active(view, None)
@@ -211,7 +211,8 @@ def test_real_entrypoint_mainloop_displays_splash_and_home(tk_session, scale, ea
                         self._startup.screen.button.invoke()
                         self.pressed = True
                     if self.ready or monotonic() > self.deadline:
-                        summary.update(ready=self.ready, mapped=mapped, pressed=self.pressed)
+                        summary.update(ready=self.ready, mapped=mapped, pressed=self.pressed,
+                                       entered_early=self._startup.entered_early)
                         if self.ready:
                             summary['frames'] = [key for key, value in self.main_window.frames.items() if value is not None]
                             summary['home'] = self.main_window._active_view is self.main_window._home

@@ -18,7 +18,7 @@ from app.modules.metadata_batch import (
     MetadataDraft, MetadataTask, exportar_lote, leer_archivo, preparar_borrador, procesar_lote,
 )
 from app.translations import t
-from app.ui import colors, fonts
+from app.ui import colors, fonts, styles
 from app.ui.frames.metadata.state import path_key
 from app.ui.operations import operations
 from app.utils.paths import resource_path
@@ -64,6 +64,9 @@ class MetadataCollection:
         self.preview_token = None
         self.visible = True
         self.summary = ''
+        self.details_expanded = False
+        self.notice = ''
+        self.feedback = ''
         self.tab = ''
         self._thumb_requests = set()
 
@@ -87,6 +90,8 @@ class MetadataCollection:
                 (self.view._btn_limpiar_exif, bool(self.state.marked)),
             ):
                 configure_changed(button, state='normal' if enabled else 'disabled')
+        if not operations.is_busy():
+            self.view._sync_presentation()
 
     def request_thumbnail(self, key):
         token = (self.epoch, key)
@@ -149,11 +154,19 @@ class MetadataCollection:
             return
         self.capture()
         added, excluded, duplicates = self.state.add(list(paths))
+        self.feedback = ''
+        notices = []
+        if len(self.state.items) == self.state.limit:
+            notices.append(t('meta_limit_notice').format(limit=self.state.limit))
+        if excluded:
+            notices.append(t('meta_excluded_notice').format(count=excluded))
+        if duplicates:
+            notices.append(t('meta_duplicates_notice').format(count=duplicates))
+        self.notice = ' · '.join(notices)
         self.refresh(rebuild=True)
         if self.state.active is None and added:
-            self.activate(added[0])
-        self.view._lbl_info.configure(text=t('meta_added').format(
-            added=len(added), excluded=excluded, duplicates=duplicates))
+            self.activate(added[0], preserve_notice=True)
+        self.view._lbl_info.configure(text=self.notice)
 
     def explore(self):
         if self.view._operation_blocked(global_job=True):
@@ -188,7 +201,7 @@ class MetadataCollection:
         return {key: self.view._enum_values[key].get(widget.get(), '') if key in self.view._enum_values
                 else widget.get().strip() for key, widget in self.view._campos_edit.items()}
 
-    def activate(self, key, *, force=False):
+    def activate(self, key, *, force=False, preserve_notice=False):
         if self.view._operation_blocked(global_job=True):
             return
         if key not in self.state.items:
@@ -197,6 +210,10 @@ class MetadataCollection:
         if key == self.state.active and not force and current and current.data and self.preview is not None and not current.data['edit_error']:
             return
         self.capture()
+        if not preserve_notice:
+            self.notice = ''
+        if not force:
+            self.feedback = ''
         self.revision += 1
         self.state.active = key
         item = self.state.items[key]
@@ -254,6 +271,8 @@ class MetadataCollection:
             else:
                 self.view._info_tecnica.configure(text=t('meta_read_only') if not data['edit_error'] else error_text(data['edit_error']))
             self.view._aplicar_metadatos(data['metadata'])
+            self.view._lbl_info.configure(text=self.notice or (
+                self.feedback if self.tab != t('clean_batch') else ''))
         self.render_previews()
         self.refresh()
 
@@ -274,7 +293,7 @@ class MetadataCollection:
             width, height = data['size']
             info = f'{width} × {height} px · {data["format"]} · {formatear_bytes(data["bytes"])}'
         for pane in self.view._previews:
-            active = self.visible and pane.tab_frame is self.view._frames.get(self.tab)
+            active = bool(item) and self.visible and pane.tab_frame is self.view._frames.get(self.tab)
             pane.set_visible(active)
             if item is None or active:
                 hint = placeholder or (self.preview_error if ready else t('reading_metadata') if item else '')
@@ -292,6 +311,14 @@ class MetadataCollection:
             self.view._aplicar_metadatos(current.data['metadata'])
         self.refresh()
         self.render_previews()
+        if self.summary and tab == t('clean_batch'):
+            self.view._lbl_info.configure(text='')
+        elif self.feedback:
+            self.view._lbl_info.configure(text=self.feedback)
+
+    def toggle_details(self):
+        self.details_expanded = not self.details_expanded
+        self.view._sync_presentation()
 
     def _dialog(self, title, width, height):
         dialog = ctk.CTkToplevel(self.view)
@@ -300,7 +327,7 @@ class MetadataCollection:
             # CTk installs its own Windows icon after 200 ms; restore Yagua's.
             dialog.after(250, lambda: self._dialog_icon(dialog) if dialog.winfo_exists() else None)
         dialog.title(t(title))
-        dialog.configure(fg_color=colors.PANEL_BG)
+        dialog.configure(fg_color=styles.palette().background)
         dialog.geometry(f'{width}x{height}')
         dialog.transient(self.view.winfo_toplevel())
         dialog.grid_columnconfigure(0, weight=1)
@@ -323,18 +350,19 @@ class MetadataCollection:
             logger.warning('No se pudo aplicar el icono de Yagua al diálogo', exc_info=True)
 
     def _dialog_button(self, parent, key, command, *, primary=False):
-        return ctk.CTkButton(parent, text=t(key), command=command, height=36, width=1,
-            font=fonts.FUENTE_BASE, fg_color=colors.ACENTO if primary else 'transparent',
-            text_color=colors.TEXT_ACTIVE if primary else colors.TEXT_COLOR,
-            hover_color=colors.ACENTO_HOVER if primary else colors.SIDEBAR_HOVER,
-            border_width=0 if primary else 1, border_color=colors.SIDEBAR_SEPARATOR)
+        return styles.Button(parent, role='primary' if primary else 'secondary',
+            text=t(key), command=command, height=40, width=1, font=fonts.FUENTE_BASE)
 
-    def destination(self, count_items, *, choose_scope=False):
-        dialog = self._dialog('meta_save' if choose_scope else 'meta_destination', 540,
-                              390 if choose_scope else 260)
-        dialog.minsize(500, 390 if choose_scope else 260)
-        choice = ctk.StringVar(value='copies')
+    def destination(self, count_items, *, choose_scope=False) -> 'Any':
+        from app.ui.saving import mode
+        overwrite = mode(self.view) == 'overwrite'
+        if not choose_scope:
+            folder = None if overwrite else filedialog.askdirectory(parent=self.view, title=t('select_output_folder_clean'))
+            return (overwrite, folder) if overwrite or folder else None
+        dialog = self._dialog('meta_save', 540, 290)
+        dialog.minsize(500, 290)
         scope = ctk.StringVar(value='current' if self.state.current else 'marked')
+        palette = styles.palette()
         row_offset = 0
         if choose_scope:
             ctk.CTkLabel(dialog, text=t('meta_save_scope'), font=fonts.FUENTE_BASE, anchor='w').grid(
@@ -343,8 +371,9 @@ class MetadataCollection:
                 enabled = bool(self.state.current) if value == 'current' else bool(self.state.marked)
                 ctk.CTkRadioButton(dialog, text=t(key), variable=scope, value=value,
                     state='normal' if enabled else 'disabled', font=fonts.FUENTE_BASE,
-                    fg_color=colors.ACENTO, hover_color=colors.ACENTO_HOVER,
-                    border_color=colors.DROPZONE_BORDER, text_color=colors.TEXT_COLOR).grid(
+                    fg_color=palette.primary, hover_color=palette.primary_hover,
+                    border_color=palette.border, text_color=palette.text,
+                    text_color_disabled=palette.muted).grid(
                         row=row, column=0, padx=20, pady=8, sticky='w')
             row_offset = 3
         count_label = ctk.CTkLabel(dialog, text=t('meta_destination_count').format(count=count_items),
@@ -356,12 +385,6 @@ class MetadataCollection:
         if choose_scope:
             scope.trace_add('write', update_count)
             update_count()
-        for row, (value, label) in enumerate((('copies', 'meta_copies'), ('overwrite', 'meta_overwrite')), 1):
-            ctk.CTkRadioButton(dialog, text=t(label), variable=choice, value=value,
-                               font=fonts.FUENTE_BASE,
-                               fg_color=colors.ACENTO, hover_color=colors.ACENTO_HOVER,
-                               border_color=colors.DROPZONE_BORDER, text_color=colors.TEXT_COLOR).grid(
-                row=row + row_offset, column=0, padx=20, pady=8, sticky='w')
         result = []
         def accept():
             count = (len(self.state.marked) if scope.get() == 'marked' else int(self.state.current is not None)) if choose_scope else count_items
@@ -381,17 +404,13 @@ class MetadataCollection:
                     if error:
                         count_label.configure(text=error_text(error))
                         return
-            overwrite = choice.get() == 'overwrite'
-            if overwrite and not messagebox.askyesno(t('confirm_overwrite_title'),
-                    t('meta_confirm_overwrite').format(count=count), parent=dialog):
-                return
             folder = None if overwrite else filedialog.askdirectory(parent=dialog, title=t('select_output_folder_clean'))
             if not overwrite and not folder:
                 return
             result.append((scope.get() == 'marked', overwrite, folder) if choose_scope else (overwrite, folder))
             dialog.destroy()
         actions = ctk.CTkFrame(dialog, fg_color='transparent')
-        actions.grid(row=row_offset + 3, column=0, padx=20, pady=(16, 20), sticky='ew')
+        actions.grid(row=row_offset + 1, column=0, padx=20, pady=(16, 20), sticky='ew')
         actions.grid_columnconfigure((0, 1), weight=1)
         self._dialog_button(actions, 'meta_cancel', dialog.destroy).grid(row=0, column=0, padx=(0, 6), sticky='ew')
         self._dialog_button(actions, 'meta_continue', accept, primary=True).grid(row=0, column=1, padx=(6, 0), sticky='ew')
@@ -438,14 +457,18 @@ class MetadataCollection:
         if destination is None:
             return
         overwrite, folder = destination
-        self.epoch += 1
-        self._thumb_requests.clear()
-        self.revision += 1  # Ignore reader deliveries from before this operation.
-        self.view._lbl_info.configure(text=t('processing'))
-        def work():
-            with self.io_lock:
-                return procesar_lote(tasks, clean=clean, overwrite=overwrite, folder=folder)
-        self.view._submit_job(work, on_success=lambda result: self.finished(result, overwrite))
+        def start(_folder, plan):
+            self.epoch += 1
+            self._thumb_requests.clear()
+            self.revision += 1
+            self.view._lbl_info.configure(text=t('processing'))
+            def work():
+                with self.io_lock:
+                    return procesar_lote(tasks, clean=clean, overwrite=overwrite,
+                                         folder=_folder, output_policy=plan)
+            self.view._submit_job(work, on_success=lambda result: self.finished(result, overwrite))
+        self.view._prepare_save(tuple(task.path for task in tasks), None, start, folder=folder,
+                                notice=t('meta_clean_confirm') if clean else '')
 
     def finished(self, result, overwrite):
         lines = []
@@ -465,16 +488,18 @@ class MetadataCollection:
                 item.thumbnail = None
                 self.enqueue('thumb', path_key(item.path))
         self.summary = t('meta_result').format(ok=result['ok'], unchanged=result['unchanged'], errors=result['errores'])
+        self.feedback = self.summary
+        self.details_expanded = False
         self.view._summary.configure(state='normal')
         self.view._summary.delete('1.0', 'end')
-        self.view._summary.insert('1.0', self.summary + '\n\n' + '\n\n'.join(lines))
+        self.view._summary.insert('1.0', '\n\n'.join(lines))
         self.view._summary.configure(state='disabled')
         if overwrite:
             self.form_key = None  # Do not capture the stale form over successful writes.
         self.refresh()
         if self.state.active:
             self.activate(self.state.active, force=True)
-        self.view._lbl_info.configure(text=self.summary)
+        self.view._lbl_info.configure(text='' if self.tab == t('clean_batch') else self.summary)
 
     def apply_fields(self, fields, options=None):
         self.capture()
@@ -515,9 +540,8 @@ class MetadataCollection:
             text_color=colors.TEXT_GRAY, wraplength=600, justify='left', anchor='w').grid(
                 row=1, column=0, padx=20, pady=(0, 12), sticky='ew')
         query = ctk.StringVar()
-        search = ctk.CTkEntry(dialog, textvariable=query, placeholder_text=t('meta_search_fields'),
-            height=36, font=fonts.FUENTE_BASE, fg_color=colors.DROPZONE_BG,
-            border_color=colors.SIDEBAR_SEPARATOR, text_color=colors.TEXT_COLOR)
+        search = styles.Entry(dialog, textvariable=query, placeholder_text=t('meta_search_fields'),
+            height=36, font=fonts.FUENTE_BASE)
         search.grid(row=2, column=0, padx=20, pady=(0, 8), sticky='ew')
         headings = ctk.CTkFrame(dialog, fg_color='transparent')
         headings.grid(row=3, column=0, padx=24, sticky='ew')
@@ -525,7 +549,8 @@ class MetadataCollection:
         for column, key in enumerate(('meta_field', 'meta_value')):
             ctk.CTkLabel(headings, text=t(key), font=fonts.FUENTE_CHICA, anchor='w',
                          text_color=colors.TEXT_GRAY).grid(row=0, column=column, sticky='ew')
-        body = ctk.CTkScrollableFrame(dialog, fg_color='transparent')
+        body = ctk.CTkScrollableFrame(dialog, **styles.surface('list'), **styles.scrollbar())
+        body._scrollbar.configure(corner_radius=0, width=6, border_spacing=1)
         body.grid(row=4, column=0, padx=16, sticky='nsew')
         body.grid_columnconfigure(0, weight=1)
         choices = {}
@@ -545,11 +570,8 @@ class MetadataCollection:
             row = ctk.CTkFrame(body, fg_color='transparent')
             row.grid(row=len(rows), column=0, sticky='ew', pady=4)
             row.grid_columnconfigure((0, 1), weight=1, uniform='copy-fields')
-            checkbox = ctk.CTkCheckBox(row, text=label, variable=variable, width=1,
-                checkbox_width=18, checkbox_height=18, font=fonts.FUENTE_BASE,
-                text_color=colors.TEXT_COLOR, fg_color=colors.ACENTO,
-                hover_color=colors.ACENTO_HOVER, checkmark_color=colors.TEXT_ACTIVE,
-                border_color=colors.DROPZONE_BORDER)
+            checkbox = styles.CheckBox(row, text=label, variable=variable, width=1,
+                checkbox_width=18, checkbox_height=18, font=fonts.FUENTE_BASE)
             checkbox.grid(row=0, column=0, sticky='ew', padx=(0, 12), pady=4)
             preview = value[:120] + ('…' if len(value) > 120 else '')
             value_label = ctk.CTkLabel(row, text=preview, anchor='w', justify='left', width=1,
@@ -656,6 +678,12 @@ class MetadataCollection:
         self.revision += 1
         self.form_key = None
         self.state.clear()
+        self.notice = self.summary = self.feedback = ''
+        self.details_expanded = False
+        self.view._edit_query.set('')
+        self.view._edit_section.set(t('meta_all_sections'))
+        self.view._filtrar_campos()
+        self.view._panel_editar._parent_canvas.yview_moveto(0)
         self.preview, self.preview_error = None, ''
         self.preview_token = None
         self.set_form({}, enabled=False)

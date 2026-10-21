@@ -2,14 +2,13 @@
 from __future__ import annotations
 
 from app.ui.building import stepwise, steps_for
-from pathlib import Path
 import unicodedata
 import webbrowser
 
 import customtkinter as ctk
 
 from app.translations import t
-from app.ui import colors, fonts
+from app.ui import colors, fonts, styles
 from app.ui.frames.base import BaseFrame
 from app.ui.frames.metadata.collection import MetadataCollection, decode_preview
 from app.ui.frames.metadata.state import MetadataState
@@ -25,6 +24,8 @@ _cargar_preview_edicion = decode_preview
 
 
 class MetadataFrame(BaseFrame):
+    design_system = True
+
     def __init__(self, parent, *, defer_build=False):
         self._state = MetadataState()
         self._collection = MetadataCollection(self)
@@ -41,6 +42,67 @@ class MetadataFrame(BaseFrame):
         self._collection.closed.set()
         super().destroy()
 
+    def _on_build_complete(self):
+        self._scrollbar.configure(corner_radius=0, width=6, border_spacing=1)
+        for panel in (self._scroll_meta, self._panel_editar):
+            panel._scrollbar.configure(corner_radius=0, width=6, border_spacing=1)
+        self._summary._y_scrollbar.configure(corner_radius=0, width=6, border_spacing=1)
+        self._summary._x_scrollbar.configure(corner_radius=0, height=6, border_spacing=1)
+        self._collection.refresh()
+        self._collection.render_previews()
+
+    def _schedule_viewport_sync(self, _event=None):
+        # Wait through the grid's idle layout pass after switching tabs or
+        # revealing controls. An idle callback can still see the old request.
+        if self._viewport_sync_job is None and self.winfo_exists():
+            self._viewport_sync_job = self.after(16, self._sync_viewport_height)
+
+    @staticmethod
+    def _show_control(widget, visible):
+        if visible and not widget.winfo_manager():
+            widget.grid()
+        elif not visible and widget.winfo_manager():
+            widget.grid_remove()
+
+    def _sync_presentation(self):
+        if not self.build_ready:
+            return
+        current = self._state.current
+        has_images = bool(self._state.items)
+        ready = bool(current and self._collection.preview_token == (
+            self._collection.epoch, self._collection.revision, self._state.active))
+        data = current.data if current and ready else None
+        editable = bool(data and data['editable'] and not data['edit_error'])
+        can_save = editable or any(item.draft.dirty for item in self._state.marked)
+        for preview in self._previews:
+            self._show_control(preview, current is not None)
+            if current is None:
+                preview.set_visible(False)
+        for widget in (self._meta_heading, self._scroll_meta):
+            self._show_control(widget, current is not None)
+        for widget in (self._export_scope, self._export_actions):
+            self._show_control(widget, data is not None)
+        self._show_control(self._edit_target, current is not None)
+        for widget in (self._edit_filters, self._edit_viewport, self._info_tecnica):
+            self._show_control(widget, editable)
+        for widget in (self._edit_actions, self._edit_save_group):
+            self._show_control(widget, can_save)
+        self._show_control(self._edit_message, current is not None and not editable)
+        message = t('reading_metadata') if not ready else (
+            t('meta_read_error') if data is None else
+            t('meta_read_only_short') if not data['edit_error'] else t('error_generic'))
+        configure_changed(self._edit_message, text=message)
+        for widget in (self._btn_limpiar_exif, self._clean_save_group):
+            self._show_control(widget, has_images)
+        self._show_control(self._result_bar, bool(self._collection.summary))
+        self._show_control(self._summary, bool(self._collection.summary) and self._collection.details_expanded)
+        configure_changed(self._result_text, text=self._collection.summary)
+        configure_changed(self._details_button, text=t(
+            'meta_hide_details' if self._collection.details_expanded else 'meta_show_details'))
+        # Visibility changes alter requested size without necessarily emitting
+        # Configure: the outer canvas may still have the previous tab's height.
+        self._schedule_viewport_sync()
+
     def on_view_hidden(self):
         self._collection.visible = False
         for pane in self._previews:
@@ -53,10 +115,9 @@ class MetadataFrame(BaseFrame):
         self._collection.refresh()
         self._collection.render_previews()
 
-    def _action(self, parent, key, command):
-        return ctk.CTkButton(parent, text=t(key), height=36, width=1,
-            font=fonts.FUENTE_BASE, fg_color=colors.ACENTO, text_color=colors.TEXT_ACTIVE,
-            hover_color=colors.ACENTO_HOVER, command=command)
+    def _action(self, parent, key, command, *, role='primary', height=40):
+        return self._new_button(parent, role=role, text=t(key), height=height, width=1,
+            font=fonts.FUENTE_BASE, command=command)
 
     def _crear_lista(self, parent, *, row):
         files = MetadataFiles(parent, self._state, self._collection.activate,
@@ -77,12 +138,10 @@ class MetadataFrame(BaseFrame):
     @stepwise
     def _build_content(self):
         self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(2, weight=1)
         yield
-        self._tab = ctk.CTkSegmentedButton(self, values=[t('view'), t('edit'), t('clean_batch')],
-            font=fonts.FUENTE_BASE, selected_color=colors.SEGMENT_SELECTED,
-            selected_hover_color=colors.SEGMENT_SELECTED_HOVER,
-            unselected_color=colors.PANEL_BG, unselected_hover_color=colors.SIDEBAR_HOVER,
-            text_color=colors.TEXT_COLOR, command=self._cambiar_tab)
+        self._tab = styles.SegmentedButton(self, values=[t('view'), t('edit'), t('clean_batch')],
+            font=fonts.FUENTE_BASE, command=self._cambiar_tab)
         yield
         self._tab.set(t('view'))
         yield
@@ -93,6 +152,7 @@ class MetadataFrame(BaseFrame):
         self._contenedor.grid(row=2, column=0, sticky='nsew')
         yield
         self._contenedor.grid_columnconfigure(0, weight=1)
+        self._contenedor.grid_rowconfigure(0, weight=1)
         yield
         self._frames = {t('view'): (yield from steps_for(self._build_tab_ver)), t('edit'): (yield from steps_for(self._build_tab_editar)),
                         t('clean_batch'): (yield from steps_for(self._build_tab_limpiar))}
@@ -119,10 +179,11 @@ class MetadataFrame(BaseFrame):
         yield
         self._preview_ver = self._crear_preview(left, row=2)
         yield
-        ctk.CTkLabel(right, text=t('metadata_title'), anchor='w', font=fonts.FUENTE_BASE).grid(
-            row=0, column=0, padx=16, pady=(16, 0), sticky='ew')
+        self._meta_heading = ctk.CTkLabel(right, text=t('metadata_title'), anchor='w', font=fonts.FUENTE_BASE)
+        self._meta_heading.grid(row=0, column=0, padx=16, pady=(16, 0), sticky='ew')
         yield
-        self._scroll_meta = ctk.CTkScrollableFrame(right, fg_color='transparent', border_width=0, height=380)
+        self._scroll_meta = ctk.CTkScrollableFrame(right, fg_color='transparent', corner_radius=0,
+            border_width=0, height=380, **styles.scrollbar())
         yield
         self._scroll_meta.grid(row=1, column=0, padx=16, pady=8, sticky='nsew')
         yield
@@ -136,14 +197,15 @@ class MetadataFrame(BaseFrame):
         yield
         self._renderizar_metadatos({})
         yield
-        self._export_scope = ctk.CTkComboBox(right, values=[t('meta_current'), t('meta_marked')], state='readonly',
-            font=fonts.FUENTE_BASE, fg_color=colors.DROPZONE_BG, text_color=colors.TEXT_COLOR)
+        self._export_scope = styles.ComboBox(right, values=[t('meta_current'), t('meta_marked')], state='readonly',
+            font=fonts.FUENTE_BASE)
         yield
         self._export_scope.set(t('meta_current'))
         yield
         self._export_scope.grid(row=2, column=0, padx=16, pady=8, sticky='ew')
         yield
         actions = ctk.CTkFrame(right, fg_color='transparent')
+        self._export_actions = actions
         yield
         actions.grid(row=3, column=0, padx=16, pady=(0, 16), sticky='ew')
         yield
@@ -170,18 +232,32 @@ class MetadataFrame(BaseFrame):
         yield
         self._btn_limpiar_exif = self._action(left, 'meta_clean_selected', self._limpiar_lote)
         yield
-        self._btn_limpiar_exif.grid(row=2, column=0, padx=16, pady=(0, 16), sticky='ew')
-        yield
-        ctk.CTkLabel(left, text=t('meta_clean_help'), text_color=colors.TEXT_GRAY,
-                     font=fonts.FUENTE_CHICA, justify='left', wraplength=300).grid(
-                         row=3, column=0, padx=16, pady=(0, 16), sticky='ew')
+        yield from self._build_save_selector(left, 2)
+        self._clean_save_group = self._save_groups[-1]
+        self._btn_limpiar_exif.grid(row=3, column=0, padx=16, pady=(0, 16), sticky='ew')
         yield
         self._preview_limpiar = self._crear_preview(right, row=0)
         yield
-        self._summary = ctk.CTkTextbox(right, height=180, fg_color=colors.DROPZONE_BG,
-                                      text_color=colors.TEXT_COLOR, font=fonts.FUENTE_CHICA, wrap='word')
+        self._result_bar = ctk.CTkFrame(right, fg_color='transparent')
+        self._result_bar.grid(row=1, column=0, padx=16, pady=(0, 12), sticky='ew')
+        self._result_bar.grid_columnconfigure(0, weight=1)
         yield
-        self._summary.grid(row=1, column=0, padx=16, pady=(0, 16), sticky='nsew')
+        self._result_text = ctk.CTkLabel(self._result_bar, text='', width=1,
+            font=fonts.FUENTE_CHICA, text_color=colors.TEXT_COLOR, anchor='w', justify='left', wraplength=280)
+        self._result_text.grid(row=0, column=0, sticky='ew')
+        self._result_bar.bind('<Configure>', lambda event: configure_changed(self._result_text,
+            wraplength=max(100, int(event.width / self._get_widget_scaling()) - 140)), add=True)
+        yield
+        self._details_button = self._action(self._result_bar, 'meta_show_details', self._collection.toggle_details,
+            role='secondary', height=30)
+        self._details_button.grid(row=0, column=1, padx=(12, 0), sticky='e')
+        yield
+        self._summary = ctk.CTkTextbox(right, height=180, **styles.surface('list'),
+            scrollbar_button_color=styles.scrollbar()['scrollbar_button_color'],
+            scrollbar_button_hover_color=styles.scrollbar()['scrollbar_button_hover_color'],
+            text_color=colors.TEXT_COLOR, font=fonts.FUENTE_CHICA, wrap='word')
+        yield
+        self._summary.grid(row=2, column=0, padx=16, pady=(0, 16), sticky='nsew')
         yield
         self._summary.configure(state='disabled')
         yield
@@ -203,7 +279,7 @@ class MetadataFrame(BaseFrame):
         yield
         self._crear_lista(izquierda, row=1)
         yield
-        self._preview_editar = self._crear_preview(izquierda, row=2, height=180)
+        self._preview_editar = self._crear_preview(izquierda, row=2, height=100)
         yield
         izquierda.grid_rowconfigure(2, weight=1)
         yield
@@ -218,6 +294,7 @@ class MetadataFrame(BaseFrame):
         self._edit_target.grid(row=0, column=0, padx=16, pady=(16, 8), sticky='ew')
         yield
         filters = ctk.CTkFrame(derecha, fg_color='transparent')
+        self._edit_filters = filters
         yield
         filters.grid(row=1, column=0, padx=16, pady=(0, 8), sticky='ew')
         yield
@@ -225,10 +302,9 @@ class MetadataFrame(BaseFrame):
         yield
         self._edit_query = ctk.StringVar()
         yield
-        self._edit_search = ctk.CTkEntry(filters, textvariable=self._edit_query,
+        self._edit_search = styles.Entry(filters, textvariable=self._edit_query,
             placeholder_text=t('meta_search_fields'), height=36, width=1,
-            font=fonts.FUENTE_BASE, fg_color=colors.DROPZONE_BG,
-            border_color=colors.SIDEBAR_SEPARATOR, text_color=colors.TEXT_COLOR)
+            font=fonts.FUENTE_BASE)
         yield
         self._edit_search.grid(row=0, column=0, sticky='ew', padx=(0, 8))
         yield
@@ -237,17 +313,18 @@ class MetadataFrame(BaseFrame):
         self._edit_sections = {t('meta_all_sections'): None,
                               **{t(f'metadata_section_{group}'): group for group in groups}}
         yield
-        self._edit_section = ctk.CTkComboBox(filters, values=list(self._edit_sections),
+        self._edit_section = styles.ComboBox(filters, values=list(self._edit_sections),
             state='readonly', width=190, height=36, font=fonts.FUENTE_BASE,
-            fg_color=colors.DROPZONE_BG, text_color=colors.TEXT_COLOR,
             command=lambda _value: self._filtrar_campos())
         yield
         self._edit_section.set(t('meta_all_sections'))
         yield
         self._edit_section.grid(row=0, column=1, sticky='ew')
         yield
-        # A bounded viewport keeps the form useful without growing the outer page.
-        viewport = ctk.CTkFrame(derecha, fg_color='transparent', height=350)
+        # A small minimum lets the form use the available height without pushing
+        # the save actions below the window. Extra space expands this grid row.
+        viewport = ctk.CTkFrame(derecha, fg_color='transparent', height=220)
+        self._edit_viewport = viewport
         yield
         viewport.grid(row=2, column=0, padx=16, pady=0, sticky='nsew')
         yield
@@ -260,7 +337,7 @@ class MetadataFrame(BaseFrame):
         derecha.grid_rowconfigure(2, weight=1)
         yield
         panel = ctk.CTkScrollableFrame(viewport, corner_radius=0, fg_color='transparent',
-                                       border_width=0, height=350)
+                                       border_width=0, height=220, **styles.scrollbar())
         yield
         self._panel_editar = panel
         yield
@@ -301,9 +378,9 @@ class MetadataFrame(BaseFrame):
                 yield
                 row = self._fila_editor(section, grupo, 'clear_gps', t('clear_gps'), fila)
                 yield
-                self._clear_gps_check = ctk.CTkCheckBox(
+                self._clear_gps_check = styles.CheckBox(
                     row, text=t('clear_gps'), variable=self._clear_gps_var,
-                    font=fonts.FUENTE_CHICA, text_color=colors.TEXT_COLOR,
+                    font=fonts.FUENTE_CHICA,
                 )
                 yield
                 self._clear_gps_check.grid(row=0, column=0, columnspan=2, pady=8, sticky='w')
@@ -313,8 +390,8 @@ class MetadataFrame(BaseFrame):
                 yield
                 row = self._fila_editor(section, grupo, 'sync_dates', t('sync_dates'), fila)
                 yield
-                self._sync_dates_check = ctk.CTkCheckBox(row, text=t('sync_dates'),
-                    variable=self._sync_dates_var, font=fonts.FUENTE_CHICA, text_color=colors.TEXT_COLOR)
+                self._sync_dates_check = styles.CheckBox(row, text=t('sync_dates'),
+                    variable=self._sync_dates_var, font=fonts.FUENTE_CHICA)
                 yield
                 self._sync_dates_check.grid(row=0, column=0, columnspan=2, pady=8, sticky='w')
                 yield
@@ -324,11 +401,9 @@ class MetadataFrame(BaseFrame):
                 ctk.CTkLabel(row, text=t('orientation_transform'), font=fonts.FUENTE_BASE,
                              text_color=colors.TEXT_GRAY, anchor='w').grid(row=0, column=0, sticky='w')
                 yield
-                self._combo_orientacion = ctk.CTkComboBox(row,
+                self._combo_orientacion = styles.ComboBox(row,
                     values=[t('keep_orientation')] + [t(key) for key in _ORIENTATION_OPTIONS.values()],
-                    state='readonly', height=36, font=fonts.FUENTE_BASE,
-                    fg_color=colors.FRAMES_BG, border_color=colors.SIDEBAR_SEPARATOR,
-                    text_color=colors.TEXT_COLOR)
+                    state='readonly', height=36, font=fonts.FUENTE_BASE)
                 yield
                 self._combo_orientacion.set(t('keep_orientation'))
                 yield
@@ -354,23 +429,29 @@ class MetadataFrame(BaseFrame):
         yield
         self._edit_query.trace_add('write', lambda *_args: self._filtrar_campos())
         yield
+        yield from self._build_save_selector(derecha, 4)
+        self._edit_save_group = self._save_groups[-1]
+
         actions = ctk.CTkFrame(derecha, fg_color='transparent')
+        self._edit_actions = actions
         yield
-        actions.grid(row=4, column=0, padx=16, pady=(8, 16), sticky='ew')
+        actions.grid(row=5, column=0, padx=16, pady=(8, 16), sticky='ew')
         yield
         actions.grid_columnconfigure((0, 1), weight=1)
         yield
-        self._btn_apply_fields = self._action(actions, 'meta_copy_fields', self._collection.choose_fields)
-        yield
-        self._btn_apply_fields.configure(fg_color='transparent', border_width=1,
-            border_color=colors.SIDEBAR_SEPARATOR, text_color=colors.TEXT_COLOR,
-            hover_color=colors.SIDEBAR_HOVER)
+        self._btn_apply_fields = self._action(actions, 'meta_copy_fields', self._collection.choose_fields,
+            role='secondary')
         yield
         self._btn_apply_fields.grid(row=0, column=0, padx=(0, 6), sticky='ew')
         yield
         self._btn_guardar_edit = self._action(actions, 'meta_save', lambda: self._collection.save(selected=None))
         yield
         self._btn_guardar_edit.grid(row=0, column=1, padx=(6, 0), sticky='ew')
+        yield
+        self._edit_message = ctk.CTkLabel(derecha, text='', font=fonts.FUENTE_CHICA,
+            text_color=colors.TEXT_GRAY, width=1, anchor='center', justify='center', wraplength=260)
+        self._edit_message.grid(row=2, column=0, padx=16, pady=24, sticky='nsew')
+        self._edit_message.grid_remove()
         yield
         return f
 
@@ -430,20 +511,16 @@ class MetadataFrame(BaseFrame):
         if campo in _ENUM_OPTIONS:
             opciones = {t(clave): str(valor) for valor, clave in _ENUM_OPTIONS[campo].items()}
             self._enum_values[campo] = opciones
-            widget = ctk.CTkComboBox(
+            widget = styles.ComboBox(
                 panel, values=[t('leave_unchanged')] + list(opciones),
                 state='readonly', font=fonts.FUENTE_BASE, height=36,
-                fg_color=colors.FRAMES_BG, border_color=colors.SIDEBAR_SEPARATOR,
-                text_color=colors.TEXT_COLOR,
             )
             widget.set(t('leave_unchanged'))
         else:
             placeholder = t('datetime_format_placeholder') if campo == 'DateTimeOriginal' else t('enter_field').format(etiqueta.lower())
-            widget = ctk.CTkEntry(
+            widget = styles.Entry(
                 panel, font=fonts.FUENTE_BASE, height=36,
-                fg_color=colors.FRAMES_BG, border_color=colors.SIDEBAR_SEPARATOR,
-                text_color=colors.TEXT_COLOR, placeholder_text=placeholder,
-                placeholder_text_color=colors.TEXT_GRAY,
+                placeholder_text=placeholder,
             )
         widget.grid(row=fila, column=1, padx=(0, 4), pady=4, sticky='ew')
         self._campos_edit[campo] = widget
@@ -539,9 +616,17 @@ class MetadataFrame(BaseFrame):
             section.grid_remove()
         if self._metadata_rows:
             self._meta_empty.grid_remove()
+            self._scroll_meta.grid()
         else:
-            configure_changed(self._meta_empty, text=t('no_metadata_image'))
-            self._meta_empty.grid(row=0, column=0, columnspan=2, pady=20)
+            current = self._state.current
+            ready = self._collection.preview_token == (self._collection.epoch, self._collection.revision, self._state.active)
+            text = '' if current is None else t('reading_metadata') if not ready else (
+                t('no_metadata_image') if current.data is not None else t('meta_read_error'))
+            configure_changed(self._meta_empty, text=text)
+            if text:
+                self._meta_empty.grid(row=0, column=0, columnspan=2, pady=20)
+            else:
+                self._meta_empty.grid_remove()
         self._ajustar_filas_metadatos()
 
 
@@ -554,10 +639,6 @@ class MetadataFrame(BaseFrame):
         self._state.metadatos = meta
         self._renderizar_metadatos(meta)
         self._hide_full_overlay()
-        n = len([k for k in meta if not k.startswith('__')])
-        self._lbl_info.configure(
-            text=f'{n} {t("fields_found")} - {Path(self._state.ruta).name}' if self._state.ruta else ''
-        )
 
 
     def _aplicar_campos_edit(self, meta: dict):
@@ -597,10 +678,6 @@ class MetadataFrame(BaseFrame):
             f"{t('dimensions')}: {meta.get('__image_size__', t('unknown'))}  |  "
             f"{t('color_space')}: {color_space}"
         ))
-        if self._state.ruta_edicion:
-            self._lbl_info.configure(text=f'{t("editing")} {Path(self._state.ruta_edicion).name}')
-            if hasattr(self, '_lbl_edit_target'):
-                self._lbl_edit_target.configure(text=f'{t("editing")}\n{Path(self._state.ruta_edicion).name}')
         self._hide_full_overlay()
 
 

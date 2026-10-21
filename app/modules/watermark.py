@@ -16,6 +16,7 @@ import numpy as np
 
 from app.utils.image_utils import load_cv_image_unchanged, save_cv_image
 from app.utils.output import require_single_frame, unique_output_path
+from app.utils.saving import get_plan, run_plan
 from app.utils.results import file_failure
 
 logger = logging.getLogger(__name__)
@@ -176,7 +177,7 @@ def aplicar_watermark_np(base_bgra, wm_bgra, posicion="bottom-right", escala=0.2
         return None
 
 
-def batch_aplicar_watermark(rutas_imagenes, ruta_watermark, carpeta_salida, sufijo="_wm", **kwargs):
+def batch_aplicar_watermark(rutas_imagenes, ruta_watermark, carpeta_salida, sufijo="_wm", *, output_policy=None, **kwargs):
     """
     Aplica watermark a múltiples imágenes.
 
@@ -185,6 +186,11 @@ def batch_aplicar_watermark(rutas_imagenes, ruta_watermark, carpeta_salida, sufi
         errores  : cantidad de errores
         archivos : lista de rutas generadas
     """
+    if output_policy is not None:
+        result = run_plan(get_plan(output_policy, rutas_imagenes, carpeta_salida, resources=(ruta_watermark,)),
+                         lambda source, target: aplicar_watermark(source, ruta_watermark, target, **kwargs))
+        result['archivos'] = [row['ruta_salida'] for row in result['resultados'] if row['estado'] == 'saved']
+        return result
     ok = 0
     errores = 0
     archivos = []

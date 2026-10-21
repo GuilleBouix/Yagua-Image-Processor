@@ -6,7 +6,7 @@ import webbrowser
 
 import customtkinter as ctk
 
-from app.ui import colors, fonts
+from app.ui import colors, fonts, styles
 from app.ui.scale import scale_wraplength
 from app.translations import t
 from app.utils import tintar_icono
@@ -90,26 +90,26 @@ class HomeFrame(ctk.CTkScrollableFrame):
         self.grid_columnconfigure(0, weight=1)
         yield
 
-        content = ctk.CTkFrame(self, fg_color="transparent")
+        palette = styles.palette()
+        content = ctk.CTkFrame(self, fg_color="transparent", corner_radius=0)
         yield
-        content.grid(row=0, column=0, padx=28, pady=(24, 28), sticky="nsew")
+        content.grid(row=0, column=0, padx=24, pady=24, sticky="nsew")
         yield
         content.grid_columnconfigure((0, 1), weight=1, uniform="home-tools")
         yield
 
         header = ctk.CTkFrame(
-            content, corner_radius=12, fg_color=colors.PANEL_BG,
-            border_width=1, border_color=colors.SIDEBAR_SEPARATOR,
+            content, **styles.surface('panel'),
         )
         yield
-        header.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, 20))
+        header.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, 24))
         yield
         header.grid_columnconfigure(0, weight=1)
         yield
         ctk.CTkLabel(
             header, text=t("app_title"), font=fonts.FUENTE_TITULO,
             text_color=colors.TEXT_COLOR, anchor="w",
-        ).grid(row=0, column=0, padx=20, pady=(18, 5), sticky="w")
+        ).grid(row=0, column=0, padx=24, pady=(16, 8), sticky="w")
         yield
         self._lbl_hint = ctk.CTkLabel(
             header, text=t("home_hint"), font=fonts.FUENTE_BASE,
@@ -117,40 +117,36 @@ class HomeFrame(ctk.CTkScrollableFrame):
             wraplength=scale_wraplength(700), justify="left",
         )
         yield
-        self._lbl_hint.grid(row=1, column=0, padx=20, pady=(0, 16), sticky="w")
+        self._lbl_hint.grid(row=1, column=0, padx=24, pady=(0, 16), sticky="w")
         yield
 
-        self._github_icon = tintar_icono('assets/icons/github.png', colors.ICON_COLOR)
+        self._github_icon = tintar_icono('assets/icons/github.png', palette.text)
         yield
         if self._github_icon is not None:
             self._github_icon.configure(size=(30, 30))
             yield
         self._btn_github = ctk.CTkButton(
             header, text='', image=self._github_icon,
-            width=44, height=44, corner_radius=8,
-            fg_color='transparent', hover_color=colors.SIDEBAR_HOVER,
+            width=44, height=44, corner_radius=0,
+            fg_color='transparent', border_width=0, hover=False,
             cursor='hand2', command=lambda: webbrowser.open(GITHUB_REPOSITORY_URL),
         )
         yield
-        self._btn_github.grid(row=0, column=1, rowspan=2, padx=20, pady=16, sticky='e')
+        self._btn_github.grid(row=0, column=1, rowspan=2, padx=24, pady=16, sticky='e')
         yield
 
         self._tool_buttons = []
         yield
         for index, spec in enumerate(iter_enabled_modules()):
-            button = ctk.CTkButton(
+            button = styles.Button(
                 content,
+                role='secondary', secondary_bg=palette.panel,
                 text=t(spec.label_key),
-                image=tintar_icono(spec.icon_path, colors.ICON_COLOR),
+                image=tintar_icono(spec.icon_path, palette.text),
                 compound="left",
                 anchor="w",
                 height=58,
-                corner_radius=9,
-                border_width=1,
-                border_color=colors.SIDEBAR_SEPARATOR,
-                fg_color=colors.PANEL_BG,
-                hover_color=colors.SIDEBAR_HOVER,
-                text_color=colors.TEXT_COLOR,
+                border_spacing=16,
                 font=fonts.FUENTE_BASE,
                 command=lambda key=spec.key: self._seleccionar(key),
             )
@@ -161,7 +157,7 @@ class HomeFrame(ctk.CTkScrollableFrame):
             yield
             button.grid(
                 row=row, column=column, padx=(0, 8) if column == 0 else (8, 0),
-                pady=5, sticky="ew",
+                pady=4, sticky="ew",
             )
             yield
             self._tool_buttons.append(button)
@@ -174,7 +170,7 @@ class HomeFrame(ctk.CTkScrollableFrame):
         yield
         self._lbl_version.grid(
             row=1 + (len(self._tool_buttons) + 1) // 2,
-            column=0, columnspan=2, pady=(14, 0), sticky="w",
+            column=0, columnspan=2, pady=(16, 0), sticky="w",
         )
         yield
 

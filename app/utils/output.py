@@ -18,6 +18,13 @@ from typing import Tuple
 logger = logging.getLogger(__name__)
 
 
+class DiscardOutput(Exception):
+    """A valid candidate was evaluated but must not be published."""
+    def __init__(self, result):
+        self.result = result
+        super().__init__('no_improvement')
+
+
 def unique_output_path(
     carpeta_salida: str | Path,
     ruta_entrada: str | Path,
@@ -112,12 +119,15 @@ def safe_image_output(function):
         require_single_frame(source)
         before = source.stat()
         same_file = source.resolve() == destination.resolve()
-        with atomic_destination(destination, replace=same_file) as temporary:
-            bound.arguments['ruta_salida'] = str(temporary)
-            result = function(*bound.args, **bound.kwargs)
-            after = source.stat()
-            if (before.st_size, before.st_mtime_ns) != (after.st_size, after.st_mtime_ns):
-                raise OSError('source_changed')
+        try:
+            with atomic_destination(destination, replace=same_file) as temporary:
+                bound.arguments['ruta_salida'] = str(temporary)
+                result = function(*bound.args, **bound.kwargs)
+                after = source.stat()
+                if (before.st_size, before.st_mtime_ns) != (after.st_size, after.st_mtime_ns):
+                    raise OSError('source_changed')
+        except DiscardOutput as skipped:
+            return skipped.result
         if isinstance(result, dict) and 'ruta_salida' in result:
             result['ruta_salida'] = str(destination)
         return result

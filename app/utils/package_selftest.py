@@ -175,7 +175,8 @@ def _verify_image_formats(work: Path, observations: dict | None = None) -> list[
     image.save(source)
     for fmt in convert.FORMATOS_DESTINO:
         result = convert.convertir_imagen(source, fmt, work)
-        with Image.open(result['ruta_salida']) as output:
+        output_path = result['ruta_salida'] or str(source)
+        with Image.open(output_path) as output:
             output.load()
             if output.size != image.size and fmt != 'ICO':
                 raise RuntimeError(f'Wrong dimensions after {fmt}: {output.size}')
@@ -186,7 +187,7 @@ def _verify_image_formats(work: Path, observations: dict | None = None) -> list[
                 observations[fmt] = {'mode': output.mode, 'size': list(output.size),
                                      'pixel_sha256': hashlib.sha256(output.tobytes()).hexdigest()}
         # The real OCR input path decodes through Pillow then cv2, not FFmpeg.
-        if ocr.preprocesar_imagen(result['ruta_salida']).size == 0:
+        if ocr.preprocesar_imagen(output_path).size == 0:
             raise RuntimeError(f'OCR could not decode {fmt}')
     profile = ImageCms.ImageCmsProfile(ImageCms.createProfile('sRGB')).tobytes()
     for fmt, suffix in (('JPEG', '.jpg'), ('TIFF', '.tiff')):
@@ -210,7 +211,7 @@ def _verify_image_formats(work: Path, observations: dict | None = None) -> list[
     rotated = work / 'orientation.jpg'
     image.convert('RGB').save(rotated, exif=piexif.dump({'0th': {274: 6}}))
     result = convert.convertir_imagen(rotated, 'PNG', work)
-    with Image.open(result['ruta_salida']) as output:
+    with Image.open(result['ruta_salida'] or str(rotated)) as output:
         if output.size != (96, 128):
             raise RuntimeError('EXIF orientation was not applied')
     return list(convert.FORMATOS_DESTINO)
@@ -227,7 +228,7 @@ def _verify_conversion_profiles(work: Path) -> dict[str, bool]:
         Image.new('RGBA', (32, 24), (20, 80, 180, 120)).convert(mode).save(source, icc_profile=profile)
         for fmt in ('JPEG', 'WEBP'):
             result = convertir_imagen(source, fmt, work)
-            with Image.open(result['ruta_salida']) as output:
+            with Image.open(result['ruta_salida'] or str(source)) as output:
                 retained = output.info.get('icc_profile') == profile
             preserved[f'{mode}-{fmt}'] = retained
             # Only historical comparison permits the confirmed pre-existing bug.

@@ -17,7 +17,7 @@ from tkinter import filedialog
 
 import customtkinter as ctk
 
-from app.ui import colors, fonts
+from app.ui import colors, fonts, styles
 from app.translations import t
 from app.ui.operations import operations
 from app.ui.frames.base import BaseFrame
@@ -33,7 +33,9 @@ class OcrFrame(BaseFrame):
     Permite seleccionar imagenes, configurar idiomas,
     procesar OCR y mostrar/exportar el texto extraído.
     """
-    
+
+    design_system = True
+
     def __init__(self, parent):
         """
         Inicializa el frame de OCR.
@@ -75,10 +77,7 @@ class OcrFrame(BaseFrame):
 
         self._panel_opciones = ctk.CTkFrame(
             col_izq,
-            corner_radius=12,
-            fg_color=colors.PANEL_BG,
-            border_width=1,
-            border_color=colors.SIDEBAR_SEPARATOR,
+            **styles.surface('panel'),
         )
         self._panel_opciones.grid(row=1, column=0, padx=16, pady=(0, 16), sticky="new")
         self._panel_opciones.grid_columnconfigure(1, weight=1)
@@ -98,13 +97,17 @@ class OcrFrame(BaseFrame):
         # ===== COLUMNA DERECHA =====
         self._textarea = ctk.CTkTextbox(
             col_der,
-            corner_radius=12,
-            fg_color=colors.PANEL_BG,
-            border_width=1,
-            border_color=colors.SIDEBAR_SEPARATOR,
+            **styles.surface('list'),
             font=fonts.FUENTE_BASE,
             text_color=colors.TEXT_COLOR,
+            scrollbar_button_color=styles.scrollbar()['scrollbar_button_color'],
+            scrollbar_button_hover_color=styles.scrollbar()['scrollbar_button_hover_color'],
         )
+        p = styles.palette()
+        self._textarea._textbox.configure(
+            insertbackground=p.text, selectbackground=p.primary, selectforeground=p.primary_text)
+        self._textarea.bind('<FocusIn>', lambda event: self._textarea.configure(border_color=p.text), add=True)
+        self._textarea.bind('<FocusOut>', lambda event: self._textarea.configure(border_color=p.border), add=True)
         self._textarea.grid(row=0, column=0, columnspan=2, padx=16, pady=(16, 8), sticky="nsew")
         self._textarea.insert("0.0", self._state.texto_extraido.get())
 
@@ -113,6 +116,14 @@ class OcrFrame(BaseFrame):
 
         # Importante: diferir al siguiente tick para que BaseFrame no lo oculte al finalizar _build().
         self._post_ui(0, self._inicializar_en_background)
+
+    def _on_build_complete(self):
+        super()._on_build_complete()
+        for frame in (self, self._lista_frame):
+            if isinstance(frame, ctk.CTkScrollableFrame):
+                frame._scrollbar.configure(corner_radius=0, width=6, border_spacing=1)
+        self._textarea._y_scrollbar.configure(corner_radius=0, width=6, border_spacing=1)
+        self._textarea._x_scrollbar.configure(corner_radius=0, height=6, border_spacing=1)
 
     def _limpiar(self):
         """Limpia imagenes y tambien el textarea."""
@@ -229,18 +240,11 @@ class OcrFrame(BaseFrame):
         }
         
         # Dropdown de idiomas con opciones legibles
-        self._dropdown_idiomas = ctk.CTkComboBox(
+        self._dropdown_idiomas = styles.ComboBox(
             p,
             values=[lbl_es_en, lbl_es, lbl_en],
             variable=self._idioma_label,
             font=fonts.FUENTE_BASE,
-            fg_color=colors.SIDEBAR_BG,
-            border_color=colors.SIDEBAR_SEPARATOR,
-            button_color=colors.ACENTO,
-            button_hover_color=colors.ACENTO_HOVER,
-            dropdown_fg_color=colors.SIDEBAR_BG,
-            dropdown_text_color=colors.TEXT_COLOR,
-            dropdown_hover_color=colors.SIDEBAR_HOVER
         )
         # Establecer valor por defecto.
         self._dropdown_idiomas.set(lbl_es_en)
@@ -248,15 +252,12 @@ class OcrFrame(BaseFrame):
         self._dropdown_idiomas.grid(row=0, column=1, padx=(0, 16), pady=(10, 6), sticky='ew')
 
         # Boton de procesar
-        self._btn_procesar = ctk.CTkButton(
+        self._btn_procesar = self._new_button(
             p,
+            role='primary',
             text=t('process_ocr'),
             height=40,
-            corner_radius=8,
             font=fonts.FUENTE_BASE,
-            fg_color=colors.ACENTO,
-            text_color=colors.TEXT_ACTIVE,
-            hover_color=colors.ACENTO_HOVER,
             command=self._procesar
         )
         self._btn_procesar.grid(row=1, column=0, columnspan=2, padx=16, pady=(0, 12), sticky='ew')
@@ -268,31 +269,22 @@ class OcrFrame(BaseFrame):
         Incluye botones copy y export.
         """
         # Boton copiar
-        self._btn_copiar = ctk.CTkButton(
+        self._btn_copiar = self._new_button(
             p,
             text=t('copy_text'),
-            height=32,
-            corner_radius=8,
+            height=40,
             font=fonts.FUENTE_CHICA,
-            fg_color=colors.PANEL_BG,
-            border_width=1,
-            border_color=colors.SIDEBAR_SEPARATOR,
-            text_color=colors.TEXT_COLOR,
-            hover_color=colors.SIDEBAR_HOVER,
             command=self._copiar_texto
         )
         self._btn_copiar.grid(row=1, column=0, padx=(16, 8), pady=(0, 16), sticky='ew')
 
         # Boton exportar
-        self._btn_exportar = ctk.CTkButton(
+        self._btn_exportar = self._new_button(
             p,
+            role='primary',
             text=t('export_text'),
-            height=32,
-            corner_radius=8,
+            height=40,
             font=fonts.FUENTE_CHICA,
-            fg_color=colors.ACENTO,
-            text_color=colors.TEXT_ACTIVE,
-            hover_color=colors.ACENTO_HOVER,
             command=self._exportar
         )
         self._btn_exportar.grid(row=1, column=1, padx=(8, 16), pady=(0, 16), sticky='ew')

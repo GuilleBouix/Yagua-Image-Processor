@@ -13,13 +13,13 @@ from __future__ import annotations
 
 from app.ui.building import stepwise, steps_for
 import logging
-from tkinter import filedialog
 
 import customtkinter as ctk
 
-from app.ui import colors, fonts
+from app.ui import colors, fonts, styles
 from app.translations import t
 from app.ui.frames.base import BaseFrame
+from app.ui.file_list import FileList
 from app.ui.frames.convert.services import (
     batch_convertir_safe,
     FORMATOS_DESTINO,
@@ -40,6 +40,8 @@ class ConvertFrame(BaseFrame):
     configurar calidad y convertir las imagenes.
     """
     
+    design_system = True
+
     def __init__(self, parent, *, defer_build=False):
         """
         Inicializa el frame de conversion.
@@ -72,10 +74,7 @@ class ConvertFrame(BaseFrame):
 
         self._panel_opciones = ctk.CTkFrame(
             self,
-            corner_radius=10,
-            fg_color=colors.SIDEBAR_BG,
-            border_width=1,
-            border_color=colors.SIDEBAR_SEPARATOR
+            **styles.surface('panel'),
         )
         yield
         self._panel_opciones.grid(row=4, column=0, padx=24, pady=(0, 12), sticky='ew')
@@ -124,17 +123,11 @@ class ConvertFrame(BaseFrame):
         yield
 
         # Selector segmented de formato
-        self._seg_formato = ctk.CTkSegmentedButton(
+        self._seg_formato = styles.SegmentedButton(
             p,
             values=FORMATOS_DESTINO,
             variable=self._state.fmt_destino,
             font=fonts.FUENTE_CHICA,
-            selected_color=colors.SEGMENT_SELECTED,
-            selected_hover_color=colors.SEGMENT_SELECTED_HOVER,
-            unselected_color=colors.SIDEBAR_BG,
-            unselected_hover_color=colors.SIDEBAR_HOVER,
-            text_color=colors.TEXT_COLOR,
-            text_color_disabled=colors.TEXT_GRAY,
             command=self._actualizar_info,
         )
         yield
@@ -168,7 +161,7 @@ class ConvertFrame(BaseFrame):
             button_color=colors.ACENTO,
             button_hover_color=colors.ACENTO_HOVER,
             progress_color=colors.ACENTO,
-            fg_color=colors.SIDEBAR_SEPARATOR,
+            fg_color=styles.palette().border,
         )
         yield
         self._slider.grid(row=0, column=0, sticky='ew', padx=(0, 10))
@@ -186,27 +179,32 @@ class ConvertFrame(BaseFrame):
         self._lbl_calidad.grid(row=0, column=1)
         yield
 
+        yield from self._build_save_selector(p, 2, columnspan=2)
+
         # Boton de convertir
-        self._btn_convertir = ctk.CTkButton(
+        self._btn_convertir = self._new_button(
             p,
+            role='primary',
             text=t('convert_btn'),
-            height=40,
-            corner_radius=8,
             font=fonts.FUENTE_BASE,
-            fg_color=colors.ACENTO,
-            text_color=colors.TEXT_ACTIVE,
-            hover_color=colors.ACENTO_HOVER,
             command=self._convertir
         )
         yield
         self._btn_convertir.grid(
-            row=2, column=0, columnspan=2,
+            row=3, column=0, columnspan=2,
             padx=16, pady=(0, 16), sticky='ew'
         )
         yield
 
         self._actualizar_info()
         yield
+
+    def _on_build_complete(self):
+        super()._on_build_complete()
+        self._virtual_file_list = FileList(
+            self._lista_frame, self._filas_lista, self._thumbs, design_system=True
+        )
+        self._virtual_file_list.sync(self._imagenes)
 
     def _cargar_imagenes(self, rutas):
         """
@@ -258,6 +256,9 @@ class ConvertFrame(BaseFrame):
         
         # Habilitar/deshabilitar slider de calidad
         self._slider.configure(state='normal' if tiene_calidad else 'disabled')
+        p = styles.palette()
+        self._slider.configure(button_color=p.primary if tiene_calidad else p.muted,
+                               progress_color=p.primary if tiene_calidad else p.disabled)
         
         # Cambiar color de labels segun disponibilidad
         self._lbl_calidad_label.configure(
@@ -291,29 +292,15 @@ class ConvertFrame(BaseFrame):
             self._lbl_info.configure(text=t('heic_requires_plugin'))
             return
         
-        carpeta = filedialog.askdirectory(title=t('select_output_folder'))
-        if not carpeta:
-            logger.info("convert.ui: proceso_cancelado (sin_carpeta)")
-            return
-        
-        rutas = tuple(self._imagenes)
-        fmt_destino = self._state.fmt_destino.get()
-        calidad = self._state.calidad.get()
-        self._btn_convertir.configure(state='disabled', text=t('converting'))
-        self._show_full_overlay(t('processing'))
-        started = self._submit_job(
-            lambda: batch_convertir_safe(
-                rutas, fmt_destino=fmt_destino, carpeta_salida=carpeta, calidad=calidad
-            ),
-            on_success=lambda res: self._finalizar(
-                res['ok'], res['errores'], res['fmt_destino'], res.get('conflictos', 0)
-            ),
-            on_error=self._fallo_conversion,
-            button=self._btn_convertir, text=t('convert_btn'),
-        )
-        if not started:
-            self._btn_convertir.configure(state='normal', text=t('convert_btn'))
-            self._hide_full_overlay()
+        paths = tuple(self._imagenes)
+        fmt, quality = self._state.fmt_destino.get(), self._state.calidad.get()
+        def start(folder, plan):
+            self._show_full_overlay(t('processing'))
+            self._submit_job(lambda: batch_convertir_safe(paths, fmt_destino=fmt,
+                carpeta_salida=folder, calidad=quality, output_policy=plan),
+                button=self._btn_convertir, text=t('convert_btn'),
+                on_success=self._finish_save, on_error=self._fallo_conversion)
+        self._prepare_save(paths, fmt, start)
 
     def _fallo_conversion(self, error):
         logger.exception("convert.ui: fallo general", exc_info=error)

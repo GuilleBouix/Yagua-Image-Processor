@@ -22,7 +22,7 @@ import tkinter as tk
 
 import customtkinter as ctk
 
-from app.ui import colors, fonts
+from app.ui import colors, fonts, styles
 from app.ui.rendering import configure_changed
 from app.translations import t
 from app.ui.frames.base import BaseFrame
@@ -42,11 +42,16 @@ logger = logging.getLogger(__name__)
 class PaletteFrame(BaseFrame):
     """Frame principal del modulo de extraccion de paleta de colores."""
 
+    design_system = True
+
     def __init__(self, parent, *, defer_build=False):
         logger.info("palette.ui: init")
         self._state = PaletteState()
         self._preview_img: ctk.CTkImage | None = None
         super().__init__(parent, t('palette_title'), defer_build=defer_build)
+
+    def _on_build_complete(self):
+        self._scrollbar.configure(corner_radius=0, width=6, border_spacing=1)
 
     @stepwise
     def _build_content(self):
@@ -60,19 +65,16 @@ class PaletteFrame(BaseFrame):
             self, t('select_image_for_palette'), self._explorar
         )
         yield
-        self._btn_seleccionar.grid(row=1, column=0, padx=28, pady=8, sticky='ew')
+        self._btn_seleccionar.grid(row=1, column=0, padx=24, pady=8, sticky='ew')
         yield
 
         self._frame_preview = ctk.CTkFrame(
             self,
             height=110,
-            corner_radius=12,
-            border_width=1,
-            border_color=colors.ACENTO_DIMMED,
-            fg_color=colors.PANEL_BG,
+            **styles.surface('list'),
         )
         yield
-        self._frame_preview.grid(row=2, column=0, padx=28, pady=8, sticky='ew')
+        self._frame_preview.grid(row=2, column=0, padx=24, pady=8, sticky='ew')
         yield
         self._frame_preview.grid_propagate(False)
         yield
@@ -88,7 +90,7 @@ class PaletteFrame(BaseFrame):
             width=80, height=80, fg_color='transparent'
         )
         yield
-        self._lbl_preview.grid(row=0, column=0, padx=(14, 12), pady=10, sticky='w')
+        self._lbl_preview.grid(row=0, column=0, padx=(16, 12), pady=8, sticky='w')
         yield
 
         self._lbl_nombre = ctk.CTkLabel(
@@ -116,13 +118,10 @@ class PaletteFrame(BaseFrame):
 
         self._panel_paleta = ctk.CTkFrame(
             self,
-            corner_radius=12,
-            fg_color=colors.PANEL_BG,
-            border_width=1,
-            border_color=colors.SIDEBAR_SEPARATOR
+            **styles.surface('panel'),
         )
         yield
-        self._panel_paleta.grid(row=2, column=0, padx=28, pady=8, sticky='ew')
+        self._panel_paleta.grid(row=2, column=0, padx=24, pady=8, sticky='ew')
         yield
         self._panel_paleta.grid_columnconfigure(0, weight=1)
         yield
@@ -133,8 +132,8 @@ class PaletteFrame(BaseFrame):
         """Construir el panel con selector de cantidad y swatches de color."""
         p = self._panel_paleta
 
-        fila_top = ctk.CTkFrame(p, fg_color='transparent')
-        fila_top.grid(row=0, column=0, padx=16, pady=(14, 8), sticky='ew')
+        fila_top = ctk.CTkFrame(p, fg_color='transparent', corner_radius=0)
+        fila_top.grid(row=0, column=0, padx=16, pady=(16, 8), sticky='ew')
         fila_top.grid_columnconfigure(1, weight=1)
 
         ctk.CTkLabel(
@@ -143,21 +142,16 @@ class PaletteFrame(BaseFrame):
             text_color=colors.TEXT_GRAY, anchor='w'
         ).grid(row=0, column=0, sticky='w')
 
-        self._seg_n = ctk.CTkSegmentedButton(
+        self._seg_n = styles.SegmentedButton(
             fila_top,
             values=['4', '6', '8', '10', '12'],
             font=fonts.FUENTE_CHICA,
-            selected_color=colors.SEGMENT_SELECTED,
-            selected_hover_color=colors.SEGMENT_SELECTED_HOVER,
-            unselected_color=colors.SIDEBAR_BG,
-            unselected_hover_color=colors.SIDEBAR_HOVER,
-            text_color=colors.TEXT_COLOR,
             command=self._auto_extraer
         )
         self._seg_n.set('6')
         self._seg_n.grid(row=0, column=1, sticky='e')
 
-        self._swatches_frame = ctk.CTkFrame(p, fg_color='transparent', height=200)
+        self._swatches_frame = ctk.CTkFrame(p, height=240, **styles.surface('list'))
         self._swatches_frame.grid_propagate(False)
         self._swatch_pool = []
         self._swatches_frame.grid(row=1, column=0, padx=16, pady=(0, 8), sticky='ew')
@@ -168,24 +162,20 @@ class PaletteFrame(BaseFrame):
             font=fonts.FUENTE_CHICA,
             text_color=colors.TEXT_GRAY
         )
-        self._palette_empty.grid(row=0, column=0, pady=20)
+        self._palette_empty.place(relx=0.5, rely=0.5, anchor='center')
 
-        self._btn_guardar = ctk.CTkButton(
+        self._btn_guardar = self._new_button(
             p,
+            role='primary',
             text=t('save_palette_btn'),
-            height=40,
-            corner_radius=8,
             font=fonts.FUENTE_BASE,
-            fg_color=colors.ACENTO,
-            text_color=colors.TEXT_ACTIVE,
-            hover_color=colors.ACENTO_HOVER,
             command=self._guardar_imagen
         )
         self._btn_guardar.grid(row=2, column=0, padx=16, pady=(0, 16), sticky='ew')
 
     def _mostrar_vacio(self):
         """Mostrar estado inicial sin imagen cargada."""
-        self._frame_preview.configure(border_color=colors.ACENTO_DIMMED)
+        self._frame_preview.configure(border_color=styles.palette().border)
         self._lbl_preview.configure(image=None)
         self._lbl_nombre.configure(text=t('no_image_selected'))
         self._lbl_meta.configure(text=t('select_image_for_palette'))
@@ -196,7 +186,7 @@ class PaletteFrame(BaseFrame):
         Args:
             ruta: Ruta del archivo de imagen
         """
-        self._frame_preview.configure(border_color=colors.ACENTO)
+        self._frame_preview.configure(border_color=styles.palette().border)
         preview, w, h, ext = loaded if loaded is not None else cargar_preview(ruta, (80, 80))
         self._preview_img = ctk.CTkImage(
             light_image=preview, dark_image=preview,
@@ -215,7 +205,7 @@ class PaletteFrame(BaseFrame):
         Args:
             paleta: Lista de tuplas RGB con los colores extraidos
         """
-        self._palette_empty.grid_remove()
+        self._palette_empty.place_forget()
         for index, (col, canvas, label, buttons) in enumerate(self._swatch_pool):
             if index >= len(paleta):
                 col.grid_remove()
@@ -223,7 +213,7 @@ class PaletteFrame(BaseFrame):
         for indice, color_rgb in enumerate(paleta):
             hex_color = rgb_a_hex(color_rgb)
             if indice == len(self._swatch_pool):
-                col = ctk.CTkFrame(self._swatches_frame, corner_radius=10, fg_color='transparent')
+                col = ctk.CTkFrame(self._swatches_frame, corner_radius=0, fg_color='transparent')
                 col.grid_columnconfigure(0, weight=1)
                 canvas = tk.Canvas(col, width=50, height=50, bg=hex_color,
                     highlightthickness=0, bd=0, cursor='hand2')
@@ -232,9 +222,8 @@ class PaletteFrame(BaseFrame):
                 label.grid(row=1, column=0, pady=(3, 2))
                 buttons = []
                 for row, formato in enumerate(formatos_color(color_rgb), 2):
-                    button = ctk.CTkButton(col, text=formato, width=50, height=20, corner_radius=6,
-                        font=ctk.CTkFont(size=9), fg_color=colors.SIDEBAR_BG,
-                        hover_color=colors.SIDEBAR_HOVER, text_color=colors.TEXT_GRAY)
+                    button = self._new_button(col, role='secondary', text=formato, width=50, height=28,
+                        font=ctk.CTkFont(size=9))
                     button.grid(row=row, column=0, pady=1, sticky='ew')
                     buttons.append(button)
                 self._swatch_pool.append((col, canvas, label, buttons))
@@ -378,5 +367,5 @@ class PaletteFrame(BaseFrame):
         self._mostrar_vacio()
         for col, *_rest in self._swatch_pool:
             col.grid_remove()
-        self._palette_empty.grid(row=0, column=0, columnspan=max(1, len(self._swatch_pool)), pady=20)
+        self._palette_empty.place(relx=0.5, rely=0.5, anchor='center')
         self._lbl_info.configure(text='')

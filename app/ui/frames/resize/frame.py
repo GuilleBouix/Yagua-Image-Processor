@@ -18,11 +18,10 @@ from __future__ import annotations
 
 from app.ui.building import stepwise, steps_for
 import logging
-from tkinter import filedialog
 
 import customtkinter as ctk
 
-from app.ui import colors, fonts
+from app.ui import colors, fonts, styles
 from app.translations import t
 from app.ui.frames.base import BaseFrame
 from app.ui.rendering import activate_tab
@@ -45,6 +44,8 @@ logger = logging.getLogger(__name__)
 class ResizeFrame(BaseFrame):
     """Frame principal del modulo de redimension, recorte y canvas."""
 
+    design_system = True
+
     def __init__(self, parent, *, defer_build=False):
         logger.info("resize.ui: init")
         self._state = ResizeState()
@@ -55,6 +56,11 @@ class ResizeFrame(BaseFrame):
             for mode in (t('pixels'), t('preset'), t('percentage')):
                 yield from steps_for(self._actualizar_modo_resize, mode)
 
+    def _on_build_complete(self):
+        self._scrollbar.configure(corner_radius=0, width=6, border_spacing=1)
+        if isinstance(self._lista_frame, ctk.CTkScrollableFrame):
+            self._lista_frame._scrollbar.configure(corner_radius=0, width=6, border_spacing=1)
+
     @stepwise
     def _build_content(self):
         """Construir el contenido principal del frame con tabs."""
@@ -62,20 +68,15 @@ class ResizeFrame(BaseFrame):
         yield
         izquierda, derecha = self._crear_workspace()
         yield
-        izquierda.grid_rowconfigure(2, weight=1)
+        izquierda.grid_rowconfigure(3, weight=1)
         yield
         derecha.grid_rowconfigure(1, weight=1)
         yield
 
-        self._tab = ctk.CTkSegmentedButton(
+        self._tab = styles.SegmentedButton(
             izquierda,
             values=[t('resize_tab'), t('crop_tab'), t('canvas_tab')],
             font=fonts.FUENTE_BASE,
-            selected_color=colors.SEGMENT_SELECTED,
-            selected_hover_color=colors.SEGMENT_SELECTED_HOVER,
-            unselected_color=colors.PANEL_BG,
-            unselected_hover_color=colors.SIDEBAR_HOVER,
-            text_color=colors.TEXT_COLOR,
             command=self._cambiar_tab
         )
         yield
@@ -111,9 +112,11 @@ class ResizeFrame(BaseFrame):
         self._lbl_lista_vacia.pack(pady=12)
         yield
 
-        self._contenedor = ctk.CTkFrame(izquierda, fg_color='transparent')
+        yield from self._build_save_selector(izquierda, 2)
+
+        self._contenedor = ctk.CTkFrame(izquierda, fg_color='transparent', corner_radius=0)
         yield
-        self._contenedor.grid(row=2, column=0, padx=16, pady=(0, 16), sticky='nsew')
+        self._contenedor.grid(row=3, column=0, padx=16, pady=(0, 16), sticky='nsew')
         yield
         self._contenedor.grid_columnconfigure(0, weight=1)
         yield
@@ -134,7 +137,7 @@ class ResizeFrame(BaseFrame):
     @stepwise
     def _build_tab_resize(self):
         """Construir el tab de redimension con controles de modo."""
-        f = ctk.CTkFrame(self._contenedor, fg_color='transparent')
+        f = ctk.CTkFrame(self._contenedor, fg_color='transparent', corner_radius=0)
         if self._defer_build:
             f.grid(row=0, column=0, sticky='nsew')
         yield
@@ -142,8 +145,7 @@ class ResizeFrame(BaseFrame):
         yield
 
         panel = ctk.CTkFrame(
-            f, corner_radius=12, fg_color=colors.PANEL_BG,
-            border_width=1, border_color=colors.SIDEBAR_SEPARATOR
+            f, **styles.surface('panel'),
         )
         yield
         panel.grid(row=0, column=0, sticky='ew')
@@ -157,21 +159,16 @@ class ResizeFrame(BaseFrame):
         ).grid(row=0, column=0, padx=(16, 12), pady=(16, 8), sticky='w')
         yield
 
-        ctk.CTkSegmentedButton(
+        styles.SegmentedButton(
             panel,
             values=[t('percentage'), t('pixels'), t('preset')],
             variable=self._state.modo_resize,
             font=fonts.FUENTE_CHICA,
-            selected_color=colors.SEGMENT_SELECTED,
-            selected_hover_color=colors.SEGMENT_SELECTED_HOVER,
-            unselected_color=colors.SIDEBAR_BG,
-            unselected_hover_color=colors.SIDEBAR_HOVER,
-            text_color=colors.TEXT_COLOR,
             command=self._actualizar_modo_resize
         ).grid(row=0, column=1, padx=(0, 16), pady=(16, 8), sticky='w')
         yield
 
-        self._frame_controles_resize = ctk.CTkFrame(panel, fg_color='transparent')
+        self._frame_controles_resize = ctk.CTkFrame(panel, fg_color='transparent', corner_radius=0)
         yield
         self._frame_controles_resize.grid(
             row=1, column=0, columnspan=2, padx=16, pady=(0, 8), sticky='ew'
@@ -180,29 +177,23 @@ class ResizeFrame(BaseFrame):
         self._frame_controles_resize.grid_columnconfigure(1, weight=1)
         yield
 
-        self._frame_ratio = ctk.CTkFrame(panel, fg_color='transparent')
+        self._frame_ratio = ctk.CTkFrame(panel, fg_color='transparent', corner_radius=0)
         yield
         self._frame_ratio.grid(
             row=2, column=0, columnspan=2, padx=16, pady=(0, 8), sticky='ew'
         )
         yield
-        ctk.CTkCheckBox(
+        styles.CheckBox(
             self._frame_ratio,
             text=t('maintain_aspect'),
             variable=self._state.mantener_ratio,
             font=fonts.FUENTE_BASE,
-            text_color=colors.TEXT_GRAY,
-            fg_color=colors.ACENTO,
-            hover_color=colors.ACENTO_HOVER,
-            border_color=colors.SIDEBAR_SEPARATOR,
-            checkmark_color=colors.TEXT_ACTIVE,
         ).pack(anchor='w')
         yield
 
-        self._btn_resize = ctk.CTkButton(
-            panel, text=t('resize_tab'), height=40, corner_radius=8,
-            font=fonts.FUENTE_BASE, fg_color=colors.ACENTO,
-            text_color=colors.TEXT_ACTIVE, hover_color=colors.ACENTO_HOVER,
+        self._btn_resize = self._new_button(
+            panel, role='primary', text=t('resize_tab'),
+            font=fonts.FUENTE_BASE,
             command=self._ejecutar_resize
         )
         yield
@@ -245,7 +236,7 @@ class ResizeFrame(BaseFrame):
             self._resize_mode_panels[modo].grid()
             yield
             return
-        fc = ctk.CTkFrame(self._frame_controles_resize, fg_color='transparent')
+        fc = ctk.CTkFrame(self._frame_controles_resize, fg_color='transparent', corner_radius=0)
         yield
         fc.grid(row=0, column=0, sticky='ew')
         yield
@@ -271,7 +262,7 @@ class ResizeFrame(BaseFrame):
                 button_color=colors.ACENTO,
                 button_hover_color=colors.ACENTO_HOVER,
                 progress_color=colors.ACENTO,
-                fg_color=colors.SIDEBAR_SEPARATOR,
+                fg_color=styles.palette().border,
                 command=lambda v: self._lbl_pct.configure(text=f'{int(v)}%')
             ).grid(row=0, column=0, columnspan=2, sticky='ew', padx=(0, 8))
             yield
@@ -295,13 +286,9 @@ class ResizeFrame(BaseFrame):
             ).grid(row=0, column=0, padx=(0, 4), sticky='w')
             yield
 
-            self._entry_ancho = ctk.CTkEntry(
+            self._entry_ancho = styles.Entry(
                 fc, width=90, font=fonts.FUENTE_BASE,
-                fg_color=colors.FRAMES_BG,
-                border_color=colors.SIDEBAR_SEPARATOR,
-                text_color=colors.TEXT_COLOR,
                 placeholder_text='1920',
-                placeholder_text_color=colors.TEXT_GRAY
             )
             yield
             self._entry_ancho.grid(row=0, column=1, padx=(0, 16))
@@ -313,13 +300,9 @@ class ResizeFrame(BaseFrame):
             ).grid(row=0, column=2, padx=(0, 4), sticky='w')
             yield
 
-            self._entry_alto = ctk.CTkEntry(
+            self._entry_alto = styles.Entry(
                 fc, width=90, font=fonts.FUENTE_BASE,
-                fg_color=colors.FRAMES_BG,
-                border_color=colors.SIDEBAR_SEPARATOR,
-                text_color=colors.TEXT_COLOR,
                 placeholder_text='1080',
-                placeholder_text_color=colors.TEXT_GRAY
             )
             yield
             self._entry_alto.grid(row=0, column=3)
@@ -329,25 +312,19 @@ class ResizeFrame(BaseFrame):
             fc.grid_columnconfigure(0, weight=1)
             yield
 
-            ctk.CTkOptionMenu(
+            styles.OptionField(
                 fc,
+                width=140,
                 values=PRESETS_LISTA,
                 variable=self._state.preset_var,
                 font=fonts.FUENTE_BASE,
-                fg_color=colors.SIDEBAR_BG,
-                button_color=colors.ACENTO,
-                button_hover_color=colors.ACENTO_HOVER,
-                text_color=colors.TEXT_COLOR,
-                dropdown_fg_color=colors.PANEL_BG,
-                dropdown_text_color=colors.TEXT_COLOR,
-                dropdown_hover_color=colors.SIDEBAR_HOVER,
             ).grid(row=0, column=0, sticky='ew')
             yield
 
     @stepwise
     def _build_tab_crop(self):
         """Construir el tab de recorte con selector de proporcion."""
-        f = ctk.CTkFrame(self._contenedor, fg_color='transparent')
+        f = ctk.CTkFrame(self._contenedor, fg_color='transparent', corner_radius=0)
         if self._defer_build:
             f.grid(row=0, column=0, sticky='nsew')
         yield
@@ -355,8 +332,7 @@ class ResizeFrame(BaseFrame):
         yield
 
         panel = ctk.CTkFrame(
-            f, corner_radius=12, fg_color=colors.PANEL_BG,
-            border_width=1, border_color=colors.SIDEBAR_SEPARATOR
+            f, **styles.surface('panel'),
         )
         yield
         panel.grid(row=0, column=0, sticky='ew')
@@ -370,18 +346,12 @@ class ResizeFrame(BaseFrame):
         ).grid(row=0, column=0, padx=(16, 12), pady=(16, 8), sticky='w')
         yield
 
-        ctk.CTkOptionMenu(
+        styles.OptionField(
             panel,
+            width=140,
             values=list(RATIOS.keys()),
             variable=self._state.ratio_var,
             font=fonts.FUENTE_BASE,
-            fg_color=colors.SIDEBAR_BG,
-            button_color=colors.ACENTO,
-            button_hover_color=colors.ACENTO_HOVER,
-            text_color=colors.TEXT_COLOR,
-            dropdown_fg_color=colors.PANEL_BG,
-            dropdown_text_color=colors.TEXT_COLOR,
-            dropdown_hover_color=colors.SIDEBAR_HOVER,
         ).grid(row=0, column=1, padx=(0, 16), pady=(16, 8), sticky='w')
         yield
 
@@ -393,10 +363,9 @@ class ResizeFrame(BaseFrame):
         ).grid(row=1, column=0, columnspan=2, padx=16, pady=(0, 8), sticky='w')
         yield
 
-        self._btn_crop = ctk.CTkButton(
-            panel, text=t('crop_tab'), height=40, corner_radius=8,
-            font=fonts.FUENTE_BASE, fg_color=colors.ACENTO,
-            text_color=colors.TEXT_ACTIVE, hover_color=colors.ACENTO_HOVER,
+        self._btn_crop = self._new_button(
+            panel, role='primary', text=t('crop_tab'),
+            font=fonts.FUENTE_BASE,
             command=self._ejecutar_crop
         )
         yield
@@ -409,7 +378,7 @@ class ResizeFrame(BaseFrame):
     @stepwise
     def _build_tab_canvas(self):
         """Construir el tab de canvas con entradas de tamano y color de fondo."""
-        f = ctk.CTkFrame(self._contenedor, fg_color='transparent')
+        f = ctk.CTkFrame(self._contenedor, fg_color='transparent', corner_radius=0)
         if self._defer_build:
             f.grid(row=0, column=0, sticky='nsew')
         yield
@@ -417,8 +386,7 @@ class ResizeFrame(BaseFrame):
         yield
 
         panel = ctk.CTkFrame(
-            f, corner_radius=12, fg_color=colors.PANEL_BG,
-            border_width=1, border_color=colors.SIDEBAR_SEPARATOR
+            f, **styles.surface('panel'),
         )
         yield
         panel.grid(row=0, column=0, sticky='ew')
@@ -432,18 +400,14 @@ class ResizeFrame(BaseFrame):
         ).grid(row=0, column=0, padx=(16, 12), pady=(16, 8), sticky='w')
         yield
 
-        fila_dim = ctk.CTkFrame(panel, fg_color='transparent')
+        fila_dim = ctk.CTkFrame(panel, fg_color='transparent', corner_radius=0)
         yield
         fila_dim.grid(row=0, column=1, padx=(0, 16), pady=(16, 8), sticky='w')
         yield
 
-        self._canvas_ancho = ctk.CTkEntry(
+        self._canvas_ancho = styles.Entry(
             fila_dim, width=80, font=fonts.FUENTE_BASE,
-            fg_color=colors.FRAMES_BG,
-            border_color=colors.SIDEBAR_SEPARATOR,
-            text_color=colors.TEXT_COLOR,
             placeholder_text='1080',
-            placeholder_text_color=colors.TEXT_GRAY
         )
         yield
         self._canvas_ancho.pack(side='left', padx=(0, 8))
@@ -455,13 +419,9 @@ class ResizeFrame(BaseFrame):
         ).pack(side='left', padx=(0, 8))
         yield
 
-        self._canvas_alto = ctk.CTkEntry(
+        self._canvas_alto = styles.Entry(
             fila_dim, width=80, font=fonts.FUENTE_BASE,
-            fg_color=colors.FRAMES_BG,
-            border_color=colors.SIDEBAR_SEPARATOR,
-            text_color=colors.TEXT_COLOR,
             placeholder_text='1080',
-            placeholder_text_color=colors.TEXT_GRAY
         )
         yield
         self._canvas_alto.pack(side='left')
@@ -473,16 +433,11 @@ class ResizeFrame(BaseFrame):
         ).grid(row=1, column=0, padx=(16, 12), pady=8, sticky='w')
         yield
 
-        ctk.CTkSegmentedButton(
+        styles.SegmentedButton(
             panel,
             values=[t('white'), t('black'), t('transparent')],
             variable=self._state.color_fondo,
             font=fonts.FUENTE_CHICA,
-            selected_color=colors.SEGMENT_SELECTED,
-            selected_hover_color=colors.SEGMENT_SELECTED_HOVER,
-            unselected_color=colors.SIDEBAR_BG,
-            unselected_hover_color=colors.SIDEBAR_HOVER,
-            text_color=colors.TEXT_COLOR,
             command=self._actualizar_fondo_opciones
         ).grid(row=1, column=1, padx=(0, 16), pady=8, sticky='w')
         yield
@@ -498,10 +453,9 @@ class ResizeFrame(BaseFrame):
         )
         yield
 
-        self._btn_canvas = ctk.CTkButton(
-            panel, text=t('apply_canvas'), height=40, corner_radius=8,
-            font=fonts.FUENTE_BASE, fg_color=colors.ACENTO,
-            text_color=colors.TEXT_ACTIVE, hover_color=colors.ACENTO_HOVER,
+        self._btn_canvas = self._new_button(
+            panel, role='primary', text=t('apply_canvas'),
+            font=fonts.FUENTE_BASE,
             command=self._ejecutar_canvas
         )
         yield
@@ -548,137 +502,54 @@ class ResizeFrame(BaseFrame):
         activate_tab(self._frames, tab)
 
     def _ejecutar_resize(self):
-        """Ejecutar redimension en hilo separado para no bloquear la UI."""
         if self._operation_blocked(global_job=True):
             return
-        logger.info("resize.ui: click_resize")
         if not self._imagenes:
             self._lbl_info.configure(text=t('load_images_first_resize'))
             return
-        carpeta = filedialog.askdirectory(title=t('select_output_folder'))
-        if not carpeta:
-            logger.info("resize.ui: resize_cancelado (sin_carpeta)")
-            return
-
-        modo = self._state.modo_resize.get()
-        ancho_px = None
-        alto_px = None
-        if modo == t('pixels'):
-            ancho_px, alto_px, err = parse_dimensions(
-                self._entry_ancho.get(),
-                self._entry_alto.get()
-            )
-            if err:
+        mode = self._state.modo_resize.get()
+        options = dict(porcentaje=self._state.pct_var.get(), mantener_ratio=False)
+        if mode == t('pixels'):
+            width, height, error = parse_dimensions(self._entry_ancho.get(), self._entry_alto.get())
+            if error:
                 self._lbl_info.configure(text=t('invalid_dimensions'))
                 return
-        self._btn_resize.configure(state='disabled', text=t('processing'))
-        self._show_full_overlay(t('processing'))
-
-        paths = tuple(self._imagenes)
-        percentage, ratio, preset = self._state.pct_var.get(), self._state.mantener_ratio.get(), self._state.preset_var.get()
-        def _proc():
-            if modo == t('percentage'):
-                res = batch_redimensionar(
-                    paths, carpeta,
-                    porcentaje=percentage,
-                    mantener_ratio=False
-                )
-            elif modo == t('pixels'):
-                res = batch_redimensionar(
-                    paths, carpeta,
-                    ancho=ancho_px, alto=alto_px,
-                    mantener_ratio=ratio
-                )
-            else:
-                res = batch_redimensionar(
-                    paths, carpeta,
-                    preset_key=preset,
-                    mantener_ratio=False
-                )
-            ok = res['ok']
-            errores = res['errores']
-            conflictos = res.get('conflictos', 0)
-            self._post_ui(0, lambda: self._finalizar(
-                self._btn_resize, t('resize_tab'), ok, errores, conflictos
-            ))
-            return res
-
-        self._submit_job(_proc, button=self._btn_resize, text=t('resize_tab'))
+            options = dict(ancho=width, alto=height, mantener_ratio=self._state.mantener_ratio.get())
+        elif mode == t('preset'):
+            options = dict(preset_key=self._state.preset_var.get(), mantener_ratio=False)
+        self._save_resize(batch_redimensionar, options, self._btn_resize, 'resize_tab')
 
     def _ejecutar_crop(self):
-        """Ejecutar recorte en hilo separado para no bloquear la UI."""
         if self._operation_blocked(global_job=True):
             return
-        logger.info("resize.ui: click_crop")
-        if not self._imagenes:
-            self._lbl_info.configure(text=t('load_images_first_resize'))
-            return
-        carpeta = filedialog.askdirectory(title=t('select_output_folder'))
-        if not carpeta:
-            logger.info("resize.ui: crop_cancelado (sin_carpeta)")
-            return
-
-        self._btn_crop.configure(state='disabled', text=t('processing'))
-        self._show_full_overlay(t('processing'))
-        ratio = self._state.ratio_var.get()
-
-        paths = tuple(self._imagenes)
-        def _proc():
-            res = batch_recortar(
-                paths, carpeta,
-                ratio=ratio
-            )
-            ok = res['ok']
-            errores = res['errores']
-            conflictos = res.get('conflictos', 0)
-            self._post_ui(0, lambda: self._finalizar(
-                self._btn_crop, t('crop_tab'), ok, errores, conflictos
-            ))
-            return res
-
-        self._submit_job(_proc, button=self._btn_crop, text=t('crop_tab'))
+        self._save_resize(batch_recortar, dict(ratio=self._state.ratio_var.get()), self._btn_crop, 'crop_tab')
 
     def _ejecutar_canvas(self):
-        """Ejecutar canvas en hilo separado para no bloquear la UI."""
         if self._operation_blocked(global_job=True):
             return
-        logger.info("resize.ui: click_canvas")
-        if not self._imagenes:
-            self._lbl_info.configure(text=t('load_images_first_resize'))
-            return
-        ancho, alto, err = parse_dimensions(self._canvas_ancho.get(), self._canvas_alto.get())
-        if err or not ancho or not alto:
+        width, height, error = parse_dimensions(self._canvas_ancho.get(), self._canvas_alto.get())
+        if error or not width or not height:
             self._lbl_info.configure(text=t('invalid_dimensions'))
             return
-        carpeta = filedialog.askdirectory(title=t('select_output_folder'))
-        if not carpeta:
-            logger.info("resize.ui: canvas_cancelado (sin_carpeta)")
-            return
+        choice = self._state.canvas_choice_map.get(self._state.color_fondo.get(), 'white')
+        self._save_resize(batch_canvas, dict(ancho=width, alto=height), self._btn_canvas,
+                          'apply_canvas', canvas_choice=choice)
 
-        fondo_elegido = self._state.color_fondo.get()
-        self._btn_canvas.configure(state='disabled', text=t('processing'))
-        self._show_full_overlay(t('processing'))
-
+    def _save_resize(self, processor, options, button, label, *, canvas_choice=None):
         paths = tuple(self._imagenes)
-        choice_key = self._state.canvas_choice_map.get(fondo_elegido, 'white')
-        def _proc():
-            soporta_transparencia = any_supports_transparency(paths)
-            color, _ = canvas_color_for_choice(choice_key, soporta_transparencia)
-
-            res = batch_canvas(
-                paths, carpeta,
-                ancho=ancho, alto=alto,
-                color_fondo=color
-            )
-            ok = res['ok']
-            errores = res['errores']
-            conflictos = res.get('conflictos', 0)
-            self._post_ui(0, lambda: self._finalizar(
-                self._btn_canvas, t('apply_canvas'), ok, errores, conflictos
-            ))
-            return res
-
-        self._submit_job(_proc, button=self._btn_canvas, text=t('apply_canvas'))
+        if not paths:
+            self._lbl_info.configure(text=t('load_images_first_resize'))
+            return
+        def start(folder, plan):
+            self._show_full_overlay(t('processing'))
+            def work():
+                parameters = dict(options)
+                if canvas_choice is not None:
+                    parameters['color_fondo'], _ = canvas_color_for_choice(
+                        canvas_choice, any_supports_transparency(paths))
+                return processor(paths, folder, **parameters, output_policy=plan)
+            self._submit_job(work, button=button, text=t(label), on_success=self._finish_save)
+        self._prepare_save(paths, None, start)
 
     def _finalizar(self, btn: ctk.CTkButton, texto: str, ok: int, errores: int, conflictos: int = 0):
         """Restaurar estado del boton y mostrar mensaje de resultado.

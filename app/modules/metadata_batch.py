@@ -12,6 +12,7 @@ from app.modules.metadata import (
     preparar_campos_exif,
 )
 from app.utils.output import atomic_write_text, require_single_frame, unique_output_path
+from app.utils.saving import get_plan, run_plan, path_key
 
 
 @dataclass
@@ -82,7 +83,28 @@ def preparar_borrador(base: dict[str, str], draft: MetadataDraft):
 
 
 def procesar_lote(tasks: tuple[MetadataTask, ...], *, clean: bool = False,
-                  overwrite: bool = False, folder: str | None = None) -> dict:
+                  overwrite: bool = False, folder: str | None = None, output_policy=None) -> dict:
+    if output_policy is not None:
+        by_path = {path_key(task.path): task for task in tasks}
+        def process(source, target):
+            task = by_path[path_key(source)]
+            if task.fingerprint is not None and fingerprint(source) != task.fingerprint:
+                raise OSError('source_changed')
+            if clean:
+                return limpiar_exif(source, target)
+            data = leer_archivo(source)
+            if not data['editable'] or data['edit_error']:
+                raise ValueError(data['edit_error'] or 'meta_read_only')
+            request, error = preparar_borrador(data['values'], task.draft)
+            if error == 'empty':
+                return dict(estado='unchanged')
+            if error:
+                raise ValueError(error)
+            ok, error = editar_exif(source, target, request)
+            if not ok:
+                raise ValueError(error or 'error_saving')
+            return {}
+        return run_plan(get_plan(output_policy, tuple(task.path for task in tasks), folder), process)
     if not overwrite and not folder:
         raise ValueError('output_folder_required')
     results = []

@@ -7,7 +7,7 @@ import webbrowser
 
 import customtkinter as ctk
 
-from app.ui import colors, fonts
+from app.ui import colors, fonts, styles
 from app.translations import t
 from app.version import __version__
 from app.utils.update_checker import check_latest_update
@@ -36,10 +36,7 @@ class UpdatesTab(ctk.CTkFrame):
     def _build(self):
         panel = ctk.CTkFrame(
             self,
-            corner_radius=12,
-            fg_color=colors.PANEL_BG,
-            border_width=1,
-            border_color=colors.SIDEBAR_SEPARATOR,
+            **styles.surface('panel'),
         )
         yield
         panel.grid(row=0, column=0, sticky="ew")
@@ -78,16 +75,13 @@ class UpdatesTab(ctk.CTkFrame):
         self._lbl_update_status.grid(row=2, column=0, padx=16, pady=(0, 8), sticky="w")
         yield
 
-        self._btn_check_updates = ctk.CTkButton(
+        self._btn_check_updates = styles.Button(
             panel,
+            role='primary',
             text=t("check_updates"),
             width=180,
-            height=34,
-            corner_radius=8,
+            height=40,
             font=fonts.FUENTE_BASE,
-            fg_color=colors.ACENTO,
-            text_color=colors.TEXT_ACTIVE,
-            hover_color=colors.ACENTO_HOVER,
             command=self._check_updates,
         )
         yield
@@ -95,18 +89,12 @@ class UpdatesTab(ctk.CTkFrame):
         yield
 
         # Botón de descarga (se muestra solo si hay update)
-        self._btn_download = ctk.CTkButton(
+        self._btn_download = styles.Button(
             panel,
             text=t("updates_download_btn").format(version=""),  # type: ignore
             width=260,
-            height=34,
-            corner_radius=8,
+            height=40,
             font=fonts.FUENTE_BASE,
-            fg_color=colors.PANEL_BG,
-            border_width=1,
-            border_color=colors.SIDEBAR_SEPARATOR,
-            text_color=colors.TEXT_COLOR,
-            hover_color=colors.SIDEBAR_HOVER,
             command=self._abrir_release,
         )
         yield

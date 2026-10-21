@@ -14,6 +14,7 @@ from PIL import Image
 
 from app.utils.image_utils import normalize_common
 from app.utils.output import unique_output_path, safe_image_output
+from app.utils.saving import get_plan, run_plan
 
 from app.utils.results import FileFailure, file_failure
 
@@ -131,6 +132,7 @@ def redimensionar(ruta_entrada, ruta_salida, ancho=None, alto=None,
 
     logger.info("Redimensionar: %s -> %s", ruta_entrada, ruta_salida)
     with Image.open(ruta_entrada) as imagen:
+        formato = imagen.format or _formato_desde_ruta(ruta_entrada)
         imagen = normalize_common(imagen)
         ancho_original, alto_original = imagen.size
 
@@ -168,7 +170,6 @@ def redimensionar(ruta_entrada, ruta_salida, ancho=None, alto=None,
             imagen = imagen.resize((ancho, alto), resample)
 
         # Guardar en el formato original
-        formato = _formato_desde_ruta(ruta_entrada)
         imagen.save(ruta_salida, formato)
 
         return {
@@ -201,6 +202,7 @@ def recortar(ruta_entrada, ruta_salida, ratio=None,
 
     logger.info("Recortar: %s -> %s", ruta_entrada, ruta_salida)
     with Image.open(ruta_entrada) as imagen:
+        formato = imagen.format or _formato_desde_ruta(ruta_entrada)
         imagen = normalize_common(imagen)
         ancho, alto = imagen.size
 
@@ -230,7 +232,6 @@ def recortar(ruta_entrada, ruta_salida, ratio=None,
         img_recortada = imagen.crop((izq, sup, der, inf))
         
         # Guardar en el formato original
-        formato = _formato_desde_ruta(ruta_entrada)
         img_recortada.save(ruta_salida, formato)
 
         return {
@@ -260,6 +261,7 @@ def agregar_canvas(ruta_entrada, ruta_salida, ancho_final, alto_final,
 
     logger.info("Canvas: %s -> %s", ruta_entrada, ruta_salida)
     with Image.open(ruta_entrada) as imagen:
+        formato = imagen.format or _formato_desde_ruta(ruta_entrada)
         imagen = normalize_common(imagen)
         ancho, alto = imagen.size
 
@@ -291,7 +293,6 @@ def agregar_canvas(ruta_entrada, ruta_salida, ancho_final, alto_final,
             canvas.paste(imagen, (coord_x, coord_y))
 
         # Guardar en el formato original
-        formato = _formato_desde_ruta(ruta_entrada)
         
         # Convertir a RGB si es JPEG y tiene transparencia
         if formato == 'JPEG' and canvas.mode == 'RGBA':
@@ -388,7 +389,7 @@ def parse_dimensions(ancho_txt, alto_txt):
 def batch_redimensionar(rutas, carpeta_salida, *,
                         porcentaje=None, ancho=None, alto=None,
                         preset_key=None, mantener_ratio=True,
-                        sufijo='_redim'):
+                        sufijo='_redim', output_policy=None):
     """
     Redimensiona multiples imagenes en lote.
     
@@ -405,6 +406,10 @@ def batch_redimensionar(rutas, carpeta_salida, *,
     Returns:
         Diccionario con exitos, errores y conflictos.
     """
+    if output_policy is not None:
+        return run_plan(get_plan(output_policy, rutas, carpeta_salida),
+            lambda source, target: redimensionar(source, target, porcentaje=porcentaje,
+                ancho=ancho, alto=alto, preset_key=preset_key, mantener_ratio=mantener_ratio))
     fallos: list[FileFailure] = []
 
     logger.info("Batch redimensionar: %s archivos -> %s", len(rutas), carpeta_salida)
@@ -435,7 +440,7 @@ def batch_redimensionar(rutas, carpeta_salida, *,
     return {'fallos': fallos, 'ok': len(rutas) - errores, 'errores': errores, 'conflictos': conflictos}
 
 
-def batch_recortar(rutas, carpeta_salida, *, ratio=None, sufijo='_crop'):
+def batch_recortar(rutas, carpeta_salida, *, ratio=None, sufijo='_crop', output_policy=None):
     """
     Recorta multiples imagenes en lote.
     
@@ -448,6 +453,9 @@ def batch_recortar(rutas, carpeta_salida, *, ratio=None, sufijo='_crop'):
     Returns:
         Diccionario con exitos, errores y conflictos.
     """
+    if output_policy is not None:
+        return run_plan(get_plan(output_policy, rutas, carpeta_salida),
+                        lambda source, target: recortar(source, target, ratio=ratio))
     fallos: list[FileFailure] = []
 
     logger.info("Batch recortar: %s archivos -> %s", len(rutas), carpeta_salida)
@@ -471,7 +479,7 @@ def batch_recortar(rutas, carpeta_salida, *, ratio=None, sufijo='_crop'):
     return {'fallos': fallos, 'ok': len(rutas) - errores, 'errores': errores, 'conflictos': conflictos}
 
 
-def batch_canvas(rutas, carpeta_salida, *, ancho, alto, color_fondo, sufijo='_canvas'):
+def batch_canvas(rutas, carpeta_salida, *, ancho, alto, color_fondo, sufijo='_canvas', output_policy=None):
     """
     Agrega canvas a multiples imagenes en lote.
     
@@ -486,6 +494,9 @@ def batch_canvas(rutas, carpeta_salida, *, ancho, alto, color_fondo, sufijo='_ca
     Returns:
         Diccionario con exitos, errores y conflictos.
     """
+    if output_policy is not None:
+        return run_plan(get_plan(output_policy, rutas, carpeta_salida),
+                        lambda source, target: agregar_canvas(source, target, ancho, alto, color_fondo=color_fondo))
     fallos: list[FileFailure] = []
 
     logger.info("Batch canvas: %s archivos -> %s", len(rutas), carpeta_salida)

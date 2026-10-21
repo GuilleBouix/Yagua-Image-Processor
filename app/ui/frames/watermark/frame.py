@@ -11,6 +11,8 @@ Relacionado con:
 
 from __future__ import annotations
 
+from typing import Any
+
 from app.ui.building import stepwise, steps_for
 import logging
 import threading
@@ -21,7 +23,7 @@ import cv2
 import customtkinter as ctk
 from PIL import Image
 
-from app.ui import colors, fonts
+from app.ui import colors, fonts, styles
 from app.ui.rendering import configure_changed
 from app.ui.scale import scale_wraplength
 from app.translations import t
@@ -110,6 +112,8 @@ class WatermarkFrame(BaseFrame):
         Derecha   : preview before / after
     """
 
+    design_system = True
+
     def __init__(self, parent, *, defer_build=False):
         logger.info("watermark.ui: init")
         self._state = WatermarkState()
@@ -128,6 +132,7 @@ class WatermarkFrame(BaseFrame):
         super().__init__(parent, t("watermark_title"), defer_build=defer_build)
 
     def _on_build_complete(self):
+        self._scrollbar.configure(corner_radius=0, width=6, border_spacing=1)
         try:
             self._btn_limpiar.grid_remove()
         except Exception:
@@ -143,7 +148,7 @@ class WatermarkFrame(BaseFrame):
         yield
         izquierda, derecha = self._crear_workspace(columnspan=2, breakpoint=760)
         yield
-        derecha.grid_rowconfigure(0, weight=3)
+        derecha.grid_rowconfigure(1, weight=1)
         yield
 
         # --- Columna izquierda ---
@@ -159,19 +164,14 @@ class WatermarkFrame(BaseFrame):
         yield
         # La lista de archivos no se muestra en Watermark; se conserva un
         # contenedor interno vacío para el fallback de limpieza de BaseFrame.
-        self._lista_frame = ctk.CTkFrame(panel_izq)
+        self._lista_frame = ctk.CTkFrame(panel_izq, corner_radius=0, fg_color='transparent')
         yield
 
         # Botón seleccionar watermark
-        self._btn_wm = ctk.CTkButton(
+        self._btn_wm = self._new_button(
             panel_izq,
             text=t("watermark_select_wm"),
             font=fonts.FUENTE_BASE,
-            fg_color=colors.PANEL_BG,
-            text_color=colors.TEXT_COLOR,
-            border_width=1,
-            border_color=colors.SIDEBAR_SEPARATOR,
-            hover_color=colors.SIDEBAR_HOVER,
             command=self._seleccionar_watermark,
         )
         yield
@@ -181,16 +181,13 @@ class WatermarkFrame(BaseFrame):
         # Preview del watermark seleccionado (single item)
         self._wm_frame = ctk.CTkFrame(
             panel_izq,
-            corner_radius=10,
-            fg_color=colors.PANEL_BG,
-            border_width=1,
-            border_color=colors.SIDEBAR_SEPARATOR,
+            **styles.surface('list'),
             height=70
         )
         yield
-        self._wm_frame.grid(row=2, column=0, padx=16, pady=(0, 6), sticky="ew")
+        self._wm_frame.grid(row=2, column=0, padx=16, pady=(0, 8), sticky="ew")
         yield
-        self._wm_frame.grid_columnconfigure(1, weight=1)
+        self._wm_frame.grid_columnconfigure(0, weight=1)
         yield
         self._wm_placeholder = ctk.CTkLabel(
             self._wm_frame,
@@ -200,7 +197,7 @@ class WatermarkFrame(BaseFrame):
             anchor="w"
         )
         yield
-        self._wm_placeholder.grid(row=0, column=0, padx=10, pady=10, sticky="w")
+        self._wm_placeholder.grid(row=0, column=0, padx=16, pady=8, sticky="w")
         yield
         self._wm_thumb = None
         yield
@@ -208,50 +205,37 @@ class WatermarkFrame(BaseFrame):
         # Panel controles
         panel_ctrl = ctk.CTkFrame(
             panel_izq,
-            corner_radius=12,
-            fg_color=colors.PANEL_BG,
-            border_width=1,
-            border_color=colors.SIDEBAR_SEPARATOR,
+            **styles.surface('panel'),
         )
         yield
-        panel_ctrl.grid(row=3, column=0, padx=16, pady=(4, 16), sticky="ew")
+        panel_ctrl.grid(row=3, column=0, padx=16, pady=(4, 12), sticky="ew")
         yield
         panel_ctrl.grid_columnconfigure(1, weight=1)
         yield
         (yield from steps_for(self._construir_controles, panel_ctrl))
         yield
 
+        self._btn_aplicar = self._new_button(
+            panel_izq, role='primary', text=t("watermark_btn"),
+            font=fonts.FUENTE_BASE, command=self._ejecutar,
+        )
+        yield
+        self._btn_aplicar.grid(row=4, column=0, padx=16, pady=(0, 16), sticky="ew")
+        yield
+
         # --- Columna derecha: preview + limpiar ---
-        self._btn_limpiar_preview = ctk.CTkButton(
+        self._btn_limpiar_preview = self._new_button(
             self,
             text=t("clean"),
-            height=28,
-            corner_radius=8,
+            height=30, width=80,
             font=fonts.FUENTE_CHICA,
-            fg_color=colors.BTN_CLEAR_BG,
-            text_color=colors.BTN_CLEAR_TEXT,
-            hover_color=colors.BTN_CLEAR_HOVER,
             command=self._limpiar
         )
         yield
-        self._btn_limpiar_preview.grid(row=0, column=1, padx=(0, 20), pady=(16, 0), sticky="e")
+        self._btn_limpiar_preview.grid(row=0, column=1, padx=(0, 24), pady=(16, 0), sticky="e")
         yield
 
-        panel_preview = ctk.CTkFrame(
-            derecha,
-            corner_radius=12,
-            fg_color=colors.PANEL_BG,
-            border_width=1,
-            border_color=colors.SIDEBAR_SEPARATOR,
-        )
-        yield
-        panel_preview.grid(row=0, column=0, padx=16, pady=(16, 8), sticky="nsew")
-        yield
-        panel_preview.grid_columnconfigure(0, weight=1)
-        yield
-        panel_preview.grid_rowconfigure(1, weight=1)
-        yield
-        (yield from steps_for(self._construir_preview, panel_preview))
+        (yield from steps_for(self._construir_preview, derecha))
         yield
 
 
@@ -264,17 +248,10 @@ class WatermarkFrame(BaseFrame):
         ).grid(row=0, column=0, padx=(16, 8), pady=(12, 2), sticky="w")
         yield
 
-        self._combo_preset = ctk.CTkComboBox(
+        self._combo_preset = styles.ComboBox(
             p,
             values=[],
             font=fonts.FUENTE_BASE,
-            fg_color=colors.SIDEBAR_BG,
-            border_color=colors.SIDEBAR_SEPARATOR,
-            button_color=colors.ACENTO,
-            button_hover_color=colors.ACENTO_HOVER,
-            dropdown_fg_color=colors.SIDEBAR_BG,
-            dropdown_text_color=colors.TEXT_COLOR,
-            dropdown_hover_color=colors.SIDEBAR_HOVER,
             command=self._aplicar_preset,
         )
         yield
@@ -292,7 +269,7 @@ class WatermarkFrame(BaseFrame):
         self._combo_preset.grid(row=0, column=1, padx=(0, 16), pady=(12, 2), sticky="ew")
         yield
 
-        sep = ctk.CTkFrame(p, height=1, fg_color=colors.SIDEBAR_SEPARATOR)
+        sep = ctk.CTkFrame(p, height=1, corner_radius=0, fg_color=styles.palette().border)
         yield
         sep.grid(row=1, column=0, columnspan=2, padx=16, pady=(4, 8), sticky="ew")
         yield
@@ -304,17 +281,10 @@ class WatermarkFrame(BaseFrame):
         ).grid(row=2, column=0, padx=(16, 8), pady=(0, 4), sticky="w")
         yield
 
-        self._combo_pos = ctk.CTkComboBox(
+        self._combo_pos = styles.ComboBox(
             p,
             values=[],
             font=fonts.FUENTE_BASE,
-            fg_color=colors.SIDEBAR_BG,
-            border_color=colors.SIDEBAR_SEPARATOR,
-            button_color=colors.ACENTO,
-            button_hover_color=colors.ACENTO_HOVER,
-            dropdown_fg_color=colors.SIDEBAR_BG,
-            dropdown_text_color=colors.TEXT_COLOR,
-            dropdown_hover_color=colors.SIDEBAR_HOVER,
             command=self._al_cambiar_posicion,
         )
         yield
@@ -356,21 +326,7 @@ class WatermarkFrame(BaseFrame):
         self._crear_hint_fila(p, row=6, izq=t("watermark_tamano_pequeño"), der=t("watermark_tamano_grande"))
         yield
 
-        # Botón aplicar
-        self._btn_aplicar = ctk.CTkButton(
-            p,
-            text=t("watermark_btn"),
-            height=36,
-            corner_radius=8,
-            font=fonts.FUENTE_BASE,
-            fg_color=colors.ACENTO,
-            text_color=colors.TEXT_ACTIVE,
-            hover_color=colors.ACENTO_HOVER,
-            command=self._ejecutar,
-        )
-        yield
-        self._btn_aplicar.grid(row=7, column=0, columnspan=2, padx=16, pady=(8, 12), sticky="ew")
-        yield
+        yield from self._build_save_selector(p, 7, columnspan=2)
 
     def _crear_slider_fila(self, parent, row, label, var, desde, hasta, sufijo=""):
         parent.grid_columnconfigure(1, weight=1)
@@ -381,7 +337,7 @@ class WatermarkFrame(BaseFrame):
             anchor="w", width=80,
         ).grid(row=row, column=0, padx=(16, 8), pady=(4, 0), sticky="w")
 
-        fila = ctk.CTkFrame(parent, fg_color="transparent")
+        fila = ctk.CTkFrame(parent, fg_color="transparent", corner_radius=0)
         fila.grid(row=row, column=1, padx=(0, 16), pady=(4, 0), sticky="ew")
         fila.grid_columnconfigure(0, weight=1)
 
@@ -404,14 +360,14 @@ class WatermarkFrame(BaseFrame):
             button_color=colors.ACENTO,
             button_hover_color=colors.ACENTO_HOVER,
             progress_color=colors.ACENTO,
-            fg_color=colors.SIDEBAR_SEPARATOR,
+            fg_color=styles.palette().border,
             height=14,
         ).grid(row=0, column=0, sticky="ew")
 
         return lbl_val
 
     def _crear_hint_fila(self, parent, row, izq, der):
-        fila = ctk.CTkFrame(parent, fg_color="transparent")
+        fila = ctk.CTkFrame(parent, fg_color="transparent", corner_radius=0)
         fila.grid(row=row, column=0, columnspan=2, padx=(16, 16), pady=(0, 2), sticky="ew")
         fila.grid_columnconfigure(0, weight=1)
         fila.grid_columnconfigure(1, weight=1)
@@ -423,7 +379,7 @@ class WatermarkFrame(BaseFrame):
         ctk.CTkLabel(
             p, text=t("watermark_preview_despues"),
             font=fonts.FUENTE_CHICA, text_color=colors.ACENTO,
-        ).grid(row=0, column=0, pady=(10, 4), sticky="w", padx=12)
+        ).grid(row=0, column=0, pady=(16, 8), sticky="w", padx=16)
         yield
 
         placeholder = t("watermark_preview_placeholder")
@@ -432,12 +388,12 @@ class WatermarkFrame(BaseFrame):
         self._canvas_preview = ctk.CTkLabel(
             p, text=placeholder,
             font=fonts.FUENTE_CHICA, text_color=colors.TEXT_GRAY,
-            fg_color=colors.FRAMES_BG,
+            fg_color=styles.palette().inset,
             width=_PREVIEW_MAX_PX, height=_PREVIEW_MAX_PX,
-            corner_radius=8, wraplength=scale_wraplength(_PREVIEW_MAX_PX - 20),
+            corner_radius=0, wraplength=scale_wraplength(_PREVIEW_MAX_PX - 20),
         )
         yield
-        self._canvas_preview.grid(row=1, column=0, padx=12, pady=(0, 8), sticky="nsew")
+        self._canvas_preview.grid(row=1, column=0, padx=16, pady=(0, 8), sticky="nsew")
         yield
 
         self._lbl_preview_status = ctk.CTkLabel(
@@ -532,6 +488,7 @@ class WatermarkFrame(BaseFrame):
         # En este módulo los archivos se usan para el procesamiento y el
         # preview, sin generar filas ni miniaturas de una lista visible.
         self._imagenes = list(rutas)
+        self._sync_save_visibility()
         self._thumbs.clear()
         self._filas_lista.clear()
         self._state.imagenes = list(rutas)
@@ -578,9 +535,10 @@ class WatermarkFrame(BaseFrame):
             self._mostrar_placeholder_preview()
         else:
             self._preview_wm_bgra = None
-            self._wm_thumb = None
             if self._wm_thumb_label is not None:
+                self._wm_thumb_label._label.configure(image='')
                 self._wm_thumb_label.configure(image=None)
+            self._wm_thumb = None
         self._lbl_preview_status.configure(text=t("watermark_calculando"))
         threading.Thread(
             target=self._cargar_preview_en_background,
@@ -641,6 +599,9 @@ class WatermarkFrame(BaseFrame):
             self._lbl_preview_status.configure(text="")
 
     def _mostrar_placeholder_preview(self):
+        # CTkLabel(image=None) leaves the native Tk image name in place.
+        # Clear it before releasing the CTkImage or updating the placeholder.
+        self._canvas_preview._label.configure(image='')
         self._canvas_preview.configure(
             image=None, text=t("watermark_preview_placeholder")
         )
@@ -742,6 +703,7 @@ class WatermarkFrame(BaseFrame):
         self._last_preview_key = None
         self._preview_input_keys.clear()
         self._imagenes = []
+        self._sync_save_visibility()
         self._state.imagenes = []
         self._state.ruta_watermark.set('')
         self._state.carpeta_salida.set('')
@@ -755,11 +717,11 @@ class WatermarkFrame(BaseFrame):
             configure_changed(label, text=text)
         if hasattr(self, '_wm_row'):
             self._wm_row.grid_remove()
-        self._wm_placeholder.grid(row=0, column=0, padx=10, pady=10, sticky='w')
-        self._wm_thumb = None
+        self._wm_placeholder.grid(row=0, column=0, padx=16, pady=8, sticky='w')
         if self._wm_thumb_label is not None:
-            self._wm_thumb_label.configure(image=None)
             self._wm_thumb_label._label.configure(image='')
+            self._wm_thumb_label.configure(image=None)
+        self._wm_thumb = None
         self._mostrar_placeholder_preview()
         configure_changed(self._lbl_preview_status, text='')
         configure_changed(self._lbl_info, text='')
@@ -780,15 +742,16 @@ class WatermarkFrame(BaseFrame):
         """Muestra el watermark seleccionado en el panel izquierdo."""
         self._wm_placeholder.grid_remove()
         if not hasattr(self, '_wm_row'):
-            self._wm_row = ctk.CTkFrame(self._wm_frame, fg_color=colors.SIDEBAR_BG, corner_radius=8)
+            self._wm_row = ctk.CTkFrame(self._wm_frame, **styles.surface('row'))
             self._wm_row.grid_columnconfigure(1, weight=1)
             self._wm_thumb_label = ctk.CTkLabel(self._wm_row, text='', width=44, height=44)
             self._wm_thumb_label.grid(row=0, column=0, rowspan=2, padx=(8, 10), pady=6)
-            self._wm_name = ctk.CTkLabel(self._wm_row, text='', font=fonts.FUENTE_BASE, anchor='w')
-            self._wm_name.grid(row=0, column=1, padx=(0, 8), sticky='ew')
-            self._wm_info = ctk.CTkLabel(self._wm_row, text='', font=fonts.FUENTE_CHICA,
+            self._wm_name = ctk.CTkLabel(self._wm_row, text='', width=1, font=fonts.FUENTE_BASE,
+                                       text_color=colors.TEXT_COLOR, anchor='w')
+            self._wm_name.grid(row=0, column=1, padx=(0, 8), pady=(4, 0), sticky='ew')
+            self._wm_info = ctk.CTkLabel(self._wm_row, text='', width=1, font=fonts.FUENTE_CHICA,
                                        text_color=colors.TEXT_GRAY, anchor='w')
-            self._wm_info.grid(row=1, column=1, padx=(0, 8), sticky='ew')
+            self._wm_info.grid(row=1, column=1, padx=(0, 8), pady=(0, 4), sticky='ew')
         self._wm_row.grid(row=0, column=0, padx=8, pady=6, sticky='ew')
         path = Path(ruta)
         configure_changed(self._wm_name, text=path.name if len(path.name) <= 32 else path.name[:29] + '…')
@@ -832,19 +795,15 @@ class WatermarkFrame(BaseFrame):
             self._lbl_info.configure(text=t("watermark_no_wm"))
             return
 
-        carpeta = filedialog.askdirectory(title=t("select_output_folder"))
-        if not carpeta:
-            logger.info("watermark.ui: proceso_cancelado (sin_carpeta)")
-            return
-
-        self._state.carpeta_salida.set(carpeta)
-        self._btn_aplicar.configure(state="disabled", text=t("processing"))
-        self._show_full_overlay(t("processing"))
         paths = tuple(self._imagenes)
-        options = dict(posicion=self._state.posicion.get(), escala=self._state.escala.get() / 100.0,
+        options: dict[str, Any] = dict(posicion=self._state.posicion.get(), escala=self._state.escala.get() / 100.0,
                        opacidad=self._state.opacidad.get() / 100.0, margen=self._state.margen.get())
-        self._submit_job(lambda: self._proceso(carpeta, ruta_wm, paths, options),
-                         button=self._btn_aplicar, text=t('watermark_btn'))
+        def start(folder, plan):
+            self._show_full_overlay(t('processing'))
+            self._submit_job(lambda: batch_aplicar_watermark(paths, ruta_wm, folder,
+                **options, output_policy=plan), button=self._btn_aplicar, text=t('watermark_btn'),
+                on_success=self._finish_save)
+        self._prepare_save(paths, None, start, resources=(ruta_wm,))
 
     def _proceso(self, carpeta, ruta_wm, paths, options):
         res = batch_aplicar_watermark(paths, ruta_wm, carpeta, **options)

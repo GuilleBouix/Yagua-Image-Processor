@@ -14,7 +14,7 @@ from PIL import Image
 
 from app.modules.compress import formatear_bytes
 from app.translations import t as _translate
-from app.ui import colors, fonts
+from app.ui import colors, fonts, styles
 from app.ui.rendering import StableRender, configure_changed
 from app.ui.frames.base import BaseFrame
 from app.ui.frames.lqip.services import (
@@ -39,6 +39,8 @@ def _peso(byte_count):
 class LqipFrame(BaseFrame):
     """Entrada y ajustes a la izquierda; comparación y código a la derecha."""
 
+    design_system = True
+
     def __init__(self, parent, *, defer_build=False):
         self._state = LqipState()
         self._selected_index: int | None = None
@@ -60,6 +62,9 @@ class LqipFrame(BaseFrame):
         super().__init__(parent, t('lqip_title'), defer_build=defer_build)
 
     def _on_build_complete(self):
+        self._scrollbar.configure(corner_radius=0, width=6, border_spacing=1)
+        self._resultado_preview._y_scrollbar.configure(corner_radius=0, width=6, border_spacing=1)
+        self._resultado_preview._x_scrollbar.configure(corner_radius=0, height=6, border_spacing=1)
         self._ui_ready = True
         for variable in (
             self._state.modo, self._state.ancho_lqip, self._state.blur,
@@ -101,8 +106,7 @@ class LqipFrame(BaseFrame):
         self._btn_seleccionar.grid(row=0, column=0, padx=16, pady=(16, 8), sticky='ew')
         yield
         self._input_card = ctk.CTkFrame(
-            left, fg_color=colors.DROPZONE_BG, corner_radius=8,
-            border_width=1, border_color=colors.SIDEBAR_SEPARATOR,
+            left, **styles.surface('list'),
         )
         yield
         self._input_card.grid(row=1, column=0, padx=16, pady=(0, 16), sticky='ew')
@@ -144,12 +148,9 @@ class LqipFrame(BaseFrame):
         yield
         self._modo_visible = ctk.StringVar(value=t('lqip_mode_lqip'))
         yield
-        self._seg_modo = ctk.CTkSegmentedButton(
+        self._seg_modo = styles.SegmentedButton(
             header, values=list(self._modo_a_interno), variable=self._modo_visible,
-            font=fonts.FUENTE_CHICA, selected_color=colors.SIDEBAR_HOVER,
-            selected_hover_color=colors.SIDEBAR_HOVER,
-            unselected_color=colors.SIDEBAR_BG, unselected_hover_color=colors.SIDEBAR_HOVER,
-            text_color=colors.TEXT_COLOR, command=self._cambiar_modo,
+            font=fonts.FUENTE_CHICA, command=self._cambiar_modo,
         )
         yield
         self._seg_modo.grid(row=0, column=1, sticky='e')
@@ -185,10 +186,9 @@ class LqipFrame(BaseFrame):
         yield
         self._lqip_options.grid(row=0, column=0, sticky='ew')
         yield
-        self._btn_procesar = ctk.CTkButton(
-            left, text=t('lqip_btn_process'), height=38, font=fonts.FUENTE_BASE,
-            fg_color=colors.ACENTO, text_color=colors.TEXT_ACTIVE,
-            hover_color=colors.ACENTO_HOVER, command=self._procesar,
+        self._btn_procesar = self._new_button(
+            left, role='primary', text=t('lqip_btn_process'), height=40,
+            font=fonts.FUENTE_BASE, command=self._procesar,
         )
         yield
         self._btn_procesar.grid(row=6, column=0, padx=16, pady=(12, 16), sticky='ew')
@@ -231,12 +231,9 @@ class LqipFrame(BaseFrame):
         yield
         self._campo_export = ctk.StringVar(value=t('lqip_field_data_uri'))
         yield
-        self._seg_formato = ctk.CTkSegmentedButton(
+        self._seg_formato = styles.SegmentedButton(
             right, values=list(self._campo_a_clave), variable=self._campo_export,
-            font=fonts.FUENTE_CHICA, selected_color=colors.SIDEBAR_HOVER,
-            selected_hover_color=colors.SIDEBAR_HOVER,
-            unselected_color=colors.SIDEBAR_BG, unselected_hover_color=colors.SIDEBAR_HOVER,
-            text_color=colors.TEXT_COLOR, command=lambda _: self._actualizar_codigo(),
+            font=fonts.FUENTE_CHICA, command=lambda _: self._actualizar_codigo(),
         )
         yield
         self._seg_formato.grid(row=5, column=0, padx=16, sticky='ew')
@@ -248,14 +245,18 @@ class LqipFrame(BaseFrame):
         fixed = tkfont.nametofont('TkFixedFont').actual('family')
         yield
         self._resultado_preview = ctk.CTkTextbox(
-            right, height=140, corner_radius=8, font=ctk.CTkFont(family=fixed, size=12),
-            fg_color=colors.SIDEBAR_BG, border_width=1,
-            border_color=colors.SIDEBAR_SEPARATOR, text_color=colors.TEXT_COLOR, wrap='char',
+            right, height=140, font=ctk.CTkFont(family=fixed, size=12),
+            **styles.surface('list'),
+            scrollbar_button_color=styles.scrollbar()['scrollbar_button_color'],
+            scrollbar_button_hover_color=styles.scrollbar()['scrollbar_button_hover_color'],
+            text_color=colors.TEXT_COLOR, wrap='char',
         )
         yield
         self._resultado_preview._y_scrollbar.configure(height=120)
         yield
-        self._resultado_preview._textbox.configure(exportselection=False)
+        p = styles.palette()
+        self._resultado_preview._textbox.configure(exportselection=False,
+            selectbackground=p.primary, selectforeground=p.primary_text, insertbackground=p.text)
         yield
         self._resultado_preview._textbox.bind('<<Copy>>', self._copiar_desde_preview)
         yield
@@ -277,7 +278,7 @@ class LqipFrame(BaseFrame):
         yield
         self._btn_copiar.grid(row=0, column=0, padx=(0, 4), sticky='ew')
         yield
-        self._btn_guardar = self._action_button(actions, 'lqip_btn_save', self._guardar)
+        self._btn_guardar = self._action_button(actions, 'lqip_btn_save', self._guardar, role='primary')
         yield
         self._btn_guardar.grid(row=0, column=1, padx=(4, 0), sticky='ew')
         yield
@@ -292,10 +293,8 @@ class LqipFrame(BaseFrame):
     def _campo_numerico(self, parent, row, title, help_key, variable):
         self._text_label(parent, t(title)).grid(row=row, column=0, sticky='w')
         yield
-        entry = ctk.CTkEntry(
+        entry = styles.Entry(
             parent, textvariable=variable, width=80, font=fonts.FUENTE_BASE,
-            fg_color=colors.SIDEBAR_BG, border_color=colors.SIDEBAR_SEPARATOR,
-            text_color=colors.TEXT_COLOR,
         )
         yield
         entry.grid(row=row, column=1, sticky='e')
@@ -327,7 +326,7 @@ class LqipFrame(BaseFrame):
         slider = ctk.CTkSlider(
             parent, from_=10, to=maximum, number_of_steps=maximum - 10, variable=variable,
             button_color=colors.ACENTO, button_hover_color=colors.ACENTO_HOVER,
-            progress_color=colors.ACENTO, fg_color=colors.SIDEBAR_SEPARATOR,
+            progress_color=colors.ACENTO, fg_color=styles.palette().border,
         )
         yield
         slider.grid(row=row + 1, column=0, columnspan=2, pady=(2, 0), sticky='ew')
@@ -342,7 +341,7 @@ class LqipFrame(BaseFrame):
 
     @stepwise
     def _preview_card(self, column, title):
-        card = ctk.CTkFrame(self._comparison, fg_color=colors.SIDEBAR_BG, corner_radius=8)
+        card = ctk.CTkFrame(self._comparison, **styles.surface('list'))
         yield
         card.grid(row=0, column=column, padx=(0, 4) if column == 0 else (4, 0), sticky='nsew')
         yield
@@ -375,12 +374,10 @@ class LqipFrame(BaseFrame):
         yield
         return label, meta
 
-    def _action_button(self, parent, key, command):
-        return ctk.CTkButton(
-            parent, text=t(key), height=36, font=fonts.FUENTE_BASE,
-            fg_color=colors.SIDEBAR_BG, hover_color=colors.SIDEBAR_HOVER,
-            border_width=1, border_color=colors.SIDEBAR_SEPARATOR,
-            text_color=colors.TEXT_COLOR, command=command,
+    def _action_button(self, parent, key, command, *, role='secondary'):
+        return self._new_button(
+            parent, role=role, text=t(key), height=40, font=fonts.FUENTE_BASE,
+            command=command,
         )
 
     def _ajustar_textos(self, event=None):
@@ -417,7 +414,7 @@ class LqipFrame(BaseFrame):
             ('ancho', self._entry_width, self._error_width, 2),
             ('blur', self._entry_blur, self._error_blur, 5),
         ):
-            entry.configure(border_color=colors.ACENTO if field in errors else colors.SIDEBAR_SEPARATOR)
+            entry.configure(border_color=styles.palette().primary if field in errors else styles.palette().border)
             if field in errors:
                 label.configure(text=t(errors[field]))
                 label.grid(row=row, column=0, columnspan=2, sticky='w', pady=(0, 4))

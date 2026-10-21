@@ -34,7 +34,7 @@ def test_secciones_etiquetas_y_contador_en_idiomas_disponibles(ui_root, monkeypa
         assert label.cget('text') and not label.cget('text').startswith('metadata_')
         assert value.cget('text')
         assert value.cget('justify') == 'left'
-    assert frame._lbl_info.cget('text') == f'{len(CAMPOS_VISIBLES)} {t("fields_found")} - gato.jpg'
+    assert frame._lbl_info.cget('text') == ''
     opciones = {nombre: value.cget('text') for nombre, _, value in frame._metadata_rows}
     assert opciones['Flash'] == f'{t("flash_no")} (0)'
     assert opciones['ExposureProgram'] == f'{t("enum_not_defined")} (0)'
@@ -49,7 +49,8 @@ def test_solo_muestra_secciones_con_datos_y_limpia(ui_root):
     assert not frame._metadata_rows and not frame._metadata_sections
     frame._renderizar_metadatos({})
     assert not frame._metadata_rows and not frame._metadata_sections
-    assert frame._scroll_meta.winfo_children()[0].cget('text') == t('no_metadata_image')
+    assert frame._meta_empty.cget('text') == ''
+    assert not frame._meta_empty.winfo_manager()
 
 
 def test_mapas_solo_en_coordenadas_incluso_cero(ui_root, monkeypatch):

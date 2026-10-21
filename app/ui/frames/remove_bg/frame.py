@@ -12,11 +12,10 @@ Relacionado con:
 from __future__ import annotations
 
 import logging
-from tkinter import filedialog
 
 import customtkinter as ctk
 
-from app.ui import colors, fonts
+from app.ui import colors, fonts, styles
 from app.ui.scale import scale_wraplength
 from app.translations import t
 from app.ui.operations import operations
@@ -40,6 +39,8 @@ class RemoveBgFrame(BaseFrame):
     Procesa una o varias imagenes y exporta con transparencia.
     """
 
+    design_system = True
+
     def __init__(self, parent):
         """Inicializa el frame."""
         self._formato_salida: ctk.StringVar = ctk.StringVar(value='PNG')
@@ -57,6 +58,9 @@ class RemoveBgFrame(BaseFrame):
         # Importante: diferir al siguiente tick para que BaseFrame no lo oculte
         # al finalizar _build().
         self._post_ui(0, self._inicializar_en_background)
+
+    def _on_build_complete(self):
+        self._scrollbar.configure(corner_radius=0, width=6, border_spacing=1)
 
     def _crear_spinner(self):
         """Deprecated: RemoveBG usa overlay full-frame."""
@@ -106,6 +110,7 @@ class RemoveBgFrame(BaseFrame):
             text_color=colors.TEXT_COLOR, anchor='w'
         ).grid(row=0, column=0, padx=16, pady=(16, 8), sticky='w')
         self._lista_frame = self._crear_lista_archivos(derecha, height=420)
+        self._lista_frame._scrollbar.configure(corner_radius=0, width=6, border_spacing=1)
         self._lista_frame.grid(row=1, column=0, padx=16, pady=(0, 16), sticky='nsew')
         self._lista_frame.grid_columnconfigure(0, weight=1)
 
@@ -115,10 +120,7 @@ class RemoveBgFrame(BaseFrame):
         # Panel de opciones
         panel = ctk.CTkFrame(
             izquierda,
-            corner_radius=12,
-            fg_color=colors.PANEL_BG,
-            border_width=1,
-            border_color=colors.SIDEBAR_SEPARATOR
+            **styles.surface('panel'),
         )
         panel.grid(row=1, column=0, padx=16, pady=(0, 16), sticky='new')
         panel.grid_columnconfigure(1, weight=1)
@@ -130,7 +132,7 @@ class RemoveBgFrame(BaseFrame):
             font=fonts.FUENTE_CHICA,
             text_color=colors.TEXT_GRAY,
             anchor='w'
-        ).grid(row=0, column=0, columnspan=2, padx=16, pady=(14, 8), sticky='w')
+        ).grid(row=0, column=0, columnspan=2, padx=16, pady=(16, 8), sticky='w')
 
         # Selector de formato
         ctk.CTkLabel(
@@ -139,32 +141,26 @@ class RemoveBgFrame(BaseFrame):
             text_color=colors.TEXT_GRAY, anchor='w'
         ).grid(row=1, column=0, padx=(16, 12), pady=(0, 8), sticky='w')
 
-        ctk.CTkSegmentedButton(
+        styles.SegmentedButton(
             panel,
             values=FORMATOS_SALIDA,
             variable=self._formato_salida,
             font=fonts.FUENTE_CHICA,
-            selected_color=colors.SEGMENT_SELECTED,
-            selected_hover_color=colors.SEGMENT_SELECTED_HOVER,
-            unselected_color=colors.SIDEBAR_BG,
-            unselected_hover_color=colors.SIDEBAR_HOVER,
-            text_color=colors.TEXT_COLOR,
         ).grid(row=1, column=1, padx=(0, 16), pady=(0, 8), sticky='w')
 
         # Boton procesar
-        self._btn_procesar = ctk.CTkButton(
+        for _ in self._build_save_selector(panel, 2, columnspan=2):
+            pass
+
+        self._btn_procesar = self._new_button(
             panel,
+            role='primary',
             text=t('remove_bg_btn'),
-            height=40,
-            corner_radius=8,
             font=fonts.FUENTE_BASE,
-            fg_color=colors.ACENTO,
-            text_color=colors.TEXT_ACTIVE,
-            hover_color=colors.ACENTO_HOVER,
             command=self._procesar
         )
         self._btn_procesar.grid(
-            row=2, column=0, columnspan=2,
+            row=3, column=0, columnspan=2,
             padx=16, pady=(0, 16), sticky='ew'
         )
 
@@ -183,12 +179,9 @@ class RemoveBgFrame(BaseFrame):
         """Muestra panel con el error real y ayuda para instalar dependencias."""
         panel = ctk.CTkFrame(
             self,
-            corner_radius=12,
-            fg_color=colors.PANEL_BG,
-            border_width=1,
-            border_color=colors.SIDEBAR_SEPARATOR
+            **styles.surface('panel'),
         )
-        panel.grid(row=1, column=0, padx=28, pady=8, sticky='ew')
+        panel.grid(row=1, column=0, padx=24, pady=8, sticky='ew')
         panel.grid_columnconfigure(0, weight=1)
         resumen, detalle = self._resumir_error_dependencia(detalle_error)
 
@@ -201,7 +194,7 @@ class RemoveBgFrame(BaseFrame):
             justify='left',
             wraplength=scale_wraplength(620)
         )
-        self._lbl_error_dependencia.grid(row=0, column=0, padx=16, pady=(16, 6), sticky='w')
+        self._lbl_error_dependencia.grid(row=0, column=0, padx=16, pady=(16, 8), sticky='w')
 
         if detalle:
             ctk.CTkLabel(
@@ -212,7 +205,7 @@ class RemoveBgFrame(BaseFrame):
                 anchor='w',
                 justify='left',
                 wraplength=scale_wraplength(620)
-            ).grid(row=1, column=0, padx=16, pady=(0, 6), sticky='w')
+            ).grid(row=1, column=0, padx=16, pady=(0, 8), sticky='w')
             row_reinstall = 2
         else:
             row_reinstall = 1
@@ -237,33 +230,24 @@ class RemoveBgFrame(BaseFrame):
             wraplength=scale_wraplength(620)
         ).grid(row=row_reinstall + 1, column=0, padx=16, pady=(0, 8), sticky='w')
 
-        fila_comando = ctk.CTkFrame(panel, fg_color='transparent')
+        fila_comando = ctk.CTkFrame(panel, fg_color='transparent', corner_radius=0)
         fila_comando.grid(row=row_reinstall + 2, column=0, padx=16, pady=(0, 16), sticky='ew')
         fila_comando.grid_columnconfigure(0, weight=1)
 
-        self._entry_dependencia_cmd = ctk.CTkEntry(
+        self._entry_dependencia_cmd = styles.Entry(
             fila_comando,
             font=ctk.CTkFont(family='Courier New', size=13),
-            text_color=colors.ACENTO,
-            fg_color=colors.SIDEBAR_BG,
-            border_color=colors.SIDEBAR_SEPARATOR,
             justify='left'
         )
         self._entry_dependencia_cmd.grid(row=0, column=0, sticky='ew', padx=(0, 8))
         self._entry_dependencia_cmd.insert(0, INSTALL_COMMAND)
 
-        self._btn_copiar_comando = ctk.CTkButton(
+        self._btn_copiar_comando = self._new_button(
             fila_comando,
             text=t('copy_command'),
             width=120,
-            height=32,
-            corner_radius=8,
+            height=30,
             font=fonts.FUENTE_CHICA,
-            fg_color=colors.PANEL_BG,
-            border_width=1,
-            border_color=colors.SIDEBAR_SEPARATOR,
-            text_color=colors.TEXT_COLOR,
-            hover_color=colors.SIDEBAR_HOVER,
             command=self._copiar_comando_instalacion
         )
         self._btn_copiar_comando.grid(row=0, column=1, sticky='e')
@@ -274,12 +258,9 @@ class RemoveBgFrame(BaseFrame):
 
         aviso = ctk.CTkFrame(
             getattr(self, 'content', self),
-            corner_radius=8,
-            fg_color=colors.SIDEBAR_BG,
-            border_width=1,
-            border_color=colors.ACENTO_DIMMED
+            **styles.surface('panel'),
         )
-        aviso.place(relx=0.5, rely=1.0, y=-18, anchor='s', relwidth=0.78)
+        aviso.place(relx=0.5, rely=1.0, y=-16, anchor='s', relwidth=0.78)
         aviso.grid_columnconfigure(0, weight=1)
 
         ctk.CTkLabel(
@@ -289,7 +270,7 @@ class RemoveBgFrame(BaseFrame):
             text_color=colors.TEXT_GRAY,
             justify='center',
             wraplength=scale_wraplength(500)
-        ).grid(row=0, column=0, padx=16, pady=10)
+        ).grid(row=0, column=0, padx=16, pady=8)
 
         self._primer_uso_notice = aviso
         self._primer_uso_notice_job = self.after(5000, self._ocultar_aviso_primer_uso)
@@ -365,17 +346,19 @@ class RemoveBgFrame(BaseFrame):
             self._lbl_info.configure(text=t('load_images_first'))
             return
 
-        carpeta = filedialog.askdirectory(title=t('select_output_folder'))
-        if not carpeta:
-            return
-
-        self._state.set_model_info(None, False)
-        self._btn_procesar.configure(state='disabled', text=t('processing'))
-        self._show_overlay(t('analyzing_image'))
         paths, fmt = tuple(self._imagenes), self._formato_salida.get()
-        self._submit_job(lambda: self._proceso(carpeta, paths, fmt), button=self._btn_procesar, text=t('remove_bg_btn'))
+        def start(folder, plan):
+            self._state.set_model_info(None, False)
+            self._show_overlay(t('analyzing_image'))
+            def finished(result):
+                if result is not None:
+                    self._state.set_model_info(result.get('model_used'), result.get('used_fallback', False))
+                    self._finish_save(result)
+            self._submit_job(lambda: self._proceso(folder, paths, fmt, output_policy=plan),
+                button=self._btn_procesar, text=t('remove_bg_btn'), on_success=finished)
+        self._prepare_save(paths, fmt, start)
 
-    def _proceso(self, carpeta, paths, fmt):
+    def _proceso(self, carpeta, paths, fmt, *, output_policy=None):
         """Ejecuta la eliminacion de fondo."""
         try:
             if not modelo_descargado():
@@ -388,8 +371,11 @@ class RemoveBgFrame(BaseFrame):
                 paths,
                 carpeta,
                 formato_salida=fmt,
+                **({'output_policy': output_policy} if output_policy is not None else {}),
                 status_callback=lambda key: self._post_ui(0, lambda k=key: self._set_overlay_key(k)),
             )
+            if output_policy is not None:
+                return res
             self._post_ui(0, lambda: self._finalizar(
                 res['ok'],
                 res['errores'],

@@ -24,9 +24,12 @@ from app.ui.rendering import VirtualRows, PooledRow, configure_changed
 
 class FileList:
     """File rows recycled as the viewport scrolls, with progressive thumbnails."""
-    def __init__(self, container, filas, thumbs):
+    def __init__(self, container, filas, thumbs, *, corner_radius=8, design_system=False):
         self.filas, self.thumbs = filas, thumbs
+        self.corner_radius = corner_radius
+        self.design_system = design_system
         self.generation = 0
+        self.statuses = {}
         for child in container.winfo_children():
             child.pack_forget()
             child.grid_forget()
@@ -37,7 +40,10 @@ class FileList:
         self.virtual.on_destroy = self.loader.cancel
 
     def _create(self, parent):
-        row = PooledRow(parent, fg_color=colors.SIDEBAR_BG, corner_radius=8)
+        from app.ui.styles import surface
+        options = surface('row') if self.design_system else dict(
+            fg_color=colors.SIDEBAR_BG, corner_radius=self.corner_radius)
+        row = PooledRow(parent, **options)
         row.grid_columnconfigure(1, weight=1)
         row.thumb = ctk.CTkLabel(row, text='', width=44, height=44)
         row.thumb.grid(row=0, column=0, rowspan=2, padx=(8, 10), pady=6)
@@ -73,9 +79,10 @@ class FileList:
                 if row.photo is None or row.photo.cget('light_image') is not result.image:
                     row.photo = ctk.CTkImage(light_image=result.image, dark_image=result.image, size=result.image.size)
                     row.thumb.configure(image=row.photo)
-                configure_changed(row.info_label, text=f'{formatear_bytes(result.bytes)}  -  {result.format}')
+                status = self.statuses.get(path, '')
+                configure_changed(row.info_label, text=f'{formatear_bytes(result.bytes)}  -  {result.format}' + (f' · {status}' if status else ''))
             else:
-                configure_changed(row.info_label, text=t('error_generic'))
+                configure_changed(row.info_label, text=self.statuses.get(path) or t('error_generic'))
             self.filas[:] = [item.thumb for item in self.virtual.rows.values()]
             self.thumbs[:] = [item.photo for item in self.virtual.rows.values() if item.photo is not None]
         self.loader.request(path, (44, 44), loaded)

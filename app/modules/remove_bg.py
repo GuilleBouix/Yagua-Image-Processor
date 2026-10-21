@@ -20,6 +20,7 @@ import numpy as np
 from PIL import Image, ImageOps
 
 from app.utils.output import unique_output_path, atomic_destination, require_single_frame
+from app.utils.saving import get_plan, run_plan
 
 from app.utils.results import FileFailure, file_failure
 
@@ -264,10 +265,11 @@ def _save_output(
     ruta_entrada: str,
     *,
     formato_salida: str,
+    destination=None,
 ) -> tuple[Path, bool]:
     formato = formato_salida.upper()
     extension = _FMT_A_EXT.get(formato, '.png')
-    ruta_final, conflicto = unique_output_path(
+    ruta_final, conflicto = (Path(destination), False) if destination else unique_output_path(
         ruta_base,
         ruta_entrada,
         sufijo='_sinFondo',
@@ -279,7 +281,7 @@ def _save_output(
     return ruta_final, conflicto
 
 
-def quitar_fondo(ruta_entrada, ruta_salida, formato_salida='PNG'):
+def quitar_fondo(ruta_entrada, ruta_salida, formato_salida='PNG', *, destination=None, status_callback=None):
     """
     Elimina el fondo de una imagen y exporta con transparencia.
 
@@ -307,13 +309,14 @@ def quitar_fondo(ruta_entrada, ruta_salida, formato_salida='PNG'):
         tam_original = Path(ruta_entrada).stat().st_size
 
         require_single_frame(ruta_entrada)
-        imagen = Image.open(ruta_entrada)
-        imagen = ImageOps.exif_transpose(imagen)
+        with Image.open(ruta_entrada) as source:
+            imagen = ImageOps.exif_transpose(source)
         resultado, analysis = _process_image(
             imagen,
             rembg_remove=rembg_remove,
             session=session,
             config=config,
+            status_callback=status_callback,
         )
 
         ruta_final, conflicto = _save_output(
@@ -321,6 +324,7 @@ def quitar_fondo(ruta_entrada, ruta_salida, formato_salida='PNG'):
             ruta_salida,
             ruta_entrada,
             formato_salida=formato_salida,
+            destination=destination,
         )
 
         return {
@@ -337,7 +341,7 @@ def quitar_fondo(ruta_entrada, ruta_salida, formato_salida='PNG'):
         raise
 
 
-def batch_quitar_fondo(rutas, carpeta_salida, formato_salida='PNG', status_callback=None):
+def batch_quitar_fondo(rutas, carpeta_salida, formato_salida='PNG', status_callback=None, *, output_policy=None):
     """
     Elimina el fondo de multiples imagenes.
     Reutiliza la misma sesion para mayor eficiencia.
@@ -351,6 +355,14 @@ def batch_quitar_fondo(rutas, carpeta_salida, formato_salida='PNG', status_callb
     Returns:
         Diccionario con ok, errores, resultados, conflictos y metadata del modelo usado.
     """
+    if output_policy is not None:
+        limited = tuple(rutas)[:MAX_IMAGENES]
+        result = run_plan(get_plan(output_policy, limited, carpeta_salida, formato_salida),
+                         lambda source, target: quitar_fondo(source, carpeta_salida, formato_salida,
+                             destination=target, status_callback=status_callback))
+        saved = next((row for row in result['resultados'] if row['estado'] == 'saved'), {})
+        result.update(model_used=saved.get('model_used'), used_fallback=saved.get('used_fallback', False))
+        return result
     fallos: list[FileFailure] = []
     rembg_remove, _ = _import_rembg()
     session, model_used, used_fallback = _get_processing_session()

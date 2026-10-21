@@ -10,13 +10,13 @@ Relacionado con:
 
 import io
 import logging
-import shutil
 from pathlib import Path
 
 from PIL import Image
 
 from app.utils.image_utils import normalize_common, ensure_rgb_for_jpeg
-from app.utils.output import unique_output_path, safe_image_output
+from app.utils.output import unique_output_path, safe_image_output, DiscardOutput
+from app.utils.saving import get_plan, run_plan, canonical_format
 
 from app.utils.results import FileFailure, file_failure
 
@@ -158,7 +158,8 @@ def comprimir_imagen(ruta_entrada, ruta_salida, calidad=85, quitar_exif=True):
 
     logger.info("Comprimir: %s -> %s (calidad=%s, exif=%s)", ruta_entrada, ruta_salida, calidad, quitar_exif)
     # Determinar formato original
-    formato = _formato_desde_ruta(ruta_entrada)
+    with Image.open(ruta_entrada) as source:
+        formato = canonical_format(source.format or _formato_desde_ruta(ruta_entrada))
     
     # Guardar tamano original
     tam_original = Path(ruta_entrada).stat().st_size
@@ -177,12 +178,14 @@ def comprimir_imagen(ruta_entrada, ruta_salida, calidad=85, quitar_exif=True):
     # Verificar tamano comprimido
     tam_comprimido = Path(ruta_salida).stat().st_size
 
-    # Si el comprimido es mas grande, copiar el original
-    if tam_comprimido >= tam_original and not quitar_exif:
-        shutil.copy2(ruta_entrada, ruta_salida)
-        tam_comprimido = tam_original
+    if tam_comprimido >= tam_original:
+        raise DiscardOutput(dict(estado='unchanged', ruta_salida=None,
+            tam_original=tam_original, tam_comprimido=tam_original,
+            tam_resultado=tam_original, tam_candidato=tam_comprimido,
+            reduccion_pct=0.0, formato=formato, exif_no_aplicado=bool(quitar_exif)))
 
     return {
+        'estado': 'saved',
         'ruta_salida': ruta_salida,
         'tam_original': tam_original,
         'tam_comprimido': tam_comprimido,
@@ -242,7 +245,7 @@ def formatear_bytes(bytes_val):
     return f"{bytes_val / (1024 * 1024):.2f} MB"
 
 
-def batch_comprimir(rutas, carpeta_salida, calidad=85, quitar_exif=True, sufijo='_comprimido'):
+def batch_comprimir(rutas, carpeta_salida, calidad=85, quitar_exif=True, sufijo='_comprimido', *, output_policy=None):
     """
     Comprime multiples imagenes en lote.
     
@@ -264,6 +267,9 @@ def batch_comprimir(rutas, carpeta_salida, calidad=85, quitar_exif=True, sufijo=
             - reduccion_pct: Porcentaje de reduccion total.
             - conflictos: Cantidad de archivos renombrados por colision.
     """
+    if output_policy is not None:
+        return run_plan(get_plan(output_policy, rutas, carpeta_salida),
+                        lambda source, target: comprimir_imagen(source, target, calidad, quitar_exif))
     fallos: list[FileFailure] = []
 
     logger.info("Batch comprimir: %s archivos -> %s", len(rutas), carpeta_salida)
@@ -278,15 +284,14 @@ def batch_comprimir(rutas, carpeta_salida, calidad=85, quitar_exif=True, sufijo=
                 carpeta_salida, ruta, sufijo=sufijo
             )
             salida = str(salida_path)
-            if conflicto:
-                conflictos += 1
-            
             # Comprimir imagen
             res = comprimir_imagen(
                 ruta, salida,
                 calidad=calidad,
                 quitar_exif=quitar_exif
             )
+            if conflicto and res.get('estado') != 'unchanged':
+                conflictos += 1
             resultados.append(res)
         except Exception as exc:
             fallos.append(file_failure(str(ruta), exc))
@@ -299,7 +304,10 @@ def batch_comprimir(rutas, carpeta_salida, calidad=85, quitar_exif=True, sufijo=
     reduccion = round((1 - total_comp / total_orig) * 100, 1) if total_orig else 0
     
     return {'fallos': fallos,
-        'ok': len(resultados),
+        'ok': sum(r.get('estado') != 'unchanged' for r in resultados),
+        'sin_mejora': sum(r.get('estado') == 'unchanged' for r in resultados),
+        'exif_no_aplicado': sum(r.get('exif_no_aplicado', False) for r in resultados),
+        'resultados': resultados,
         'errores': errores,
         'total_original': total_orig,
         'total_comprimido': total_comp,

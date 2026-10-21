@@ -18,6 +18,7 @@ import logging
 import threading
 from pathlib import Path
 from tkinter import filedialog, Text
+from typing import Any
 
 import customtkinter as ctk
 
@@ -41,6 +42,7 @@ def _file_size_label(path):
 
 
 class BaseFrame(UiLifetime, ctk.CTkScrollableFrame):
+    design_system = False
     _lista_frame: ctk.CTkFrame | ctk.CTkScrollableFrame
     _lbl_lista_vacia: ctk.CTkLabel
     """
@@ -73,6 +75,7 @@ class BaseFrame(UiLifetime, ctk.CTkScrollableFrame):
         
         # Lista de rutas de imagenes cargadas
         self._imagenes = []
+        self._save_groups: list[ctk.CTkFrame] = []
         
         # Lista de thumbnails de imagenes
         self._thumbs = []
@@ -109,6 +112,37 @@ class BaseFrame(UiLifetime, ctk.CTkScrollableFrame):
         if busy and hasattr(self, '_lbl_info'):
             self._lbl_info.configure(text=t('operation_busy'))
         return busy
+
+    def _build_save_selector(self, parent, row, **kwargs):
+        from app.ui.saving import selector_steps
+        return selector_steps(self, parent, row, **kwargs)
+
+    def _new_button(self, parent, *, role='secondary', **kwargs):
+        if self.design_system:
+            from app.ui.styles import Button
+            return Button(parent, role=role, **kwargs)
+        return ctk.CTkButton(parent, **kwargs)
+
+    def _prepare_save(self, paths, target_format, proceed, **kwargs):
+        from app.ui.saving import prepare
+        return prepare(self, paths, target_format, proceed, **kwargs)
+
+    def _sync_save_visibility(self):
+        from app.ui.saving import set_visible
+        set_visible(self, bool(self._imagenes))
+
+    def _finish_save(self, result, *, strip=False):
+        from app.ui.saving import refresh, summary
+        refresh(self, result)
+        self._lbl_info.grid(sticky='ew')
+        self._lbl_info.configure(text=summary(result, strip=strip), width=1,
+                                 anchor='w', justify='left', wraplength=max(120, self.winfo_width() - 48))
+        if not hasattr(self, '_save_footer_binding'):
+            def fit(event):
+                width = max(120, int(event.width / self._get_widget_scaling()) - 48)
+                if self._lbl_info.cget('wraplength') != width:
+                    self._lbl_info.configure(wraplength=width)
+            self._save_footer_binding = self.bind('<Configure>', fit, add=True)
 
     def _submit_job(self, work, *, button=None, text=None, on_success=None, on_error=None):
         """Freeze controls until the queued result is delivered, including startup errors."""
@@ -206,6 +240,8 @@ class BaseFrame(UiLifetime, ctk.CTkScrollableFrame):
 
     def _on_build_complete(self):
         """Subclass initialization that requires already constructed controls."""
+        if self.design_system:
+            self._scrollbar.configure(corner_radius=0, width=6, border_spacing=1)
 
     def _prepare_additional_steps(self):
         """Optional controls that would otherwise be built on the first mode change."""
@@ -253,6 +289,8 @@ class BaseFrame(UiLifetime, ctk.CTkScrollableFrame):
         if self._full_overlay_frame:
             return
         overlay_host = getattr(self, "_parent_frame", self)
+        from app.ui import styles
+        panel_style = styles.surface('panel') if self.design_system else {}
         self._full_overlay_frame = ctk.CTkFrame(
             overlay_host,
             corner_radius=0,
@@ -269,6 +307,8 @@ class BaseFrame(UiLifetime, ctk.CTkScrollableFrame):
             border_width=1,
             border_color=colors.SIDEBAR_SEPARATOR
         )
+        if panel_style:
+            self._full_overlay_card.configure(**panel_style)
         self._full_overlay_label = ctk.CTkLabel(
             self._full_overlay_card,
             text=t('processing'),
@@ -279,8 +319,8 @@ class BaseFrame(UiLifetime, ctk.CTkScrollableFrame):
             self._full_overlay_card,
             width=240,
             height=12,
-            corner_radius=8,
-            fg_color=colors.SIDEBAR_SEPARATOR,
+            corner_radius=0 if self.design_system else 8,
+            fg_color=styles.palette().border if self.design_system else colors.SIDEBAR_SEPARATOR,
             progress_color=colors.ACENTO,
             mode='indeterminate'
         )
@@ -347,7 +387,7 @@ class BaseFrame(UiLifetime, ctk.CTkScrollableFrame):
         ).grid(row=0, column=0, sticky='w')
 
         # Boton de limpiar
-        self._btn_limpiar = ctk.CTkButton(
+        self._btn_limpiar = self._new_button(
             fila_titulo,
             text=t('clean'),
             width=80,
@@ -404,14 +444,15 @@ class BaseFrame(UiLifetime, ctk.CTkScrollableFrame):
             host.grid_columnconfigure(column, weight=weight, uniform='workspace')
         host.grid_rowconfigure(0, weight=1)
 
+        from app.ui import styles
+        panel_style: dict[str, Any] = styles.surface('panel') if self.design_system else dict(
+            corner_radius=12, fg_color=colors.PANEL_BG,
+            border_width=1, border_color=colors.SIDEBAR_SEPARATOR)
         panels = []
         for column in range(2):
             panel = ctk.CTkFrame(
                 host,
-                corner_radius=12,
-                fg_color=colors.PANEL_BG,
-                border_width=1,
-                border_color=colors.SIDEBAR_SEPARATOR,
+                **panel_style,
             )
             panel.grid_columnconfigure(0, weight=1)
             panels.append(panel)
@@ -466,7 +507,7 @@ class BaseFrame(UiLifetime, ctk.CTkScrollableFrame):
             texto = t('select_images')
 
         # Crear y retornar el boton
-        return ctk.CTkButton(
+        return self._new_button(
             parent,
             text=texto,
             height=40,
@@ -500,6 +541,10 @@ class BaseFrame(UiLifetime, ctk.CTkScrollableFrame):
             fg_color=colors.PANEL_BG,
             height=height
         )
+        if self.design_system:
+            from app.ui import styles
+            lista.configure(**styles.surface('list'), **styles.scrollbar())
+            lista._scrollbar.configure(corner_radius=0, width=6, border_spacing=1)
         lista.grid_columnconfigure(0, weight=1)
         return lista
 
@@ -565,9 +610,12 @@ class BaseFrame(UiLifetime, ctk.CTkScrollableFrame):
         logger.info("%s: cargar_imagenes (total=%s)", self.__class__.__name__, len(rutas))
         # Actualizar lista de imagenes
         self._imagenes = rutas
+        self._sync_save_visibility()
         from app.ui.file_list import FileList
         if not hasattr(self, '_virtual_file_list'):
-            self._virtual_file_list = FileList(self._lista_frame, self._filas_lista, self._thumbs)
+            self._virtual_file_list = FileList(self._lista_frame, self._filas_lista, self._thumbs,
+                                               design_system=self.design_system)
+        self._virtual_file_list.statuses.clear()
         self._virtual_file_list.sync(rutas)
 
     def _agregar_fila_archivo(self, ruta):
@@ -629,6 +677,7 @@ class BaseFrame(UiLifetime, ctk.CTkScrollableFrame):
         logger.info("%s: limpiar", self.__class__.__name__)
         # Reiniciar listas
         self._imagenes = []
+        self._sync_save_visibility()
         self._thumbs.clear()
         self._filas_lista.clear()
         

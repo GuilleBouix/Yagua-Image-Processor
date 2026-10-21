@@ -4,7 +4,7 @@ from app.ui.building import finish, stepwise, steps_for
 import logging
 import customtkinter as ctk
 
-from app.ui import colors, fonts
+from app.ui import colors, fonts, styles
 from app.translations import t, AVAILABLE_LANGUAGES
 from app.ui.module_registry import iter_all_modules
 from app.ui.frames.settings.services import (
@@ -31,10 +31,7 @@ class GeneralTab(ctk.CTkFrame):
     def _build(self):
         panel_idioma = ctk.CTkFrame(
             self,
-            corner_radius=12,
-            fg_color=colors.PANEL_BG,
-            border_width=1,
-            border_color=colors.SIDEBAR_SEPARATOR
+            **styles.surface('panel'),
         )
         yield
         panel_idioma.grid(row=0, column=0, pady=(0, 12), sticky='ew')
@@ -53,30 +50,22 @@ class GeneralTab(ctk.CTkFrame):
 
         language_font = fonts.fuente_selector_idiomas()
         yield
-        self._selector_idioma = ctk.CTkOptionMenu(
+        language_field = styles.OptionField(
             panel_idioma,
+            width=140,
             values=list(AVAILABLE_LANGUAGES.keys()),
             variable=self._state.lang_var,
             font=language_font,
             dropdown_font=language_font,
-            fg_color=colors.SIDEBAR_BG,
-            button_color=colors.ACENTO,
-            button_hover_color=colors.ACENTO_HOVER,
-            text_color=colors.TEXT_COLOR,
-            dropdown_fg_color=colors.PANEL_BG,
-            dropdown_text_color=colors.TEXT_COLOR,
-            dropdown_hover_color=colors.SIDEBAR_HOVER,
         )
         yield
-        self._selector_idioma.grid(row=0, column=1, padx=(0, 16), pady=16, sticky='w')
+        self._selector_idioma = language_field.menu
+        language_field.grid(row=0, column=1, padx=(0, 16), pady=16, sticky='w')
         yield
 
         panel_tema = ctk.CTkFrame(
             self,
-            corner_radius=12,
-            fg_color=colors.PANEL_BG,
-            border_width=1,
-            border_color=colors.SIDEBAR_SEPARATOR
+            **styles.surface('panel'),
         )
         yield
         panel_tema.grid(row=1, column=0, pady=(0, 12), sticky='ew')
@@ -93,21 +82,16 @@ class GeneralTab(ctk.CTkFrame):
         ).grid(row=0, column=0, padx=16, pady=(12, 4), sticky='w')
         yield
 
-        self._selector_tema = ctk.CTkOptionMenu(
+        theme_field = styles.OptionField(
             panel_tema,
+            width=140,
             values=colors.get_theme_names(),
             variable=self._state.theme_var,
             font=fonts.FUENTE_BASE,
-            fg_color=colors.SIDEBAR_BG,
-            button_color=colors.ACENTO,
-            button_hover_color=colors.ACENTO_HOVER,
-            text_color=colors.TEXT_COLOR,
-            dropdown_fg_color=colors.PANEL_BG,
-            dropdown_text_color=colors.TEXT_COLOR,
-            dropdown_hover_color=colors.SIDEBAR_HOVER,
         )
         yield
-        self._selector_tema.grid(row=1, column=0, padx=16, pady=(0, 6), sticky='w')
+        self._selector_tema = theme_field.menu
+        theme_field.grid(row=1, column=0, padx=16, pady=(0, 6), sticky='w')
         yield
 
         (yield from steps_for(self._build_scale_panel, panel_tema))
@@ -128,16 +112,11 @@ class GeneralTab(ctk.CTkFrame):
         ).grid(row=0, column=1, padx=16, pady=(12, 4), sticky='w')
         yield
 
-        self._selector_escala = ctk.CTkSegmentedButton(
+        self._selector_escala = styles.SegmentedButton(
             panel_scale,
             values=['100%', '75%', '50%'],
             variable=self._state.scale_var,
             font=fonts.FUENTE_CHICA,
-            selected_color=colors.SEGMENT_SELECTED,
-            selected_hover_color=colors.SEGMENT_SELECTED_HOVER,
-            unselected_color=colors.SIDEBAR_BG,
-            unselected_hover_color=colors.SIDEBAR_HOVER,
-            text_color=colors.TEXT_COLOR,
         )
         yield
         self._selector_escala.grid(row=1, column=1, padx=16, pady=(0, 6), sticky='w')
@@ -166,10 +145,7 @@ class GeneralTab(ctk.CTkFrame):
     def _build_modules_panel(self, row=0):
         panel_modulos = ctk.CTkFrame(
             self,
-            corner_radius=12,
-            fg_color=colors.PANEL_BG,
-            border_width=1,
-            border_color=colors.SIDEBAR_SEPARATOR
+            **styles.surface('panel'),
         )
         yield
         panel_modulos.grid(row=row, column=0, pady=(0, 16), sticky='ew')
@@ -219,17 +195,12 @@ class GeneralTab(ctk.CTkFrame):
             self._module_vars[spec.key] = var
             yield
 
-            switch = ctk.CTkSwitch(
+            switch = styles.Switch(
                 panel_modulos,
                 text=t(spec.label_key),
                 variable=var,
                 onvalue=True,
                 offvalue=False,
-                text_color=colors.TEXT_COLOR,
-                fg_color=colors.SIDEBAR_SEPARATOR,
-                progress_color=colors.ACENTO,
-                button_color=colors.SIDEBAR_BG,
-                button_hover_color=colors.SIDEBAR_HOVER,
             )
             yield
             if is_settings:
@@ -246,17 +217,13 @@ class GeneralTab(ctk.CTkFrame):
 
     @stepwise
     def _build_apply_button(self, row=0):
-        self._btn_apply = ctk.CTkButton(
+        self._btn_apply = styles.Button(
             self,
+            role='primary',
             text=t('apply_changes'),
             width=120,
-            height=32,
-            corner_radius=8,
+            height=40,
             font=fonts.FUENTE_CHICA,
-            fg_color=colors.BTN_CLEAR_BG,
-            text_color=colors.BTN_CLEAR_TEXT,
-            hover_color=colors.BTN_CLEAR_HOVER,
-            border_width=0,
             command=self._apply_settings,
         )
         yield

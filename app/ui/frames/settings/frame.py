@@ -12,7 +12,7 @@ import logging
 import customtkinter as ctk
 import webbrowser
 
-from app.ui import colors, fonts
+from app.ui import fonts, styles
 from app.utils import tintar_icono
 from app.translations import t
 from app.ui.frames.base import BaseFrame
@@ -29,6 +29,8 @@ PAYPAL_DONATION_URL = 'https://paypal.me/guillebouix?locale.x=es_XC&country.x=AR
 
 class SettingsFrame(BaseFrame):
     """Frame principal del modulo de ajustes de la aplicacion."""
+
+    design_system = True
 
     def __init__(self, parent, *, defer_build=False):
         logger.info("settings.ui: init")
@@ -50,15 +52,10 @@ class SettingsFrame(BaseFrame):
 
     @stepwise
     def _build_tabs(self):
-        self._tab = ctk.CTkSegmentedButton(
+        self._tab = styles.SegmentedButton(
             self,
             values=[t('settings_tab'), t('updates_tab')],
             font=fonts.FUENTE_BASE,
-            selected_color=colors.SEGMENT_SELECTED,
-            selected_hover_color=colors.SEGMENT_SELECTED_HOVER,
-            unselected_color=colors.PANEL_BG,
-            unselected_hover_color=colors.SIDEBAR_HOVER,
-            text_color=colors.TEXT_COLOR,
             command=self._cambiar_tab
         )
         yield
@@ -115,26 +112,25 @@ class SettingsFrame(BaseFrame):
         yield
         if not hasattr(self, '_title_row') or not self._title_row.winfo_exists():
             return
-        icon_donar = tintar_icono('assets/icons/heart.png', '#000000')
+        icon_donar = tintar_icono('assets/icons/heart.png', styles.palette().primary_text)
         yield
-        btn = ctk.CTkButton(
+        btn = self._new_button(
             self._title_row,
+            role='primary',
             text=t('donate_paypal_btn'),
             image=icon_donar,
             compound='left',
             width=150,
             height=30,
-            corner_radius=8,
             font=fonts.FUENTE_CHICA,
-            fg_color=colors.BTN_CLEAR_BG,
-            text_color=colors.BTN_CLEAR_TEXT,
-            hover_color=colors.BTN_CLEAR_HOVER,
-            border_width=0,
             command=lambda: webbrowser.open(PAYPAL_DONATION_URL)
         )
         yield
         btn.grid(row=0, column=2, padx=(8, 0), sticky='e')
         yield
+
+    def _on_build_complete(self):
+        self._scrollbar.configure(corner_radius=0, width=6, border_spacing=1)
 
     def _set_status(self, text: str):
         self._lbl_info.configure(text=text)

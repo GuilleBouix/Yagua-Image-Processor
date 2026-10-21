@@ -17,7 +17,7 @@ import webbrowser
 from PIL import Image
 import customtkinter as ctk
 
-from app.ui import colors, fonts
+from app.ui import colors, fonts, styles
 from app.utils import tintar_icono
 from app.utils.paths import resource_path
 from app.translations import t
@@ -80,6 +80,7 @@ class Sidebar(ctk.CTkFrame):
         Incluye logo, separador, botones de navegacion
         y footer con enlace a GitHub.
         """
+        palette = styles.palette()
         # Cargar imagen del logo
         ruta_icono = resource_path('assets/icon.png')
         yield
@@ -118,7 +119,7 @@ class Sidebar(ctk.CTkFrame):
             yield
         self.logo = logo
         yield
-        logo.pack(pady=(20, 10))
+        logo.pack(pady=(24, 8))
         yield
         logo.configure(cursor='hand2')
         yield
@@ -128,11 +129,11 @@ class Sidebar(ctk.CTkFrame):
         # Crear linea separadora
         separador = ctk.CTkFrame(
             self,
-            height=2,
-            fg_color=colors.SIDEBAR_SEPARATOR
+            height=1, corner_radius=0,
+            fg_color=palette.border
         )
         yield
-        separador.pack(fill='x', padx=20, pady=(10, 20))
+        separador.pack(fill='x', padx=24, pady=(8, 16))
         yield
 
         specs = list(iter_enabled_modules())
@@ -144,9 +145,10 @@ class Sidebar(ctk.CTkFrame):
                 fg_color='transparent',
                 corner_radius=0,
                 scrollbar_fg_color=colors.SIDEBAR_BG,
-                scrollbar_button_color=colors.SIDEBAR_SEPARATOR,
-                scrollbar_button_hover_color=colors.SIDEBAR_HOVER
+                scrollbar_button_color=colors.ACENTO_DIMMED,
+                scrollbar_button_hover_color=palette.muted
             )
+            self._modules_container._scrollbar.configure(corner_radius=0, width=6, border_spacing=1)
             yield
         else:
             self._modules_container = ctk.CTkFrame(self, fg_color='transparent', corner_radius=0)
@@ -157,7 +159,7 @@ class Sidebar(ctk.CTkFrame):
         # Crear botones para cada modulo habilitado
         for spec in specs:
             # Tintar icono con el color del tema
-            icon_ctk = tintar_icono(spec.icon_path, colors.ICON_COLOR)
+            icon_ctk = tintar_icono(spec.icon_path, palette.text)
             yield
             
             # Obtener label traducible
@@ -165,21 +167,19 @@ class Sidebar(ctk.CTkFrame):
             yield
             
             # Crear boton del modulo
-            btn = ctk.CTkButton(
+            btn = styles.NavigationButton(
                 self._modules_container,
+                secondary_bg=colors.SIDEBAR_BG,
                 text=f' {label}',
                 image=icon_ctk,
                 compound='left',
-                width=200,
-                fg_color='transparent',
-                hover_color=colors.SIDEBAR_HOVER,
-                text_color=colors.TEXT_COLOR,
+                width=200, height=30, border_spacing=4,
                 anchor='w',
                 font=fonts.FUENTE_BASE,
                 command=lambda k=spec.key: self.on_select(k)
             )
             yield
-            btn.pack(pady=3, padx=10, fill='x')
+            btn.pack(pady=2, padx=10, fill='x')
             yield
             
             # Guardar referencia al boton para actualizar estado
@@ -187,7 +187,7 @@ class Sidebar(ctk.CTkFrame):
             yield
 
         # Crear footer con enlace a GitHub
-        self._frame_footer = ctk.CTkFrame(self, fg_color='transparent')
+        self._frame_footer = ctk.CTkFrame(self, fg_color='transparent', corner_radius=0)
         yield
         self._frame_footer.pack(side='bottom', pady=(0, 10), fill='x', padx=10)
         yield
@@ -222,22 +222,17 @@ class Sidebar(ctk.CTkFrame):
         yield
 
         # Boton de donacion
-        icon_donar = tintar_icono('assets/icons/heart.png', '#FFFFFF')
+        icon_donar = tintar_icono('assets/icons/heart.png', palette.primary_text)
         yield
-        btn_donar = ctk.CTkButton(
+        btn_donar = styles.Button(
             self._frame_footer,
+            role='primary',
             text=t('donate'),
             image=icon_donar,
             compound='left',
             width=120,
-            height=28,
-            corner_radius=8,
+            height=30,
             font=fonts.FUENTE_CHICA,
-            fg_color=colors.SIDEBAR_BG,
-            text_color=colors.TEXT_COLOR,
-            hover_color=colors.SIDEBAR_HOVER,
-            border_width=1,
-            border_color=colors.SIDEBAR_SEPARATOR,
             command=lambda: webbrowser.open(DONATION_URL)
         )
         yield
@@ -266,21 +261,7 @@ class Sidebar(ctk.CTkFrame):
             btn = data['btn']
             icon_path = data['icon_path']
             
-            if module_key == key:
-                # Estilo para boton activo
-                icon_ctk = tintar_icono(icon_path, colors.ICON_COLOR_ACTIVE)
-                btn.configure(
-                    fg_color=colors.SIDEBAR_ACTIVE,
-                    hover_color=colors.SIDEBAR_ACTIVE_HOVER,
-                    text_color=colors.TEXT_ACTIVE,
-                    image=icon_ctk
-                )
-            else:
-                # Estilo para botones inactivos
-                icon_ctk = tintar_icono(icon_path, colors.ICON_COLOR)
-                btn.configure(
-                    fg_color='transparent',
-                    hover_color=colors.SIDEBAR_HOVER, 
-                    text_color=colors.TEXT_COLOR,
-                    image=icon_ctk
-                )
+            selected = module_key == key
+            palette = styles.palette()
+            icon_ctk = tintar_icono(icon_path, palette.primary_text if selected else palette.text)
+            btn.set_selected(selected, icon_ctk)

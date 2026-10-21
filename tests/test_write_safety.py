@@ -78,14 +78,16 @@ def test_iso_encoding_boundary(iso, valid):
     assert (error is None) == valid
 
 
-def test_compression_strips_exif_even_if_larger(tmp_path):
+def test_compression_does_not_strip_exif_if_candidate_larger(tmp_path):
     from app.modules.compress import comprimir_imagen
     source = tmp_path / 'input.jpg'
     output = tmp_path / 'output.jpg'
     exif = piexif.dump({'0th': {piexif.ImageIFD.Artist: b'PRIVATE'}})
     Image.effect_noise((16, 16), 90).convert('RGB').save(source, quality=10, optimize=True, exif=exif)
-    comprimir_imagen(str(source), str(output), calidad=100, quitar_exif=True)
-    assert not piexif.load(str(output))['0th']
+    before = source.read_bytes()
+    result = comprimir_imagen(str(source), str(output), calidad=100, quitar_exif=True)
+    assert result['estado'] == 'unchanged' and result['exif_no_aplicado']
+    assert not output.exists() and source.read_bytes() == before
 
 
 def test_transparent_grayscale_uses_white_background():
@@ -101,11 +103,11 @@ def test_partial_batch_reports_path_and_reason(tmp_path):
     output = tmp_path / 'output'
     output.mkdir()
     result = batch_comprimir([str(missing), str(source)], str(output))
-    assert result['ok'] == 1 and result['errores'] == 1
+    assert result['ok'] == 0 and result['sin_mejora'] == 1 and result['errores'] == 1
     failure = result['fallos'][0]
     assert failure['ruta'] == str(missing)
     assert failure['estado'] == 'error' and failure['motivo']
-    assert (output / 'valid_comprimido.png').exists()
+    assert not (output / 'valid_comprimido.png').exists()
 
 
 def test_metadata_request_is_immutable():
