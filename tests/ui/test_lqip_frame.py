@@ -5,6 +5,7 @@ from app.translations import t
 from app import translations
 import pytest
 import customtkinter as ctk
+from types import SimpleNamespace
 from app.modules.lqip import _construir_resultado
 
 
@@ -260,12 +261,31 @@ def test_translated_modes_and_formats_keep_internal_keys(ui_root, monkeypatch, l
     frame.destroy()
 
 
-def test_long_code_button_and_select_all_copy_all_four_formats(ui_root, fixtures_dir):
+@pytest.mark.parametrize('source_delivery', ['before_result', 'after_result'])
+def test_long_code_button_and_select_all_copy_all_four_formats(
+        ui_root, fixtures_dir, monkeypatch, source_delivery):
+    # Control source arrival instead of relying on the background thread's timing.
+    source_loads = []
+    monkeypatch.setattr(frame_module, 'Thread', lambda *, target, **_: SimpleNamespace(
+        start=lambda: source_loads.append(target)))
     ui_root.deiconify()
     frame = loaded_frame(ui_root, fixtures_dir)
     frame.pack(fill='both', expand=True)
+
+    def deliver_source():
+        source_loads.pop()()
+        frame.after_cancel(frame._source_job)
+        frame._recibir_originales()
+
+    if source_delivery == 'before_result':
+        deliver_source()
     result = _construir_resultado('A' * 16000, 'photo.jpg')
-    frame._results[0] = ItemResult(0, frame._imagenes[0], result=result)
+    frame._finalizar(frame._revision, [ItemResult(0, frame._imagenes[0], result=result)])
+    # The default format is already selected: clicking it does not emit a change.
+    assert frame._campo_export.get() == t('lqip_field_data_uri')
+    assert len(frame._resultado_preview.get('1.0', 'end-1c')) == 12000
+    if source_delivery == 'after_result':
+        deliver_source()
     for label, key in frame._campo_a_clave.items():
         frame._seg_formato._buttons_dict[label]._clicked()
         ui_root.update()
