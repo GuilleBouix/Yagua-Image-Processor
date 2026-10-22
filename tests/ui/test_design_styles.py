@@ -23,6 +23,35 @@ def default_theme(ui_root):
     colors.apply_theme(previous)
 
 
+@pytest.mark.parametrize('event_args', [(), (None,)])
+def test_switch_callbacks_accept_optional_event_without_changing_actions(
+        ui_root, monkeypatch, event_args):
+    callbacks, actions = {}, []
+    original_bind = styles.Switch.bind
+
+    def capture_bind(self, sequence, command, add=True):
+        callbacks[sequence] = command
+        return original_bind(self, sequence, command, add=add)
+
+    monkeypatch.setattr(styles.Switch, 'bind', capture_bind)
+    switch = styles.Switch(ui_root, text='Test', command=lambda: actions.append(switch.get()))
+    try:
+        callbacks['<FocusIn>'](*event_args)
+        assert switch._design_focus is True
+        callbacks['<FocusOut>'](*event_args)
+        assert switch._design_focus is False
+        assert actions == []
+        callbacks['<Return>'](*event_args)
+        callbacks['<space>'](*event_args)
+        assert actions == [1, 0]
+        switch.configure(state='disabled')
+        callbacks['<Return>'](*event_args)
+        callbacks['<space>'](*event_args)
+        assert actions == [1, 0]
+    finally:
+        switch.destroy()
+
+
 def pump(root, condition, timeout=15):
     # These checks validate completed workflows, not a five-second SLA.
     # Preflight, atomic IO and Tk deliveries share CPU with the full UI matrix.

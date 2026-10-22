@@ -318,10 +318,10 @@ class Switch(ctk.CTkSwitch):
                          progress_color=p.border, button_color='#FFFFFF',
                          button_hover_color='#FFFFFF', border_color=p.border, **kwargs)
         self._canvas.configure(takefocus=1)
-        self.bind('<FocusIn>', lambda event: self._set_focus(True), add=True)
-        self.bind('<FocusOut>', lambda event: self._set_focus(False), add=True)
-        self.bind('<Return>', lambda event: self.toggle(), add=True)
-        self.bind('<space>', lambda event: self.toggle(), add=True)
+        self.bind('<FocusIn>', lambda event=None: self._set_focus(True), add=True)
+        self.bind('<FocusOut>', lambda event=None: self._set_focus(False), add=True)
+        self.bind('<Return>', lambda event=None: self.toggle(), add=True)
+        self.bind('<space>', lambda event=None: self.toggle(), add=True)
 
     def _set_focus(self, focused):
         self._design_focus = focused
