@@ -20,6 +20,7 @@ organized by section:
 """
 
 TRANSLATIONS = {
+    'documentation': 'Documentation',
     # App
     'app_title': 'Yagua - Image Processor',
     'loading_model': 'Loading model...',
@@ -572,4 +573,16 @@ TRANSLATIONS.update({
     'meta_images_count': '{count} images',
     'meta_selected_one': '{marked} selected',
     'meta_selected_count': '{marked} selected',
+})
+
+# Local legal information in Settings.
+TRANSLATIONS.update({
+    "legal_title": "Files, connections and licenses",
+    "legal_originals": "Renaming and editing metadata modify the selected files. We recommend working on backup copies.",
+    "legal_connections": "Images are processed locally. Checking updates contacts GitHub; OCR and background removal download missing models. Providers receive your IP address and technical connection data. Opening Maps sends coordinates to Google through your browser. Other links open external websites.",
+    "legal_open": "View licenses",
+    "legal_third_party": "Third parties",
+    "legal_sources": "Source code",
+    "legal_folder": "Open legal folder",
+    "legal_error": "The local legal resource could not be opened."
 })

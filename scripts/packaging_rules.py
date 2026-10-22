@@ -2,6 +2,10 @@
 
 from pathlib import Path
 import importlib.metadata
+import json
+import tempfile
+
+from scripts.licensing import installed_notices, legal_data
 
 EXCLUDES = [
     'pandas', 'pytest', '_pytest', 'pytest_cov', 'coverage', 'tkinterdnd2',
@@ -71,7 +75,13 @@ def build_inputs(root: Path) -> dict:
     from PyInstaller.utils.hooks import collect_data_files, copy_metadata
 
     assert_clean_environment()
-    datas = runtime_assets(root) + collect_data_files('customtkinter')
+    datas = runtime_assets(root) + collect_data_files('customtkinter') + legal_data(root)
+    notices, inventory = installed_notices(root)
+    datas.extend(notices)
+    # Datas are read later by PyInstaller; keep the generated file outside the checkout.
+    inventory_path = Path(tempfile.mkdtemp(prefix='yagua-legal-')) / 'installed-inventory.json'
+    inventory_path.write_text(json.dumps(inventory, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+    datas.append((str(inventory_path), 'legal'))
     # Preserve licenses and distribution metadata, including PyMatting's runtime lookup.
     for name in runtime_distributions(root):
         datas.extend(copy_metadata(name))

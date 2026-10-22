@@ -147,6 +147,7 @@ jobs:
           cp reports/linux-probe/online/selftest.json reports/selftest-online.json
           cp reports/linux-probe/offline/selftest.json reports/selftest-offline.json
           python scripts/ci/check_installed_size.py --app build/linux-release/package-check/squashfs-root --models reports/linux-probe/models --caches reports/linux-probe/caches --compressed "$appimage" --report reports/installed-size.json
+          python scripts/ci/check_licenses.py --package build/linux-release/package-check/squashfs-root --platform linux --models reports/linux-probe/models --report reports/linux-licenses.json
       - name: Assemble validation report
         env:
           RELEASE_VERSION: ${{ steps.ver.outputs.version }}

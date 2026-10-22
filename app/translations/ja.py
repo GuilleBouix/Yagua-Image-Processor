@@ -1,6 +1,7 @@
 """Complete UI translation; OCR recognition languages remain independent."""
 
 TRANSLATIONS = {
+    'documentation': 'ドキュメント',
     'app_title': 'Yagua - 画像処理',
     'loading_model': 'モデルを読み込み中...',
     'downloading_model': 'モデルをダウンロード中...',
@@ -523,4 +524,16 @@ TRANSLATIONS.update({
     'meta_images_count': '画像 {count} 枚',
     'meta_selected_one': '選択 {marked} 枚',
     'meta_selected_count': '選択 {marked} 枚',
+})
+
+# Local legal information in Settings.
+TRANSLATIONS.update({
+    "legal_title": "ファイル・接続・ライセンス",
+    "legal_originals": "名前の変更とメタデータの編集は、選択したファイルを変更します。バックアップコピーで作業することをおすすめします。",
+    "legal_connections": "画像はローカルで処理されます。更新の確認は GitHub に接続し、OCR と背景除去は不足しているモデルをダウンロードします。接続先には IP アドレスと接続の技術情報が送信されます。Maps を開くと、ブラウザー経由で座標が Google に送信されます。他のリンクは外部サイトを開きます。",
+    "legal_open": "ライセンスを表示",
+    "legal_third_party": "サードパーティー",
+    "legal_sources": "ソースコード",
+    "legal_folder": "ライセンスフォルダーを開く",
+    "legal_error": "ローカルのライセンス資料を開けませんでした。"
 })

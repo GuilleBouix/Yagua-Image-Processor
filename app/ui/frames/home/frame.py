@@ -10,6 +10,7 @@ from app.ui import colors, fonts, styles
 from app.ui.scale import scale_wraplength
 from app.translations import t
 from app.utils import tintar_icono
+from app.utils.project_links import open_project_page
 from app.version import __version__
 from app.ui.module_registry import iter_enabled_modules
 
@@ -120,19 +121,37 @@ class HomeFrame(ctk.CTkScrollableFrame):
         self._lbl_hint.grid(row=1, column=0, padx=24, pady=(0, 16), sticky="w")
         yield
 
+        self._header_links = ctk.CTkFrame(header, fg_color='transparent', corner_radius=0)
+        yield
+        self._header_links.grid(row=0, column=1, rowspan=2, padx=(8, 24), pady=16, sticky='e')
+        yield
+        self._website_icon = tintar_icono('assets/icons/globe.png', palette.text)
+        yield
+        if self._website_icon is not None:
+            self._website_icon.configure(size=(30, 30))
+            yield
+        self._btn_website = ctk.CTkButton(
+            self._header_links, text='', image=self._website_icon,
+            width=44, height=44, corner_radius=0,
+            fg_color='transparent', border_width=0, hover=False,
+            cursor='hand2', command=open_project_page,
+        )
+        yield
+        self._btn_website.grid(row=0, column=0, padx=(0, 8))
+        yield
         self._github_icon = tintar_icono('assets/icons/github.png', palette.text)
         yield
         if self._github_icon is not None:
             self._github_icon.configure(size=(30, 30))
             yield
         self._btn_github = ctk.CTkButton(
-            header, text='', image=self._github_icon,
+            self._header_links, text='', image=self._github_icon,
             width=44, height=44, corner_radius=0,
             fg_color='transparent', border_width=0, hover=False,
             cursor='hand2', command=lambda: webbrowser.open(GITHUB_REPOSITORY_URL),
         )
         yield
-        self._btn_github.grid(row=0, column=1, rowspan=2, padx=24, pady=16, sticky='e')
+        self._btn_github.grid(row=0, column=1)
         yield
 
         self._tool_buttons = []
@@ -163,13 +182,30 @@ class HomeFrame(ctk.CTkScrollableFrame):
             self._tool_buttons.append(button)
             yield
 
+        self._btn_documentation = styles.Button(
+            content, role='secondary', secondary_bg=palette.panel,
+            text=t('documentation'),
+            image=tintar_icono('assets/icons/book.png', palette.text),
+            compound='left', anchor='w', height=58, border_spacing=16,
+            font=fonts.FUENTE_BASE,
+            command=lambda: open_project_page(documentation=True),
+        )
+        yield
+        docs_column = len(self._tool_buttons) % 2
+        yield
+        self._btn_documentation.grid(
+            row=1 + len(self._tool_buttons) // 2, column=docs_column,
+            padx=(0, 8) if docs_column == 0 else (8, 0), pady=4, sticky='ew',
+        )
+        yield
+
         self._lbl_version = ctk.CTkLabel(
             content, text=f"{t('current_version')}: v{__version__}",
             font=fonts.FUENTE_CHICA, text_color=colors.TEXT_GRAY,
         )
         yield
         self._lbl_version.grid(
-            row=1 + (len(self._tool_buttons) + 1) // 2,
+            row=1 + (len(self._tool_buttons) + 2) // 2,
             column=0, columnspan=2, pady=(16, 0), sticky="w",
         )
         yield

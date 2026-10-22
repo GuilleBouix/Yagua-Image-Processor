@@ -1,6 +1,7 @@
 """Complete UI translation; OCR recognition languages remain independent."""
 
 TRANSLATIONS = {
+    'documentation': '文档',
     'app_title': 'Yagua - 图像处理',
     'loading_model': '正在加载模型...',
     'downloading_model': '正在下载模型...',
@@ -523,4 +524,16 @@ TRANSLATIONS.update({
     'meta_images_count': '{count} 张图片',
     'meta_selected_one': '已选择 {marked} 张',
     'meta_selected_count': '已选择 {marked} 张',
+})
+
+# Local legal information in Settings.
+TRANSLATIONS.update({
+    "legal_title": "文件、网络连接与许可证",
+    "legal_originals": "重命名和编辑元数据会修改所选文件。建议使用备份副本进行操作。",
+    "legal_connections": "图像在本地处理。检查更新会连接 GitHub；OCR 和背景移除会下载缺少的模型。服务提供方会收到你的 IP 地址和连接技术信息。打开 Maps 时，坐标会通过浏览器发送给 Google。其他链接会打开外部网站。",
+    "legal_open": "查看许可证",
+    "legal_third_party": "第三方",
+    "legal_sources": "源代码",
+    "legal_folder": "打开法律资料文件夹",
+    "legal_error": "无法打开本地法律资料。"
 })

@@ -533,6 +533,8 @@ def test_actual_job_freezes_controls_and_uses_snapshot(ui_root, tmp_path, monkey
     monkeypatch.setattr('app.ui.saving.messagebox.askyesno', lambda *a, **k: True)
     monkeypatch.setattr('app.ui.saving.messagebox.askyesno', lambda *a, **k: True)
     monkeypatch.setattr('app.ui.saving.messagebox.askyesno', lambda *a, **k: True)
+    monkeypatch.setattr('app.ui.saving.messagebox.askyesno', lambda *a, **k: True)
+    monkeypatch.setattr('app.ui.saving.messagebox.askyesno', lambda *a, **k: True)
     view._collection.save(selected=True)
     try:
         assert operations.is_busy()

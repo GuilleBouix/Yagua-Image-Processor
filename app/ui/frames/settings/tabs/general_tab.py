@@ -11,6 +11,7 @@ from app.ui.frames.settings.services import (
     apply_settings_and_restart,
     get_visible_modules,
 )
+from app.ui.frames.settings.legal_panel import LegalPanel
 
 logger = logging.getLogger(__name__)
 
@@ -99,6 +100,9 @@ class GeneralTab(ctk.CTkFrame):
         (yield from steps_for(self._build_modules_panel, row=2))
         yield
         (yield from steps_for(self._build_apply_button, row=3))
+        yield
+        LegalPanel(self, set_status=self._set_status).grid(
+            row=4, column=0, pady=(0, 16), sticky='ew')
         yield
 
     @stepwise

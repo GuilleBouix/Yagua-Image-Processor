@@ -53,6 +53,8 @@ PY
   "$SPEC_FILE"
 
 "$PYTHON_BIN" scripts/ci/check_linux_size.py "$DIST_DIR/Yagua"
+"$PYTHON_BIN" scripts/ci/check_licenses.py --package "$DIST_DIR/Yagua" --platform linux \
+  --report "$DIST_DIR/licenses.json"
 test -x "$DIST_DIR/Yagua/Yagua"
 # Spawn with a disposable home before importing Tk, so font caches and
 # preferences cannot touch the caller's profile.

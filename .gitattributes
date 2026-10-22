@@ -1,3 +1,13 @@
 # Keep pinned font/license checksums identical on Windows and Linux checkouts.
 assets/fonts/noto-cjk/LICENSE text eol=lf
 assets/fonts/noto-cjk/*.otf binary
+assets/fonts/noto-cjk/manifest.json text eol=lf
+# Preserve original third-party bytes and inventory SHA256 across OS checkouts.
+# Verbatim upstream RST headings can resemble conflict markers in text diffs.
+legal/licenses/** -text -diff
+legal/*.md text eol=lf
+legal/*.json text eol=lf
+legal/sources/*.json text eol=lf
+legal/sources/*.tar.gz -text -diff
+/LICENSE text eol=lf
+/THIRD_PARTY_NOTICES.md text eol=lf

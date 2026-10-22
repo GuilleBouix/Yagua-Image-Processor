@@ -39,6 +39,9 @@ jobs:
         run: |
           python scripts/verify.py -q
 
+      - name: Verify legal resources and installed versions
+        run: python scripts/ci/check_licenses.py --installed
+
   test-linux:
     runs-on: ubuntu-22.04
     steps:
@@ -68,3 +71,6 @@ jobs:
       - name: Pytest
         run: |
           xvfb-run -a python scripts/verify.py -q
+
+      - name: Verify legal resources and installed versions
+        run: python scripts/ci/check_licenses.py --installed

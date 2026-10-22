@@ -1,6 +1,7 @@
 """Complete UI translation; OCR recognition languages remain independent."""
 
 TRANSLATIONS = {
+    'documentation': 'Документация',
     'app_title': 'Yagua — Обработка изображений',
     'loading_model': 'Загрузка модели...',
     'downloading_model': 'Скачивание модели...',
@@ -523,4 +524,16 @@ TRANSLATIONS.update({
     'meta_images_count': '{count} фото',
     'meta_selected_one': 'выбрано: {marked}',
     'meta_selected_count': 'выбрано: {marked}',
+})
+
+# Local legal information in Settings.
+TRANSLATIONS.update({
+    "legal_title": "Файлы, подключения и лицензии",
+    "legal_originals": "Переименование и редактирование метаданных изменяют выбранные файлы. Рекомендуем работать с резервными копиями.",
+    "legal_connections": "Изображения обрабатываются локально. Проверка обновлений обращается к GitHub; OCR и удаление фона скачивают недостающие модели. Провайдеры получают ваш IP-адрес и технические данные соединения. При открытии Maps координаты передаются Google через браузер. Другие ссылки открывают внешние сайты.",
+    "legal_open": "Лицензии",
+    "legal_third_party": "Сторонние компоненты",
+    "legal_sources": "Исходный код",
+    "legal_folder": "Открыть папку лицензий",
+    "legal_error": "Не удалось открыть локальные правовые материалы."
 })

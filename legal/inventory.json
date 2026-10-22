@@ -1,0 +1,1993 @@
+{
+  "schema_version": 1,
+  "reviewed_on": "2026-10-21",
+  "legal_approval": false,
+  "baseline_evidence": "Original notice files in isolated Windows build wheels; Linux notices collected at build time.",
+  "packages": [
+    {
+      "name": "attrs",
+      "versions": {
+        "win32": "26.1.0",
+        "linux": "26.1.0"
+      },
+      "license": "MIT",
+      "source": "https://www.attrs.org/",
+      "notices": [
+        "legal/licenses/wheels/attrs/attrs-26.1.0.dist-info/licenses/LICENSE"
+      ],
+      "status": "notice-text-inventoried; bundled-and-copyleft-obligations-open"
+    },
+    {
+      "name": "certifi",
+      "versions": {
+        "win32": "2026.2.25",
+        "linux": "2026.2.25"
+      },
+      "license": "MPL-2.0",
+      "source": "https://github.com/certifi/python-certifi",
+      "notices": [
+        "legal/licenses/wheels/certifi/certifi-2026.2.25.dist-info/licenses/LICENSE"
+      ],
+      "status": "notice-text-inventoried; bundled-and-copyleft-obligations-open"
+    },
+    {
+      "name": "charset-normalizer",
+      "versions": {
+        "win32": "3.4.6",
+        "linux": "3.4.6"
+      },
+      "license": "MIT",
+      "source": "https://github.com/jawah/charset_normalizer/blob/master/CHANGELOG.md",
+      "notices": [
+        "legal/licenses/wheels/charset-normalizer/charset_normalizer-3.4.6.dist-info/licenses/LICENSE"
+      ],
+      "status": "notice-text-inventoried; bundled-and-copyleft-obligations-open"
+    },
+    {
+      "name": "colorama",
+      "versions": {
+        "win32": "0.4.6",
+        "linux": "0.4.6"
+      },
+      "license": "BSD-3-Clause",
+      "source": "https://github.com/tartley/colorama",
+      "notices": [
+        "legal/licenses/wheels/colorama/colorama-0.4.6.dist-info/licenses/LICENSE.txt"
+      ],
+      "status": "notice-text-inventoried; bundled-and-copyleft-obligations-open"
+    },
+    {
+      "name": "customtkinter",
+      "versions": {
+        "win32": "5.2.2",
+        "linux": "5.2.2"
+      },
+      "license": "MIT",
+      "source": "https://customtkinter.tomschimansky.com",
+      "notices": [
+        "legal/licenses/wheels/customtkinter/customtkinter-5.2.2.dist-info/LICENSE"
+      ],
+      "status": "notice-text-inventoried; bundled-and-copyleft-obligations-open",
+      "note": "LICENSE text is MIT; metadata license field incorrectly says CC0. Original text retained."
+    },
+    {
+      "name": "darkdetect",
+      "versions": {
+        "win32": "0.8.0",
+        "linux": "0.8.0"
+      },
+      "license": "BSD-3-Clause",
+      "source": "http://github.com/albertosottile/darkdetect",
+      "notices": [
+        "legal/licenses/wheels/darkdetect/darkdetect-0.8.0.dist-info/LICENSE"
+      ],
+      "status": "notice-text-inventoried; bundled-and-copyleft-obligations-open"
+    },
+    {
+      "name": "easyocr",
+      "versions": {
+        "win32": "1.7.2",
+        "linux": "1.7.2"
+      },
+      "license": "Apache-2.0",
+      "source": "https://github.com/jaidedai/easyocr",
+      "notices": [
+        "legal/licenses/wheels/easyocr/easyocr-1.7.2.dist-info/LICENSE"
+      ],
+      "status": "notice-text-inventoried; bundled-and-copyleft-obligations-open"
+    },
+    {
+      "name": "filelock",
+      "versions": {
+        "win32": "3.25.2",
+        "linux": "3.25.2"
+      },
+      "license": "MIT",
+      "source": "https://py-filelock.readthedocs.io",
+      "notices": [
+        "legal/licenses/wheels/filelock/filelock-3.25.2.dist-info/licenses/LICENSE"
+      ],
+      "status": "notice-text-inventoried; bundled-and-copyleft-obligations-open"
+    },
+    {
+      "name": "flatbuffers",
+      "versions": {
+        "win32": "25.12.19",
+        "linux": "25.12.19"
+      },
+      "license": "Apache-2.0",
+      "source": "https://google.github.io/flatbuffers/",
+      "notices": [
+        "legal/licenses/upstream/flatbuffers-Apache-2.0.txt"
+      ],
+      "status": "notice-text-inventoried; bundled-and-copyleft-obligations-open",
+      "note": "Wheel omitted license file; pinned upstream original supplied."
+    },
+    {
+      "name": "fsspec",
+      "versions": {
+        "win32": "2026.3.0",
+        "linux": "2026.3.0"
+      },
+      "license": "BSD-3-Clause",
+      "source": "https://filesystem-spec.readthedocs.io/en/latest/changelog.html",
+      "notices": [
+        "legal/licenses/wheels/fsspec/fsspec-2026.3.0.dist-info/licenses/LICENSE"
+      ],
+      "status": "notice-text-inventoried; bundled-and-copyleft-obligations-open"
+    },
+    {
+      "name": "idna",
+      "versions": {
+        "win32": "3.11",
+        "linux": "3.11"
+      },
+      "license": "BSD-3-Clause",
+      "source": "https://github.com/kjd/idna/blob/master/HISTORY.rst",
+      "notices": [
+        "legal/licenses/wheels/idna/idna-3.11.dist-info/licenses/LICENSE.md"
+      ],
+      "status": "notice-text-inventoried; bundled-and-copyleft-obligations-open"
+    },
+    {
+      "name": "imageio",
+      "versions": {
+        "win32": "2.37.3",
+        "linux": "2.37.3"
+      },
+      "license": "BSD-2-Clause",
+      "source": "https://github.com/imageio/imageio",
+      "notices": [
+        "legal/licenses/wheels/imageio/imageio-2.37.3.dist-info/licenses/LICENSE"
+      ],
+      "status": "notice-text-inventoried; bundled-and-copyleft-obligations-open"
+    },
+    {
+      "name": "jinja2",
+      "versions": {
+        "win32": "3.1.6",
+        "linux": "3.1.6"
+      },
+      "license": "BSD-3-Clause",
+      "source": "https://jinja.palletsprojects.com/changes/",
+      "notices": [
+        "legal/licenses/wheels/jinja2/jinja2-3.1.6.dist-info/licenses/LICENSE.txt"
+      ],
+      "status": "notice-text-inventoried; bundled-and-copyleft-obligations-open"
+    },
+    {
+      "name": "jsonschema",
+      "versions": {
+        "win32": "4.26.0",
+        "linux": "4.26.0"
+      },
+      "license": "MIT",
+      "source": "https://github.com/python-jsonschema/jsonschema",
+      "notices": [
+        "legal/licenses/wheels/jsonschema/jsonschema-4.26.0.dist-info/licenses/COPYING"
+      ],
+      "status": "notice-text-inventoried; bundled-and-copyleft-obligations-open"
+    },
+    {
+      "name": "jsonschema-specifications",
+      "versions": {
+        "win32": "2025.9.1",
+        "linux": "2025.9.1"
+      },
+      "license": "MIT",
+      "source": "https://jsonschema-specifications.readthedocs.io/",
+      "notices": [
+        "legal/licenses/wheels/jsonschema-specifications/jsonschema_specifications-2025.9.1.dist-info/licenses/COPYING"
+      ],
+      "status": "notice-text-inventoried; bundled-and-copyleft-obligations-open"
+    },
+    {
+      "name": "lazy-loader",
+      "versions": {
+        "win32": "0.5",
+        "linux": "0.5"
+      },
+      "license": "BSD-3-Clause",
+      "source": "https://scientific-python.org/specs/spec-0001/",
+      "notices": [
+        "legal/licenses/wheels/lazy-loader/lazy_loader-0.5.dist-info/licenses/LICENSE.md"
+      ],
+      "status": "notice-text-inventoried; bundled-and-copyleft-obligations-open"
+    },
+    {
+      "name": "llvmlite",
+      "versions": {
+        "win32": "0.46.0",
+        "linux": "0.46.0"
+      },
+      "license": "BSD-2-Clause AND Apache-2.0 WITH LLVM-exception",
+      "source": "https://github.com/numba/llvmlite",
+      "notices": [
+        "legal/licenses/wheels/llvmlite/llvmlite-0.46.0.dist-info/licenses/LICENSE",
+        "legal/licenses/wheels/llvmlite/llvmlite-0.46.0.dist-info/licenses/LICENSE.thirdparty"
+      ],
+      "status": "notice-text-inventoried; bundled-and-copyleft-obligations-open"
+    },
+    {
+      "name": "markupsafe",
+      "versions": {
+        "win32": "3.0.3",
+        "linux": "3.0.3"
+      },
+      "license": "BSD-3-Clause",
+      "source": "https://palletsprojects.com/donate",
+      "notices": [
+        "legal/licenses/wheels/markupsafe/markupsafe-3.0.3.dist-info/licenses/LICENSE.txt"
+      ],
+      "status": "notice-text-inventoried; bundled-and-copyleft-obligations-open"
+    },
+    {
+      "name": "mpmath",
+      "versions": {
+        "win32": "1.3.0",
+        "linux": "1.3.0"
+      },
+      "license": "BSD-3-Clause",
+      "source": "https://github.com/fredrik-johansson/mpmath",
+      "notices": [
+        "legal/licenses/wheels/mpmath/mpmath-1.3.0.dist-info/LICENSE"
+      ],
+      "status": "notice-text-inventoried; bundled-and-copyleft-obligations-open"
+    },
+    {
+      "name": "networkx",
+      "versions": {
+        "win32": "3.6.1",
+        "linux": "3.6.1"
+      },
+      "license": "BSD-3-Clause",
+      "source": "https://networkx.org/",
+      "notices": [
+        "legal/licenses/wheels/networkx/networkx-3.6.1.dist-info/licenses/LICENSE.txt"
+      ],
+      "status": "notice-text-inventoried; bundled-and-copyleft-obligations-open"
+    },
+    {
+      "name": "ninja",
+      "versions": {
+        "win32": "1.13.0",
+        "linux": "1.13.0"
+      },
+      "license": "Apache-2.0",
+      "source": "https://github.com/scikit-build/ninja-python-distributions/issues",
+      "notices": [
+        "legal/licenses/wheels/ninja/ninja-1.13.0.dist-info/licenses/AUTHORS.rst",
+        "legal/licenses/wheels/ninja/ninja-1.13.0.dist-info/licenses/LICENSE_Apache_20"
+      ],
+      "status": "notice-text-inventoried; bundled-and-copyleft-obligations-open"
+    },
+    {
+      "name": "numba",
+      "versions": {
+        "win32": "0.64.0",
+        "linux": "0.64.0"
+      },
+      "license": "BSD-2-Clause AND bundled-component-terms",
+      "source": "https://numba.pydata.org",
+      "notices": [
+        "legal/licenses/wheels/numba/numba-0.64.0.dist-info/licenses/LICENSE",
+        "legal/licenses/wheels/numba/numba-0.64.0.dist-info/licenses/LICENSES.third-party"
+      ],
+      "status": "notice-text-inventoried; bundled-and-copyleft-obligations-open"
+    },
+    {
+      "name": "numpy",
+      "versions": {
+        "win32": "2.4.3",
+        "linux": "2.4.3"
+      },
+      "license": "BSD-3-Clause AND bundled-component-terms",
+      "source": "https://numpy.org",
+      "notices": [
+        "legal/licenses/wheels/numpy/numpy-2.4.3.dist-info/licenses/LICENSE.txt",
+        "legal/licenses/wheels/numpy/numpy-2.4.3.dist-info/licenses/numpy/_core/include/numpy/libdivide/LICENSE.txt",
+        "legal/licenses/wheels/numpy/numpy-2.4.3.dist-info/licenses/numpy/_core/src/common/pythoncapi-compat/COPYING",
+        "legal/licenses/wheels/numpy/numpy-2.4.3.dist-info/licenses/numpy/_core/src/highway/LICENSE",
+        "legal/licenses/wheels/numpy/numpy-2.4.3.dist-info/licenses/numpy/_core/src/multiarray/dragon4_LICENSE.txt",
+        "legal/licenses/wheels/numpy/numpy-2.4.3.dist-info/licenses/numpy/_core/src/npysort/x86-simd-sort/LICENSE.md",
+        "legal/licenses/wheels/numpy/numpy-2.4.3.dist-info/licenses/numpy/_core/src/umath/svml/LICENSE",
+        "legal/licenses/wheels/numpy/numpy-2.4.3.dist-info/licenses/numpy/fft/pocketfft/LICENSE.md",
+        "legal/licenses/wheels/numpy/numpy-2.4.3.dist-info/licenses/numpy/linalg/lapack_lite/LICENSE.txt",
+        "legal/licenses/wheels/numpy/numpy-2.4.3.dist-info/licenses/numpy/ma/LICENSE",
+        "legal/licenses/wheels/numpy/numpy-2.4.3.dist-info/licenses/numpy/random/LICENSE.md",
+        "legal/licenses/wheels/numpy/numpy-2.4.3.dist-info/licenses/numpy/random/src/distributions/LICENSE.md",
+        "legal/licenses/wheels/numpy/numpy-2.4.3.dist-info/licenses/numpy/random/src/mt19937/LICENSE.md",
+        "legal/licenses/wheels/numpy/numpy-2.4.3.dist-info/licenses/numpy/random/src/pcg64/LICENSE.md",
+        "legal/licenses/wheels/numpy/numpy-2.4.3.dist-info/licenses/numpy/random/src/philox/LICENSE.md",
+        "legal/licenses/wheels/numpy/numpy-2.4.3.dist-info/licenses/numpy/random/src/sfc64/LICENSE.md",
+        "legal/licenses/wheels/numpy/numpy-2.4.3.dist-info/licenses/numpy/random/src/splitmix64/LICENSE.md",
+        "legal/licenses/wheels/numpy/numpy/_core/include/numpy/random/LICENSE.txt",
+        "legal/licenses/wheels/numpy/numpy/ma/LICENSE",
+        "legal/licenses/wheels/numpy/numpy/random/LICENSE.md"
+      ],
+      "status": "notice-text-inventoried; bundled-and-copyleft-obligations-open"
+    },
+    {
+      "name": "onnxruntime",
+      "versions": {
+        "win32": "1.24.4",
+        "linux": "1.24.4"
+      },
+      "license": "MIT AND bundled-component-terms",
+      "source": "https://onnxruntime.ai",
+      "notices": [
+        "legal/licenses/wheels/onnxruntime/onnxruntime/LICENSE",
+        "legal/licenses/wheels/onnxruntime/onnxruntime/ThirdPartyNotices.txt"
+      ],
+      "status": "notice-text-inventoried; bundled-and-copyleft-obligations-open"
+    },
+    {
+      "name": "opencv-python-headless",
+      "versions": {
+        "win32": "4.13.0.92",
+        "linux": "4.13.0.92"
+      },
+      "license": "Apache-2.0 AND bundled-component-terms",
+      "source": "https://github.com/opencv/opencv-python",
+      "notices": [
+        "legal/licenses/wheels/opencv-python-headless/cv2/LICENSE-3RD-PARTY.txt",
+        "legal/licenses/wheels/opencv-python-headless/cv2/LICENSE.txt",
+        "legal/licenses/wheels/opencv-python-headless/opencv_python_headless-4.13.0.92.dist-info/LICENSE-3RD-PARTY.txt",
+        "legal/licenses/wheels/opencv-python-headless/opencv_python_headless-4.13.0.92.dist-info/LICENSE.txt"
+      ],
+      "status": "notice-text-inventoried; bundled-and-copyleft-obligations-open"
+    },
+    {
+      "name": "packaging",
+      "versions": {
+        "win32": "26.0",
+        "linux": "26.0"
+      },
+      "license": "Apache-2.0 OR BSD-2-Clause",
+      "source": "https://packaging.pypa.io/",
+      "notices": [
+        "legal/licenses/wheels/packaging/packaging-26.0.dist-info/licenses/LICENSE",
+        "legal/licenses/wheels/packaging/packaging-26.0.dist-info/licenses/LICENSE.APACHE",
+        "legal/licenses/wheels/packaging/packaging-26.0.dist-info/licenses/LICENSE.BSD"
+      ],
+      "status": "notice-text-inventoried; bundled-and-copyleft-obligations-open"
+    },
+    {
+      "name": "piexif",
+      "versions": {
+        "win32": "1.1.3",
+        "linux": "1.1.3"
+      },
+      "license": "MIT",
+      "source": "https://github.com/hMatoba/Piexif",
+      "notices": [
+        "legal/licenses/wheels/piexif/piexif-1.1.3.dist-info/LICENSE.txt"
+      ],
+      "status": "notice-text-inventoried; bundled-and-copyleft-obligations-open"
+    },
+    {
+      "name": "pillow",
+      "versions": {
+        "win32": "12.1.1",
+        "linux": "12.1.1"
+      },
+      "license": "MIT-CMU AND bundled-component-terms",
+      "source": "https://github.com/python-pillow/Pillow/releases",
+      "notices": [
+        "legal/licenses/wheels/pillow/pillow-12.1.1.dist-info/licenses/LICENSE"
+      ],
+      "status": "notice-text-inventoried; bundled-and-copyleft-obligations-open"
+    },
+    {
+      "name": "pillow-heif",
+      "versions": {
+        "win32": "1.3.0",
+        "linux": "1.3.0"
+      },
+      "license": "BSD-3-Clause (Python source); GPL/LGPL bundled binaries â€” review required",
+      "source": "https://pillow-heif.readthedocs.io",
+      "notices": [
+        "legal/licenses/wheels/pillow-heif/pillow_heif-1.3.0.dist-info/licenses/LICENSE.txt",
+        "legal/licenses/wheels/pillow-heif/pillow_heif-1.3.0.dist-info/licenses/LICENSES_bundled.txt"
+      ],
+      "status": "notice-text-inventoried; bundled-and-copyleft-obligations-open"
+    },
+    {
+      "name": "platformdirs",
+      "versions": {
+        "win32": "4.9.4",
+        "linux": "4.9.4"
+      },
+      "license": "MIT",
+      "source": "https://platformdirs.readthedocs.io/en/latest/changelog.html",
+      "notices": [
+        "legal/licenses/wheels/platformdirs/platformdirs-4.9.4.dist-info/licenses/LICENSE"
+      ],
+      "status": "notice-text-inventoried; bundled-and-copyleft-obligations-open"
+    },
+    {
+      "name": "pooch",
+      "versions": {
+        "win32": "1.9.0",
+        "linux": "1.9.0"
+      },
+      "license": "BSD-3-Clause",
+      "source": "https://www.fatiando.org/pooch",
+      "notices": [
+        "legal/licenses/wheels/pooch/pooch-1.9.0.dist-info/licenses/AUTHORS.md",
+        "legal/licenses/wheels/pooch/pooch-1.9.0.dist-info/licenses/LICENSE.txt"
+      ],
+      "status": "notice-text-inventoried; bundled-and-copyleft-obligations-open"
+    },
+    {
+      "name": "protobuf",
+      "versions": {
+        "win32": "7.34.0",
+        "linux": "7.34.0"
+      },
+      "license": "BSD-3-Clause",
+      "source": "https://developers.google.com/protocol-buffers/",
+      "notices": [
+        "legal/licenses/wheels/protobuf/protobuf-7.34.0.dist-info/LICENSE"
+      ],
+      "status": "notice-text-inventoried; bundled-and-copyleft-obligations-open"
+    },
+    {
+      "name": "pyclipper",
+      "versions": {
+        "win32": "1.4.0",
+        "linux": "1.4.0"
+      },
+      "license": "MIT",
+      "source": "https://github.com/fonttools/pyclipper",
+      "notices": [
+        "legal/licenses/wheels/pyclipper/pyclipper-1.4.0.dist-info/licenses/LICENSE"
+      ],
+      "status": "notice-text-inventoried; bundled-and-copyleft-obligations-open"
+    },
+    {
+      "name": "pymatting",
+      "versions": {
+        "win32": "1.1.15",
+        "linux": "1.1.15"
+      },
+      "license": "MIT",
+      "source": "https://pymatting.github.io",
+      "notices": [
+        "legal/licenses/wheels/pymatting/pymatting-1.1.15.dist-info/licenses/LICENSE.md"
+      ],
+      "status": "notice-text-inventoried; bundled-and-copyleft-obligations-open"
+    },
+    {
+      "name": "python-bidi",
+      "versions": {
+        "win32": "0.6.7",
+        "linux": "0.6.7"
+      },
+      "license": "LGPL-3.0-or-later AND bundled-component-terms",
+      "source": "https://github.com/MeirKriheli/python-bidi",
+      "notices": [
+        "legal/licenses/wheels/python-bidi/python_bidi-0.6.7.dist-info/licenses/AUTHORS.rst",
+        "legal/licenses/wheels/python-bidi/python_bidi-0.6.7.dist-info/licenses/COPYING",
+        "legal/licenses/wheels/python-bidi/python_bidi-0.6.7.dist-info/licenses/COPYING.LESSER",
+        "legal/licenses/wheels/python-bidi/python_bidi-0.6.7.dist-info/licenses/LICENSE-THIRD-PARTY.yml"
+      ],
+      "status": "notice-text-inventoried; bundled-and-copyleft-obligations-open"
+    },
+    {
+      "name": "pyyaml",
+      "versions": {
+        "win32": "6.0.2",
+        "linux": "6.0.2"
+      },
+      "license": "MIT",
+      "source": "https://github.com/yaml/pyyaml/issues",
+      "notices": [
+        "legal/licenses/wheels/pyyaml/PyYAML-6.0.2.dist-info/LICENSE"
+      ],
+      "status": "notice-text-inventoried; bundled-and-copyleft-obligations-open"
+    },
+    {
+      "name": "referencing",
+      "versions": {
+        "win32": "0.37.0",
+        "linux": "0.37.0"
+      },
+      "license": "MIT",
+      "source": "https://referencing.readthedocs.io/",
+      "notices": [
+        "legal/licenses/wheels/referencing/referencing-0.37.0.dist-info/licenses/COPYING"
+      ],
+      "status": "notice-text-inventoried; bundled-and-copyleft-obligations-open"
+    },
+    {
+      "name": "rembg",
+      "versions": {
+        "win32": "2.0.73",
+        "linux": "2.0.73"
+      },
+      "license": "MIT (code)",
+      "source": "https://github.com/danielgatis/rembg",
+      "notices": [
+        "legal/licenses/wheels/rembg/rembg-2.0.73.dist-info/licenses/LICENSE.txt"
+      ],
+      "status": "notice-text-inventoried; bundled-and-copyleft-obligations-open"
+    },
+    {
+      "name": "requests",
+      "versions": {
+        "win32": "2.32.5",
+        "linux": "2.32.5"
+      },
+      "license": "Apache-2.0",
+      "source": "https://requests.readthedocs.io",
+      "notices": [
+        "legal/licenses/wheels/requests/requests-2.32.5.dist-info/licenses/LICENSE"
+      ],
+      "status": "notice-text-inventoried; bundled-and-copyleft-obligations-open"
+    },
+    {
+      "name": "rpds-py",
+      "versions": {
+        "win32": "0.30.0",
+        "linux": "0.30.0"
+      },
+      "license": "MIT",
+      "source": "https://rpds.readthedocs.io/",
+      "notices": [
+        "legal/licenses/wheels/rpds-py/rpds_py-0.30.0.dist-info/licenses/LICENSE"
+      ],
+      "status": "notice-text-inventoried; bundled-and-copyleft-obligations-open"
+    },
+    {
+      "name": "scikit-image",
+      "versions": {
+        "win32": "0.26.0",
+        "linux": "0.26.0"
+      },
+      "license": "BSD-3-Clause AND bundled-component-terms",
+      "source": "https://scikit-image.org",
+      "notices": [
+        "legal/licenses/wheels/scikit-image/scikit_image-0.26.0.dist-info/LICENSE.txt"
+      ],
+      "status": "notice-text-inventoried; bundled-and-copyleft-obligations-open"
+    },
+    {
+      "name": "scipy",
+      "versions": {
+        "win32": "1.17.1",
+        "linux": "1.17.1"
+      },
+      "license": "BSD-3-Clause AND bundled-component-terms",
+      "source": "https://scipy.org/",
+      "notices": [
+        "legal/licenses/wheels/scipy/scipy-1.17.1.dist-info/LICENSE.txt",
+        "legal/licenses/wheels/scipy/scipy/_lib/_uarray/LICENSE",
+        "legal/licenses/wheels/scipy/scipy/fft/_pocketfft/LICENSE.md",
+        "legal/licenses/wheels/scipy/scipy/integrate/LICENSE_DOP",
+        "legal/licenses/wheels/scipy/scipy/spatial/qhull_src/COPYING_QHULL.txt"
+      ],
+      "status": "notice-text-inventoried; bundled-and-copyleft-obligations-open"
+    },
+    {
+      "name": "setuptools",
+      "versions": {
+        "win32": "81.0.0",
+        "linux": "81.0.0"
+      },
+      "license": "MIT AND bundled-component-terms",
+      "source": "https://github.com/pypa/setuptools",
+      "notices": [
+        "legal/licenses/wheels/setuptools/setuptools-81.0.0.dist-info/licenses/LICENSE",
+        "legal/licenses/wheels/setuptools/setuptools/_vendor/autocommand-2.2.2.dist-info/LICENSE",
+        "legal/licenses/wheels/setuptools/setuptools/_vendor/backports.tarfile-1.2.0.dist-info/LICENSE",
+        "legal/licenses/wheels/setuptools/setuptools/_vendor/importlib_metadata-8.7.1.dist-info/licenses/LICENSE",
+        "legal/licenses/wheels/setuptools/setuptools/_vendor/jaraco.text-4.0.0.dist-info/LICENSE",
+        "legal/licenses/wheels/setuptools/setuptools/_vendor/jaraco_context-6.1.0.dist-info/licenses/LICENSE",
+        "legal/licenses/wheels/setuptools/setuptools/_vendor/jaraco_functools-4.4.0.dist-info/licenses/LICENSE",
+        "legal/licenses/wheels/setuptools/setuptools/_vendor/more_itertools-10.8.0.dist-info/licenses/LICENSE",
+        "legal/licenses/wheels/setuptools/setuptools/_vendor/packaging-26.0.dist-info/licenses/LICENSE",
+        "legal/licenses/wheels/setuptools/setuptools/_vendor/packaging-26.0.dist-info/licenses/LICENSE.APACHE",
+        "legal/licenses/wheels/setuptools/setuptools/_vendor/packaging-26.0.dist-info/licenses/LICENSE.BSD",
+        "legal/licenses/wheels/setuptools/setuptools/_vendor/platformdirs-4.4.0.dist-info/licenses/LICENSE",
+        "legal/licenses/wheels/setuptools/setuptools/_vendor/tomli-2.4.0.dist-info/licenses/LICENSE",
+        "legal/licenses/wheels/setuptools/setuptools/_vendor/wheel-0.46.3.dist-info/licenses/LICENSE.txt",
+        "legal/licenses/wheels/setuptools/setuptools/_vendor/zipp-3.23.0.dist-info/licenses/LICENSE",
+        "legal/licenses/wheels/setuptools/setuptools/config/NOTICE",
+        "legal/licenses/wheels/setuptools/setuptools/config/_validate_pyproject/NOTICE"
+      ],
+      "status": "notice-text-inventoried; bundled-and-copyleft-obligations-open"
+    },
+    {
+      "name": "shapely",
+      "versions": {
+        "win32": "2.1.2",
+        "linux": "2.1.2"
+      },
+      "license": "BSD-3-Clause AND LGPL-2.1 (bundled GEOS)",
+      "source": "https://shapely.readthedocs.io/",
+      "notices": [
+        "legal/licenses/wheels/shapely/shapely-2.1.2.dist-info/licenses/LICENSE.txt",
+        "legal/licenses/wheels/shapely/shapely-2.1.2.dist-info/licenses/LICENSE_GEOS",
+        "legal/licenses/wheels/shapely/shapely-2.1.2.dist-info/licenses/LICENSE_win32"
+      ],
+      "status": "notice-text-inventoried; bundled-and-copyleft-obligations-open"
+    },
+    {
+      "name": "sympy",
+      "versions": {
+        "win32": "1.14.0",
+        "linux": "1.14.0"
+      },
+      "license": "BSD-3-Clause AND bundled-component-terms",
+      "source": "https://github.com/sympy/sympy",
+      "notices": [
+        "legal/licenses/wheels/sympy/sympy-1.14.0.dist-info/licenses/AUTHORS",
+        "legal/licenses/wheels/sympy/sympy-1.14.0.dist-info/licenses/LICENSE",
+        "legal/licenses/wheels/sympy/sympy/parsing/latex/LICENSE.txt"
+      ],
+      "status": "notice-text-inventoried; bundled-and-copyleft-obligations-open"
+    },
+    {
+      "name": "tbb",
+      "versions": {
+        "win32": "2022.3.1"
+      },
+      "license": "LicenseRef-Intel-Simplified-October-2022",
+      "source": "https://www.intel.com/content/www/us/en/developer/tools/oneapi/onetbb.html",
+      "notices": [
+        "legal/licenses/wheels/tbb/_parent_/_parent_/Library/share/doc/tbb/licensing/third-party-programs.txt",
+        "legal/licenses/wheels/tbb/tbb-2022.3.1.dist-info/LICENSE.txt"
+      ],
+      "status": "notice-text-inventoried; bundled-and-copyleft-obligations-open"
+    },
+    {
+      "name": "tcmlib",
+      "versions": {
+        "win32": "1.5.0"
+      },
+      "license": "LicenseRef-Intel-Simplified-October-2022",
+      "source": "https://oneapi-src.github.io/oneTBB/GSG/next_steps.html",
+      "notices": [
+        "legal/licenses/wheels/tcmlib/_parent_/_parent_/Library/share/doc/tcm/licensing/license.txt",
+        "legal/licenses/wheels/tcmlib/_parent_/_parent_/Library/share/doc/tcm/licensing/third-party-programs.txt",
+        "legal/licenses/wheels/tcmlib/tcmlib-1.5.0.dist-info/LICENSE.txt"
+      ],
+      "status": "notice-text-inventoried; bundled-and-copyleft-obligations-open"
+    },
+    {
+      "name": "tifffile",
+      "versions": {
+        "win32": "2026.3.3",
+        "linux": "2026.3.3"
+      },
+      "license": "BSD-3-Clause",
+      "source": "https://github.com/cgohlke/tifffile/issues",
+      "notices": [
+        "legal/licenses/wheels/tifffile/tifffile-2026.3.3.dist-info/licenses/LICENSE"
+      ],
+      "status": "notice-text-inventoried; bundled-and-copyleft-obligations-open"
+    },
+    {
+      "name": "torch",
+      "versions": {
+        "win32": "2.11.0",
+        "linux": "2.11.0+cpu"
+      },
+      "license": "BSD-3-Clause AND bundled-component-terms",
+      "source": "https://pytorch.org",
+      "notices": [
+        "legal/licenses/wheels/torch/torch-2.11.0.dist-info/LICENSE",
+        "legal/licenses/wheels/torch/torch-2.11.0.dist-info/NOTICE"
+      ],
+      "status": "notice-text-inventoried; bundled-and-copyleft-obligations-open"
+    },
+    {
+      "name": "torchvision",
+      "versions": {
+        "win32": "0.26.0",
+        "linux": "0.26.0+cpu"
+      },
+      "license": "BSD-3-Clause AND bundled-component-terms",
+      "source": "https://github.com/pytorch/vision",
+      "notices": [
+        "legal/licenses/wheels/torchvision/torchvision-0.26.0.dist-info/LICENSE"
+      ],
+      "status": "notice-text-inventoried; bundled-and-copyleft-obligations-open"
+    },
+    {
+      "name": "tqdm",
+      "versions": {
+        "win32": "4.67.3",
+        "linux": "4.67.3"
+      },
+      "license": "MPL-2.0 AND MIT",
+      "source": "https://tqdm.github.io",
+      "notices": [
+        "legal/licenses/wheels/tqdm/tqdm-4.67.3.dist-info/licenses/LICENCE"
+      ],
+      "status": "notice-text-inventoried; bundled-and-copyleft-obligations-open"
+    },
+    {
+      "name": "typing-extensions",
+      "versions": {
+        "win32": "4.15.0",
+        "linux": "4.15.0"
+      },
+      "license": "PSF-2.0",
+      "source": "https://github.com/python/typing_extensions/issues",
+      "notices": [
+        "legal/licenses/wheels/typing-extensions/typing_extensions-4.15.0.dist-info/licenses/LICENSE"
+      ],
+      "status": "notice-text-inventoried; bundled-and-copyleft-obligations-open"
+    },
+    {
+      "name": "urllib3",
+      "versions": {
+        "win32": "2.2.3",
+        "linux": "2.2.3"
+      },
+      "license": "MIT",
+      "source": "https://github.com/urllib3/urllib3/blob/main/CHANGES.rst",
+      "notices": [
+        "legal/licenses/wheels/urllib3/urllib3-2.2.3.dist-info/licenses/LICENSE.txt"
+      ],
+      "status": "notice-text-inventoried; bundled-and-copyleft-obligations-open"
+    }
+  ],
+  "assets": [
+    {
+      "path": "assets/fonts/Inter.ttf",
+      "sha256": "0be2399ea925f1f83ff974764761da9860ec50742ed29a5d4c1ffd0c5c7ac3a8",
+      "packaged": true,
+      "license": "OFL-1.1",
+      "source": "https://github.com/rsms/inter",
+      "notices": [
+        "legal/licenses/upstream/inter-OFL.txt"
+      ],
+      "status": "embedded-license-verified; upstream-binary-match-not-claimed",
+      "version": "4.001;git-66647c0bb"
+    },
+    {
+      "path": "assets/fonts/noto-cjk/NotoSansCJKjp-Bold.otf",
+      "sha256": "e53dcb0dcb2922e45d01aae1ebd2f382bb81d4229b18b6b883bd170678af1f76",
+      "packaged": true,
+      "license": "OFL-1.1",
+      "source": "https://github.com/notofonts/noto-cjk/tree/523d033d6cb47f4a80c58a35753646f5c3608a78",
+      "notices": [
+        "assets/fonts/noto-cjk/LICENSE"
+      ],
+      "status": "pinned-original-hash-verified",
+      "version": "Sans2.004"
+    },
+    {
+      "path": "assets/fonts/noto-cjk/NotoSansCJKjp-Regular.otf",
+      "sha256": "68a3fc98800b2a27b371f2fb79991daf3633bd89309d4ffaa6946fd587f375b5",
+      "packaged": true,
+      "license": "OFL-1.1",
+      "source": "https://github.com/notofonts/noto-cjk/tree/523d033d6cb47f4a80c58a35753646f5c3608a78",
+      "notices": [
+        "assets/fonts/noto-cjk/LICENSE"
+      ],
+      "status": "pinned-original-hash-verified",
+      "version": "Sans2.004"
+    },
+    {
+      "path": "assets/fonts/noto-cjk/NotoSansCJKsc-Bold.otf",
+      "sha256": "b5f0d1a190a7f9b43c310a8850630af12553df32c4c050543f9059732d9b4c0a",
+      "packaged": true,
+      "license": "OFL-1.1",
+      "source": "https://github.com/notofonts/noto-cjk/tree/523d033d6cb47f4a80c58a35753646f5c3608a78",
+      "notices": [
+        "assets/fonts/noto-cjk/LICENSE"
+      ],
+      "status": "pinned-original-hash-verified",
+      "version": "Sans2.004"
+    },
+    {
+      "path": "assets/fonts/noto-cjk/NotoSansCJKsc-Regular.otf",
+      "sha256": "2c76254f6fc379fddfce0a7e84fb5385bb135d3e399294f6eeb6680d0365b74b",
+      "packaged": true,
+      "license": "OFL-1.1",
+      "source": "https://github.com/notofonts/noto-cjk/tree/523d033d6cb47f4a80c58a35753646f5c3608a78",
+      "notices": [
+        "assets/fonts/noto-cjk/LICENSE"
+      ],
+      "status": "pinned-original-hash-verified",
+      "version": "Sans2.004"
+    },
+    {
+      "path": "assets/icon.icns",
+      "sha256": "8bde832aa2e70f38cbbff3c6b30853258e2265e21340b7d1d4f1bbe8296db9fe",
+      "packaged": false,
+      "license": "NOASSERTION",
+      "source": "Project author declaration, 2026-10-21: Gemini-generated logo; Yagua abbreviates yaguarete from Misiones, Argentina.",
+      "status": "author-declared-origin; exclusive-rights-not-certified",
+      "note": "No trademark registration or exclusively human authorship is asserted."
+    },
+    {
+      "path": "assets/icon.ico",
+      "sha256": "343772168f2f92567e44d6088994c00f9f1595af59fd372d68b25ac02520db9e",
+      "packaged": true,
+      "license": "NOASSERTION",
+      "source": "Project author declaration, 2026-10-21: Gemini-generated logo; Yagua abbreviates yaguarete from Misiones, Argentina.",
+      "status": "author-declared-origin; exclusive-rights-not-certified",
+      "note": "No trademark registration or exclusively human authorship is asserted."
+    },
+    {
+      "path": "assets/icon.png",
+      "sha256": "953571c42b7f9f253f4c433c6590feefce05a1cf443fa49426ece3eb6cdd6a13",
+      "packaged": true,
+      "license": "NOASSERTION",
+      "source": "Project author declaration, 2026-10-21: Gemini-generated logo; Yagua abbreviates yaguarete from Misiones, Argentina.",
+      "status": "author-declared-origin; exclusive-rights-not-certified",
+      "note": "No trademark registration or exclusively human authorship is asserted."
+    },
+    {
+      "path": "assets/icons/book.png",
+      "sha256": "76f2605183e69bfbaedb2fcec1fbb7f6fd3c2b39f00362a64a978cf38ae65a2d",
+      "packaged": true,
+      "license": "Apache-2.0 if individually verified as Material; otherwise NOASSERTION",
+      "source": "https://github.com/google/material-design-icons",
+      "notices": [
+        "legal/licenses/upstream/material-icons-Apache-2.0.txt"
+      ],
+      "status": "pending-individual-source-match",
+      "note": "Author declared Google Material collection. No exact individual original match established."
+    },
+    {
+      "path": "assets/icons/compress.png",
+      "sha256": "0616ddb403f70ccaa34963b11e504835598a4021cfdd31a5abb10764335939d0",
+      "packaged": true,
+      "license": "Apache-2.0 if individually verified as Material; otherwise NOASSERTION",
+      "source": "https://github.com/google/material-design-icons",
+      "notices": [
+        "legal/licenses/upstream/material-icons-Apache-2.0.txt"
+      ],
+      "status": "pending-individual-source-match",
+      "note": "Author declared Google Material collection. No exact individual original match established."
+    },
+    {
+      "path": "assets/icons/convert.png",
+      "sha256": "eff44931865ed559f9cf345d6be73de1cca7ce6802436a362406a2be569171e1",
+      "packaged": true,
+      "license": "Apache-2.0 if individually verified as Material; otherwise NOASSERTION",
+      "source": "https://github.com/google/material-design-icons",
+      "notices": [
+        "legal/licenses/upstream/material-icons-Apache-2.0.txt"
+      ],
+      "status": "pending-individual-source-match",
+      "note": "Author declared Google Material collection. No exact individual original match established."
+    },
+    {
+      "path": "assets/icons/github.png",
+      "sha256": "74cf90ac2fe6624ab1056cacea11cf7ed4f8bef54bbb0e869638013bba45bc08",
+      "packaged": true,
+      "license": "NOASSERTION",
+      "source": "https://github.com/logos",
+      "notices": [
+        "legal/licenses/upstream/material-icons-Apache-2.0.txt"
+      ],
+      "status": "pending-brand-asset-provenance",
+      "note": "GitHub mark; not certified as a Material icon or as Apache-licensed."
+    },
+    {
+      "path": "assets/icons/globe.png",
+      "sha256": "3ee1d27c8565c70af37f7e39ad2995931ec35590e13b3b41949ce14c20a4fbfe",
+      "packaged": true,
+      "license": "Apache-2.0 if individually verified as Material; otherwise NOASSERTION",
+      "source": "https://github.com/google/material-design-icons",
+      "notices": [
+        "legal/licenses/upstream/material-icons-Apache-2.0.txt"
+      ],
+      "status": "pending-individual-source-match",
+      "note": "Author declared Google Material collection. No exact individual original match established."
+    },
+    {
+      "path": "assets/icons/heart.png",
+      "sha256": "487aceb3446708aa584da263c7a97a9e35fd2df88be78c87a75e1c7aa31f20da",
+      "packaged": true,
+      "license": "Apache-2.0 if individually verified as Material; otherwise NOASSERTION",
+      "source": "https://github.com/google/material-design-icons",
+      "notices": [
+        "legal/licenses/upstream/material-icons-Apache-2.0.txt"
+      ],
+      "status": "pending-individual-source-match",
+      "note": "Author declared Google Material collection. No exact individual original match established."
+    },
+    {
+      "path": "assets/icons/lqip.png",
+      "sha256": "1ddd1ed86b246e898e2b37daea8cffdfead985be64d8d4138f40c7e2a6712a0b",
+      "packaged": true,
+      "license": "Apache-2.0 if individually verified as Material; otherwise NOASSERTION",
+      "source": "https://github.com/google/material-design-icons",
+      "notices": [
+        "legal/licenses/upstream/material-icons-Apache-2.0.txt"
+      ],
+      "status": "pending-individual-source-match",
+      "note": "Author declared Google Material collection. No exact individual original match established."
+    },
+    {
+      "path": "assets/icons/metadata.png",
+      "sha256": "bfec5835864b3d2b7e3a5e42b78a452a413d777c847f4cefbb39c5e3973905dc",
+      "packaged": true,
+      "license": "Apache-2.0 if individually verified as Material; otherwise NOASSERTION",
+      "source": "https://github.com/google/material-design-icons",
+      "notices": [
+        "legal/licenses/upstream/material-icons-Apache-2.0.txt"
+      ],
+      "status": "pending-individual-source-match",
+      "note": "Author declared Google Material collection. No exact individual original match established."
+    },
+    {
+      "path": "assets/icons/ocr.png",
+      "sha256": "00bee5e07031b5b4c1a5fdc31351476562215605b0d995909463e3f5f1f99f99",
+      "packaged": true,
+      "license": "Apache-2.0 if individually verified as Material; otherwise NOASSERTION",
+      "source": "https://github.com/google/material-design-icons",
+      "notices": [
+        "legal/licenses/upstream/material-icons-Apache-2.0.txt"
+      ],
+      "status": "pending-individual-source-match",
+      "note": "Author declared Google Material collection. No exact individual original match established."
+    },
+    {
+      "path": "assets/icons/optimizer.png",
+      "sha256": "9f11cbc7ed69beec72048710da27f661a9e69aa630a633f23edb5f00cc2c9e65",
+      "packaged": true,
+      "license": "Apache-2.0 if individually verified as Material; otherwise NOASSERTION",
+      "source": "https://github.com/google/material-design-icons",
+      "notices": [
+        "legal/licenses/upstream/material-icons-Apache-2.0.txt"
+      ],
+      "status": "pending-individual-source-match",
+      "note": "Author declared Google Material collection. No exact individual original match established."
+    },
+    {
+      "path": "assets/icons/palette.png",
+      "sha256": "d836876039f9f287dc6ec43f7074313ba889b499b75455b47beb2c73a3fef93d",
+      "packaged": true,
+      "license": "Apache-2.0 if individually verified as Material; otherwise NOASSERTION",
+      "source": "https://github.com/google/material-design-icons",
+      "notices": [
+        "legal/licenses/upstream/material-icons-Apache-2.0.txt"
+      ],
+      "status": "pending-individual-source-match",
+      "note": "Author declared Google Material collection. No exact individual original match established."
+    },
+    {
+      "path": "assets/icons/remove_background.png",
+      "sha256": "291a6113c60ee5ba8014a11f885e0adeb7238ae0f11a12c3b7581173077d0b22",
+      "packaged": true,
+      "license": "Apache-2.0 if individually verified as Material; otherwise NOASSERTION",
+      "source": "https://github.com/google/material-design-icons",
+      "notices": [
+        "legal/licenses/upstream/material-icons-Apache-2.0.txt"
+      ],
+      "status": "pending-individual-source-match",
+      "note": "Author declared Google Material collection. No exact individual original match established."
+    },
+    {
+      "path": "assets/icons/rename.png",
+      "sha256": "f9d65dc2c322c79b3048effa6a5f05306dfcd0636b075f4a7bca5943ea5338d0",
+      "packaged": true,
+      "license": "Apache-2.0 if individually verified as Material; otherwise NOASSERTION",
+      "source": "https://github.com/google/material-design-icons",
+      "notices": [
+        "legal/licenses/upstream/material-icons-Apache-2.0.txt"
+      ],
+      "status": "pending-individual-source-match",
+      "note": "Author declared Google Material collection. No exact individual original match established."
+    },
+    {
+      "path": "assets/icons/resize.png",
+      "sha256": "ac7cf8df5e07c67ae2b52b2c68517732b92532bce56092be3b6eb880263447e7",
+      "packaged": true,
+      "license": "Apache-2.0 if individually verified as Material; otherwise NOASSERTION",
+      "source": "https://github.com/google/material-design-icons",
+      "notices": [
+        "legal/licenses/upstream/material-icons-Apache-2.0.txt"
+      ],
+      "status": "pending-individual-source-match",
+      "note": "Author declared Google Material collection. No exact individual original match established."
+    },
+    {
+      "path": "assets/icons/settings.png",
+      "sha256": "a669fc6d0dcc9fc8b497efeb754ac5c98af6da819710f189da6b547b9e8d41ec",
+      "packaged": true,
+      "license": "Apache-2.0 if individually verified as Material; otherwise NOASSERTION",
+      "source": "https://github.com/google/material-design-icons",
+      "notices": [
+        "legal/licenses/upstream/material-icons-Apache-2.0.txt"
+      ],
+      "status": "pending-individual-source-match",
+      "note": "Author declared Google Material collection. No exact individual original match established."
+    },
+    {
+      "path": "assets/icons/upload.png",
+      "sha256": "45893720f5e4444c65992edfa5a686812b5b727ebe5438c25557de71d41c9ffe",
+      "packaged": true,
+      "license": "Apache-2.0 if individually verified as Material; otherwise NOASSERTION",
+      "source": "https://github.com/google/material-design-icons",
+      "notices": [
+        "legal/licenses/upstream/material-icons-Apache-2.0.txt"
+      ],
+      "status": "pending-individual-source-match",
+      "note": "Author declared Google Material collection. No exact individual original match established."
+    },
+    {
+      "path": "assets/icons/watermark.png",
+      "sha256": "afb8e9770836e00d28393d30a124cc4dac7855ae706ea12eb47f9e8eb6febc90",
+      "packaged": true,
+      "license": "Apache-2.0 if individually verified as Material; otherwise NOASSERTION",
+      "source": "https://github.com/google/material-design-icons",
+      "notices": [
+        "legal/licenses/upstream/material-icons-Apache-2.0.txt"
+      ],
+      "status": "pending-individual-source-match",
+      "note": "Author declared Google Material collection. No exact individual original match established."
+    },
+    {
+      "path": "assets/installer/installer_icon.ico",
+      "sha256": "894d463e7bb2233a93b4072bc1a98edfc5b77d9c09ef67a4e136ca1d8a3907f4",
+      "packaged": false,
+      "license": "NOASSERTION",
+      "source": "Project author declaration, 2026-10-21: Gemini-generated logo; Yagua abbreviates yaguarete from Misiones, Argentina.",
+      "status": "author-declared-origin; exclusive-rights-not-certified",
+      "note": "No trademark registration or exclusively human authorship is asserted."
+    },
+    {
+      "path": "assets/installer/wizard_image.bmp",
+      "sha256": "0c4f570a71ab1b36f1511d06db72b75421bd08381b0cdb2ae6fd34113d628499",
+      "packaged": false,
+      "license": "NOASSERTION",
+      "source": "Project author declaration, 2026-10-21: Gemini-generated logo; Yagua abbreviates yaguarete from Misiones, Argentina.",
+      "status": "author-declared-origin; exclusive-rights-not-certified",
+      "note": "No trademark registration or exclusively human authorship is asserted."
+    },
+    {
+      "path": "assets/installer/wizard_small.bmp",
+      "sha256": "782f34dfef804098515bc2aa9f6816dc30ce70937fb0b4dcae2520aff9a0aa0b",
+      "packaged": false,
+      "license": "NOASSERTION",
+      "source": "Project author declaration, 2026-10-21: Gemini-generated logo; Yagua abbreviates yaguarete from Misiones, Argentina.",
+      "status": "author-declared-origin; exclusive-rights-not-certified",
+      "note": "No trademark registration or exclusively human authorship is asserted."
+    },
+    {
+      "path": "assets/screenshots/01-home.png",
+      "sha256": "aeb8fe740dd48089fe68dbdce0f6deaeed50e2fbf0f57b57905daaac0a1ec028",
+      "packaged": true,
+      "license": "NOASSERTION",
+      "source": "Yagua repository screenshot",
+      "status": "pending-embedded-content-provenance",
+      "note": "UI screenshot; no independent permissions inferred for embedded imagery."
+    },
+    {
+      "path": "assets/screenshots/compress.png",
+      "sha256": "3744c3093ec21bf018992e176d0eeba2b26c707034889869c8fa823f851f0dbc",
+      "packaged": true,
+      "license": "NOASSERTION",
+      "source": "Yagua repository screenshot",
+      "status": "pending-embedded-content-provenance",
+      "note": "UI screenshot; no independent permissions inferred for embedded imagery."
+    },
+    {
+      "path": "assets/screenshots/convert.png",
+      "sha256": "8e1ae7dc472bb987b1854fdb809f24d0da5c90969685d950dac3f3ea39ecb1bd",
+      "packaged": true,
+      "license": "NOASSERTION",
+      "source": "Yagua repository screenshot",
+      "status": "pending-embedded-content-provenance",
+      "note": "UI screenshot; no independent permissions inferred for embedded imagery."
+    },
+    {
+      "path": "assets/screenshots/home.png",
+      "sha256": "15db9c7af8ea6651fafddd4f4aeede53fd91de55f11a06dfaaca8cff968c4226",
+      "packaged": true,
+      "license": "NOASSERTION",
+      "source": "Yagua repository screenshot",
+      "status": "pending-embedded-content-provenance",
+      "note": "UI screenshot; no independent permissions inferred for embedded imagery."
+    },
+    {
+      "path": "assets/screenshots/lqip-base64.png",
+      "sha256": "5bde6efc6cf2ea875fbd527d7b340effbb6748e0c4a293d6dc313e098ce44429",
+      "packaged": true,
+      "license": "NOASSERTION",
+      "source": "Yagua repository screenshot",
+      "status": "pending-embedded-content-provenance",
+      "note": "UI screenshot; no independent permissions inferred for embedded imagery."
+    },
+    {
+      "path": "assets/screenshots/metadata.png",
+      "sha256": "66041e009003378274caf379c6d90332eb924e46ee81b5cdf1169185502fc4d0",
+      "packaged": true,
+      "license": "NOASSERTION",
+      "source": "Yagua repository screenshot",
+      "status": "pending-embedded-content-provenance",
+      "note": "UI screenshot; no independent permissions inferred for embedded imagery."
+    },
+    {
+      "path": "assets/screenshots/ocr.png",
+      "sha256": "2f83441ef3081829ff1faad2988ea55e6e7427e499c8fde56c9072979b1f6a7e",
+      "packaged": true,
+      "license": "NOASSERTION",
+      "source": "Yagua repository screenshot",
+      "status": "pending-embedded-content-provenance",
+      "note": "UI screenshot; no independent permissions inferred for embedded imagery."
+    },
+    {
+      "path": "assets/screenshots/palette.png",
+      "sha256": "cb2dc6b154122a980b053b35ed53e40cc320195bfc499b3cc2260077c518d774",
+      "packaged": true,
+      "license": "NOASSERTION",
+      "source": "Yagua repository screenshot",
+      "status": "pending-embedded-content-provenance",
+      "note": "UI screenshot; no independent permissions inferred for embedded imagery."
+    },
+    {
+      "path": "assets/screenshots/remove-background.png",
+      "sha256": "5d60e1ac39987bd58f18fb74f3fe24694ab7aead256060cab313a1fc3664865e",
+      "packaged": true,
+      "license": "NOASSERTION",
+      "source": "Yagua repository screenshot",
+      "status": "pending-embedded-content-provenance",
+      "note": "UI screenshot; no independent permissions inferred for embedded imagery."
+    },
+    {
+      "path": "assets/screenshots/rename.png",
+      "sha256": "9f5be469d8ab959d1986af5763d18dc98cad8cf86fec10df6c2f4dc9112666b8",
+      "packaged": true,
+      "license": "NOASSERTION",
+      "source": "Yagua repository screenshot",
+      "status": "pending-embedded-content-provenance",
+      "note": "UI screenshot; no independent permissions inferred for embedded imagery."
+    },
+    {
+      "path": "assets/screenshots/resize.png",
+      "sha256": "bd435638b25d61bab465c9383a6adfaeaaa5a63f2d216099aabadf7860b94d96",
+      "packaged": true,
+      "license": "NOASSERTION",
+      "source": "Yagua repository screenshot",
+      "status": "pending-embedded-content-provenance",
+      "note": "UI screenshot; no independent permissions inferred for embedded imagery."
+    },
+    {
+      "path": "assets/screenshots/settings.png",
+      "sha256": "7b411904e6f0a04ff0b30f93b315edda64b4afd22066c4bcd3752cf5d2a36e3f",
+      "packaged": true,
+      "license": "NOASSERTION",
+      "source": "Yagua repository screenshot",
+      "status": "pending-embedded-content-provenance",
+      "note": "UI screenshot; no independent permissions inferred for embedded imagery."
+    },
+    {
+      "path": "assets/screenshots/watermark.png",
+      "sha256": "dd6c10211518e2d02d282f737a86fe510c7e00bd284978100b1a8b99b43ffea3",
+      "packaged": true,
+      "license": "NOASSERTION",
+      "source": "Yagua repository screenshot",
+      "status": "pending-embedded-content-provenance",
+      "note": "UI screenshot; no independent permissions inferred for embedded imagery."
+    }
+  ],
+  "models": [
+    {
+      "name": "craft_mlt_25k.pth",
+      "version": "download artifact identified by SHA256",
+      "sha256": "4a5efbfb48b4081100544e75e1e2b57f8de3d84f213004b14b85fd4b3748db17",
+      "bytes": 83152330,
+      "source": "https://github.com/JaidedAI/EasyOCR/releases/download/pre-v1.1.6/craft_mlt_25k.zip",
+      "license": "MIT (upstream code)",
+      "notices": [
+        "legal/licenses/upstream/craft-MIT.txt"
+      ],
+      "status": "artifact-identified; weight-permission-review-required",
+      "note": "Observed only in isolated test model directory. Not an independent license grant for the weights."
+    },
+    {
+      "name": "english_g2.pth",
+      "version": "download artifact identified by SHA256",
+      "sha256": "e2272681d9d67a04e2dff396b6e95077bc19001f8f6d3593c307b9852e1c29e8",
+      "bytes": 15143997,
+      "source": "https://github.com/JaidedAI/EasyOCR/releases/download/v1.3/english_g2.zip",
+      "license": "Apache-2.0 (upstream code)",
+      "notices": [
+        "legal/licenses/wheels/easyocr/easyocr-1.7.2.dist-info/LICENSE"
+      ],
+      "status": "artifact-identified; weight-permission-review-required",
+      "note": "Observed only in isolated test model directory. Not an independent license grant for the weights."
+    },
+    {
+      "name": "latin_g2.pth",
+      "version": "download artifact identified by SHA256",
+      "sha256": "aaa95be1c4a9cb3496879bed7c520886ce1164f89e026f0c54488394e74e8c55",
+      "bytes": 15406141,
+      "source": "https://github.com/JaidedAI/EasyOCR/releases/download/v1.3/latin_g2.zip",
+      "license": "Apache-2.0 (upstream code)",
+      "notices": [
+        "legal/licenses/wheels/easyocr/easyocr-1.7.2.dist-info/LICENSE"
+      ],
+      "status": "artifact-identified; weight-permission-review-required",
+      "note": "Observed only in isolated test model directory. Not an independent license grant for the weights."
+    },
+    {
+      "name": "isnet-general-use.onnx",
+      "version": "download artifact identified by SHA256",
+      "sha256": "60920e99c45464f2ba57bee2ad08c919a52bbf852739e96947fbb4358c0d964a",
+      "bytes": 178648008,
+      "source": "https://github.com/danielgatis/rembg/releases/download/v0.0.0/isnet-general-use.onnx",
+      "license": "Apache-2.0 (upstream code)",
+      "notices": [
+        "legal/licenses/upstream/dis-Apache-2.0.txt"
+      ],
+      "status": "artifact-identified; weight-permission-review-required",
+      "note": "Observed only in isolated test model directory. Not an independent license grant for the weights."
+    },
+    {
+      "name": "u2netp.onnx",
+      "version": "download artifact identified by SHA256",
+      "sha256": "309c8469258dda742793dce0ebea8e6dd393174f89934733ecc8b14c76f4ddd8",
+      "bytes": 4574861,
+      "source": "https://github.com/danielgatis/rembg/releases/download/v0.0.0/u2netp.onnx",
+      "license": "Apache-2.0 (upstream code)",
+      "notices": [
+        "legal/licenses/upstream/u2net-Apache-2.0.txt"
+      ],
+      "status": "artifact-identified; weight-permission-review-required",
+      "note": "Observed only in isolated test model directory. Not an independent license grant for the weights."
+    }
+  ],
+  "native_families": [
+    {
+      "id": "heif",
+      "patterns": [
+        "*heif*"
+      ],
+      "license": "LGPL-3.0 (libheif; wrapper separate)",
+      "source": "https://github.com/strukturag/libheif",
+      "status": "family-identified; exact-native-build-and-obligations-review-required"
+    },
+    {
+      "id": "de265",
+      "patterns": [
+        "*de265*"
+      ],
+      "license": "LGPL-3.0",
+      "source": "https://github.com/strukturag/libde265",
+      "status": "family-identified; exact-native-build-and-obligations-review-required"
+    },
+    {
+      "id": "x265",
+      "patterns": [
+        "*x265*"
+      ],
+      "license": "GPLv2 per wheel bundled notice; exact grant/build requires review",
+      "source": "https://bitbucket.org/multicoreware/x265_git",
+      "status": "family-identified; exact-native-build-and-obligations-review-required"
+    },
+    {
+      "id": "geos",
+      "patterns": [
+        "*geos*"
+      ],
+      "license": "LGPL-2.1",
+      "source": "https://libgeos.org",
+      "status": "family-identified; exact-native-build-and-obligations-review-required"
+    },
+    {
+      "id": "ffmpeg",
+      "patterns": [
+        "*avcodec*",
+        "*avformat*",
+        "*avutil*",
+        "*swscale*",
+        "*swresample*"
+      ],
+      "license": "LGPL or GPL depending on actual build; review required",
+      "source": "https://ffmpeg.org/legal.html",
+      "status": "family-identified; exact-native-build-and-obligations-review-required"
+    },
+    {
+      "id": "openblas",
+      "patterns": [
+        "*openblas*"
+      ],
+      "license": "BSD and bundled runtime terms",
+      "source": "https://github.com/OpenMathLib/OpenBLAS",
+      "status": "family-identified; exact-native-build-and-obligations-review-required"
+    },
+    {
+      "id": "intel",
+      "patterns": [
+        "*tbb*",
+        "*tcm*"
+      ],
+      "license": "Intel binary terms; see wheel originals",
+      "source": "https://pypi.org/project/tbb/2022.3.1/",
+      "status": "family-identified; exact-native-build-and-obligations-review-required"
+    },
+    {
+      "id": "llvm",
+      "patterns": [
+        "*llvmlite*"
+      ],
+      "license": "BSD-2-Clause AND Apache-2.0 WITH LLVM-exception",
+      "source": "https://github.com/numba/llvmlite",
+      "status": "family-identified; exact-native-build-and-obligations-review-required"
+    },
+    {
+      "id": "torch",
+      "patterns": [
+        "*/torch/*",
+        "*/torchvision/*"
+      ],
+      "license": "BSD and bundled terms",
+      "source": "https://github.com/pytorch/pytorch",
+      "status": "family-identified; exact-native-build-and-obligations-review-required"
+    },
+    {
+      "id": "onnxruntime",
+      "patterns": [
+        "*onnxruntime*"
+      ],
+      "license": "MIT and bundled terms",
+      "source": "https://github.com/microsoft/onnxruntime",
+      "status": "family-identified; exact-native-build-and-obligations-review-required"
+    },
+    {
+      "id": "python",
+      "patterns": [
+        "*python3*"
+      ],
+      "license": "PSF-2.0 and bundled notices",
+      "source": "https://github.com/python/cpython",
+      "status": "family-identified; exact-native-build-and-obligations-review-required"
+    },
+    {
+      "id": "tcl-tk",
+      "patterns": [
+        "*tcl8*",
+        "*tk8*"
+      ],
+      "license": "TCL (upstream license.terms)",
+      "source": "https://github.com/tcltk",
+      "status": "family-identified; exact-native-build-and-obligations-review-required"
+    },
+    {
+      "id": "openssl",
+      "patterns": [
+        "*libssl*",
+        "*libcrypto*"
+      ],
+      "license": "Version-dependent OpenSSL terms",
+      "source": "https://www.openssl.org/source/license.html",
+      "status": "family-identified; exact-native-build-and-obligations-review-required"
+    },
+    {
+      "id": "gcc-runtimes",
+      "patterns": [
+        "*libgcc*",
+        "*libstdc++*",
+        "*libgomp*",
+        "*libquadmath*"
+      ],
+      "license": "GPL with applicable runtime exceptions; verify exact binary",
+      "source": "https://gcc.gnu.org/onlinedocs/libstdc++/manual/license.html",
+      "status": "family-identified; exact-native-build-and-obligations-review-required"
+    },
+    {
+      "id": "microsoft-runtime",
+      "patterns": [
+        "*vcruntime*",
+        "*msvcp*"
+      ],
+      "license": "Microsoft redistributable terms; not MIT",
+      "source": "https://learn.microsoft.com/en-us/visualstudio/releases/2022/redistribution",
+      "status": "family-identified; exact-native-build-and-obligations-review-required"
+    },
+    {
+      "id": "other-native",
+      "patterns": [
+        "*.pyd",
+        "*/numpy/*",
+        "*/scipy/*",
+        "*/cv2/*",
+        "*/pil/*",
+        "*/shapely/*",
+        "*/bidi/*"
+      ],
+      "license": "Component-specific terms in distribution notices; native build review pending",
+      "source": "Installed wheel RECORD and native package inventory",
+      "status": "family-identified; exact-native-build-and-obligations-review-required"
+    }
+  ],
+  "files": {
+    "legal/licenses/upstream/inter-OFL.txt": {
+      "sha256": "262481e844521b326f5ecd053e59b98c8b2da78c8ee1bdbb6e8174305e54935a",
+      "source": "https://raw.githubusercontent.com/rsms/inter/v4.0/LICENSE.txt"
+    },
+    "legal/licenses/upstream/material-icons-Apache-2.0.txt": {
+      "sha256": "58d1e17ffe5109a7ae296caafcadfdbe6a7d176f0bc4ab01e12a689b0499d8bd",
+      "source": "https://raw.githubusercontent.com/google/material-design-icons/49d4db35df873165d6bd6ba09b063c7dafbac2f4/LICENSE"
+    },
+    "legal/licenses/upstream/flatbuffers-Apache-2.0.txt": {
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "source": "https://raw.githubusercontent.com/google/flatbuffers/v25.12.19/LICENSE"
+    },
+    "legal/licenses/upstream/python-3.13-LICENSE.txt": {
+      "sha256": "78b12c3a81360b357002334f0e70ea0e92eebf7a9b358805c03c48484945f3bb",
+      "source": "https://raw.githubusercontent.com/python/cpython/v3.13.13/LICENSE"
+    },
+    "legal/licenses/upstream/craft-MIT.txt": {
+      "sha256": "bfecc97e4888896b7acf08534372baf25796b98c087ba5a424b46ee25adec871",
+      "source": "https://raw.githubusercontent.com/clovaai/CRAFT-pytorch/e332dd8b718e291f51b66ff8f9ef2c98ee4474c8/LICENSE"
+    },
+    "legal/licenses/upstream/dis-Apache-2.0.txt": {
+      "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+      "source": "https://raw.githubusercontent.com/xuebinqin/DIS/b6764e20381f6f42a70f83fa3324181529ed1403/LICENSE.md"
+    },
+    "legal/licenses/upstream/u2net-Apache-2.0.txt": {
+      "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+      "source": "https://raw.githubusercontent.com/xuebinqin/U-2-Net/ac7e1c817ecab7c7dff5ce6b1abba61cd213ff29/LICENSE"
+    },
+    "legal/licenses/upstream/tcl-8.6-license.terms": {
+      "sha256": "c0a69a2bfd757361ec7e6143973b103c90409316b49e9c88db26ad6388e79f16",
+      "source": "https://raw.githubusercontent.com/tcltk/tcl/core-8-6-16/license.terms"
+    },
+    "legal/licenses/upstream/tk-8.6-license.terms": {
+      "sha256": "2cde822b93ca16ae535c954b7dfe658b4ad10df2a193628d1b358f1765e8b198",
+      "source": "https://raw.githubusercontent.com/tcltk/tk/core-8-6-16/license.terms"
+    },
+    "legal/licenses/wheels/attrs/attrs-26.1.0.dist-info/licenses/LICENSE": {
+      "sha256": "882115c95dfc2af1eeb6714f8ec6d5cbcabf667caff8729f42420da63f714e9f",
+      "source": "https://pypi.org/project/attrs/26.1.0/#files (original wheel RECORD: attrs-26.1.0.dist-info/licenses/LICENSE)"
+    },
+    "legal/licenses/wheels/certifi/certifi-2026.2.25.dist-info/licenses/LICENSE": {
+      "sha256": "e93716da6b9c0d5a4a1df60fe695b370f0695603d21f6f83f053e42cfc10caf7",
+      "source": "https://pypi.org/project/certifi/2026.2.25/#files (original wheel RECORD: certifi-2026.2.25.dist-info/licenses/LICENSE)"
+    },
+    "legal/licenses/wheels/charset-normalizer/charset_normalizer-3.4.6.dist-info/licenses/LICENSE": {
+      "sha256": "18577485d3704f1a479ded8e573c0976cfed315fd2fd17983fa988da4c2f70d1",
+      "source": "https://pypi.org/project/charset-normalizer/3.4.6/#files (original wheel RECORD: charset_normalizer-3.4.6.dist-info/licenses/LICENSE)"
+    },
+    "legal/licenses/wheels/colorama/colorama-0.4.6.dist-info/licenses/LICENSE.txt": {
+      "sha256": "cac35c02686e5d04a5a7140bfb3b36e73aed496656e891102e428886d7930318",
+      "source": "https://pypi.org/project/colorama/0.4.6/#files (original wheel RECORD: colorama-0.4.6.dist-info/licenses/LICENSE.txt)"
+    },
+    "legal/licenses/wheels/customtkinter/customtkinter-5.2.2.dist-info/LICENSE": {
+      "sha256": "c973b8600e620159cb0473eb9b08783143e0d9ed5333f350fc933368d94d9e0d",
+      "source": "https://pypi.org/project/customtkinter/5.2.2/#files (original wheel RECORD: customtkinter-5.2.2.dist-info/LICENSE)"
+    },
+    "legal/licenses/wheels/darkdetect/darkdetect-0.8.0.dist-info/LICENSE": {
+      "sha256": "69bb84664eff933addcb271c866d67622d9c2c53a5bda31b1a7523569c250afe",
+      "source": "https://pypi.org/project/darkdetect/0.8.0/#files (original wheel RECORD: darkdetect-0.8.0.dist-info/LICENSE)"
+    },
+    "legal/licenses/wheels/easyocr/easyocr-1.7.2.dist-info/LICENSE": {
+      "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+      "source": "https://pypi.org/project/easyocr/1.7.2/#files (original wheel RECORD: easyocr-1.7.2.dist-info/LICENSE)"
+    },
+    "legal/licenses/wheels/filelock/filelock-3.25.2.dist-info/licenses/LICENSE": {
+      "sha256": "608c89d5060ae9921adccf3236695bc654a9946e12323ef6c021dfa04e294d48",
+      "source": "https://pypi.org/project/filelock/3.25.2/#files (original wheel RECORD: filelock-3.25.2.dist-info/licenses/LICENSE)"
+    },
+    "legal/licenses/wheels/fsspec/fsspec-2026.3.0.dist-info/licenses/LICENSE": {
+      "sha256": "2dc35496ce53a7307915c008a844aad53e772b49b34cdd00445067691407ec94",
+      "source": "https://pypi.org/project/fsspec/2026.3.0/#files (original wheel RECORD: fsspec-2026.3.0.dist-info/licenses/LICENSE)"
+    },
+    "legal/licenses/wheels/idna/idna-3.11.dist-info/licenses/LICENSE.md": {
+      "sha256": "b7a336abf3b04e180ec065cdd16e705d079e1cc7a14f910aa6e9187f36b9cd87",
+      "source": "https://pypi.org/project/idna/3.11/#files (original wheel RECORD: idna-3.11.dist-info/licenses/LICENSE.md)"
+    },
+    "legal/licenses/wheels/imageio/imageio-2.37.3.dist-info/licenses/LICENSE": {
+      "sha256": "c453cf1368bb9e009e4d7e5334fc78511e665316a612ef54ee4fe1245678fe2c",
+      "source": "https://pypi.org/project/ImageIO/2.37.3/#files (original wheel RECORD: imageio-2.37.3.dist-info/licenses/LICENSE)"
+    },
+    "legal/licenses/wheels/jinja2/jinja2-3.1.6.dist-info/licenses/LICENSE.txt": {
+      "sha256": "3b49dcee4105eb37bac10faf1be260408fe85d252b8e9df2e0979fc1e094437b",
+      "source": "https://pypi.org/project/Jinja2/3.1.6/#files (original wheel RECORD: jinja2-3.1.6.dist-info/licenses/LICENSE.txt)"
+    },
+    "legal/licenses/wheels/jsonschema/jsonschema-4.26.0.dist-info/licenses/COPYING": {
+      "sha256": "4f92a015a13c4d1a040bef018aa13430b4f1bc73b41b16bb846c346766de7439",
+      "source": "https://pypi.org/project/jsonschema/4.26.0/#files (original wheel RECORD: jsonschema-4.26.0.dist-info/licenses/COPYING)"
+    },
+    "legal/licenses/wheels/jsonschema-specifications/jsonschema_specifications-2025.9.1.dist-info/licenses/COPYING": {
+      "sha256": "42dcd63495f87b4eb7c7757afa379bb55a53f94afd7a5f657d9adf57236e515c",
+      "source": "https://pypi.org/project/jsonschema-specifications/2025.9.1/#files (original wheel RECORD: jsonschema_specifications-2025.9.1.dist-info/licenses/COPYING)"
+    },
+    "legal/licenses/wheels/lazy-loader/lazy_loader-0.5.dist-info/licenses/LICENSE.md": {
+      "sha256": "797b6937a4f976836efbbbb3ae333d7866ddc3eb3cb152972b2be348d3529372",
+      "source": "https://pypi.org/project/lazy-loader/0.5/#files (original wheel RECORD: lazy_loader-0.5.dist-info/licenses/LICENSE.md)"
+    },
+    "legal/licenses/wheels/llvmlite/llvmlite-0.46.0.dist-info/licenses/LICENSE": {
+      "sha256": "7d6aa93e52a7ae9a995ff6a40c0ea5628311cdf1bd8dcd29c8ce9181f4af3a81",
+      "source": "https://pypi.org/project/llvmlite/0.46.0/#files (original wheel RECORD: llvmlite-0.46.0.dist-info/licenses/LICENSE)"
+    },
+    "legal/licenses/wheels/llvmlite/llvmlite-0.46.0.dist-info/licenses/LICENSE.thirdparty": {
+      "sha256": "7b564c7af9ab446d245ba66adc8cda2f61d1d162f842899557499e80b715993a",
+      "source": "https://pypi.org/project/llvmlite/0.46.0/#files (original wheel RECORD: llvmlite-0.46.0.dist-info/licenses/LICENSE.thirdparty)"
+    },
+    "legal/licenses/wheels/markupsafe/markupsafe-3.0.3.dist-info/licenses/LICENSE.txt": {
+      "sha256": "4631ec0db5fd90a547e336817264c6798214338146f8ac94b4a57f96ee8c9ec4",
+      "source": "https://pypi.org/project/MarkupSafe/3.0.3/#files (original wheel RECORD: markupsafe-3.0.3.dist-info/licenses/LICENSE.txt)"
+    },
+    "legal/licenses/wheels/mpmath/mpmath-1.3.0.dist-info/LICENSE": {
+      "sha256": "c26cae81da4508e5e249985777a33821f183223ebb74d7f8cfbf90fe7eef2fb7",
+      "source": "https://pypi.org/project/mpmath/1.3.0/#files (original wheel RECORD: mpmath-1.3.0.dist-info/LICENSE)"
+    },
+    "legal/licenses/wheels/networkx/networkx-3.6.1.dist-info/licenses/LICENSE.txt": {
+      "sha256": "3cf7c3a179d817b23b8b8568211769fefdf93797d207d984b8b2fa24d0220b33",
+      "source": "https://pypi.org/project/networkx/3.6.1/#files (original wheel RECORD: networkx-3.6.1.dist-info/licenses/LICENSE.txt)"
+    },
+    "legal/licenses/wheels/ninja/ninja-1.13.0.dist-info/licenses/AUTHORS.rst": {
+      "sha256": "c58f66e8aac8a2373d582740d3c54b3d1f189da4b83bf0759536e3ef6c4a5b72",
+      "source": "https://pypi.org/project/ninja/1.13.0/#files (original wheel RECORD: ninja-1.13.0.dist-info/licenses/AUTHORS.rst)"
+    },
+    "legal/licenses/wheels/ninja/ninja-1.13.0.dist-info/licenses/LICENSE_Apache_20": {
+      "sha256": "dc1f5d2d43c5531dfe0acaf4e950ea5dbe3e61e1850cf0e983bda7efc10d6693",
+      "source": "https://pypi.org/project/ninja/1.13.0/#files (original wheel RECORD: ninja-1.13.0.dist-info/licenses/LICENSE_Apache_20)"
+    },
+    "legal/licenses/wheels/numba/numba-0.64.0.dist-info/licenses/LICENSE": {
+      "sha256": "5f7ae5e48a0a107a9d86a9ef6c18dcce68e55959855d39380050deaea366631c",
+      "source": "https://pypi.org/project/numba/0.64.0/#files (original wheel RECORD: numba-0.64.0.dist-info/licenses/LICENSE)"
+    },
+    "legal/licenses/wheels/numba/numba-0.64.0.dist-info/licenses/LICENSES.third-party": {
+      "sha256": "e5ea3f50f1c1aa518a86903b85dfd40c4765589998eb683b9382d111d91bb9ee",
+      "source": "https://pypi.org/project/numba/0.64.0/#files (original wheel RECORD: numba-0.64.0.dist-info/licenses/LICENSES.third-party)"
+    },
+    "legal/licenses/wheels/numpy/numpy-2.4.3.dist-info/licenses/LICENSE.txt": {
+      "sha256": "a804dff0ead9fadc5293456410bcbfc32bf024be9c4513459663fb7b442d2341",
+      "source": "https://pypi.org/project/numpy/2.4.3/#files (original wheel RECORD: numpy-2.4.3.dist-info/licenses/LICENSE.txt)"
+    },
+    "legal/licenses/wheels/numpy/numpy-2.4.3.dist-info/licenses/numpy/_core/include/numpy/libdivide/LICENSE.txt": {
+      "sha256": "d544761558b510866c21f7e8a2d5716fca76e0b98117e3b6b86314db7244d150",
+      "source": "https://pypi.org/project/numpy/2.4.3/#files (original wheel RECORD: numpy-2.4.3.dist-info/licenses/numpy/_core/include/numpy/libdivide/LICENSE.txt)"
+    },
+    "legal/licenses/wheels/numpy/numpy-2.4.3.dist-info/licenses/numpy/_core/src/common/pythoncapi-compat/COPYING": {
+      "sha256": "aea41976c720f91bd19725c16916a1ace40eb1ea42620d340e587a5de4bbcea0",
+      "source": "https://pypi.org/project/numpy/2.4.3/#files (original wheel RECORD: numpy-2.4.3.dist-info/licenses/numpy/_core/src/common/pythoncapi-compat/COPYING)"
+    },
+    "legal/licenses/wheels/numpy/numpy-2.4.3.dist-info/licenses/numpy/_core/src/highway/LICENSE": {
+      "sha256": "d208152e2777ffd0126eacc1bd21c0320d69e4e6b622d21a2a12a47e8ef73763",
+      "source": "https://pypi.org/project/numpy/2.4.3/#files (original wheel RECORD: numpy-2.4.3.dist-info/licenses/numpy/_core/src/highway/LICENSE)"
+    },
+    "legal/licenses/wheels/numpy/numpy-2.4.3.dist-info/licenses/numpy/_core/src/multiarray/dragon4_LICENSE.txt": {
+      "sha256": "b0fd592d4ead563148e3977e7b589169d46a5ef2ff133c755a81af880a3fc919",
+      "source": "https://pypi.org/project/numpy/2.4.3/#files (original wheel RECORD: numpy-2.4.3.dist-info/licenses/numpy/_core/src/multiarray/dragon4_LICENSE.txt)"
+    },
+    "legal/licenses/wheels/numpy/numpy-2.4.3.dist-info/licenses/numpy/_core/src/npysort/x86-simd-sort/LICENSE.md": {
+      "sha256": "a732977853530066790c42817087f4829b518dd98d340c916acbfd227e39d3cb",
+      "source": "https://pypi.org/project/numpy/2.4.3/#files (original wheel RECORD: numpy-2.4.3.dist-info/licenses/numpy/_core/src/npysort/x86-simd-sort/LICENSE.md)"
+    },
+    "legal/licenses/wheels/numpy/numpy-2.4.3.dist-info/licenses/numpy/_core/src/umath/svml/LICENSE": {
+      "sha256": "585483905b13d4b42f800c55ba99e89d6e2e33ccd5f503e201c07531d148ff41",
+      "source": "https://pypi.org/project/numpy/2.4.3/#files (original wheel RECORD: numpy-2.4.3.dist-info/licenses/numpy/_core/src/umath/svml/LICENSE)"
+    },
+    "legal/licenses/wheels/numpy/numpy-2.4.3.dist-info/licenses/numpy/fft/pocketfft/LICENSE.md": {
+      "sha256": "8db000e158c162e7249787852d8c69764706502ccee725c06641b31c1e95c8af",
+      "source": "https://pypi.org/project/numpy/2.4.3/#files (original wheel RECORD: numpy-2.4.3.dist-info/licenses/numpy/fft/pocketfft/LICENSE.md)"
+    },
+    "legal/licenses/wheels/numpy/numpy-2.4.3.dist-info/licenses/numpy/linalg/lapack_lite/LICENSE.txt": {
+      "sha256": "19060ef465e1797d682ee0fc3081bd25ab1395e995e43d25c9d13c95d9a3cd6b",
+      "source": "https://pypi.org/project/numpy/2.4.3/#files (original wheel RECORD: numpy-2.4.3.dist-info/licenses/numpy/linalg/lapack_lite/LICENSE.txt)"
+    },
+    "legal/licenses/wheels/numpy/numpy-2.4.3.dist-info/licenses/numpy/ma/LICENSE": {
+      "sha256": "d78dbb208b80d92b4d333e41a4baae50d12444f46e53199fa7726a91de6e2da7",
+      "source": "https://pypi.org/project/numpy/2.4.3/#files (original wheel RECORD: numpy-2.4.3.dist-info/licenses/numpy/ma/LICENSE)"
+    },
+    "legal/licenses/wheels/numpy/numpy-2.4.3.dist-info/licenses/numpy/random/LICENSE.md": {
+      "sha256": "b4bc2f4fa1c95778f1ed3dd8f14706bece399475b978f9f34b5d3cd72521b48a",
+      "source": "https://pypi.org/project/numpy/2.4.3/#files (original wheel RECORD: numpy-2.4.3.dist-info/licenses/numpy/random/LICENSE.md)"
+    },
+    "legal/licenses/wheels/numpy/numpy-2.4.3.dist-info/licenses/numpy/random/src/distributions/LICENSE.md": {
+      "sha256": "cf5619f25b112d5ce7c896efffc8e610bcb345dfadcc19f2c1460aa48fff2c9e",
+      "source": "https://pypi.org/project/numpy/2.4.3/#files (original wheel RECORD: numpy-2.4.3.dist-info/licenses/numpy/random/src/distributions/LICENSE.md)"
+    },
+    "legal/licenses/wheels/numpy/numpy-2.4.3.dist-info/licenses/numpy/random/src/mt19937/LICENSE.md": {
+      "sha256": "92c10699884321f1c2947fe2a70ab23b0fbf1507f756d89dd08f38c61fc3d4fa",
+      "source": "https://pypi.org/project/numpy/2.4.3/#files (original wheel RECORD: numpy-2.4.3.dist-info/licenses/numpy/random/src/mt19937/LICENSE.md)"
+    },
+    "legal/licenses/wheels/numpy/numpy-2.4.3.dist-info/licenses/numpy/random/src/pcg64/LICENSE.md": {
+      "sha256": "41190663b77bee5302386495a07b7eabfbfa571aa0ae2f11da6764162062fc4f",
+      "source": "https://pypi.org/project/numpy/2.4.3/#files (original wheel RECORD: numpy-2.4.3.dist-info/licenses/numpy/random/src/pcg64/LICENSE.md)"
+    },
+    "legal/licenses/wheels/numpy/numpy-2.4.3.dist-info/licenses/numpy/random/src/philox/LICENSE.md": {
+      "sha256": "322ac46d870c8aeead6c53adcccc839296fb3c8e456eae155081297daf7f8013",
+      "source": "https://pypi.org/project/numpy/2.4.3/#files (original wheel RECORD: numpy-2.4.3.dist-info/licenses/numpy/random/src/philox/LICENSE.md)"
+    },
+    "legal/licenses/wheels/numpy/numpy-2.4.3.dist-info/licenses/numpy/random/src/sfc64/LICENSE.md": {
+      "sha256": "28cad82ce1379dc529df30da78ec012d7d0d1d576b03ddcb93388aee53659f59",
+      "source": "https://pypi.org/project/numpy/2.4.3/#files (original wheel RECORD: numpy-2.4.3.dist-info/licenses/numpy/random/src/sfc64/LICENSE.md)"
+    },
+    "legal/licenses/wheels/numpy/numpy-2.4.3.dist-info/licenses/numpy/random/src/splitmix64/LICENSE.md": {
+      "sha256": "454ec7350e478e037061850b67395753b425b1cb0a34bbc26290b020bf89d763",
+      "source": "https://pypi.org/project/numpy/2.4.3/#files (original wheel RECORD: numpy-2.4.3.dist-info/licenses/numpy/random/src/splitmix64/LICENSE.md)"
+    },
+    "legal/licenses/wheels/numpy/numpy/_core/include/numpy/random/LICENSE.txt": {
+      "sha256": "d544761558b510866c21f7e8a2d5716fca76e0b98117e3b6b86314db7244d150",
+      "source": "https://pypi.org/project/numpy/2.4.3/#files (original wheel RECORD: numpy/_core/include/numpy/random/LICENSE.txt)"
+    },
+    "legal/licenses/wheels/numpy/numpy/ma/LICENSE": {
+      "sha256": "d78dbb208b80d92b4d333e41a4baae50d12444f46e53199fa7726a91de6e2da7",
+      "source": "https://pypi.org/project/numpy/2.4.3/#files (original wheel RECORD: numpy/ma/LICENSE)"
+    },
+    "legal/licenses/wheels/numpy/numpy/random/LICENSE.md": {
+      "sha256": "b4bc2f4fa1c95778f1ed3dd8f14706bece399475b978f9f34b5d3cd72521b48a",
+      "source": "https://pypi.org/project/numpy/2.4.3/#files (original wheel RECORD: numpy/random/LICENSE.md)"
+    },
+    "legal/licenses/wheels/onnxruntime/onnxruntime/LICENSE": {
+      "sha256": "c250d6278f0b47a6439fb7592b08b58a55eb9f535aa49a1db63211c3f982b674",
+      "source": "https://pypi.org/project/onnxruntime/1.24.4/#files (original wheel RECORD: onnxruntime/LICENSE)"
+    },
+    "legal/licenses/wheels/onnxruntime/onnxruntime/ThirdPartyNotices.txt": {
+      "sha256": "fb0af774b4d7cffc5b9d046f2aaeade2f37df2f80abf8033c95dfffcc77a8866",
+      "source": "https://pypi.org/project/onnxruntime/1.24.4/#files (original wheel RECORD: onnxruntime/ThirdPartyNotices.txt)"
+    },
+    "legal/licenses/wheels/opencv-python-headless/cv2/LICENSE-3RD-PARTY.txt": {
+      "sha256": "55bf7d4a1de21d130a39ca38824eb61ba061edbf8449838634246bde30fde403",
+      "source": "https://pypi.org/project/opencv-python-headless/4.13.0.92/#files (original wheel RECORD: cv2/LICENSE-3RD-PARTY.txt)"
+    },
+    "legal/licenses/wheels/opencv-python-headless/cv2/LICENSE.txt": {
+      "sha256": "edef0fac1eb08d29d34563f724742e078da2513e196133a12c6ad9ff01e26107",
+      "source": "https://pypi.org/project/opencv-python-headless/4.13.0.92/#files (original wheel RECORD: cv2/LICENSE.txt)"
+    },
+    "legal/licenses/wheels/opencv-python-headless/opencv_python_headless-4.13.0.92.dist-info/LICENSE-3RD-PARTY.txt": {
+      "sha256": "55bf7d4a1de21d130a39ca38824eb61ba061edbf8449838634246bde30fde403",
+      "source": "https://pypi.org/project/opencv-python-headless/4.13.0.92/#files (original wheel RECORD: opencv_python_headless-4.13.0.92.dist-info/LICENSE-3RD-PARTY.txt)"
+    },
+    "legal/licenses/wheels/opencv-python-headless/opencv_python_headless-4.13.0.92.dist-info/LICENSE.txt": {
+      "sha256": "edef0fac1eb08d29d34563f724742e078da2513e196133a12c6ad9ff01e26107",
+      "source": "https://pypi.org/project/opencv-python-headless/4.13.0.92/#files (original wheel RECORD: opencv_python_headless-4.13.0.92.dist-info/LICENSE.txt)"
+    },
+    "legal/licenses/wheels/packaging/packaging-26.0.dist-info/licenses/LICENSE": {
+      "sha256": "cad1ef5bd340d73e074ba614d26f7deaca5c7940c3d8c34852e65c4909686c48",
+      "source": "https://pypi.org/project/packaging/26.0/#files (original wheel RECORD: packaging-26.0.dist-info/licenses/LICENSE)"
+    },
+    "legal/licenses/wheels/packaging/packaging-26.0.dist-info/licenses/LICENSE.APACHE": {
+      "sha256": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594",
+      "source": "https://pypi.org/project/packaging/26.0/#files (original wheel RECORD: packaging-26.0.dist-info/licenses/LICENSE.APACHE)"
+    },
+    "legal/licenses/wheels/packaging/packaging-26.0.dist-info/licenses/LICENSE.BSD": {
+      "sha256": "b70e7e9b742f1cc6f948b34c16aa39ffece94196364bc88ff0d2180f0028fac5",
+      "source": "https://pypi.org/project/packaging/26.0/#files (original wheel RECORD: packaging-26.0.dist-info/licenses/LICENSE.BSD)"
+    },
+    "legal/licenses/wheels/piexif/piexif-1.1.3.dist-info/LICENSE.txt": {
+      "sha256": "c9d2e27b56e1c47bb99ffac43d61077019dc54015d5e34d0e84411cce3d1bbde",
+      "source": "https://pypi.org/project/piexif/1.1.3/#files (original wheel RECORD: piexif-1.1.3.dist-info/LICENSE.txt)"
+    },
+    "legal/licenses/wheels/pillow/pillow-12.1.1.dist-info/licenses/LICENSE": {
+      "sha256": "926df5f888a7337fd4126a435202edf2847312be81a167df91a6d70cfa3f2ed3",
+      "source": "https://pypi.org/project/pillow/12.1.1/#files (original wheel RECORD: pillow-12.1.1.dist-info/licenses/LICENSE)"
+    },
+    "legal/licenses/wheels/pillow-heif/pillow_heif-1.3.0.dist-info/licenses/LICENSE.txt": {
+      "sha256": "9e2635f155b00af5a46cb2f2c9b052072ec546d59837ee74efc9cba2cbb83f3d",
+      "source": "https://pypi.org/project/pillow_heif/1.3.0/#files (original wheel RECORD: pillow_heif-1.3.0.dist-info/licenses/LICENSE.txt)"
+    },
+    "legal/licenses/wheels/pillow-heif/pillow_heif-1.3.0.dist-info/licenses/LICENSES_bundled.txt": {
+      "sha256": "200ce164421a7ec6f0742dcacf100551847ad7b16ac58e6f30dd0f36fd8fcf7e",
+      "source": "https://pypi.org/project/pillow_heif/1.3.0/#files (original wheel RECORD: pillow_heif-1.3.0.dist-info/licenses/LICENSES_bundled.txt)"
+    },
+    "legal/licenses/wheels/platformdirs/platformdirs-4.9.4.dist-info/licenses/LICENSE": {
+      "sha256": "29e0fd62e929850e86eb28c3fdccf0cefdf4fa94879011cffb3d0d4bed6d4db6",
+      "source": "https://pypi.org/project/platformdirs/4.9.4/#files (original wheel RECORD: platformdirs-4.9.4.dist-info/licenses/LICENSE)"
+    },
+    "legal/licenses/wheels/pooch/pooch-1.9.0.dist-info/licenses/AUTHORS.md": {
+      "sha256": "6400dc5b23d3c56c955ab82c44fe49db242d4d9a6d9b80f5575d8b9ccdbc4631",
+      "source": "https://pypi.org/project/pooch/1.9.0/#files (original wheel RECORD: pooch-1.9.0.dist-info/licenses/AUTHORS.md)"
+    },
+    "legal/licenses/wheels/pooch/pooch-1.9.0.dist-info/licenses/LICENSE.txt": {
+      "sha256": "af0482d59fc7a9d68d9f64682c74ce6e8a4684406bb3a21a191ae329950916b4",
+      "source": "https://pypi.org/project/pooch/1.9.0/#files (original wheel RECORD: pooch-1.9.0.dist-info/licenses/LICENSE.txt)"
+    },
+    "legal/licenses/wheels/protobuf/protobuf-7.34.0.dist-info/LICENSE": {
+      "sha256": "6e5e117324afd944dcf67f36cf329843bc1a92229a8cd9bb573d7a83130fea7d",
+      "source": "https://pypi.org/project/protobuf/7.34.0/#files (original wheel RECORD: protobuf-7.34.0.dist-info/LICENSE)"
+    },
+    "legal/licenses/wheels/pyclipper/pyclipper-1.4.0.dist-info/licenses/LICENSE": {
+      "sha256": "73c25539e7fb486b834c33747d579e0bc56c0f984294c88f3cb2329420ba300f",
+      "source": "https://pypi.org/project/pyclipper/1.4.0/#files (original wheel RECORD: pyclipper-1.4.0.dist-info/licenses/LICENSE)"
+    },
+    "legal/licenses/wheels/pymatting/pymatting-1.1.15.dist-info/licenses/LICENSE.md": {
+      "sha256": "7be1f2cc0777ebabe655ba85c59ba1026ace94d7d906c791c5ada0e7b4b68323",
+      "source": "https://pypi.org/project/PyMatting/1.1.15/#files (original wheel RECORD: pymatting-1.1.15.dist-info/licenses/LICENSE.md)"
+    },
+    "legal/licenses/wheels/python-bidi/python_bidi-0.6.7.dist-info/licenses/AUTHORS.rst": {
+      "sha256": "6ac414efe1f17dc424fcbefa2c4532d83ae1d43b3238e99669d3b059625a8967",
+      "source": "https://pypi.org/project/python-bidi/0.6.7/#files (original wheel RECORD: python_bidi-0.6.7.dist-info/licenses/AUTHORS.rst)"
+    },
+    "legal/licenses/wheels/python-bidi/python_bidi-0.6.7.dist-info/licenses/COPYING": {
+      "sha256": "0b383d5a63da644f628d99c33976ea6487ed89aaa59f0b3257992deac1171e6b",
+      "source": "https://pypi.org/project/python-bidi/0.6.7/#files (original wheel RECORD: python_bidi-0.6.7.dist-info/licenses/COPYING)"
+    },
+    "legal/licenses/wheels/python-bidi/python_bidi-0.6.7.dist-info/licenses/COPYING.LESSER": {
+      "sha256": "ea7d049c7705dc13afc202dd18e1827f3484f8212fd3fa7b82fc4a0c363432c9",
+      "source": "https://pypi.org/project/python-bidi/0.6.7/#files (original wheel RECORD: python_bidi-0.6.7.dist-info/licenses/COPYING.LESSER)"
+    },
+    "legal/licenses/wheels/python-bidi/python_bidi-0.6.7.dist-info/licenses/LICENSE-THIRD-PARTY.yml": {
+      "sha256": "8244dd3fec5774632922cc1593a1f6e124ff0fc3ce010ee874bec2640ee839a5",
+      "source": "https://pypi.org/project/python-bidi/0.6.7/#files (original wheel RECORD: python_bidi-0.6.7.dist-info/licenses/LICENSE-THIRD-PARTY.yml)"
+    },
+    "legal/licenses/wheels/pyyaml/PyYAML-6.0.2.dist-info/LICENSE": {
+      "sha256": "8d3928f9dc4490fd635707cb88eb26bd764102a7282954307d3e5167a577e8a4",
+      "source": "https://pypi.org/project/PyYAML/6.0.2/#files (original wheel RECORD: PyYAML-6.0.2.dist-info/LICENSE)"
+    },
+    "legal/licenses/wheels/referencing/referencing-0.37.0.dist-info/licenses/COPYING": {
+      "sha256": "42dcd63495f87b4eb7c7757afa379bb55a53f94afd7a5f657d9adf57236e515c",
+      "source": "https://pypi.org/project/referencing/0.37.0/#files (original wheel RECORD: referencing-0.37.0.dist-info/licenses/COPYING)"
+    },
+    "legal/licenses/wheels/rembg/rembg-2.0.73.dist-info/licenses/LICENSE.txt": {
+      "sha256": "90a3215072968fd304669c5389f04f1274a587abdd0507d99dead0f5511f8999",
+      "source": "https://pypi.org/project/rembg/2.0.73/#files (original wheel RECORD: rembg-2.0.73.dist-info/licenses/LICENSE.txt)"
+    },
+    "legal/licenses/wheels/requests/requests-2.32.5.dist-info/licenses/LICENSE": {
+      "sha256": "09e8a9bcec8067104652c168685ab0931e7868f9c8284b66f5ae6edae5f1130b",
+      "source": "https://pypi.org/project/requests/2.32.5/#files (original wheel RECORD: requests-2.32.5.dist-info/licenses/LICENSE)"
+    },
+    "legal/licenses/wheels/rpds-py/rpds_py-0.30.0.dist-info/licenses/LICENSE": {
+      "sha256": "8bcb72c82ea8ae74802293c41d93ad7d51434001b0ae45a603a5af0f507aee0a",
+      "source": "https://pypi.org/project/rpds-py/0.30.0/#files (original wheel RECORD: rpds_py-0.30.0.dist-info/licenses/LICENSE)"
+    },
+    "legal/licenses/wheels/scikit-image/scikit_image-0.26.0.dist-info/LICENSE.txt": {
+      "sha256": "c0ae0d653416915f77a6364eef489ab59fcb319514a806422285cb4359657c5b",
+      "source": "https://pypi.org/project/scikit-image/0.26.0/#files (original wheel RECORD: scikit_image-0.26.0.dist-info/LICENSE.txt)"
+    },
+    "legal/licenses/wheels/scipy/scipy-1.17.1.dist-info/LICENSE.txt": {
+      "sha256": "564d63dbef2ef3eb1dec94908966d3edf5f11c487ee2cf2baf8bf3faef01bdd9",
+      "source": "https://pypi.org/project/scipy/1.17.1/#files (original wheel RECORD: scipy-1.17.1.dist-info/LICENSE.txt)"
+    },
+    "legal/licenses/wheels/scipy/scipy/_lib/_uarray/LICENSE": {
+      "sha256": "e4c4acc31e8287066d7c995d26e3ef902ca1977ee187b260b11c278366503811",
+      "source": "https://pypi.org/project/scipy/1.17.1/#files (original wheel RECORD: scipy/_lib/_uarray/LICENSE)"
+    },
+    "legal/licenses/wheels/scipy/scipy/fft/_pocketfft/LICENSE.md": {
+      "sha256": "c04661685cff9d8035fe1c4c3ab357e7f7633cafc06a73e9d90c3c5fede8a86a",
+      "source": "https://pypi.org/project/scipy/1.17.1/#files (original wheel RECORD: scipy/fft/_pocketfft/LICENSE.md)"
+    },
+    "legal/licenses/wheels/scipy/scipy/integrate/LICENSE_DOP": {
+      "sha256": "6cc2ed6e35b8f376ff3d8f86aeef4e0c34c2309bd6f4a0565936d577839ba023",
+      "source": "https://pypi.org/project/scipy/1.17.1/#files (original wheel RECORD: scipy/integrate/LICENSE_DOP)"
+    },
+    "legal/licenses/wheels/scipy/scipy/spatial/qhull_src/COPYING_QHULL.txt": {
+      "sha256": "2a6ebb495e26dd5f88cbc40c593733da6edb27b64936f70409cd5a1acafb1c32",
+      "source": "https://pypi.org/project/scipy/1.17.1/#files (original wheel RECORD: scipy/spatial/qhull_src/COPYING_QHULL.txt)"
+    },
+    "legal/licenses/wheels/setuptools/setuptools-81.0.0.dist-info/licenses/LICENSE": {
+      "sha256": "86da0f01aeae46348a3c3d465195dc1ceccde79f79e87769a64b8da04b2a4741",
+      "source": "https://pypi.org/project/setuptools/81.0.0/#files (original wheel RECORD: setuptools-81.0.0.dist-info/licenses/LICENSE)"
+    },
+    "legal/licenses/wheels/setuptools/setuptools/_vendor/autocommand-2.2.2.dist-info/LICENSE": {
+      "sha256": "ade78d04982d69972d444a8e14a94f87a2334dd3855cc80348ea8e240aa0df2d",
+      "source": "https://pypi.org/project/setuptools/81.0.0/#files (original wheel RECORD: setuptools/_vendor/autocommand-2.2.2.dist-info/LICENSE)"
+    },
+    "legal/licenses/wheels/setuptools/setuptools/_vendor/backports.tarfile-1.2.0.dist-info/LICENSE": {
+      "sha256": "86da0f01aeae46348a3c3d465195dc1ceccde79f79e87769a64b8da04b2a4741",
+      "source": "https://pypi.org/project/setuptools/81.0.0/#files (original wheel RECORD: setuptools/_vendor/backports.tarfile-1.2.0.dist-info/LICENSE)"
+    },
+    "legal/licenses/wheels/setuptools/setuptools/_vendor/importlib_metadata-8.7.1.dist-info/licenses/LICENSE": {
+      "sha256": "458502e12d97bbf64438606a20044aa85eb05fb0a8a807bb35dbec253fd1fc04",
+      "source": "https://pypi.org/project/setuptools/81.0.0/#files (original wheel RECORD: setuptools/_vendor/importlib_metadata-8.7.1.dist-info/licenses/LICENSE)"
+    },
+    "legal/licenses/wheels/setuptools/setuptools/_vendor/jaraco.text-4.0.0.dist-info/LICENSE": {
+      "sha256": "86da0f01aeae46348a3c3d465195dc1ceccde79f79e87769a64b8da04b2a4741",
+      "source": "https://pypi.org/project/setuptools/81.0.0/#files (original wheel RECORD: setuptools/_vendor/jaraco.text-4.0.0.dist-info/LICENSE)"
+    },
+    "legal/licenses/wheels/setuptools/setuptools/_vendor/jaraco_context-6.1.0.dist-info/licenses/LICENSE": {
+      "sha256": "9755a18519666e5f0f4cae3daad3d7012bcae48a600b31237d75e9fe134e6683",
+      "source": "https://pypi.org/project/setuptools/81.0.0/#files (original wheel RECORD: setuptools/_vendor/jaraco_context-6.1.0.dist-info/licenses/LICENSE)"
+    },
+    "legal/licenses/wheels/setuptools/setuptools/_vendor/jaraco_functools-4.4.0.dist-info/licenses/LICENSE": {
+      "sha256": "5a57cb4db85e2a2dd88c290628908add57e3451449e0a9a71fdfb38776fd759d",
+      "source": "https://pypi.org/project/setuptools/81.0.0/#files (original wheel RECORD: setuptools/_vendor/jaraco_functools-4.4.0.dist-info/licenses/LICENSE)"
+    },
+    "legal/licenses/wheels/setuptools/setuptools/_vendor/more_itertools-10.8.0.dist-info/licenses/LICENSE": {
+      "sha256": "09f1c8c9e941af3e584d59641ea9b87d83c0cb0fd007eb5ef391a7e2643c1a46",
+      "source": "https://pypi.org/project/setuptools/81.0.0/#files (original wheel RECORD: setuptools/_vendor/more_itertools-10.8.0.dist-info/licenses/LICENSE)"
+    },
+    "legal/licenses/wheels/setuptools/setuptools/_vendor/packaging-26.0.dist-info/licenses/LICENSE": {
+      "sha256": "cad1ef5bd340d73e074ba614d26f7deaca5c7940c3d8c34852e65c4909686c48",
+      "source": "https://pypi.org/project/setuptools/81.0.0/#files (original wheel RECORD: setuptools/_vendor/packaging-26.0.dist-info/licenses/LICENSE)"
+    },
+    "legal/licenses/wheels/setuptools/setuptools/_vendor/packaging-26.0.dist-info/licenses/LICENSE.APACHE": {
+      "sha256": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594",
+      "source": "https://pypi.org/project/setuptools/81.0.0/#files (original wheel RECORD: setuptools/_vendor/packaging-26.0.dist-info/licenses/LICENSE.APACHE)"
+    },
+    "legal/licenses/wheels/setuptools/setuptools/_vendor/packaging-26.0.dist-info/licenses/LICENSE.BSD": {
+      "sha256": "b70e7e9b742f1cc6f948b34c16aa39ffece94196364bc88ff0d2180f0028fac5",
+      "source": "https://pypi.org/project/setuptools/81.0.0/#files (original wheel RECORD: setuptools/_vendor/packaging-26.0.dist-info/licenses/LICENSE.BSD)"
+    },
+    "legal/licenses/wheels/setuptools/setuptools/_vendor/platformdirs-4.4.0.dist-info/licenses/LICENSE": {
+      "sha256": "29e0fd62e929850e86eb28c3fdccf0cefdf4fa94879011cffb3d0d4bed6d4db6",
+      "source": "https://pypi.org/project/setuptools/81.0.0/#files (original wheel RECORD: setuptools/_vendor/platformdirs-4.4.0.dist-info/licenses/LICENSE)"
+    },
+    "legal/licenses/wheels/setuptools/setuptools/_vendor/tomli-2.4.0.dist-info/licenses/LICENSE": {
+      "sha256": "b80816b0d530b8accb4c2211783790984a6e3b61922c2b5ee92f3372ab2742fe",
+      "source": "https://pypi.org/project/setuptools/81.0.0/#files (original wheel RECORD: setuptools/_vendor/tomli-2.4.0.dist-info/licenses/LICENSE)"
+    },
+    "legal/licenses/wheels/setuptools/setuptools/_vendor/wheel-0.46.3.dist-info/licenses/LICENSE.txt": {
+      "sha256": "30c23618679108f3e8ea1d2a658c7ca417bdfc891c98ef1a89fa4ff0c9828654",
+      "source": "https://pypi.org/project/setuptools/81.0.0/#files (original wheel RECORD: setuptools/_vendor/wheel-0.46.3.dist-info/licenses/LICENSE.txt)"
+    },
+    "legal/licenses/wheels/setuptools/setuptools/_vendor/zipp-3.23.0.dist-info/licenses/LICENSE": {
+      "sha256": "5a57cb4db85e2a2dd88c290628908add57e3451449e0a9a71fdfb38776fd759d",
+      "source": "https://pypi.org/project/setuptools/81.0.0/#files (original wheel RECORD: setuptools/_vendor/zipp-3.23.0.dist-info/licenses/LICENSE)"
+    },
+    "legal/licenses/wheels/setuptools/setuptools/config/NOTICE": {
+      "sha256": "2dddf08818297a3b89d43d95ff659d8da85741108c9136dfa3a4d856c0623bd8",
+      "source": "https://pypi.org/project/setuptools/81.0.0/#files (original wheel RECORD: setuptools/config/NOTICE)"
+    },
+    "legal/licenses/wheels/setuptools/setuptools/config/_validate_pyproject/NOTICE": {
+      "sha256": "5d300dbfa643138b013b75ac9caeee591f951b8b0ee24288c34ccd926c4780c8",
+      "source": "https://pypi.org/project/setuptools/81.0.0/#files (original wheel RECORD: setuptools/config/_validate_pyproject/NOTICE)"
+    },
+    "legal/licenses/wheels/shapely/shapely-2.1.2.dist-info/licenses/LICENSE.txt": {
+      "sha256": "e8cd7d34604d2758ff589f0f34d6ed79c3f7fb14aaf5e12fb09221421391a3bf",
+      "source": "https://pypi.org/project/shapely/2.1.2/#files (original wheel RECORD: shapely-2.1.2.dist-info/licenses/LICENSE.txt)"
+    },
+    "legal/licenses/wheels/shapely/shapely-2.1.2.dist-info/licenses/LICENSE_GEOS": {
+      "sha256": "91a5bb11df4d44bfddc0c68db43681705326107781599fb6c6ff821042072d64",
+      "source": "https://pypi.org/project/shapely/2.1.2/#files (original wheel RECORD: shapely-2.1.2.dist-info/licenses/LICENSE_GEOS)"
+    },
+    "legal/licenses/wheels/shapely/shapely-2.1.2.dist-info/licenses/LICENSE_win32": {
+      "sha256": "9b30cd1a09789884dd54e5828e31d2bf8e6879034e7cf7b6e0321444cf6dd11d",
+      "source": "https://pypi.org/project/shapely/2.1.2/#files (original wheel RECORD: shapely-2.1.2.dist-info/licenses/LICENSE_win32)"
+    },
+    "legal/licenses/wheels/sympy/sympy-1.14.0.dist-info/licenses/AUTHORS": {
+      "sha256": "82b1038521b0696c63c90b31ed4a0a2c9c4c16871c648b157b07ca44b6f18f8d",
+      "source": "https://pypi.org/project/sympy/1.14.0/#files (original wheel RECORD: sympy-1.14.0.dist-info/licenses/AUTHORS)"
+    },
+    "legal/licenses/wheels/sympy/sympy-1.14.0.dist-info/licenses/LICENSE": {
+      "sha256": "07a5e9819f727b4986ad2829c7a29a6320d42575f720eb24d71b7fef573a0286",
+      "source": "https://pypi.org/project/sympy/1.14.0/#files (original wheel RECORD: sympy-1.14.0.dist-info/licenses/LICENSE)"
+    },
+    "legal/licenses/wheels/sympy/sympy/parsing/latex/LICENSE.txt": {
+      "sha256": "007bc30a58fa40a996e772047120de4eaf31f5110e4f9c3b5f93fcdfbe2eaca1",
+      "source": "https://pypi.org/project/sympy/1.14.0/#files (original wheel RECORD: sympy/parsing/latex/LICENSE.txt)"
+    },
+    "legal/licenses/wheels/tbb/_parent_/_parent_/Library/share/doc/tbb/licensing/third-party-programs.txt": {
+      "sha256": "1f6de0bd498c04c9283c6306379e2db2492e1c4e7d2b248c8de0e8fe9124cd03",
+      "source": "https://pypi.org/project/tbb/2022.3.1/#files (original wheel RECORD: _parent_/_parent_/Library/share/doc/tbb/licensing/third-party-programs.txt)"
+    },
+    "legal/licenses/wheels/tbb/tbb-2022.3.1.dist-info/LICENSE.txt": {
+      "sha256": "7721633d0ddff43fae25ebfd405f8166a0ce730cbcec44f2f3ad9d5eb8ac9a6f",
+      "source": "https://pypi.org/project/tbb/2022.3.1/#files (original wheel RECORD: tbb-2022.3.1.dist-info/LICENSE.txt)"
+    },
+    "legal/licenses/wheels/tcmlib/_parent_/_parent_/Library/share/doc/tcm/licensing/license.txt": {
+      "sha256": "6c00ae54b2a610ea009e0f5c5d3aa79023eb694c7fb72857654c53c6e99d7c97",
+      "source": "https://pypi.org/project/tcmlib/1.5.0/#files (original wheel RECORD: _parent_/_parent_/Library/share/doc/tcm/licensing/license.txt)"
+    },
+    "legal/licenses/wheels/tcmlib/_parent_/_parent_/Library/share/doc/tcm/licensing/third-party-programs.txt": {
+      "sha256": "0c359ebe1a1c58c3bb42eb228b6c3310361fe75d99ddb2fa29c536bf2a290955",
+      "source": "https://pypi.org/project/tcmlib/1.5.0/#files (original wheel RECORD: _parent_/_parent_/Library/share/doc/tcm/licensing/third-party-programs.txt)"
+    },
+    "legal/licenses/wheels/tcmlib/tcmlib-1.5.0.dist-info/LICENSE.txt": {
+      "sha256": "7721633d0ddff43fae25ebfd405f8166a0ce730cbcec44f2f3ad9d5eb8ac9a6f",
+      "source": "https://pypi.org/project/tcmlib/1.5.0/#files (original wheel RECORD: tcmlib-1.5.0.dist-info/LICENSE.txt)"
+    },
+    "legal/licenses/wheels/tifffile/tifffile-2026.3.3.dist-info/licenses/LICENSE": {
+      "sha256": "65e641f17cfce25ed2c02f0d53c94cfa2382cc8817eca649a7fff2b890114aa4",
+      "source": "https://pypi.org/project/tifffile/2026.3.3/#files (original wheel RECORD: tifffile-2026.3.3.dist-info/licenses/LICENSE)"
+    },
+    "legal/licenses/wheels/torch/torch-2.11.0.dist-info/LICENSE": {
+      "sha256": "cf5ec789ea8e9fcaba4766fcde2d6804312a1295e55b176a31c7a2982efc6090",
+      "source": "https://pypi.org/project/torch/2.11.0/#files (original wheel RECORD: torch-2.11.0.dist-info/LICENSE)"
+    },
+    "legal/licenses/wheels/torch/torch-2.11.0.dist-info/NOTICE": {
+      "sha256": "1c3dec6c0342c7ed9e12af59b296c7bb1d394af5cf881db74191cc8299efce5c",
+      "source": "https://pypi.org/project/torch/2.11.0/#files (original wheel RECORD: torch-2.11.0.dist-info/NOTICE)"
+    },
+    "legal/licenses/wheels/torchvision/torchvision-0.26.0.dist-info/LICENSE": {
+      "sha256": "c06363f9d33627dc5173b13522444cc85fbb4739f63e16d4587d5c0a165b5b1e",
+      "source": "https://pypi.org/project/torchvision/0.26.0/#files (original wheel RECORD: torchvision-0.26.0.dist-info/LICENSE)"
+    },
+    "legal/licenses/wheels/tqdm/tqdm-4.67.3.dist-info/licenses/LICENCE": {
+      "sha256": "fcff87c3a47ce8028a8512aa182d4fcf0ad1c90544ee75cf9b343684cac194de",
+      "source": "https://pypi.org/project/tqdm/4.67.3/#files (original wheel RECORD: tqdm-4.67.3.dist-info/licenses/LICENCE)"
+    },
+    "legal/licenses/wheels/typing-extensions/typing_extensions-4.15.0.dist-info/licenses/LICENSE": {
+      "sha256": "3b2f81fe21d181c499c59a256c8e1968455d6689d269aa85373bfb6af41da3bf",
+      "source": "https://pypi.org/project/typing_extensions/4.15.0/#files (original wheel RECORD: typing_extensions-4.15.0.dist-info/licenses/LICENSE)"
+    },
+    "legal/licenses/wheels/urllib3/urllib3-2.2.3.dist-info/licenses/LICENSE.txt": {
+      "sha256": "130e3a64d5fdd5d096a752694634a7d9df284469de86e5732100268041e3d686",
+      "source": "https://pypi.org/project/urllib3/2.2.3/#files (original wheel RECORD: urllib3-2.2.3.dist-info/licenses/LICENSE.txt)"
+    },
+    "LICENSE": {
+      "sha256": "a9345a114d9ae92402cf65cacdc28b23ce0b306529e51f315c69a955a6b9ad58",
+      "source": "Yagua repository; original notices retain their upstream provenance"
+    },
+    "THIRD_PARTY_NOTICES.md": {
+      "sha256": "a7c3af1349949588070ba85798439dceada9febbcfb3d10da6c28da42a547869",
+      "source": "Yagua repository; upstream source archive URLs in legal/sources/manifest.json"
+    },
+    "legal/README.md": {
+      "sha256": "ca1738f798ba2bf2452ed2fa78c7aeadeb058be4dd54248003d49c0df2461022",
+      "source": "Yagua repository; upstream source archive URLs in legal/sources/manifest.json"
+    },
+    "legal/REVIEW.md": {
+      "sha256": "4dffb17213efd38b070a1281cc7e1b1a46ee91c58cf7dd3803d56a9aa98fd334",
+      "source": "Yagua repository; upstream source archive URLs in legal/sources/manifest.json"
+    },
+    "assets/fonts/noto-cjk/LICENSE": {
+      "sha256": "6a73f9541c2de74158c0e7cf6b0a58ef774f5a780bf191f2d7ec9cc53efe2bf2",
+      "source": "Yagua repository; original notices retain their upstream provenance"
+    },
+    "assets/fonts/noto-cjk/manifest.json": {
+      "sha256": "338b87815bc75977e4a8f4b36c6a2c55b9a9561dea0905302c84f9d82870b6a5",
+      "source": "Yagua repository; original notices retain their upstream provenance"
+    },
+    "legal/sources/certifi-2026.2.25.tar.gz": {
+      "sha256": "e887ab5cee78ea814d3472169153c2d12cd43b14bd03329a39a9c6e2e80bfba7",
+      "source": "https://files.pythonhosted.org/packages/af/2d/7bf41579a8986e348fa033a31cdd0e4121114f6bce2457e8876010b092dd/certifi-2026.2.25.tar.gz"
+    },
+    "legal/sources/pillow_heif-1.3.0.tar.gz": {
+      "sha256": "af8d2bda85e395677d5bb50d7bda3b5655c946cc95b913b5e7222fabacbb467f",
+      "source": "https://files.pythonhosted.org/packages/cd/58/2df4fc42840633e01c97b75965cb1bc6e14425973b92382391650e97e4b7/pillow_heif-1.3.0.tar.gz"
+    },
+    "legal/sources/python_bidi-0.6.7.tar.gz": {
+      "sha256": "c10065081c0e137975de5d9ba2ff2306286dbf5e0c586d4d5aec87c856239b41",
+      "source": "https://files.pythonhosted.org/packages/ed/e3/c0c8bf6fca79ac946a28d57f116e3b9e5b10a4469b6f70bf73f3744c49bf/python_bidi-0.6.7.tar.gz"
+    },
+    "legal/sources/shapely-2.1.2.tar.gz": {
+      "sha256": "2ed4ecb28320a433db18a5bf029986aa8afcfd740745e78847e330d5d94922a9",
+      "source": "https://files.pythonhosted.org/packages/4d/bc/0989043118a27cccb4e906a46b7565ce36ca7b57f5a18b78f4f1b0f72d9d/shapely-2.1.2.tar.gz"
+    },
+    "legal/sources/tqdm-4.67.3.tar.gz": {
+      "sha256": "7d825f03f89244ef73f1d4ce193cb1774a8179fd96f31d7e1dcde62092b960bb",
+      "source": "https://files.pythonhosted.org/packages/09/a9/6ba95a270c6f1fbcd8dac228323f2777d886cb206987444e4bce66338dd4/tqdm-4.67.3.tar.gz"
+    },
+    "legal/sources/manifest.json": {
+      "sha256": "01e14100048c1720b0bf67cbbffb427d9ffa559923befc34d00f2b9397956bed",
+      "source": "Yagua repository; upstream source archive URLs in legal/sources/manifest.json"
+    },
+    "legal/SOURCE_CODE.md": {
+      "sha256": "4c07f29f82a756489f82e7210f7a541c59c3e9d194eeab0d1d3a34e7a02ca4d5",
+      "source": "Yagua repository; upstream source archive URLs in legal/sources/manifest.json"
+    },
+    "legal/sources/libheif-1.21.2-62f1b8c76ed4.tar.gz": {
+      "sha256": "3238dbed24a1f1cbde9611e59ecd5f14fbf85a6997d465d8c09dfed1bcc9b40a",
+      "source": "https://codeload.github.com/strukturag/libheif/tar.gz/62f1b8c76ed4d8305071fdacbe74ef9717bacac5"
+    },
+    "legal/sources/libde265-1.0.16-7ba65889d3d6.tar.gz": {
+      "sha256": "9dedf12d5b5047c270d1fc54f5d92fc29d9ea21b94d3f2d998200258353189a0",
+      "source": "https://codeload.github.com/strukturag/libde265/tar.gz/7ba65889d3d6d8a0d99b5360b028243ba843be3a"
+    },
+    "legal/sources/geos-3.13.1-431568d6e311.tar.gz": {
+      "sha256": "2919ec2d371f007ad19a93ea8befc4a75badc192a792a2a1352b20397e5f9cd3",
+      "source": "https://codeload.github.com/libgeos/geos/tar.gz/431568d6e311e0bbfb057b4ec3d44d0d3ba3335f"
+    },
+    "legal/sources/x265-4.1-plus1-1d117bed4747.tar.gz": {
+      "sha256": "7d23cdcdbd510728202c0dfbf7c51eda26a395de2096c504c2b10d6035711102",
+      "source": "https://bitbucket.org/multicoreware/x265_git/get/1d117be.tar.gz"
+    }
+  },
+  "review_required": [
+    "copyleft-corresponding-source",
+    "intel-binary-terms",
+    "model-weight-permissions",
+    "individual-icon-provenance",
+    "native-platform-license-review",
+    "codec-patents"
+  ],
+  "source_archives_manifest": "legal/sources/manifest.json"
+}

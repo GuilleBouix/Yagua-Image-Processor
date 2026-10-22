@@ -20,6 +20,7 @@ en la aplicación organizadas por seccion:
 """
 
 TRANSLATIONS = {
+    'documentation': 'Documentación',
     # App
     'app_title': 'Yagua - Procesador de Imágenes',
     'loading_model': 'Cargando modelo...',
@@ -573,4 +574,16 @@ TRANSLATIONS.update({
     'meta_images_count': '{count} imágenes',
     'meta_selected_one': '{marked} seleccionada',
     'meta_selected_count': '{marked} seleccionadas',
+})
+
+# Local legal information in Settings.
+TRANSLATIONS.update({
+    "legal_title": "Archivos, conexiones y licencias",
+    "legal_originals": "Renombrar y editar metadatos modifican los archivos seleccionados. Recomendamos trabajar sobre copias de seguridad.",
+    "legal_connections": "Las imágenes se procesan localmente. Buscar actualizaciones consulta GitHub; OCR y quitar fondo descargan modelos cuando faltan. Los proveedores reciben tu IP y datos técnicos de conexión. Al abrir Maps, las coordenadas se envían a Google desde el navegador. Otros enlaces abren sitios externos.",
+    "legal_open": "Ver licencias",
+    "legal_third_party": "Terceros",
+    "legal_sources": "Código fuente",
+    "legal_folder": "Abrir carpeta legal",
+    "legal_error": "No se pudo abrir el recurso legal local."
 })

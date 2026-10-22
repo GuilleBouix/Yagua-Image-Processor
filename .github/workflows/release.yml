@@ -86,6 +86,20 @@ jobs:
           python scripts/ci/probe_package.py dist/Yagua/Yagua.exe reports/windows-probe
           if ($LASTEXITCODE -ne 0) { throw 'Online/offline package checks failed' }
 
+      - name: Verify packaged licenses and record native inventory
+        shell: pwsh
+        run: |
+          python scripts/ci/check_licenses.py --package dist/Yagua --platform win32 --models reports/windows-probe/models --report reports/windows-licenses.json
+          if ($LASTEXITCODE -ne 0) { throw 'Packaged legal resources failed verification' }
+
+      - name: Preserve technical license report
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-licenses-${{ steps.ver.outputs.version }}
+          path: reports/windows-licenses.json
+          if-no-files-found: error
+          retention-days: 14
+
       - name: Install Inno Setup
         shell: pwsh
         run: |

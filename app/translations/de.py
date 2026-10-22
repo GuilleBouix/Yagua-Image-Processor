@@ -4,6 +4,7 @@ Diccionario de textos para la interfaz en idioma aleman.
 """
 
 TRANSLATIONS = {
+    'documentation': 'Dokumentation',
     # App
     'app_title': 'Yagua - Bildprozessor',
     'loading_model': 'Modell wird geladen...',
@@ -556,4 +557,16 @@ TRANSLATIONS.update({
     'meta_images_count': '{count} Bilder',
     'meta_selected_one': '{marked} ausgewählt',
     'meta_selected_count': '{marked} ausgewählt',
+})
+
+# Local legal information in Settings.
+TRANSLATIONS.update({
+    "legal_title": "Dateien, Verbindungen und Lizenzen",
+    "legal_originals": "Umbenennen und Bearbeiten von Metadaten verändert die ausgewählten Dateien. Wir empfehlen, mit Sicherungskopien zu arbeiten.",
+    "legal_connections": "Bilder werden lokal verarbeitet. Die Update-Suche kontaktiert GitHub; OCR und Hintergrundentfernung laden fehlende Modelle herunter. Anbieter erhalten Ihre IP-Adresse und technische Verbindungsdaten. Beim Öffnen von Maps werden Koordinaten über den Browser an Google gesendet. Andere Links öffnen externe Websites.",
+    "legal_open": "Lizenzen anzeigen",
+    "legal_third_party": "Drittanbieter",
+    "legal_sources": "Quellcode",
+    "legal_folder": "Lizenzordner öffnen",
+    "legal_error": "Die lokale Lizenzressource konnte nicht geöffnet werden."
 })

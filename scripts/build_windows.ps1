@@ -30,6 +30,7 @@ $buildPython = "$OutputRoot/build-env/Scripts/python.exe"
 Invoke-Checked $buildPython @('-m', 'pip', 'install', '-r', 'requirements.txt', '-r', 'requirements-build.txt')
 Invoke-Checked $buildPython @('-m', 'pip', 'check')
 Invoke-Checked $buildPython @('-m', 'PyInstaller', '--clean', '--noconfirm', '--distpath', "$OutputRoot/dist", '--workpath', "$OutputRoot/work", 'Yagua.spec')
+Invoke-Checked $buildPython @('scripts/ci/check_licenses.py', '--package', "$OutputRoot/dist/Yagua", '--platform', 'win32', '--report', "$OutputRoot/licenses.json")
 Invoke-Checked python @('scripts/ci/probe_package.py', "$OutputRoot/dist/Yagua/Yagua.exe", "$OutputRoot/preflight", '--preflight')
 Write-Host "Build: $OutputRoot/dist/Yagua"
 Write-Host 'Faltan las pruebas reales online/offline y el limite total antes de distribuir.'
