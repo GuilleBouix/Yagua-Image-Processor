@@ -11,7 +11,6 @@ from app.ui.scale import scale_wraplength
 from app.translations import t
 from app.utils import tintar_icono
 from app.utils.project_links import open_project_page
-from app.version import __version__
 from app.ui.module_registry import iter_enabled_modules
 
 
@@ -199,14 +198,9 @@ class HomeFrame(ctk.CTkScrollableFrame):
         )
         yield
 
-        self._lbl_version = ctk.CTkLabel(
-            content, text=f"{t('current_version')}: v{__version__}",
+        self._lbl_preload_errors = ctk.CTkLabel(
+            content, text='',
             font=fonts.FUENTE_CHICA, text_color=colors.TEXT_GRAY,
-        )
-        yield
-        self._lbl_version.grid(
-            row=1 + (len(self._tool_buttons) + 2) // 2,
-            column=0, columnspan=2, pady=(16, 0), sticky="w",
         )
         yield
 
@@ -215,5 +209,9 @@ class HomeFrame(ctk.CTkScrollableFrame):
             self._on_select(key)
 
     def show_preload_errors(self, labels):
-        self._lbl_version.configure(text=t('startup_partial').format(modules=labels),
-                                    wraplength=600, justify='left')
+        self._lbl_preload_errors.configure(text=t('startup_partial').format(modules=labels),
+                                           wraplength=600, justify='left')
+        self._lbl_preload_errors.grid(
+            row=1 + (len(self._tool_buttons) + 2) // 2,
+            column=0, columnspan=2, pady=(16, 0), sticky='w',
+        )

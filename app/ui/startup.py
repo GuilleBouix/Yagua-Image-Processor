@@ -30,7 +30,7 @@ class LoadingScreen(ctk.CTkFrame):
         try:
             with Image.open(resource_path('assets/icon.png')) as source:
                 logo = source.convert('RGBA')
-            logo.thumbnail((135, 135))
+            logo.thumbnail((180, 180))
             self.logo = ctk.CTkImage(light_image=logo, dark_image=logo, size=logo.size)
         except OSError:
             self.logo = None

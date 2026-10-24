@@ -5,7 +5,7 @@ import webbrowser
 from app.translations import get_language
 
 
-WEBSITE_URL = 'https://yagua.app'
+WEBSITE_URL = 'https://yagua.bouixdev.workers.dev'
 
 
 def open_project_page(*, documentation=False):

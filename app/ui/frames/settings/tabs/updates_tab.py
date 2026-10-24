@@ -53,17 +53,6 @@ class UpdatesTab(ctk.CTkFrame):
         ).grid(row=0, column=0, padx=16, pady=(16, 4), sticky="w")
         yield
 
-        self._lbl_version = ctk.CTkLabel(
-            panel,
-            text=f"{t('current_version')}: v{__version__}",
-            font=fonts.FUENTE_CHICA,
-            text_color=colors.TEXT_GRAY,
-            anchor="w",
-        )
-        yield
-        self._lbl_version.grid(row=1, column=0, padx=16, pady=(0, 6), sticky="w")
-        yield
-
         self._lbl_update_status = ctk.CTkLabel(
             panel,
             text=t("no_updates"),
@@ -72,7 +61,7 @@ class UpdatesTab(ctk.CTkFrame):
             anchor="w",
         )
         yield
-        self._lbl_update_status.grid(row=2, column=0, padx=16, pady=(0, 8), sticky="w")
+        self._lbl_update_status.grid(row=1, column=0, padx=16, pady=(0, 8), sticky="w")
         yield
 
         self._btn_check_updates = styles.Button(
@@ -85,7 +74,7 @@ class UpdatesTab(ctk.CTkFrame):
             command=self._check_updates,
         )
         yield
-        self._btn_check_updates.grid(row=3, column=0, padx=16, pady=(0, 10), sticky="w")
+        self._btn_check_updates.grid(row=2, column=0, padx=16, pady=(0, 10), sticky="w")
         yield
 
         # Botón de descarga (se muestra solo si hay update)
@@ -98,7 +87,7 @@ class UpdatesTab(ctk.CTkFrame):
             command=self._abrir_release,
         )
         yield
-        self._btn_download.grid(row=4, column=0, padx=16, pady=(0, 16), sticky="w")
+        self._btn_download.grid(row=3, column=0, padx=16, pady=(0, 16), sticky="w")
         yield
         self._btn_download.grid_remove()
         yield
@@ -111,7 +100,7 @@ class UpdatesTab(ctk.CTkFrame):
             anchor="w",
         )
         yield
-        self._lbl_manual.grid(row=5, column=0, padx=16, pady=(0, 16), sticky="w")
+        self._lbl_manual.grid(row=4, column=0, padx=16, pady=(0, 16), sticky="w")
         yield
         self._lbl_manual.grid_remove()
         yield

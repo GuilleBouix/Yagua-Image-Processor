@@ -27,6 +27,12 @@ WizardStyle=modern
 Name: "spanish"; MessagesFile: "compiler:Languages\Spanish.isl"
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
+[CustomMessages]
+spanish.ThanksURL=https://yagua.bouixdev.workers.dev/es/thanks/
+english.ThanksURL=https://yagua.bouixdev.workers.dev/en/thanks/
+spanish.OpenThanksPage=Abrir la página de gracias por descargar Yagua
+english.OpenThanksPage=Open the thank-you page for downloading Yagua
+
 [Files]
 Source: "dist\Yagua\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
@@ -39,3 +45,4 @@ Name: "desktopicon"; Description: "Crear acceso directo en el escritorio"; Group
 
 [Run]
 Filename: "{app}\Yagua.exe"; Description: "Ejecutar Yagua"; Flags: nowait postinstall skipifsilent
+Filename: "{cm:ThanksURL}"; Description: "{cm:OpenThanksPage}"; Flags: shellexec nowait postinstall skipifsilent

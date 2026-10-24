@@ -120,7 +120,7 @@ class SettingsFrame(BaseFrame):
             text=t('donate_paypal_btn'),
             image=icon_donar,
             compound='left',
-            width=150,
+            width=175,
             height=30,
             font=fonts.FUENTE_CHICA,
             command=lambda: webbrowser.open(PAYPAL_DONATION_URL)
