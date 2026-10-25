@@ -32,7 +32,7 @@ class CompressFrame(BaseFrame):
     Frame del modulo de compresion de imagenes.
     
     Permite seleccionar imagenes, configurar calidad y
-    compresion EXIF, y comprimir las imagenes seleccionadas.
+    comprimir las imagenes seleccionadas.
     """
     
     design_system = True
@@ -54,7 +54,7 @@ class CompressFrame(BaseFrame):
         Construye el contenido especifico del modulo.
         
         Incluye boton de seleccion, lista de archivos,
-        panel de opciones con calidad y toggle de EXIF,
+        panel de opciones con calidad y guardado,
         y boton de comprimir.
         """
         logger.info("compress.ui: build_content")
@@ -103,7 +103,7 @@ class CompressFrame(BaseFrame):
         """
         Construye los controles del panel de opciones.
         
-        Incluye slider de calidad, toggle de EXIF y
+        Incluye slider de calidad, opciones de guardado y
         boton de comprimir.
         """
         p = self._panel_opciones
@@ -153,24 +153,7 @@ class CompressFrame(BaseFrame):
         self._lbl_calidad.grid(row=0, column=1)
         yield
 
-        # Label de eliminar EXIF
-        ctk.CTkLabel(
-            p, text=t('remove_exif'),
-            font=fonts.FUENTE_BASE,
-            text_color=colors.TEXT_GRAY, anchor='w'
-        ).grid(row=1, column=0, padx=(16, 12), pady=(8, 16), sticky='w')
-        yield
-
-        # Toggle de eliminar EXIF
-        self._switch_exif = styles.Switch(
-            p, text='',
-            variable=self._state.quitar_exif,
-            onvalue=True, offvalue=False,
-        )
-        self._switch_exif.grid(row=1, column=1, padx=(0, 16), pady=(8, 16), sticky='w')
-        yield
-
-        yield from self._build_save_selector(p, 2, columnspan=2)
+        yield from self._build_save_selector(p, 1, columnspan=2)
 
         # Boton de comprimir
         self._btn_comprimir = self._new_button(
@@ -181,7 +164,7 @@ class CompressFrame(BaseFrame):
             command=self._comprimir
         )
         yield
-        self._btn_comprimir.grid(row=3, column=0, columnspan=2, padx=16, pady=(0, 16), sticky='ew')
+        self._btn_comprimir.grid(row=2, column=0, columnspan=2, padx=16, pady=(0, 16), sticky='ew')
         yield
 
     def _cargar_imagenes(self, rutas):
@@ -235,15 +218,15 @@ class CompressFrame(BaseFrame):
             return
         
         paths = tuple(self._imagenes)
-        quality, strip = self._state.calidad.get(), self._state.quitar_exif.get()
+        quality = self._state.calidad.get()
         def start(folder, plan):
             self._show_full_overlay(t('processing'))
             self._submit_job(lambda: batch_comprimir(paths, folder, calidad=quality,
-                quitar_exif=strip, output_policy=plan), button=self._btn_comprimir,
-                text=t('compress_btn'), on_success=lambda res: self._finish_save(res, strip=strip))
+                quitar_exif=False, output_policy=plan), button=self._btn_comprimir,
+                text=t('compress_btn'), on_success=self._finish_save)
         self._prepare_save(paths, None, start)
 
-    def _proceso(self, carpeta, paths, quality, strip):
+    def _proceso(self, carpeta, paths, quality):
         """
         Ejecuta la compresion en segundo plano.
         
@@ -254,7 +237,7 @@ class CompressFrame(BaseFrame):
             paths,
             carpeta,
             calidad=quality,
-            quitar_exif=strip,
+            quitar_exif=False,
         )
         self._post_ui(0, lambda: self._finalizar(
             res['ok'],

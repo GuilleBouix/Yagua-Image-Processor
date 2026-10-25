@@ -238,8 +238,7 @@ def test_processing_restores_visual_roles(ui_root, monkeypatch, outcome, view_cl
         if isinstance(frame, ConvertFrame):
             assert all(b.cget('fg_color') == styles.palette().disabled for b in frame._seg_formato._buttons_dict.values())
         else:
-            assert frame._switch_exif.cget('state') == 'disabled'
-            assert frame._switch_exif.cget('button_color') == styles.palette().muted
+            assert frame._slider.cget('state') == 'disabled'
     operations.drain(lambda owner: bool(owner.winfo_exists()))
     assert not operations.is_busy()
     assert primary.cget('fg_color') == styles.palette().primary
@@ -247,8 +246,7 @@ def test_processing_restores_visual_roles(ui_root, monkeypatch, outcome, view_cl
     if isinstance(frame, ConvertFrame):
         assert frame._seg_formato._buttons_dict['WEBP'].cget('fg_color') == styles.palette().primary
     else:
-        assert frame._switch_exif.cget('state') == 'normal'
-        assert frame._switch_exif.cget('button_color') == '#FFFFFF'
+        assert frame._slider.cget('state') == 'normal'
 
 
 @pytest.mark.parametrize('view_class', [ConvertFrame, CompressFrame])
@@ -309,27 +307,27 @@ def test_compress_uses_same_roles_fonts_and_controls(ui_root):
     assert compress._btn_comprimir.cget('height') == 40
     assert compress._btn_comprimir.cget('fg_color') == convert._btn_convertir.cget('fg_color')
     assert compress._slider.cget('fg_color') == convert._slider.cget('fg_color')
-    assert isinstance(compress._switch_exif, styles.Switch)
     assert any(isinstance(w, OptionField) for w in compress._save_groups[0].winfo_children())
 
 
-def test_exif_switch_states_keep_contrast_variable_and_geometry(ui_root):
-    frame = CompressFrame(ui_root)
-    switch = frame._switch_exif
+def test_switch_states_keep_contrast_variable_and_geometry(ui_root):
+    selected = ctk.BooleanVar(value=True)
+    switch = styles.Switch(ui_root, text='', variable=selected, onvalue=True, offvalue=False)
+    switch.pack()
     p = styles.palette()
     ui_root.update_idletasks()
     size = (switch.winfo_reqwidth(), switch.winfo_reqheight())
-    assert frame._state.quitar_exif.get() is True
+    assert selected.get() is True
     assert styles.contrast(switch.cget('button_color'), switch.cget('progress_color')) >= 4.5
     switch.toggle()
-    assert frame._state.quitar_exif.get() is False
+    assert selected.get() is False
     assert switch.cget('button_color') == p.muted
-    frame._state.quitar_exif.set(True)
+    selected.set(True)
     assert switch.get() is True
     assert switch.cget('button_color') == '#FFFFFF'
     switch.configure(state='disabled')
     switch.toggle()
-    assert frame._state.quitar_exif.get() is True
+    assert selected.get() is True
     assert switch.cget('button_color') == p.muted
     switch.configure(state='normal')
     switch._set_focus(True)
@@ -371,8 +369,7 @@ def test_format_padding_and_fit_in_small_real_workspace(ui_root, scale):
 
 
 @pytest.mark.parametrize('overwrite', [False, True])
-@pytest.mark.parametrize('strip', [False, True])
-def test_compress_real_save_retains_options(ui_root, tmp_path, monkeypatch, overwrite, strip):
+def test_compress_real_save_retains_exif(ui_root, tmp_path, monkeypatch, overwrite):
     import piexif
     source = tmp_path / 'cámara.jpeg'
     Image.effect_noise((96, 64), 70).convert('RGB').save(source, quality=100,
@@ -383,7 +380,6 @@ def test_compress_real_save_retains_options(ui_root, tmp_path, monkeypatch, over
     frame = CompressFrame(ui_root)
     frame._cargar_imagenes([str(source)])
     frame._state.calidad.set(20)
-    frame._state.quitar_exif.set(strip)
     frame._save_choice.set(t('save_overwrite' if overwrite else 'save_copies'))
     monkeypatch.setattr('app.ui.saving.filedialog.askdirectory', lambda **kwargs: str(folder))
     monkeypatch.setattr('app.ui.saving.messagebox.askyesno', lambda *args, **kwargs: True)
@@ -397,7 +393,7 @@ def test_compress_real_save_retains_options(ui_root, tmp_path, monkeypatch, over
     destination = source if overwrite else folder / source.name
     assert destination.is_file()
     assert destination.stat().st_size < len(before)
-    assert bool(piexif.load(str(destination))['0th'].get(piexif.ImageIFD.Artist)) is not strip
+    assert piexif.load(str(destination))['0th'].get(piexif.ImageIFD.Artist) == b'Yagua'
     assert source.read_bytes() != before if overwrite else source.read_bytes() == before
 
 

@@ -28,6 +28,3 @@ class CompressState:
         
         # Nivel de calidad de compresion (10-100), default 60
         self.calidad = ctk.IntVar(value=60)
-        
-        # Si es True, elimina metadatos EXIF al comprimir, default True
-        self.quitar_exif = ctk.BooleanVar(value=True)
