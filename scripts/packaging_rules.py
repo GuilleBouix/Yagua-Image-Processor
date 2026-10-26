@@ -3,6 +3,7 @@
 from pathlib import Path
 import importlib.metadata
 import json
+import os
 import tempfile
 
 from scripts.licensing import installed_notices, legal_data
@@ -82,6 +83,13 @@ def build_inputs(root: Path) -> dict:
     inventory_path = Path(tempfile.mkdtemp(prefix='yagua-legal-')) / 'installed-inventory.json'
     inventory_path.write_text(json.dumps(inventory, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
     datas.append((str(inventory_path), 'legal'))
+    # The Linux source build records exact sources, patches and compiler commands.
+    native_report = os.environ.get('YAGUA_HEIC_NATIVE_REPORT')
+    if native_report:
+        report = Path(native_report)
+        if json.loads(report.read_text(encoding='utf-8')).get('status') != 'passed':
+            raise ValueError('HEIC source build has not passed')
+        datas.append((str(report), 'legal'))
     # Preserve licenses and distribution metadata, including PyMatting's runtime lookup.
     for name in runtime_distributions(root):
         datas.extend(copy_metadata(name))

@@ -52,6 +52,28 @@ def test_switch_callbacks_accept_optional_event_without_changing_actions(
         switch.destroy()
 
 
+@pytest.mark.parametrize('event_args', [(), (None,)])
+def test_entry_focus_and_hover_accept_optional_event(ui_root, monkeypatch, event_args):
+    callbacks = {}
+    original_bind = styles.Entry.bind
+
+    def capture_bind(self, sequence, command, add=True):
+        callbacks[sequence] = command
+        return original_bind(self, sequence, command, add=add)
+
+    monkeypatch.setattr(styles.Entry, 'bind', capture_bind)
+    entry = styles.Entry(ui_root)
+    try:
+        for enter, leave, flag in [('<Enter>', '<Leave>', '_design_hover'),
+                                   ('<FocusIn>', '<FocusOut>', '_design_focus')]:
+            callbacks[enter](*event_args)
+            assert getattr(entry, flag) is True
+            callbacks[leave](*event_args)
+            assert getattr(entry, flag) is False
+    finally:
+        entry.destroy()
+
+
 def pump(root, condition, timeout=15):
     # These checks validate completed workflows, not a five-second SLA.
     # Preflight, atomic IO and Tk deliveries share CPU with the full UI matrix.

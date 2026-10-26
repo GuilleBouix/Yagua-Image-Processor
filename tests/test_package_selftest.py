@@ -7,6 +7,10 @@ import pytest
 from app.utils import package_selftest
 
 
+def test_heic_high_bit_depth_probe_uses_real_codecs(tmp_path):
+    assert package_selftest._verify_heic_depths(tmp_path) == {'10': 10, '12': 12}
+
+
 def test_startup_probe_waits_for_explicit_readiness(monkeypatch):
     from types import SimpleNamespace
     app = SimpleNamespace(ready=False, winfo_exists=lambda: True,

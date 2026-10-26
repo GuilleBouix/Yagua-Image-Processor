@@ -101,6 +101,18 @@ La publicación de estos candidatos sigue pendiente de las etapas de aceptación
 y de aprobación explícita. La existencia de un artefacto validado técnicamente
 no cierra por sí sola los pendientes de `legal/REVIEW.md`.
 
+### Revisión de distribución de los candidatos
+
+La revisión del 2026-10-25 reúne fuentes y parches de Ubuntu, recetas fijadas por
+commit y avisos del bootstrap AppImage. El manifiesto y los pendientes concretos
+están en `legal/distribution/README.md`. La herramienta de entrega verifica
+hashes y prepara materiales separados; no certifica fuentes correspondientes
+completas. Se registró la procedencia de Material confirmada por el autor.
+
+Los avisos añadidos todavía no están en los candidatos del commit `7b07687`.
+La etapa 3 sigue abierta: resolver el alcance de los pesos y la entrega nativa
+antes de una compilación final; no pasar a aceptación ni publicar todavía.
+
 ## Releases anteriores
 
 Durante la preparación se mantienen intactas todas las releases y tags.

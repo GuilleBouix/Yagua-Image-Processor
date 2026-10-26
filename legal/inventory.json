@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "reviewed_on": "2026-10-21",
+  "reviewed_on": "2026-10-26",
   "legal_approval": false,
   "baseline_evidence": "Original notice files in isolated Windows build wheels; Linux notices collected at build time.",
   "packages": [
@@ -847,205 +847,205 @@
       "path": "assets/icons/book.png",
       "sha256": "76f2605183e69bfbaedb2fcec1fbb7f6fd3c2b39f00362a64a978cf38ae65a2d",
       "packaged": true,
-      "license": "Apache-2.0 if individually verified as Material; otherwise NOASSERTION",
+      "license": "Apache-2.0",
       "source": "https://github.com/google/material-design-icons",
       "notices": [
         "legal/licenses/upstream/material-icons-Apache-2.0.txt"
       ],
-      "status": "pending-individual-source-match",
-      "note": "Author declared Google Material collection. No exact individual original match established."
+      "status": "author-confirmed-material-png",
+      "note": "Author confirmed downloading the PNG from Google Material Icons/Symbols on 2026-10-25. Individual original not independently matched; existing pixels preserved."
     },
     {
       "path": "assets/icons/compress.png",
       "sha256": "0616ddb403f70ccaa34963b11e504835598a4021cfdd31a5abb10764335939d0",
       "packaged": true,
-      "license": "Apache-2.0 if individually verified as Material; otherwise NOASSERTION",
+      "license": "Apache-2.0",
       "source": "https://github.com/google/material-design-icons",
       "notices": [
         "legal/licenses/upstream/material-icons-Apache-2.0.txt"
       ],
-      "status": "pending-individual-source-match",
-      "note": "Author declared Google Material collection. No exact individual original match established."
+      "status": "author-confirmed-material-png",
+      "note": "Author confirmed downloading the PNG from Google Material Icons/Symbols on 2026-10-25. Individual original not independently matched; existing pixels preserved."
     },
     {
       "path": "assets/icons/convert.png",
       "sha256": "eff44931865ed559f9cf345d6be73de1cca7ce6802436a362406a2be569171e1",
       "packaged": true,
-      "license": "Apache-2.0 if individually verified as Material; otherwise NOASSERTION",
+      "license": "Apache-2.0",
       "source": "https://github.com/google/material-design-icons",
       "notices": [
         "legal/licenses/upstream/material-icons-Apache-2.0.txt"
       ],
-      "status": "pending-individual-source-match",
-      "note": "Author declared Google Material collection. No exact individual original match established."
+      "status": "author-confirmed-material-png",
+      "note": "Author confirmed downloading the PNG from Google Material Icons/Symbols on 2026-10-25. Individual original not independently matched; existing pixels preserved."
     },
     {
       "path": "assets/icons/github.png",
       "sha256": "74cf90ac2fe6624ab1056cacea11cf7ed4f8bef54bbb0e869638013bba45bc08",
       "packaged": true,
-      "license": "NOASSERTION",
-      "source": "https://github.com/logos",
+      "license": "GitHub logo guidelines (trademark)",
+      "source": "https://brand.github.com/foundations/logo",
       "notices": [
-        "legal/licenses/upstream/material-icons-Apache-2.0.txt"
+        "legal/distribution/README.md"
       ],
-      "status": "pending-brand-asset-provenance",
-      "note": "GitHub mark; not certified as a Material icon or as Apache-licensed."
+      "status": "project-link-use-documented",
+      "note": "Used as a secondary project-repository link. Original PNG not independently matched; not a Google Material asset or endorsement."
     },
     {
       "path": "assets/icons/globe.png",
       "sha256": "3ee1d27c8565c70af37f7e39ad2995931ec35590e13b3b41949ce14c20a4fbfe",
       "packaged": true,
-      "license": "Apache-2.0 if individually verified as Material; otherwise NOASSERTION",
+      "license": "Apache-2.0",
       "source": "https://github.com/google/material-design-icons",
       "notices": [
         "legal/licenses/upstream/material-icons-Apache-2.0.txt"
       ],
-      "status": "pending-individual-source-match",
-      "note": "Author declared Google Material collection. No exact individual original match established."
+      "status": "author-confirmed-material-png",
+      "note": "Author confirmed downloading the PNG from Google Material Icons/Symbols on 2026-10-25. Individual original not independently matched; existing pixels preserved."
     },
     {
       "path": "assets/icons/heart.png",
       "sha256": "487aceb3446708aa584da263c7a97a9e35fd2df88be78c87a75e1c7aa31f20da",
       "packaged": true,
-      "license": "Apache-2.0 if individually verified as Material; otherwise NOASSERTION",
+      "license": "Apache-2.0",
       "source": "https://github.com/google/material-design-icons",
       "notices": [
         "legal/licenses/upstream/material-icons-Apache-2.0.txt"
       ],
-      "status": "pending-individual-source-match",
-      "note": "Author declared Google Material collection. No exact individual original match established."
+      "status": "author-confirmed-material-png",
+      "note": "Author confirmed downloading the PNG from Google Material Icons/Symbols on 2026-10-25. Individual original not independently matched; existing pixels preserved."
     },
     {
       "path": "assets/icons/lqip.png",
       "sha256": "1ddd1ed86b246e898e2b37daea8cffdfead985be64d8d4138f40c7e2a6712a0b",
       "packaged": true,
-      "license": "Apache-2.0 if individually verified as Material; otherwise NOASSERTION",
+      "license": "Apache-2.0",
       "source": "https://github.com/google/material-design-icons",
       "notices": [
         "legal/licenses/upstream/material-icons-Apache-2.0.txt"
       ],
-      "status": "pending-individual-source-match",
-      "note": "Author declared Google Material collection. No exact individual original match established."
+      "status": "author-confirmed-material-png",
+      "note": "Author confirmed downloading the PNG from Google Material Icons/Symbols on 2026-10-25. Individual original not independently matched; existing pixels preserved."
     },
     {
       "path": "assets/icons/metadata.png",
       "sha256": "bfec5835864b3d2b7e3a5e42b78a452a413d777c847f4cefbb39c5e3973905dc",
       "packaged": true,
-      "license": "Apache-2.0 if individually verified as Material; otherwise NOASSERTION",
+      "license": "Apache-2.0",
       "source": "https://github.com/google/material-design-icons",
       "notices": [
         "legal/licenses/upstream/material-icons-Apache-2.0.txt"
       ],
-      "status": "pending-individual-source-match",
-      "note": "Author declared Google Material collection. No exact individual original match established."
+      "status": "author-confirmed-material-png",
+      "note": "Author confirmed downloading the PNG from Google Material Icons/Symbols on 2026-10-25. Individual original not independently matched; existing pixels preserved."
     },
     {
       "path": "assets/icons/ocr.png",
       "sha256": "00bee5e07031b5b4c1a5fdc31351476562215605b0d995909463e3f5f1f99f99",
       "packaged": true,
-      "license": "Apache-2.0 if individually verified as Material; otherwise NOASSERTION",
+      "license": "Apache-2.0",
       "source": "https://github.com/google/material-design-icons",
       "notices": [
         "legal/licenses/upstream/material-icons-Apache-2.0.txt"
       ],
-      "status": "pending-individual-source-match",
-      "note": "Author declared Google Material collection. No exact individual original match established."
+      "status": "author-confirmed-material-png",
+      "note": "Author confirmed downloading the PNG from Google Material Icons/Symbols on 2026-10-25. Individual original not independently matched; existing pixels preserved."
     },
     {
       "path": "assets/icons/optimizer.png",
       "sha256": "9f11cbc7ed69beec72048710da27f661a9e69aa630a633f23edb5f00cc2c9e65",
       "packaged": true,
-      "license": "Apache-2.0 if individually verified as Material; otherwise NOASSERTION",
+      "license": "Apache-2.0",
       "source": "https://github.com/google/material-design-icons",
       "notices": [
         "legal/licenses/upstream/material-icons-Apache-2.0.txt"
       ],
-      "status": "pending-individual-source-match",
-      "note": "Author declared Google Material collection. No exact individual original match established."
+      "status": "author-confirmed-material-png",
+      "note": "Author confirmed downloading the PNG from Google Material Icons/Symbols on 2026-10-25. Individual original not independently matched; existing pixels preserved."
     },
     {
       "path": "assets/icons/palette.png",
       "sha256": "d836876039f9f287dc6ec43f7074313ba889b499b75455b47beb2c73a3fef93d",
       "packaged": true,
-      "license": "Apache-2.0 if individually verified as Material; otherwise NOASSERTION",
+      "license": "Apache-2.0",
       "source": "https://github.com/google/material-design-icons",
       "notices": [
         "legal/licenses/upstream/material-icons-Apache-2.0.txt"
       ],
-      "status": "pending-individual-source-match",
-      "note": "Author declared Google Material collection. No exact individual original match established."
+      "status": "author-confirmed-material-png",
+      "note": "Author confirmed downloading the PNG from Google Material Icons/Symbols on 2026-10-25. Individual original not independently matched; existing pixels preserved."
     },
     {
       "path": "assets/icons/remove_background.png",
       "sha256": "291a6113c60ee5ba8014a11f885e0adeb7238ae0f11a12c3b7581173077d0b22",
       "packaged": true,
-      "license": "Apache-2.0 if individually verified as Material; otherwise NOASSERTION",
+      "license": "Apache-2.0",
       "source": "https://github.com/google/material-design-icons",
       "notices": [
         "legal/licenses/upstream/material-icons-Apache-2.0.txt"
       ],
-      "status": "pending-individual-source-match",
-      "note": "Author declared Google Material collection. No exact individual original match established."
+      "status": "author-confirmed-material-png",
+      "note": "Author confirmed downloading the PNG from Google Material Icons/Symbols on 2026-10-25. Individual original not independently matched; existing pixels preserved."
     },
     {
       "path": "assets/icons/rename.png",
       "sha256": "f9d65dc2c322c79b3048effa6a5f05306dfcd0636b075f4a7bca5943ea5338d0",
       "packaged": true,
-      "license": "Apache-2.0 if individually verified as Material; otherwise NOASSERTION",
+      "license": "Apache-2.0",
       "source": "https://github.com/google/material-design-icons",
       "notices": [
         "legal/licenses/upstream/material-icons-Apache-2.0.txt"
       ],
-      "status": "pending-individual-source-match",
-      "note": "Author declared Google Material collection. No exact individual original match established."
+      "status": "author-confirmed-material-png",
+      "note": "Author confirmed downloading the PNG from Google Material Icons/Symbols on 2026-10-25. Individual original not independently matched; existing pixels preserved."
     },
     {
       "path": "assets/icons/resize.png",
       "sha256": "ac7cf8df5e07c67ae2b52b2c68517732b92532bce56092be3b6eb880263447e7",
       "packaged": true,
-      "license": "Apache-2.0 if individually verified as Material; otherwise NOASSERTION",
+      "license": "Apache-2.0",
       "source": "https://github.com/google/material-design-icons",
       "notices": [
         "legal/licenses/upstream/material-icons-Apache-2.0.txt"
       ],
-      "status": "pending-individual-source-match",
-      "note": "Author declared Google Material collection. No exact individual original match established."
+      "status": "author-confirmed-material-png",
+      "note": "Author confirmed downloading the PNG from Google Material Icons/Symbols on 2026-10-25. Individual original not independently matched; existing pixels preserved."
     },
     {
       "path": "assets/icons/settings.png",
       "sha256": "a669fc6d0dcc9fc8b497efeb754ac5c98af6da819710f189da6b547b9e8d41ec",
       "packaged": true,
-      "license": "Apache-2.0 if individually verified as Material; otherwise NOASSERTION",
+      "license": "Apache-2.0",
       "source": "https://github.com/google/material-design-icons",
       "notices": [
         "legal/licenses/upstream/material-icons-Apache-2.0.txt"
       ],
-      "status": "pending-individual-source-match",
-      "note": "Author declared Google Material collection. No exact individual original match established."
+      "status": "author-confirmed-material-png",
+      "note": "Author confirmed downloading the PNG from Google Material Icons/Symbols on 2026-10-25. Individual original not independently matched; existing pixels preserved."
     },
     {
       "path": "assets/icons/upload.png",
       "sha256": "45893720f5e4444c65992edfa5a686812b5b727ebe5438c25557de71d41c9ffe",
       "packaged": true,
-      "license": "Apache-2.0 if individually verified as Material; otherwise NOASSERTION",
+      "license": "Apache-2.0",
       "source": "https://github.com/google/material-design-icons",
       "notices": [
         "legal/licenses/upstream/material-icons-Apache-2.0.txt"
       ],
-      "status": "pending-individual-source-match",
-      "note": "Author declared Google Material collection. No exact individual original match established."
+      "status": "author-confirmed-material-png",
+      "note": "Author confirmed downloading the PNG from Google Material Icons/Symbols on 2026-10-25. Individual original not independently matched; existing pixels preserved."
     },
     {
       "path": "assets/icons/watermark.png",
       "sha256": "afb8e9770836e00d28393d30a124cc4dac7855ae706ea12eb47f9e8eb6febc90",
       "packaged": true,
-      "license": "Apache-2.0 if individually verified as Material; otherwise NOASSERTION",
+      "license": "Apache-2.0",
       "source": "https://github.com/google/material-design-icons",
       "notices": [
         "legal/licenses/upstream/material-icons-Apache-2.0.txt"
       ],
-      "status": "pending-individual-source-match",
-      "note": "Author declared Google Material collection. No exact individual original match established."
+      "status": "author-confirmed-material-png",
+      "note": "Author confirmed downloading the PNG from Google Material Icons/Symbols on 2026-10-25. Individual original not independently matched; existing pixels preserved."
     },
     {
       "path": "assets/installer/installer_icon.ico",
@@ -1925,7 +1925,7 @@
       "source": "Yagua repository; upstream source archive URLs in legal/sources/manifest.json"
     },
     "legal/REVIEW.md": {
-      "sha256": "4dffb17213efd38b070a1281cc7e1b1a46ee91c58cf7dd3803d56a9aa98fd334",
+      "sha256": "5c7bbe7b8a23c0c88cb2263450a8b29876cad0c97464e16294167429d5ab2592",
       "source": "Yagua repository; upstream source archive URLs in legal/sources/manifest.json"
     },
     "assets/fonts/noto-cjk/LICENSE": {
@@ -1961,7 +1961,7 @@
       "source": "Yagua repository; upstream source archive URLs in legal/sources/manifest.json"
     },
     "legal/SOURCE_CODE.md": {
-      "sha256": "4c07f29f82a756489f82e7210f7a541c59c3e9d194eeab0d1d3a34e7a02ca4d5",
+      "sha256": "7378b56bad167286ad57684cef67a3a64c8eff99eeccb1a20647465f368a306e",
       "source": "Yagua repository; upstream source archive URLs in legal/sources/manifest.json"
     },
     "legal/sources/libheif-1.21.2-62f1b8c76ed4.tar.gz": {
@@ -1979,13 +1979,120 @@
     "legal/sources/x265-4.1-plus1-1d117bed4747.tar.gz": {
       "sha256": "7d23cdcdbd510728202c0dfbf7c51eda26a395de2096c504c2b10d6035711102",
       "source": "https://bitbucket.org/multicoreware/x265_git/get/1d117be.tar.gz"
+    },
+    "legal/distribution/evidence/intel-binaries.json": {
+      "sha256": "a989aecd60d7ad473de9a597aef3ec3a4fc41461b7947379019b32dcf68f03f7",
+      "source": "Yagua candidate distribution review; original sources and URLs in legal/distribution/materials.json"
+    },
+    "legal/distribution/evidence/package-notices.json": {
+      "sha256": "f2cc60d1e7464e15f2163850bfa8ff5a04e731c06c95b0be371dd89e638a301e",
+      "source": "Yagua candidate distribution review; original sources and URLs in legal/distribution/materials.json"
+    },
+    "legal/distribution/evidence/ubuntu-signature.txt": {
+      "sha256": "af7b10f758765f1e7cd7c1285e308c1543ce39b6407062ab36a4b92d6deefb5f",
+      "source": "Yagua candidate distribution review; original sources and URLs in legal/distribution/materials.json"
+    },
+    "legal/distribution/evidence/ubuntu-source-index.json": {
+      "sha256": "a68c2472af258fadb7c7613ef16dde7a498e91f37984f21968a749bb169a9ba4",
+      "source": "Yagua candidate distribution review; original sources and URLs in legal/distribution/materials.json"
+    },
+    "legal/distribution/materials.json": {
+      "sha256": "a30eb40e5469add0950a308e2bd18ef9d97a98bd8a99ecef096e164d3a6104f9",
+      "source": "Yagua candidate distribution review; original sources and URLs in legal/distribution/materials.json"
+    },
+    "legal/distribution/notices/AppImageKit-LICENSE.txt": {
+      "sha256": "9cb22a08334c3a108ec4da96c1d6aea7a17a732fa9f5ca3413a9b4ce651397d8",
+      "source": "Yagua candidate distribution review; original sources and URLs in legal/distribution/materials.json"
+    },
+    "legal/distribution/notices/AppRun-LICENSE.txt": {
+      "sha256": "5ef8cd7c08c4831c4af5083e6d4efd4d9468aa70c6e272c2754dcc1266eba25d",
+      "source": "Yagua candidate distribution review; original sources and URLs in legal/distribution/materials.json"
+    },
+    "legal/distribution/notices/gcc-12-copyright.txt": {
+      "sha256": "da8191658b3452ce9caf31638ba61dab31a38c619fa39df119812e050f592fd3",
+      "source": "Yagua candidate distribution review; original sources and URLs in legal/distribution/materials.json"
+    },
+    "legal/distribution/notices/glibc-copyright.txt": {
+      "sha256": "d3c95b56fa33e28b57860580f0baf4e4f4de2a268a2b80f1d031a5191bade265",
+      "source": "Yagua candidate distribution review; original sources and URLs in legal/distribution/materials.json"
+    },
+    "legal/distribution/notices/libappimage-LICENSE.txt": {
+      "sha256": "e7e6b508c5d459c6a5b8997f5594f48a031a2fcc24197140a04fdd14b9a0fbcf",
+      "source": "Yagua candidate distribution review; original sources and URLs in legal/distribution/materials.json"
+    },
+    "legal/distribution/notices/libxcrypt-copyright.txt": {
+      "sha256": "5a5e7ca0e9f3f9679977e3a3e9ede45ad92885a3297ea78e766979f9866c5a16",
+      "source": "Yagua candidate distribution review; original sources and URLs in legal/distribution/materials.json"
+    },
+    "legal/distribution/notices/zlib-copyright.txt": {
+      "sha256": "d77204eee882807240f6351c4f5ae2a4bcdb5b773ff77d10647b9b66b826b2fb",
+      "source": "Yagua candidate distribution review; original sources and URLs in legal/distribution/materials.json"
+    },
+    "legal/distribution/README.md": {
+      "sha256": "5113ee1dd266cab756df3ab568baa469f700aee9f99f1d8ec7181d0ea2235d69",
+      "source": "Yagua candidate distribution review; original sources and URLs in legal/distribution/materials.json"
+    },
+    "legal/distribution/notices/common-licenses/GFDL-1.3": {
+      "sha256": "110535522396708cea37c72a802c5e7e81391139f5f7985631c93ef242b206a4",
+      "source": "Yagua candidate distribution review; original sources and URLs in legal/distribution/materials.json"
+    },
+    "legal/distribution/notices/common-licenses/GPL-2": {
+      "sha256": "edaef632cbb643e4e7a221717a6c441a4c1a7c918e6e4d56debc3d8739b233f6",
+      "source": "Yagua candidate distribution review; original sources and URLs in legal/distribution/materials.json"
+    },
+    "legal/distribution/notices/common-licenses/GPL-3": {
+      "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
+      "source": "Yagua candidate distribution review; original sources and URLs in legal/distribution/materials.json"
+    },
+    "legal/distribution/notices/common-licenses/LGPL-2.1": {
+      "sha256": "20e50fe7aae3e56378ebf0417d9de904f55a0e61e4df315333e632a4d3555d95",
+      "source": "Yagua candidate distribution review; original sources and URLs in legal/distribution/materials.json"
+    },
+    "legal/distribution/notices/common-licenses/LGPL-3": {
+      "sha256": "e3a994d82e644b03a792a930f574002658412f62407f5fee083f2555c5f23118",
+      "source": "Yagua candidate distribution review; original sources and URLs in legal/distribution/materials.json"
+    },
+    "legal/distribution/evidence/native-linkage.json": {
+      "sha256": "d2efdf3d08e0fd94aeb486b346cf459b791440d0b916fdcf3712630f72e985e6",
+      "source": "Yagua candidate distribution review; original sources and URLs in legal/distribution/materials.json"
+    },
+    "legal/distribution/NATIVE_COMPONENTS.md": {
+      "sha256": "211f1ca84f6270a01ec9c5cdd7c0adfc0b9d26f822e4836693d72e3b047c4364",
+      "source": "Yagua candidate distribution review; original sources and URLs in legal/distribution/materials.json"
+    },
+    "legal/distribution/notices/AppImage-runtime-header.txt": {
+      "sha256": "9c1ef3f244d67a24a64c4ae02e889d1038b094d9a9f5fae488c4e81737bc24c3",
+      "source": "Yagua candidate distribution review; original sources and URLs in legal/distribution/materials.json"
+    },
+    "legal/distribution/notices/libvpx-1.15.2-LICENSE.txt": {
+      "sha256": "8267348d5af1262c11d1a08de2f5afc77457755f1ac658627dd9acf71011d615",
+      "source": "Yagua candidate distribution review; original sources and URLs in legal/distribution/materials.json"
+    },
+    "legal/distribution/notices/libvpx-1.15.2-PATENTS.txt": {
+      "sha256": "cc3273e0694ea5896145e0677699b53471b03ea43021ddc50e7923fbb9f5023c",
+      "source": "Yagua candidate distribution review; original sources and URLs in legal/distribution/materials.json"
+    },
+    "legal/distribution/notices/squashfuse-1f98030-fuseprivate-header.txt": {
+      "sha256": "0d36e13a66b1c03f031cf21d74cc61be3df3c50d4ab37943069d44a770965786",
+      "source": "Yagua candidate distribution review; original sources and URLs in legal/distribution/materials.json"
+    },
+    "legal/distribution/notices/squashfuse-1f98030-LICENSE.txt": {
+      "sha256": "9e909cc8a8ba27b1a649c964cf9eda37de911f3138c2b64e6d2f01703904ac13",
+      "source": "Yagua candidate distribution review; original sources and URLs in legal/distribution/materials.json"
+    },
+    "legal/distribution/notices/xz-runtime-5.2.3-COPYING.txt": {
+      "sha256": "c4f8e14fafe458d84808a4cd8b69f94673ebe2bf8fc992291629a69ac12218f8",
+      "source": "Yagua candidate distribution review; original sources and URLs in legal/distribution/materials.json"
+    },
+    "legal/distribution/patches/x265-json11-cstdint.patch": {
+      "sha256": "338742037efcc20ae8d9e037c2793dba32323c9565f419459fd034ec95fa0f90",
+      "source": "Yagua candidate distribution review; original sources and URLs in legal/distribution/materials.json"
     }
   },
   "review_required": [
     "copyleft-corresponding-source",
     "intel-binary-terms",
     "model-weight-permissions",
-    "individual-icon-provenance",
     "native-platform-license-review",
     "codec-patents"
   ],

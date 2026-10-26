@@ -1,0 +1,18 @@
+{
+  "apprun_or_appimage_notice_matches": [],
+  "glibc_banner": "GNU C Library (Ubuntu GLIBC 2.35-0ubuntu3) stable release version 2.35.",
+  "glibc_sha256": "ebaed8bd64291875c908cc6e7f5115ae7bf605a5da56ce3da4028e2fcfb0d8e5",
+  "system_copyrights": [
+    "usr/share/doc/gcc-12-base/copyright",
+    "usr/share/doc/libbrotli1/copyright",
+    "usr/share/doc/libexpat1/copyright",
+    "usr/share/doc/libfontconfig1/copyright",
+    "usr/share/doc/libfreetype6/copyright",
+    "usr/share/doc/libpng16-16/copyright",
+    "usr/share/doc/libuuid1/copyright",
+    "usr/share/doc/libx11-6/copyright",
+    "usr/share/doc/libxext6/copyright",
+    "usr/share/doc/libxft2/copyright",
+    "usr/share/doc/libxrender1/copyright"
+  ]
+}

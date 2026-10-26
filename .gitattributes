@@ -9,5 +9,8 @@ legal/*.md text eol=lf
 legal/*.json text eol=lf
 legal/sources/*.json text eol=lf
 legal/sources/*.tar.gz -text -diff
+# Source-material manifests hash verbatim evidence, notices and recipes.
+legal/distribution/** -text
+scripts/ci/build_heic_linux.py text eol=lf
 /LICENSE text eol=lf
 /THIRD_PARTY_NOTICES.md text eol=lf

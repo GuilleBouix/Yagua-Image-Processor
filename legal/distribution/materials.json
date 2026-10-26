@@ -1,0 +1,829 @@
+{
+  "schema_version": 1,
+  "candidate_commit": "7b0768758c53621a45bfdcc75cea92f237cc3a3f",
+  "complete_corresponding_source": false,
+  "reviewed_on": "2026-10-26",
+  "ubuntu_packages": [
+    {
+      "binary": "libc6",
+      "version": "2.35-0ubuntu3",
+      "source": "glibc"
+    },
+    {
+      "binary": "libxrender1",
+      "version": "1:0.9.10-1build4",
+      "source": "libxrender"
+    },
+    {
+      "binary": "libfontconfig1",
+      "version": "2.13.1-4.2ubuntu5",
+      "source": "fontconfig"
+    },
+    {
+      "binary": "gcc-12-base",
+      "version": "12-20220319-1ubuntu1",
+      "source": "gcc-12"
+    },
+    {
+      "binary": "libxft2",
+      "version": "2.3.4-1",
+      "source": "xft"
+    },
+    {
+      "binary": "libuuid1",
+      "version": "2.37.2-4ubuntu3",
+      "source": "util-linux"
+    },
+    {
+      "binary": "libxext6",
+      "version": "2:1.3.4-1build1",
+      "source": "libxext"
+    },
+    {
+      "binary": "libcrypt1",
+      "version": "1:4.4.27-1",
+      "source": "libxcrypt"
+    },
+    {
+      "binary": "libexpat1",
+      "version": "2.4.7-1",
+      "source": "expat"
+    },
+    {
+      "binary": "libx11-6",
+      "version": "2:1.7.5-1",
+      "source": "libx11"
+    },
+    {
+      "binary": "libfreetype6",
+      "version": "2.11.1+dfsg-1build1",
+      "source": "freetype"
+    },
+    {
+      "binary": "libgomp1",
+      "version": "12-20220319-1ubuntu1",
+      "source": "gcc-12"
+    },
+    {
+      "binary": "libgcc-s1",
+      "version": "12-20220319-1ubuntu1",
+      "source": "gcc-12"
+    },
+    {
+      "binary": "zlib1g",
+      "version": "1:1.2.11.dfsg-2ubuntu9",
+      "source": "zlib"
+    },
+    {
+      "binary": "libbrotli1",
+      "version": "1.0.9-2build6",
+      "source": "brotli"
+    },
+    {
+      "binary": "libpng16-16",
+      "version": "1.6.37-3build5",
+      "source": "libpng1.6"
+    }
+  ],
+  "files": [
+    {
+      "file": "existing/certifi-2026.2.25.tar.gz",
+      "bytes": 155029,
+      "sha256": "e887ab5cee78ea814d3472169153c2d12cd43b14bd03329a39a9c6e2e80bfba7",
+      "repository_path": "legal/sources/certifi-2026.2.25.tar.gz",
+      "component": "certifi",
+      "version": "2026.2.25",
+      "url": "https://files.pythonhosted.org/packages/af/2d/7bf41579a8986e348fa033a31cdd0e4121114f6bce2457e8876010b092dd/certifi-2026.2.25.tar.gz"
+    },
+    {
+      "file": "existing/pillow_heif-1.3.0.tar.gz",
+      "bytes": 17133211,
+      "sha256": "af8d2bda85e395677d5bb50d7bda3b5655c946cc95b913b5e7222fabacbb467f",
+      "repository_path": "legal/sources/pillow_heif-1.3.0.tar.gz",
+      "component": "pillow-heif",
+      "version": "1.3.0",
+      "url": "https://files.pythonhosted.org/packages/cd/58/2df4fc42840633e01c97b75965cb1bc6e14425973b92382391650e97e4b7/pillow_heif-1.3.0.tar.gz"
+    },
+    {
+      "file": "existing/python_bidi-0.6.7.tar.gz",
+      "bytes": 45503,
+      "sha256": "c10065081c0e137975de5d9ba2ff2306286dbf5e0c586d4d5aec87c856239b41",
+      "repository_path": "legal/sources/python_bidi-0.6.7.tar.gz",
+      "component": "python-bidi",
+      "version": "0.6.7",
+      "url": "https://files.pythonhosted.org/packages/ed/e3/c0c8bf6fca79ac946a28d57f116e3b9e5b10a4469b6f70bf73f3744c49bf/python_bidi-0.6.7.tar.gz"
+    },
+    {
+      "file": "existing/shapely-2.1.2.tar.gz",
+      "bytes": 315489,
+      "sha256": "2ed4ecb28320a433db18a5bf029986aa8afcfd740745e78847e330d5d94922a9",
+      "repository_path": "legal/sources/shapely-2.1.2.tar.gz",
+      "component": "shapely",
+      "version": "2.1.2",
+      "url": "https://files.pythonhosted.org/packages/4d/bc/0989043118a27cccb4e906a46b7565ce36ca7b57f5a18b78f4f1b0f72d9d/shapely-2.1.2.tar.gz"
+    },
+    {
+      "file": "existing/tqdm-4.67.3.tar.gz",
+      "bytes": 169598,
+      "sha256": "7d825f03f89244ef73f1d4ce193cb1774a8179fd96f31d7e1dcde62092b960bb",
+      "repository_path": "legal/sources/tqdm-4.67.3.tar.gz",
+      "component": "tqdm",
+      "version": "4.67.3",
+      "url": "https://files.pythonhosted.org/packages/09/a9/6ba95a270c6f1fbcd8dac228323f2777d886cb206987444e4bce66338dd4/tqdm-4.67.3.tar.gz"
+    },
+    {
+      "file": "existing/libheif-1.21.2-62f1b8c76ed4.tar.gz",
+      "bytes": 1824098,
+      "sha256": "3238dbed24a1f1cbde9611e59ecd5f14fbf85a6997d465d8c09dfed1bcc9b40a",
+      "repository_path": "legal/sources/libheif-1.21.2-62f1b8c76ed4.tar.gz",
+      "component": "libheif",
+      "version": "1.21.2",
+      "url": "https://codeload.github.com/strukturag/libheif/tar.gz/62f1b8c76ed4d8305071fdacbe74ef9717bacac5"
+    },
+    {
+      "file": "existing/libde265-1.0.16-7ba65889d3d6.tar.gz",
+      "bytes": 439851,
+      "sha256": "9dedf12d5b5047c270d1fc54f5d92fc29d9ea21b94d3f2d998200258353189a0",
+      "repository_path": "legal/sources/libde265-1.0.16-7ba65889d3d6.tar.gz",
+      "component": "libde265",
+      "version": "1.0.16",
+      "url": "https://codeload.github.com/strukturag/libde265/tar.gz/7ba65889d3d6d8a0d99b5360b028243ba843be3a"
+    },
+    {
+      "file": "existing/geos-3.13.1-431568d6e311.tar.gz",
+      "bytes": 7404055,
+      "sha256": "2919ec2d371f007ad19a93ea8befc4a75badc192a792a2a1352b20397e5f9cd3",
+      "repository_path": "legal/sources/geos-3.13.1-431568d6e311.tar.gz",
+      "component": "geos",
+      "version": "3.13.1",
+      "url": "https://codeload.github.com/libgeos/geos/tar.gz/431568d6e311e0bbfb057b4ec3d44d0d3ba3335f"
+    },
+    {
+      "file": "existing/x265-4.1-plus1-1d117bed4747.tar.gz",
+      "bytes": 1726307,
+      "sha256": "7d23cdcdbd510728202c0dfbf7c51eda26a395de2096c504c2b10d6035711102",
+      "repository_path": "legal/sources/x265-4.1-plus1-1d117bed4747.tar.gz",
+      "component": "x265",
+      "version": "4.1+1-1d117be",
+      "url": "https://bitbucket.org/multicoreware/x265_git/get/1d117be.tar.gz"
+    },
+    {
+      "component": "opencv-python",
+      "version": "4.13.0.92",
+      "revision": "4ddfc013fd1f13d9b9e379dbebf2cdbeb052e7f8",
+      "url": "https://codeload.github.com/opencv/opencv-python/tar.gz/4ddfc013fd1f13d9b9e379dbebf2cdbeb052e7f8",
+      "file": "upstream/opencv-python-4.13.0.92.tar.gz",
+      "bytes": 1130154,
+      "sha256": "ecc18f96559493a7968da6a0fa8fff2094a0d8a41f9cc03c8333139da0644171"
+    },
+    {
+      "component": "pillow-heif-recipes",
+      "version": "1.3.0",
+      "revision": "6bffca6bada2e071418a9092e7958bcecf4652c1",
+      "url": "https://codeload.github.com/bigcat88/pillow_heif/tar.gz/6bffca6bada2e071418a9092e7958bcecf4652c1",
+      "file": "upstream/pillow-heif-recipes-1.3.0.tar.gz",
+      "bytes": 26607620,
+      "sha256": "d0ec923bb5fad21cb80387081ab6fb36d30d29ab53c5b6ecb4a0f2892a8c3d71"
+    },
+    {
+      "component": "shapely-recipes",
+      "version": "2.1.2",
+      "revision": "5fb639d1056888d135fe56bfaf750c9648addeec",
+      "url": "https://codeload.github.com/shapely/shapely/tar.gz/5fb639d1056888d135fe56bfaf750c9648addeec",
+      "file": "upstream/shapely-recipes-2.1.2.tar.gz",
+      "bytes": 371967,
+      "sha256": "163cc73cb54e0b188520d34f568abc35752340ab21c6feeffc454344ff58e432"
+    },
+    {
+      "component": "appimagekit",
+      "version": "5735cc5",
+      "revision": "5735cc5bed206497cddfbd2a75e1982c2606c35d",
+      "url": "https://codeload.github.com/AppImage/AppImageKit/tar.gz/5735cc5bed206497cddfbd2a75e1982c2606c35d",
+      "file": "upstream/appimagekit-5735cc5.tar.gz",
+      "bytes": 88978,
+      "sha256": "65ce93060bb5d662fcff878ab5c63b530af16f2a4c86ae1c93f3dc7bf55e4e12"
+    },
+    {
+      "component": "libappimage",
+      "version": "9c1fae8",
+      "revision": "9c1fae809dedbb3015e9cd5b46e2b5aab06df36e",
+      "url": "https://codeload.github.com/AppImage/libappimage/tar.gz/9c1fae809dedbb3015e9cd5b46e2b5aab06df36e",
+      "file": "upstream/libappimage-9c1fae8.tar.gz",
+      "bytes": 2046897,
+      "sha256": "15c56c8001702a67c432ae3f3ce8857fe39cc1bfdad7a5b27d7e56e5c8b3718d"
+    },
+    {
+      "component": "apprun",
+      "version": "2.0.0",
+      "revision": "407700ccef58e1a64cc49856074aee4b1c75d599",
+      "url": "https://codeload.github.com/AppImageCrafters/AppRun/tar.gz/407700ccef58e1a64cc49856074aee4b1c75d599",
+      "file": "upstream/apprun-2.0.0.tar.gz",
+      "bytes": 34497,
+      "sha256": "05729f2ae0a744369d2d19d0f37acfbdcb1ee064172955b7576883ccef5113b3"
+    },
+    {
+      "component": "ffmpeg-linux",
+      "version": "8.0.1",
+      "revision": null,
+      "url": "https://ffmpeg.org/releases/ffmpeg-8.0.1.tar.xz",
+      "file": "upstream/ffmpeg-linux-8.0.1.tar.xz",
+      "bytes": 11388848,
+      "sha256": "05ee0b03119b45c0bdb4df654b96802e909e0a752f72e4fe3794f487229e5a41"
+    },
+    {
+      "component": "squashfuse",
+      "version": "1f98030",
+      "revision": "1f980303b89c779eabfd0a0fdd36d6a7a311bf92",
+      "url": "https://codeload.github.com/vasi/squashfuse/tar.gz/1f980303b89c779eabfd0a0fdd36d6a7a311bf92",
+      "file": "upstream/squashfuse-1f98030.tar.gz",
+      "bytes": 57468,
+      "sha256": "8cef1539bd9c9efd3c407004fdd7a3bbef44102a5966b892819a275d609013a3"
+    },
+    {
+      "component": "sanitizers-cmake",
+      "version": "6947cff",
+      "revision": "6947cff3a9c9305eb9c16135dd81da3feb4bf87f",
+      "url": "https://codeload.github.com/arsenm/sanitizers-cmake/tar.gz/6947cff3a9c9305eb9c16135dd81da3feb4bf87f",
+      "file": "upstream/sanitizers-cmake-6947cff.tar.gz",
+      "bytes": 6948,
+      "sha256": "7608ad1dddcf8537da7a09b74db163e4b2842fccf2d5f38e19c8e17efb02cd51"
+    },
+    {
+      "component": "libvpx",
+      "version": "1.15.2",
+      "revision": "d168454ecd099805c675d4a98c66f4891373302a",
+      "url": "https://codeload.github.com/webmproject/libvpx/tar.gz/d168454ecd099805c675d4a98c66f4891373302a",
+      "file": "upstream/libvpx-1.15.2.tar.gz",
+      "bytes": 5634851,
+      "sha256": "5f6519823db1cc67fba023dc5dcf33abcd3fbab65d7e3c6f1d8ff00917a8c1c6"
+    },
+    {
+      "component": "xz-runtime",
+      "version": "5.2.3",
+      "revision": null,
+      "url": "https://downloads.sourceforge.net/project/lzmautils/xz-5.2.3.tar.gz",
+      "file": "upstream/xz-runtime-5.2.3.tar.gz",
+      "bytes": 1490665,
+      "sha256": "71928b357d0a09a12a4b4c5fafca8c31c19b0e7d3b8ebb19622e96f26dbf28cb",
+      "recipe_sha512": "a5eb4f707cf31579d166a6f95dbac45cf7ea181036d1632b4f123a4072f502f8d57cd6e7d0588f0bf831a07b8fc4065d26589a25c399b95ddcf5f73435163da6"
+    },
+    {
+      "file": "ubuntu-sources/brotli_1.0.9-2build6.dsc",
+      "component": "brotli",
+      "version": "1.0.9-2build6",
+      "bytes": 1940,
+      "sha256": "acd215cccf71c8d077d03b9550d7a23c1963c31c42f3062076cdb5f69ac86c6f",
+      "url": "https://archive.ubuntu.com/ubuntu/pool/main/b/brotli/brotli_1.0.9-2build6.dsc"
+    },
+    {
+      "file": "ubuntu-sources/brotli_1.0.9.orig.tar.gz",
+      "component": "brotli",
+      "version": "1.0.9-2build6",
+      "bytes": 486984,
+      "sha256": "f9e8d81d0405ba66d181529af42a3354f838c939095ff99930da6aa9cdf6fe46",
+      "url": "https://archive.ubuntu.com/ubuntu/pool/main/b/brotli/brotli_1.0.9.orig.tar.gz"
+    },
+    {
+      "file": "ubuntu-sources/brotli_1.0.9-2build6.debian.tar.xz",
+      "component": "brotli",
+      "version": "1.0.9-2build6",
+      "bytes": 5812,
+      "sha256": "18bade39edd19e24c6a115b0053f84ebb909a9386c9a657ee6768b49a2af9974",
+      "url": "https://archive.ubuntu.com/ubuntu/pool/main/b/brotli/brotli_1.0.9-2build6.debian.tar.xz"
+    },
+    {
+      "file": "ubuntu-sources/expat_2.4.7-1.dsc",
+      "component": "expat",
+      "version": "2.4.7-1",
+      "bytes": 1981,
+      "sha256": "62f2bcaa109bdef9de18f12c0ed51fb7aeaa8aec9f74a0201a01f9eae7150c77",
+      "url": "https://archive.ubuntu.com/ubuntu/pool/main/e/expat/expat_2.4.7-1.dsc"
+    },
+    {
+      "file": "ubuntu-sources/expat_2.4.7.orig.tar.gz",
+      "component": "expat",
+      "version": "2.4.7-1",
+      "bytes": 8316374,
+      "sha256": "ddc1111651cdd4095b67c9d9ed46babfb8fb64843d89ff785399f5739b84867b",
+      "url": "https://archive.ubuntu.com/ubuntu/pool/main/e/expat/expat_2.4.7.orig.tar.gz"
+    },
+    {
+      "file": "ubuntu-sources/expat_2.4.7-1.debian.tar.xz",
+      "component": "expat",
+      "version": "2.4.7-1",
+      "bytes": 12544,
+      "sha256": "656e28075559c337cb0309d19d0efb4f20e0d21806169a077d4ef15240238547",
+      "url": "https://archive.ubuntu.com/ubuntu/pool/main/e/expat/expat_2.4.7-1.debian.tar.xz"
+    },
+    {
+      "file": "ubuntu-sources/fontconfig_2.13.1-4.2ubuntu5.dsc",
+      "component": "fontconfig",
+      "version": "2.13.1-4.2ubuntu5",
+      "bytes": 2449,
+      "sha256": "c5c3098474374f20d79e3a8c00dd849f75388af0c99b6f7ec3dfc724886c4cdd",
+      "url": "https://archive.ubuntu.com/ubuntu/pool/main/f/fontconfig/fontconfig_2.13.1-4.2ubuntu5.dsc"
+    },
+    {
+      "file": "ubuntu-sources/fontconfig_2.13.1.orig.tar.bz2",
+      "component": "fontconfig",
+      "version": "2.13.1-4.2ubuntu5",
+      "bytes": 1723639,
+      "sha256": "f655dd2a986d7aa97e052261b36aa67b0a64989496361eca8d604e6414006741",
+      "url": "https://archive.ubuntu.com/ubuntu/pool/main/f/fontconfig/fontconfig_2.13.1.orig.tar.bz2"
+    },
+    {
+      "file": "ubuntu-sources/fontconfig_2.13.1-4.2ubuntu5.debian.tar.xz",
+      "component": "fontconfig",
+      "version": "2.13.1-4.2ubuntu5",
+      "bytes": 28084,
+      "sha256": "15ade6954950577f355a55abcebe59f58e13df3dc616419af34ca0c19bbae0bd",
+      "url": "https://archive.ubuntu.com/ubuntu/pool/main/f/fontconfig/fontconfig_2.13.1-4.2ubuntu5.debian.tar.xz"
+    },
+    {
+      "file": "ubuntu-sources/freetype_2.11.1+dfsg-1build1.dsc",
+      "component": "freetype",
+      "version": "2.11.1+dfsg-1build1",
+      "bytes": 3355,
+      "sha256": "1c0c66b0b7712f7177fe572a682d027b63f737db8628a5fef7f2f2b1dd6c4951",
+      "url": "https://archive.ubuntu.com/ubuntu/pool/main/f/freetype/freetype_2.11.1+dfsg-1build1.dsc"
+    },
+    {
+      "file": "ubuntu-sources/freetype_2.11.1+dfsg.orig-ft2demos.tar.xz",
+      "component": "freetype",
+      "version": "2.11.1+dfsg-1build1",
+      "bytes": 257240,
+      "sha256": "c60620d49d0f16d95586eb868c01b129569409e6cfdcb87a78e0482a12604672",
+      "url": "https://archive.ubuntu.com/ubuntu/pool/main/f/freetype/freetype_2.11.1+dfsg.orig-ft2demos.tar.xz"
+    },
+    {
+      "file": "ubuntu-sources/freetype_2.11.1+dfsg.orig-ft2demos.tar.xz.asc",
+      "component": "freetype",
+      "version": "2.11.1+dfsg-1build1",
+      "bytes": 195,
+      "sha256": "d911a95830c50efcf60398e51db4ec307bbf4d24168377b515aded0611e977c0",
+      "url": "https://archive.ubuntu.com/ubuntu/pool/main/f/freetype/freetype_2.11.1+dfsg.orig-ft2demos.tar.xz.asc"
+    },
+    {
+      "file": "ubuntu-sources/freetype_2.11.1+dfsg.orig-ft2docs.tar.xz",
+      "component": "freetype",
+      "version": "2.11.1+dfsg-1build1",
+      "bytes": 2038348,
+      "sha256": "755e29908093c19138a38775784b0accf7e838ffa28a25b8722b3dfe651d80fa",
+      "url": "https://archive.ubuntu.com/ubuntu/pool/main/f/freetype/freetype_2.11.1+dfsg.orig-ft2docs.tar.xz"
+    },
+    {
+      "file": "ubuntu-sources/freetype_2.11.1+dfsg.orig-ft2docs.tar.xz.asc",
+      "component": "freetype",
+      "version": "2.11.1+dfsg-1build1",
+      "bytes": 195,
+      "sha256": "67cbc2f192460dc4d46129e7debe55b40a9fa6e224ffeed70b4cf397ebaccab5",
+      "url": "https://archive.ubuntu.com/ubuntu/pool/main/f/freetype/freetype_2.11.1+dfsg.orig-ft2docs.tar.xz.asc"
+    },
+    {
+      "file": "ubuntu-sources/freetype_2.11.1+dfsg.orig.tar.xz",
+      "component": "freetype",
+      "version": "2.11.1+dfsg-1build1",
+      "bytes": 1988020,
+      "sha256": "ef93541237834445eb7ff355e7d4139d48844f9c977a485dea1316df54994473",
+      "url": "https://archive.ubuntu.com/ubuntu/pool/main/f/freetype/freetype_2.11.1+dfsg.orig.tar.xz"
+    },
+    {
+      "file": "ubuntu-sources/freetype_2.11.1+dfsg-1build1.debian.tar.xz",
+      "component": "freetype",
+      "version": "2.11.1+dfsg-1build1",
+      "bytes": 40220,
+      "sha256": "4064a718fa46e99e53de9e9577cea6f2ba8967f7e9153a7003640a80d795353e",
+      "url": "https://archive.ubuntu.com/ubuntu/pool/main/f/freetype/freetype_2.11.1+dfsg-1build1.debian.tar.xz"
+    },
+    {
+      "file": "ubuntu-sources/gcc-12_12-20220319-1ubuntu1.dsc",
+      "component": "gcc-12",
+      "version": "12-20220319-1ubuntu1",
+      "bytes": 27778,
+      "sha256": "683255baff4757b335234d0a1fd18b86a7c9bfd095c3e700cce931047ab952cc",
+      "url": "https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-12/gcc-12_12-20220319-1ubuntu1.dsc"
+    },
+    {
+      "file": "ubuntu-sources/gcc-12_12-20220319.orig.tar.gz",
+      "component": "gcc-12",
+      "version": "12-20220319-1ubuntu1",
+      "bytes": 84604185,
+      "sha256": "7cf6e25d12056e1e8bccef211d52137c9cf96fe891d99ad91c265b3303f9a1b6",
+      "url": "https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-12/gcc-12_12-20220319.orig.tar.gz"
+    },
+    {
+      "file": "ubuntu-sources/gcc-12_12-20220319-1ubuntu1.debian.tar.xz",
+      "component": "gcc-12",
+      "version": "12-20220319-1ubuntu1",
+      "bytes": 560848,
+      "sha256": "1dd234b24ea94cc080910ff3e86614f3151687f6355d23f2db5e721f237add20",
+      "url": "https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-12/gcc-12_12-20220319-1ubuntu1.debian.tar.xz"
+    },
+    {
+      "file": "ubuntu-sources/glibc_2.35-0ubuntu3.dsc",
+      "component": "glibc",
+      "version": "2.35-0ubuntu3",
+      "bytes": 8876,
+      "sha256": "c0b20b06aa0fe95819a28f577bb43113ec9aec5ffc3bd21ae6e461044b702876",
+      "url": "https://archive.ubuntu.com/ubuntu/pool/main/g/glibc/glibc_2.35-0ubuntu3.dsc"
+    },
+    {
+      "file": "ubuntu-sources/glibc_2.35.orig.tar.xz",
+      "component": "glibc",
+      "version": "2.35-0ubuntu3",
+      "bytes": 18165952,
+      "sha256": "5123732f6b67ccd319305efd399971d58592122bcc2a6518a1bd2510dd0cf52e",
+      "url": "https://archive.ubuntu.com/ubuntu/pool/main/g/glibc/glibc_2.35.orig.tar.xz"
+    },
+    {
+      "file": "ubuntu-sources/glibc_2.35.orig.tar.xz.asc",
+      "component": "glibc",
+      "version": "2.35-0ubuntu3",
+      "bytes": 833,
+      "sha256": "853aaaf17d7366817e814057a467625ee7c0b26240e8b878db0f33c389c7bcb6",
+      "url": "https://archive.ubuntu.com/ubuntu/pool/main/g/glibc/glibc_2.35.orig.tar.xz.asc"
+    },
+    {
+      "file": "ubuntu-sources/glibc_2.35-0ubuntu3.debian.tar.xz",
+      "component": "glibc",
+      "version": "2.35-0ubuntu3",
+      "bytes": 885776,
+      "sha256": "aeb4a77f716630f7125260e31284a87326da2e46d2393b3c82f80c6d7814e423",
+      "url": "https://archive.ubuntu.com/ubuntu/pool/main/g/glibc/glibc_2.35-0ubuntu3.debian.tar.xz"
+    },
+    {
+      "file": "ubuntu-sources/libpng1.6_1.6.37-3build5.dsc",
+      "component": "libpng1.6",
+      "version": "1.6.37-3build5",
+      "bytes": 2357,
+      "sha256": "eef859eb4d859ac782b6ccd59e763fdd33777de8c94b54a264524e250d91119d",
+      "url": "https://archive.ubuntu.com/ubuntu/pool/main/libp/libpng1.6/libpng1.6_1.6.37-3build5.dsc"
+    },
+    {
+      "file": "ubuntu-sources/libpng1.6_1.6.37.orig.tar.gz",
+      "component": "libpng1.6",
+      "version": "1.6.37-3build5",
+      "bytes": 1508805,
+      "sha256": "ca74a0dace179a8422187671aee97dd3892b53e168627145271cad5b5ac81307",
+      "url": "https://archive.ubuntu.com/ubuntu/pool/main/libp/libpng1.6/libpng1.6_1.6.37.orig.tar.gz"
+    },
+    {
+      "file": "ubuntu-sources/libpng1.6_1.6.37-3build5.debian.tar.xz",
+      "component": "libpng1.6",
+      "version": "1.6.37-3build5",
+      "bytes": 32492,
+      "sha256": "a3e578a4b15d535f0c95ff7c85363f0e0862c35c5b704fbecbf5203e5f85adff",
+      "url": "https://archive.ubuntu.com/ubuntu/pool/main/libp/libpng1.6/libpng1.6_1.6.37-3build5.debian.tar.xz"
+    },
+    {
+      "file": "ubuntu-sources/libx11_1.7.5-1.dsc",
+      "component": "libx11",
+      "version": "2:1.7.5-1",
+      "bytes": 2539,
+      "sha256": "16d5e5853b2fc80f058049c0c13aeeaaf2e02bc31b4b0846359ab9cfede4ab70",
+      "url": "https://archive.ubuntu.com/ubuntu/pool/main/libx/libx11/libx11_1.7.5-1.dsc"
+    },
+    {
+      "file": "ubuntu-sources/libx11_1.7.5.orig.tar.gz",
+      "component": "libx11",
+      "version": "2:1.7.5-1",
+      "bytes": 3170022,
+      "sha256": "78992abcd2bfdebe657699203ad8914e7ae77025175460e04a1045387192a978",
+      "url": "https://archive.ubuntu.com/ubuntu/pool/main/libx/libx11/libx11_1.7.5.orig.tar.gz"
+    },
+    {
+      "file": "ubuntu-sources/libx11_1.7.5.orig.tar.gz.asc",
+      "component": "libx11",
+      "version": "2:1.7.5-1",
+      "bytes": 358,
+      "sha256": "8332442d1675118c43e341630bf62aeb93972254d139bb865cc047006ca7e8d6",
+      "url": "https://archive.ubuntu.com/ubuntu/pool/main/libx/libx11/libx11_1.7.5.orig.tar.gz.asc"
+    },
+    {
+      "file": "ubuntu-sources/libx11_1.7.5-1.diff.gz",
+      "component": "libx11",
+      "version": "2:1.7.5-1",
+      "bytes": 94094,
+      "sha256": "4fe3a677ed76cf216eeec0004e66e225fd4e15c9a46c45e98cb2432ed66c34fb",
+      "url": "https://archive.ubuntu.com/ubuntu/pool/main/libx/libx11/libx11_1.7.5-1.diff.gz"
+    },
+    {
+      "file": "ubuntu-sources/libxcrypt_4.4.27-1.dsc",
+      "component": "libxcrypt",
+      "version": "1:4.4.27-1",
+      "bytes": 1525,
+      "sha256": "1ffc1194e44330552a28d42a84c6b638b4939f0172d2bc84f58055406546edf9",
+      "url": "https://archive.ubuntu.com/ubuntu/pool/main/libx/libxcrypt/libxcrypt_4.4.27-1.dsc"
+    },
+    {
+      "file": "ubuntu-sources/libxcrypt_4.4.27.orig.tar.xz",
+      "component": "libxcrypt",
+      "version": "1:4.4.27-1",
+      "bytes": 391772,
+      "sha256": "cc0762a751224a5cb45329fb731f25016a8d8292749d8b4010f4b68144db6961",
+      "url": "https://archive.ubuntu.com/ubuntu/pool/main/libx/libxcrypt/libxcrypt_4.4.27.orig.tar.xz"
+    },
+    {
+      "file": "ubuntu-sources/libxcrypt_4.4.27-1.debian.tar.xz",
+      "component": "libxcrypt",
+      "version": "1:4.4.27-1",
+      "bytes": 7764,
+      "sha256": "92565f123e1e3bd5ebc53bc6b50dda46dc30e952fd02bb5b081bf9c113b733e8",
+      "url": "https://archive.ubuntu.com/ubuntu/pool/main/libx/libxcrypt/libxcrypt_4.4.27-1.debian.tar.xz"
+    },
+    {
+      "file": "ubuntu-sources/libxext_1.3.4-1build1.dsc",
+      "component": "libxext",
+      "version": "2:1.3.4-1build1",
+      "bytes": 2250,
+      "sha256": "0b0d4395cbcbbdb5aa60677524b9dea7fbcbb9b32d03a892095a1c666fd65f4a",
+      "url": "https://archive.ubuntu.com/ubuntu/pool/main/libx/libxext/libxext_1.3.4-1build1.dsc"
+    },
+    {
+      "file": "ubuntu-sources/libxext_1.3.4.orig.tar.gz",
+      "component": "libxext",
+      "version": "2:1.3.4-1build1",
+      "bytes": 494434,
+      "sha256": "8ef0789f282826661ff40a8eef22430378516ac580167da35cc948be9041aac1",
+      "url": "https://archive.ubuntu.com/ubuntu/pool/main/libx/libxext/libxext_1.3.4.orig.tar.gz"
+    },
+    {
+      "file": "ubuntu-sources/libxext_1.3.4-1build1.diff.gz",
+      "component": "libxext",
+      "version": "2:1.3.4-1build1",
+      "bytes": 12588,
+      "sha256": "0efc1abad5202351c44a469fc91cc0eea3836e302884d9f6b2a29436f94d7498",
+      "url": "https://archive.ubuntu.com/ubuntu/pool/main/libx/libxext/libxext_1.3.4-1build1.diff.gz"
+    },
+    {
+      "file": "ubuntu-sources/libxrender_0.9.10-1build4.dsc",
+      "component": "libxrender",
+      "version": "1:0.9.10-1build4",
+      "bytes": 2196,
+      "sha256": "e93b6a2977502b02f6b616784dd9d4acb3686cfd2a2dbc54ad6545e0f1ffe152",
+      "url": "https://archive.ubuntu.com/ubuntu/pool/main/libx/libxrender/libxrender_0.9.10-1build4.dsc"
+    },
+    {
+      "file": "ubuntu-sources/libxrender_0.9.10.orig.tar.gz",
+      "component": "libxrender",
+      "version": "1:0.9.10-1build4",
+      "bytes": 373717,
+      "sha256": "770527cce42500790433df84ec3521e8bf095dfe5079454a92236494ab296adf",
+      "url": "https://archive.ubuntu.com/ubuntu/pool/main/libx/libxrender/libxrender_0.9.10.orig.tar.gz"
+    },
+    {
+      "file": "ubuntu-sources/libxrender_0.9.10-1build4.diff.gz",
+      "component": "libxrender",
+      "version": "1:0.9.10-1build4",
+      "bytes": 15809,
+      "sha256": "b56ff0a20ca53f321a4f574d71efae04ff6be4efdf593af763b0872ac1ce3c85",
+      "url": "https://archive.ubuntu.com/ubuntu/pool/main/libx/libxrender/libxrender_0.9.10-1build4.diff.gz"
+    },
+    {
+      "file": "ubuntu-sources/util-linux_2.37.2-4ubuntu3.dsc",
+      "component": "util-linux",
+      "version": "2.37.2-4ubuntu3",
+      "bytes": 4542,
+      "sha256": "6b93cd9f66f823ae283ea1edae444b3d484e510db392b834816caecd6be0ca4e",
+      "url": "https://archive.ubuntu.com/ubuntu/pool/main/u/util-linux/util-linux_2.37.2-4ubuntu3.dsc"
+    },
+    {
+      "file": "ubuntu-sources/util-linux_2.37.2.orig.tar.xz",
+      "component": "util-linux",
+      "version": "2.37.2-4ubuntu3",
+      "bytes": 5621624,
+      "sha256": "6a0764c1aae7fb607ef8a6dd2c0f6c47d5e5fd27aa08820abaad9ec14e28e9d9",
+      "url": "https://archive.ubuntu.com/ubuntu/pool/main/u/util-linux/util-linux_2.37.2.orig.tar.xz"
+    },
+    {
+      "file": "ubuntu-sources/util-linux_2.37.2-4ubuntu3.debian.tar.xz",
+      "component": "util-linux",
+      "version": "2.37.2-4ubuntu3",
+      "bytes": 107608,
+      "sha256": "32a90e1c58d352ec9619d92b12676797d222196115b737fb522c33ee99d89a9f",
+      "url": "https://archive.ubuntu.com/ubuntu/pool/main/u/util-linux/util-linux_2.37.2-4ubuntu3.debian.tar.xz"
+    },
+    {
+      "file": "ubuntu-sources/xft_2.3.4-1.dsc",
+      "component": "xft",
+      "version": "2.3.4-1",
+      "bytes": 2006,
+      "sha256": "289599ffdd1dae46ac6cb346bb46294e1e8401e12d9316fcabc13df36d776ab6",
+      "url": "https://archive.ubuntu.com/ubuntu/pool/main/x/xft/xft_2.3.4-1.dsc"
+    },
+    {
+      "file": "ubuntu-sources/xft_2.3.4.orig.tar.gz",
+      "component": "xft",
+      "version": "2.3.4-1",
+      "bytes": 429711,
+      "sha256": "1eca71bec9cb483165ce1ab94f5cd3036269f5268651df6a2d99c4a7ab644d79",
+      "url": "https://archive.ubuntu.com/ubuntu/pool/main/x/xft/xft_2.3.4.orig.tar.gz"
+    },
+    {
+      "file": "ubuntu-sources/xft_2.3.4-1.diff.gz",
+      "component": "xft",
+      "version": "2.3.4-1",
+      "bytes": 12527,
+      "sha256": "4759155b4ef11d14aeaf468b6e3d1728444be4eab14b51079a532b8186dcdd95",
+      "url": "https://archive.ubuntu.com/ubuntu/pool/main/x/xft/xft_2.3.4-1.diff.gz"
+    },
+    {
+      "file": "ubuntu-sources/zlib_1.2.11.dfsg-2ubuntu9.dsc",
+      "component": "zlib",
+      "version": "1:1.2.11.dfsg-2ubuntu9",
+      "bytes": 2945,
+      "sha256": "ca649cd1e1b8724f03cd27cb68606112ec9605605b669f9cce0bd4754957a6b6",
+      "url": "https://archive.ubuntu.com/ubuntu/pool/main/z/zlib/zlib_1.2.11.dfsg-2ubuntu9.dsc"
+    },
+    {
+      "file": "ubuntu-sources/zlib_1.2.11.dfsg.orig.tar.gz",
+      "component": "zlib",
+      "version": "1:1.2.11.dfsg-2ubuntu9",
+      "bytes": 370248,
+      "sha256": "80c481411a4fe8463aeb8270149a0e80bb9eaf7da44132b6e16f2b5af01bc899",
+      "url": "https://archive.ubuntu.com/ubuntu/pool/main/z/zlib/zlib_1.2.11.dfsg.orig.tar.gz"
+    },
+    {
+      "file": "ubuntu-sources/zlib_1.2.11.dfsg-2ubuntu9.debian.tar.xz",
+      "component": "zlib",
+      "version": "1:1.2.11.dfsg-2ubuntu9",
+      "bytes": 58360,
+      "sha256": "5bb062e5f5ba606cb918181a7198faaf07eb8dbab0e6186159343223c0c92354",
+      "url": "https://archive.ubuntu.com/ubuntu/pool/main/z/zlib/zlib_1.2.11.dfsg-2ubuntu9.debian.tar.xz"
+    },
+    {
+      "file": "InRelease",
+      "bytes": 270087,
+      "sha256": "c14060cd8c6d625874dfcb9523a35a395bf4865c28b6b6a82569ef326fe92dc6",
+      "url": "https://archive.ubuntu.com/ubuntu/dists/jammy/InRelease"
+    },
+    {
+      "file": "Sources.gz",
+      "bytes": 1668337,
+      "sha256": "65c7dbc331adfc762213941475232bd5f294b2bab8b30a38bdd424159c33d685",
+      "url": "https://archive.ubuntu.com/ubuntu/dists/jammy/main/source/Sources.gz"
+    },
+    {
+      "file": "ubuntu-signature.txt",
+      "bytes": 583,
+      "sha256": "af7b10f758765f1e7cd7c1285e308c1543ce39b6407062ab36a4b92d6deefb5f",
+      "repository_path": "legal/distribution/evidence/ubuntu-signature.txt"
+    },
+    {
+      "file": "ubuntu-source-index.json",
+      "bytes": 20416,
+      "sha256": "a68c2472af258fadb7c7613ef16dde7a498e91f37984f21968a749bb169a9ba4",
+      "repository_path": "legal/distribution/evidence/ubuntu-source-index.json"
+    },
+    {
+      "file": "intel-binaries.json",
+      "bytes": 1748,
+      "sha256": "a989aecd60d7ad473de9a597aef3ec3a4fc41461b7947379019b32dcf68f03f7",
+      "repository_path": "legal/distribution/evidence/intel-binaries.json"
+    },
+    {
+      "file": "package-notices.json",
+      "bytes": 714,
+      "sha256": "f2cc60d1e7464e15f2163850bfa8ff5a04e731c06c95b0be371dd89e638a301e",
+      "repository_path": "legal/distribution/evidence/package-notices.json"
+    },
+    {
+      "file": "native-linkage.json",
+      "bytes": 5817,
+      "sha256": "d2efdf3d08e0fd94aeb486b346cf459b791440d0b916fdcf3712630f72e985e6",
+      "repository_path": "legal/distribution/evidence/native-linkage.json"
+    },
+    {
+      "file": "notices/AppImage-runtime-header.txt",
+      "bytes": 1347,
+      "sha256": "9c1ef3f244d67a24a64c4ae02e889d1038b094d9a9f5fae488c4e81737bc24c3",
+      "repository_path": "legal/distribution/notices/AppImage-runtime-header.txt"
+    },
+    {
+      "file": "notices/AppImageKit-LICENSE.txt",
+      "bytes": 1491,
+      "sha256": "9cb22a08334c3a108ec4da96c1d6aea7a17a732fa9f5ca3413a9b4ce651397d8",
+      "repository_path": "legal/distribution/notices/AppImageKit-LICENSE.txt"
+    },
+    {
+      "file": "notices/AppRun-LICENSE.txt",
+      "bytes": 1059,
+      "sha256": "5ef8cd7c08c4831c4af5083e6d4efd4d9468aa70c6e272c2754dcc1266eba25d",
+      "repository_path": "legal/distribution/notices/AppRun-LICENSE.txt"
+    },
+    {
+      "file": "notices/gcc-12-copyright.txt",
+      "bytes": 68194,
+      "sha256": "da8191658b3452ce9caf31638ba61dab31a38c619fa39df119812e050f592fd3",
+      "repository_path": "legal/distribution/notices/gcc-12-copyright.txt"
+    },
+    {
+      "file": "notices/glibc-copyright.txt",
+      "bytes": 26462,
+      "sha256": "d3c95b56fa33e28b57860580f0baf4e4f4de2a268a2b80f1d031a5191bade265",
+      "repository_path": "legal/distribution/notices/glibc-copyright.txt"
+    },
+    {
+      "file": "notices/libappimage-LICENSE.txt",
+      "bytes": 1513,
+      "sha256": "e7e6b508c5d459c6a5b8997f5594f48a031a2fcc24197140a04fdd14b9a0fbcf",
+      "repository_path": "legal/distribution/notices/libappimage-LICENSE.txt"
+    },
+    {
+      "file": "notices/libvpx-1.15.2-LICENSE.txt",
+      "bytes": 1537,
+      "sha256": "8267348d5af1262c11d1a08de2f5afc77457755f1ac658627dd9acf71011d615",
+      "repository_path": "legal/distribution/notices/libvpx-1.15.2-LICENSE.txt"
+    },
+    {
+      "file": "notices/libvpx-1.15.2-PATENTS.txt",
+      "bytes": 1436,
+      "sha256": "cc3273e0694ea5896145e0677699b53471b03ea43021ddc50e7923fbb9f5023c",
+      "repository_path": "legal/distribution/notices/libvpx-1.15.2-PATENTS.txt"
+    },
+    {
+      "file": "notices/libxcrypt-copyright.txt",
+      "bytes": 6010,
+      "sha256": "5a5e7ca0e9f3f9679977e3a3e9ede45ad92885a3297ea78e766979f9866c5a16",
+      "repository_path": "legal/distribution/notices/libxcrypt-copyright.txt"
+    },
+    {
+      "file": "notices/squashfuse-1f98030-fuseprivate-header.txt",
+      "bytes": 1346,
+      "sha256": "0d36e13a66b1c03f031cf21d74cc61be3df3c50d4ab37943069d44a770965786",
+      "repository_path": "legal/distribution/notices/squashfuse-1f98030-fuseprivate-header.txt"
+    },
+    {
+      "file": "notices/squashfuse-1f98030-LICENSE.txt",
+      "bytes": 1592,
+      "sha256": "9e909cc8a8ba27b1a649c964cf9eda37de911f3138c2b64e6d2f01703904ac13",
+      "repository_path": "legal/distribution/notices/squashfuse-1f98030-LICENSE.txt"
+    },
+    {
+      "file": "notices/xz-runtime-5.2.3-COPYING.txt",
+      "bytes": 2774,
+      "sha256": "c4f8e14fafe458d84808a4cd8b69f94673ebe2bf8fc992291629a69ac12218f8",
+      "repository_path": "legal/distribution/notices/xz-runtime-5.2.3-COPYING.txt"
+    },
+    {
+      "file": "notices/zlib-copyright.txt",
+      "bytes": 2920,
+      "sha256": "d77204eee882807240f6351c4f5ae2a4bcdb5b773ff77d10647b9b66b826b2fb",
+      "repository_path": "legal/distribution/notices/zlib-copyright.txt"
+    },
+    {
+      "file": "notices/common-licenses/GFDL-1.3",
+      "bytes": 22955,
+      "sha256": "110535522396708cea37c72a802c5e7e81391139f5f7985631c93ef242b206a4",
+      "repository_path": "legal/distribution/notices/common-licenses/GFDL-1.3"
+    },
+    {
+      "file": "notices/common-licenses/GPL-2",
+      "bytes": 17984,
+      "sha256": "edaef632cbb643e4e7a221717a6c441a4c1a7c918e6e4d56debc3d8739b233f6",
+      "repository_path": "legal/distribution/notices/common-licenses/GPL-2"
+    },
+    {
+      "file": "notices/common-licenses/GPL-3",
+      "bytes": 35149,
+      "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
+      "repository_path": "legal/distribution/notices/common-licenses/GPL-3"
+    },
+    {
+      "file": "notices/common-licenses/LGPL-2.1",
+      "bytes": 26419,
+      "sha256": "20e50fe7aae3e56378ebf0417d9de904f55a0e61e4df315333e632a4d3555d95",
+      "repository_path": "legal/distribution/notices/common-licenses/LGPL-2.1"
+    },
+    {
+      "file": "notices/common-licenses/LGPL-3",
+      "bytes": 7652,
+      "sha256": "e3a994d82e644b03a792a930f574002658412f62407f5fee083f2555c5f23118",
+      "repository_path": "legal/distribution/notices/common-licenses/LGPL-3"
+    },
+    {
+      "file": "README.md",
+      "bytes": 6218,
+      "sha256": "5113ee1dd266cab756df3ab568baa469f700aee9f99f1d8ec7181d0ea2235d69",
+      "repository_path": "legal/distribution/README.md"
+    },
+    {
+      "file": "NATIVE_COMPONENTS.md",
+      "bytes": 4271,
+      "sha256": "211f1ca84f6270a01ec9c5cdd7c0adfc0b9d26f822e4836693d72e3b047c4364",
+      "repository_path": "legal/distribution/NATIVE_COMPONENTS.md"
+    },
+    {
+      "file": "patches/x265-json11-cstdint.patch",
+      "bytes": 212,
+      "sha256": "338742037efcc20ae8d9e037c2793dba32323c9565f419459fd034ec95fa0f90",
+      "repository_path": "legal/distribution/patches/x265-json11-cstdint.patch"
+    },
+    {
+      "file": "recipes/build_heic_linux.py",
+      "bytes": 11519,
+      "sha256": "f5b48f21dfae3f21d1ff50dd27a2851cd2ae72c37712735aa56cf1639c6857f9",
+      "repository_path": "scripts/ci/build_heic_linux.py"
+    }
+  ]
+}

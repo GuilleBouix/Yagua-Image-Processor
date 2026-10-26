@@ -45,6 +45,13 @@ assert not any(d.metadata['Name'].lower().startswith('nvidia-')
                for d in importlib.metadata.distributions()), 'El entorno incluye NVIDIA'
 PY
 
+# Keep the HEIC chain on this build's Linux base rather than shipping an
+# unidentified compatibility libmvec from the upstream wheel. Runtime versions stay pinned.
+HEIC_BUILD_DIR="${HEIC_BUILD_DIR:-$ROOT_DIR/build/heic-source-$BUILD_STAMP}"
+export YAGUA_HEIC_NATIVE_REPORT="${YAGUA_HEIC_NATIVE_REPORT:-$DIST_DIR/linux-heic-native.json}"
+"$PYTHON_BIN" scripts/ci/build_heic_linux.py --work-dir "$HEIC_BUILD_DIR" \
+  --report "$YAGUA_HEIC_NATIVE_REPORT" --jobs "${HEIC_BUILD_JOBS:-2}"
+
 "$PYTHON_BIN" -m PyInstaller \
   --clean \
   --noconfirm \
@@ -53,6 +60,7 @@ PY
   "$SPEC_FILE"
 
 "$PYTHON_BIN" scripts/ci/check_linux_size.py "$DIST_DIR/Yagua"
+"$PYTHON_BIN" scripts/ci/build_heic_linux.py --check-package "$DIST_DIR/Yagua"
 "$PYTHON_BIN" scripts/ci/check_licenses.py --package "$DIST_DIR/Yagua" --platform linux \
   --report "$DIST_DIR/licenses.json"
 test -x "$DIST_DIR/Yagua/Yagua"

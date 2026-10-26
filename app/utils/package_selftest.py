@@ -217,6 +217,25 @@ def _verify_image_formats(work: Path, observations: dict | None = None) -> list[
     return list(convert.FORMATOS_DESTINO)
 
 
+def _verify_heic_depths(work: Path) -> dict[str, int]:
+    """Check actual 10/12-bit encoding, not only the presence of a codec name."""
+    import numpy as np
+    import pillow_heif
+
+    size = (64, 48)
+    pixels = (np.arange(size[0] * size[1] * 3, dtype=np.uint16) * 7).tobytes()
+    result = {}
+    for depth in (10, 12):
+        image = pillow_heif.from_bytes('RGB;16', size, pixels)
+        path = work / f'heic-{depth}-bits.heic'
+        image.save(path, bit_depth=depth, quality=85)
+        decoded = pillow_heif.open_heif(path, convert_hdr_to_8bit=False)
+        if decoded.size != size or decoded.info['bit_depth'] != depth or not decoded.data:
+            raise RuntimeError(f'HEIC {depth}-bit roundtrip failed')
+        result[str(depth)] = decoded.info['bit_depth']
+    return result
+
+
 def _verify_conversion_profiles(work: Path) -> dict[str, bool]:
     from PIL import Image, ImageCms
     from app.modules.convert import convertir_imagen
@@ -365,6 +384,8 @@ def run(report_path: Path) -> int:
                 lambda: _verify_image_formats(work, result['image_roundtrips']))
             result['conversion_profiles'] = _stage(result, 'conversion-color-profiles',
                 lambda: _verify_conversion_profiles(work))
+            result['heic_bit_depths'] = _stage(result, 'heic-high-bit-depths',
+                lambda: _verify_heic_depths(work))
 
             def verify_ocr(languages):
                 batch_result = ocr.batch_procesar([str(image_path)], idiomas=languages)

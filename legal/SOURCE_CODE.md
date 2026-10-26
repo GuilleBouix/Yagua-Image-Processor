@@ -1,5 +1,12 @@
 # Código fuente de componentes incluidos
 
+Actualización 2026-10-26: [`distribution/README.md`](distribution/README.md)
+documenta las fuentes/parches Ubuntu y recetas adicionales reunidas para los
+candidatos Windows/Linux. `scripts/ci/source_materials.py` prepara un archivo
+separado con hashes verificados. Es material de revisión, todavía no una
+declaración de entrega completa de fuentes correspondientes. Los nueve archivos
+descritos a continuación continúan incluidos dentro de la aplicación.
+
 Las fuentes originales publicadas para estas versiones se incluyen sin modificar
 en `legal/sources/`. No hace falta internet para obtener estas copias:
 
@@ -33,9 +40,12 @@ son snapshots de los tags upstream, no reconstrucciones de los wheels.
 x265 informa **4.1+1-1d117be**. Se incluye la fuente de la revisión
 **1d117bed4747758b51bd2c124d738527e30392cb**, resuelta mediante la API del
 repositorio oficial de Multicoreware y descargada desde ese repositorio.
-Siguen pendientes los parches y recetas usados en el wheel. No basta el tag 3.4
-que aparece en el aviso genérico. Las versiones anteriores describen Windows;
-no se extrapolan a los binarios Linux.
+Las recetas publicadas de pillow-heif y sus dos parches de CMake para x265 se
+reunieron en el material adicional, fijado por commit. No basta el tag 3.4 que
+aparece en el aviso genérico. No se reconstruyó el wheel ni se resolvieron todas
+las dependencias externas variables de esas recetas. Las mismas versiones
+nativas se consultaron también en Linux durante la revisión de candidatos;
+el detalle y sus límites están en `distribution/README.md`.
 
 Se distribuyen los archivos fuente publicados de las cinco versiones indicadas.
 Yagua no aplica parches a esas fuentes. Esto no significa que se haya reproducido

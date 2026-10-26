@@ -1,0 +1,10 @@
+--- a/source/dynamicHDR10/json11/json11.cpp
++++ b/source/dynamicHDR10/json11/json11.cpp
+@@ -20,6 +20,7 @@
+  */
+ 
+ #include "json11.h"
++#include <cstdint>
+ #include <cassert>
+ #include <cmath>
+ #include <cstdlib>

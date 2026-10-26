@@ -1,0 +1,399 @@
+{
+  "suite": "jammy/main",
+  "index_sha256": "65c7dbc331adfc762213941475232bd5f294b2bab8b30a38bdd424159c33d685",
+  "index_bytes": 1668337,
+  "signature_verification": {
+    "result": "verified with gpgv",
+    "key_fingerprint": "F6ECB3762474EDA9D21B7022871920D1991BC93C",
+    "keyring": "Ubuntu system ubuntu-archive-keyring.gpg",
+    "evidence": "ubuntu-signature.txt"
+  },
+  "packages": [
+    {
+      "package": "brotli",
+      "version": "1.0.9-2build6",
+      "binary": "python3-brotli, brotli, libbrotli-dev, libbrotli1",
+      "files": [
+        {
+          "name": "brotli_1.0.9-2build6.dsc",
+          "bytes": 1940,
+          "sha256": "acd215cccf71c8d077d03b9550d7a23c1963c31c42f3062076cdb5f69ac86c6f",
+          "url": "https://archive.ubuntu.com/ubuntu/pool/main/b/brotli/brotli_1.0.9-2build6.dsc"
+        },
+        {
+          "name": "brotli_1.0.9.orig.tar.gz",
+          "bytes": 486984,
+          "sha256": "f9e8d81d0405ba66d181529af42a3354f838c939095ff99930da6aa9cdf6fe46",
+          "url": "https://archive.ubuntu.com/ubuntu/pool/main/b/brotli/brotli_1.0.9.orig.tar.gz"
+        },
+        {
+          "name": "brotli_1.0.9-2build6.debian.tar.xz",
+          "bytes": 5812,
+          "sha256": "18bade39edd19e24c6a115b0053f84ebb909a9386c9a657ee6768b49a2af9974",
+          "url": "https://archive.ubuntu.com/ubuntu/pool/main/b/brotli/brotli_1.0.9-2build6.debian.tar.xz"
+        }
+      ]
+    },
+    {
+      "package": "expat",
+      "version": "2.4.7-1",
+      "binary": "libexpat1-dev, libexpat1, libexpat1-udeb, expat",
+      "files": [
+        {
+          "name": "expat_2.4.7-1.dsc",
+          "bytes": 1981,
+          "sha256": "62f2bcaa109bdef9de18f12c0ed51fb7aeaa8aec9f74a0201a01f9eae7150c77",
+          "url": "https://archive.ubuntu.com/ubuntu/pool/main/e/expat/expat_2.4.7-1.dsc"
+        },
+        {
+          "name": "expat_2.4.7.orig.tar.gz",
+          "bytes": 8316374,
+          "sha256": "ddc1111651cdd4095b67c9d9ed46babfb8fb64843d89ff785399f5739b84867b",
+          "url": "https://archive.ubuntu.com/ubuntu/pool/main/e/expat/expat_2.4.7.orig.tar.gz"
+        },
+        {
+          "name": "expat_2.4.7-1.debian.tar.xz",
+          "bytes": 12544,
+          "sha256": "656e28075559c337cb0309d19d0efb4f20e0d21806169a077d4ef15240238547",
+          "url": "https://archive.ubuntu.com/ubuntu/pool/main/e/expat/expat_2.4.7-1.debian.tar.xz"
+        }
+      ]
+    },
+    {
+      "package": "fontconfig",
+      "version": "2.13.1-4.2ubuntu5",
+      "binary": "fontconfig, fontconfig-config, fontconfig-udeb, libfontconfig-dev, libfontconfig1-dev, libfontconfig1, libfontconfig-doc",
+      "files": [
+        {
+          "name": "fontconfig_2.13.1-4.2ubuntu5.dsc",
+          "bytes": 2449,
+          "sha256": "c5c3098474374f20d79e3a8c00dd849f75388af0c99b6f7ec3dfc724886c4cdd",
+          "url": "https://archive.ubuntu.com/ubuntu/pool/main/f/fontconfig/fontconfig_2.13.1-4.2ubuntu5.dsc"
+        },
+        {
+          "name": "fontconfig_2.13.1.orig.tar.bz2",
+          "bytes": 1723639,
+          "sha256": "f655dd2a986d7aa97e052261b36aa67b0a64989496361eca8d604e6414006741",
+          "url": "https://archive.ubuntu.com/ubuntu/pool/main/f/fontconfig/fontconfig_2.13.1.orig.tar.bz2"
+        },
+        {
+          "name": "fontconfig_2.13.1-4.2ubuntu5.debian.tar.xz",
+          "bytes": 28084,
+          "sha256": "15ade6954950577f355a55abcebe59f58e13df3dc616419af34ca0c19bbae0bd",
+          "url": "https://archive.ubuntu.com/ubuntu/pool/main/f/fontconfig/fontconfig_2.13.1-4.2ubuntu5.debian.tar.xz"
+        }
+      ]
+    },
+    {
+      "package": "freetype",
+      "version": "2.11.1+dfsg-1build1",
+      "binary": "libfreetype6, libfreetype-dev, libfreetype6-dev, freetype2-demos, freetype2-doc, libfreetype6-udeb",
+      "files": [
+        {
+          "name": "freetype_2.11.1+dfsg-1build1.dsc",
+          "bytes": 3355,
+          "sha256": "1c0c66b0b7712f7177fe572a682d027b63f737db8628a5fef7f2f2b1dd6c4951",
+          "url": "https://archive.ubuntu.com/ubuntu/pool/main/f/freetype/freetype_2.11.1+dfsg-1build1.dsc"
+        },
+        {
+          "name": "freetype_2.11.1+dfsg.orig-ft2demos.tar.xz",
+          "bytes": 257240,
+          "sha256": "c60620d49d0f16d95586eb868c01b129569409e6cfdcb87a78e0482a12604672",
+          "url": "https://archive.ubuntu.com/ubuntu/pool/main/f/freetype/freetype_2.11.1+dfsg.orig-ft2demos.tar.xz"
+        },
+        {
+          "name": "freetype_2.11.1+dfsg.orig-ft2demos.tar.xz.asc",
+          "bytes": 195,
+          "sha256": "d911a95830c50efcf60398e51db4ec307bbf4d24168377b515aded0611e977c0",
+          "url": "https://archive.ubuntu.com/ubuntu/pool/main/f/freetype/freetype_2.11.1+dfsg.orig-ft2demos.tar.xz.asc"
+        },
+        {
+          "name": "freetype_2.11.1+dfsg.orig-ft2docs.tar.xz",
+          "bytes": 2038348,
+          "sha256": "755e29908093c19138a38775784b0accf7e838ffa28a25b8722b3dfe651d80fa",
+          "url": "https://archive.ubuntu.com/ubuntu/pool/main/f/freetype/freetype_2.11.1+dfsg.orig-ft2docs.tar.xz"
+        },
+        {
+          "name": "freetype_2.11.1+dfsg.orig-ft2docs.tar.xz.asc",
+          "bytes": 195,
+          "sha256": "67cbc2f192460dc4d46129e7debe55b40a9fa6e224ffeed70b4cf397ebaccab5",
+          "url": "https://archive.ubuntu.com/ubuntu/pool/main/f/freetype/freetype_2.11.1+dfsg.orig-ft2docs.tar.xz.asc"
+        },
+        {
+          "name": "freetype_2.11.1+dfsg.orig.tar.xz",
+          "bytes": 1988020,
+          "sha256": "ef93541237834445eb7ff355e7d4139d48844f9c977a485dea1316df54994473",
+          "url": "https://archive.ubuntu.com/ubuntu/pool/main/f/freetype/freetype_2.11.1+dfsg.orig.tar.xz"
+        },
+        {
+          "name": "freetype_2.11.1+dfsg-1build1.debian.tar.xz",
+          "bytes": 40220,
+          "sha256": "4064a718fa46e99e53de9e9577cea6f2ba8967f7e9153a7003640a80d795353e",
+          "url": "https://archive.ubuntu.com/ubuntu/pool/main/f/freetype/freetype_2.11.1+dfsg-1build1.debian.tar.xz"
+        }
+      ]
+    },
+    {
+      "package": "gcc-12",
+      "version": "12-20220319-1ubuntu1",
+      "binary": "gcc-12-base, libgcc-s1, libgcc-s2, libgcc-s4, libgcc-12-dev, lib64gcc-s1, lib64gcc-12-dev, lib32gcc-s1, lib32gcc-12-dev, libn32gcc-s1, libn32gcc-12-dev, libx32gcc-s1, libx32gcc-12-dev, gcc-12, gcc-12-multilib, gcc-12-test-results, gcc-12-plugin-dev, gcc-12-hppa64-linux-gnu, cpp-12, cpp-12-doc, gcc-12-locales, g++-12, g++-12-multilib, libgomp1, lib32gomp1, lib64gomp1, libn32gomp1, libx32gomp1, libitm1, lib32itm1, lib64itm1, libx32itm1, libatomic1, lib32atomic1, lib64atomic1, libn32atomic1, libx32atomic1, libasan8, lib32asan8, lib64asan8, libx32asan8, libhwasan0, liblsan0, lib32lsan0, libx32lsan0, libtsan2, libubsan1, lib32ubsan1, lib64ubsan1, libx32ubsan1, libquadmath0, lib32quadmath0, lib64quadmath0, libx32quadmath0, libcc1-0, libgccjit0, libgccjit-12-doc, libgccjit-12-dev, gobjc++-12, gobjc++-12-multilib, gobjc-12, gobjc-12-multilib, libobjc-12-dev, lib64objc-12-dev, lib32objc-12-dev, libn32objc-12-dev, libx32objc-12-dev, libobjc4, lib64objc4, lib32objc4,\nlibn32objc4, libx32objc4, gfortran-12, gfortran-12-multilib, gfortran-12-doc, libgfortran-12-dev, lib64gfortran-12-dev, lib32gfortran-12-dev, libn32gfortran-12-dev, libx32gfortran-12-dev, libgfortran5, lib64gfortran5, lib32gfortran5, libn32gfortran5, libx32gfortran5, gccgo-12, gccgo-12-multilib, gccgo-12-doc, libgo-12-dev, lib64go-12-dev, lib32go-12-dev, libn32go-12-dev, libx32go-12-dev, libgo21, lib64go21, lib32go21, libn32go21, libx32go21, libstdc++6, lib32stdc++6, lib64stdc++6, libn32stdc++6, libx32stdc++6, libstdc++-12-dev, libstdc++-12-pic, libstdc++6-12-dbg, lib32stdc++-12-dev, lib32stdc++6-12-dbg, lib64stdc++-12-dev, lib64stdc++6-12-dbg, libn32stdc++-12-dev, libn32stdc++6-12-dbg, libx32stdc++-12-dev, libx32stdc++6-12-dbg, libstdc++-12-doc, gnat-12, libgnat-12, gnat-12-doc, gdc-12, gdc-12-multilib, libgphobos-12-dev, lib64gphobos-12-dev, lib32gphobos-12-dev, libn32gphobos-12-dev, libx32gphobos-12-dev, libgphobos3, lib64gphobos3, lib32gphobos3, libn32gphobos3,\nlibx32gphobos3, gm2-12, libgm2-12-dev, libgm2-17, gcc-12-doc, gcc-12-offload-nvptx, libgomp-plugin-nvptx1, gcc-12-offload-amdgcn, libgomp-plugin-amdgcn1,\ngcc-12-source",
+      "files": [
+        {
+          "name": "gcc-12_12-20220319-1ubuntu1.dsc",
+          "bytes": 27778,
+          "sha256": "683255baff4757b335234d0a1fd18b86a7c9bfd095c3e700cce931047ab952cc",
+          "url": "https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-12/gcc-12_12-20220319-1ubuntu1.dsc"
+        },
+        {
+          "name": "gcc-12_12-20220319.orig.tar.gz",
+          "bytes": 84604185,
+          "sha256": "7cf6e25d12056e1e8bccef211d52137c9cf96fe891d99ad91c265b3303f9a1b6",
+          "url": "https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-12/gcc-12_12-20220319.orig.tar.gz"
+        },
+        {
+          "name": "gcc-12_12-20220319-1ubuntu1.debian.tar.xz",
+          "bytes": 560848,
+          "sha256": "1dd234b24ea94cc080910ff3e86614f3151687f6355d23f2db5e721f237add20",
+          "url": "https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-12/gcc-12_12-20220319-1ubuntu1.debian.tar.xz"
+        }
+      ]
+    },
+    {
+      "package": "glibc",
+      "version": "2.35-0ubuntu3",
+      "binary": "libc-bin, libc-dev-bin, libc-devtools, libc-l10n, glibc-doc, glibc-source, locales, locales-all, nscd, libc6, libc6-dev, libc6-dbg, libc6-udeb, libc6.1, libc6.1-dev, libc6.1-dbg, libc6.1-udeb, libc0.3, libc0.3-dev, libc0.3-dbg, libc0.3-udeb, libc0.1, libc0.1-dev, libc0.1-dbg, libc0.1-udeb, libc6-i386, libc6-dev-i386, libc6-sparc, libc6-dev-sparc, libc6-sparc64, libc6-dev-sparc64, libc6-s390, libc6-dev-s390, libc6-amd64, libc6-dev-amd64, libc6-powerpc, libc6-dev-powerpc, libc6-ppc64, libc6-dev-ppc64, libc6-mips32, libc6-dev-mips32, libc6-mipsn32, libc6-dev-mipsn32, libc6-mips64, libc6-dev-mips64, libc0.1-i386, libc0.1-dev-i386, libc6-x32, libc6-dev-x32, libc6-xen, libc0.3-xen, libc6.1-alphaev67, libc6-prof",
+      "files": [
+        {
+          "name": "glibc_2.35-0ubuntu3.dsc",
+          "bytes": 8876,
+          "sha256": "c0b20b06aa0fe95819a28f577bb43113ec9aec5ffc3bd21ae6e461044b702876",
+          "url": "https://archive.ubuntu.com/ubuntu/pool/main/g/glibc/glibc_2.35-0ubuntu3.dsc"
+        },
+        {
+          "name": "glibc_2.35.orig.tar.xz",
+          "bytes": 18165952,
+          "sha256": "5123732f6b67ccd319305efd399971d58592122bcc2a6518a1bd2510dd0cf52e",
+          "url": "https://archive.ubuntu.com/ubuntu/pool/main/g/glibc/glibc_2.35.orig.tar.xz"
+        },
+        {
+          "name": "glibc_2.35.orig.tar.xz.asc",
+          "bytes": 833,
+          "sha256": "853aaaf17d7366817e814057a467625ee7c0b26240e8b878db0f33c389c7bcb6",
+          "url": "https://archive.ubuntu.com/ubuntu/pool/main/g/glibc/glibc_2.35.orig.tar.xz.asc"
+        },
+        {
+          "name": "glibc_2.35-0ubuntu3.debian.tar.xz",
+          "bytes": 885776,
+          "sha256": "aeb4a77f716630f7125260e31284a87326da2e46d2393b3c82f80c6d7814e423",
+          "url": "https://archive.ubuntu.com/ubuntu/pool/main/g/glibc/glibc_2.35-0ubuntu3.debian.tar.xz"
+        }
+      ]
+    },
+    {
+      "package": "libpng1.6",
+      "version": "1.6.37-3build5",
+      "binary": "libpng16-16, libpng-dev, libpng-tools, libpng16-16-udeb",
+      "files": [
+        {
+          "name": "libpng1.6_1.6.37-3build5.dsc",
+          "bytes": 2357,
+          "sha256": "eef859eb4d859ac782b6ccd59e763fdd33777de8c94b54a264524e250d91119d",
+          "url": "https://archive.ubuntu.com/ubuntu/pool/main/libp/libpng1.6/libpng1.6_1.6.37-3build5.dsc"
+        },
+        {
+          "name": "libpng1.6_1.6.37.orig.tar.gz",
+          "bytes": 1508805,
+          "sha256": "ca74a0dace179a8422187671aee97dd3892b53e168627145271cad5b5ac81307",
+          "url": "https://archive.ubuntu.com/ubuntu/pool/main/libp/libpng1.6/libpng1.6_1.6.37.orig.tar.gz"
+        },
+        {
+          "name": "libpng1.6_1.6.37-3build5.debian.tar.xz",
+          "bytes": 32492,
+          "sha256": "a3e578a4b15d535f0c95ff7c85363f0e0862c35c5b704fbecbf5203e5f85adff",
+          "url": "https://archive.ubuntu.com/ubuntu/pool/main/libp/libpng1.6/libpng1.6_1.6.37-3build5.debian.tar.xz"
+        }
+      ]
+    },
+    {
+      "package": "libx11",
+      "version": "2:1.7.5-1",
+      "binary": "libx11-6, libx11-6-udeb, libx11-data, libx11-dev, libx11-xcb1, libx11-xcb-dev, libx11-doc",
+      "files": [
+        {
+          "name": "libx11_1.7.5-1.dsc",
+          "bytes": 2539,
+          "sha256": "16d5e5853b2fc80f058049c0c13aeeaaf2e02bc31b4b0846359ab9cfede4ab70",
+          "url": "https://archive.ubuntu.com/ubuntu/pool/main/libx/libx11/libx11_1.7.5-1.dsc"
+        },
+        {
+          "name": "libx11_1.7.5.orig.tar.gz",
+          "bytes": 3170022,
+          "sha256": "78992abcd2bfdebe657699203ad8914e7ae77025175460e04a1045387192a978",
+          "url": "https://archive.ubuntu.com/ubuntu/pool/main/libx/libx11/libx11_1.7.5.orig.tar.gz"
+        },
+        {
+          "name": "libx11_1.7.5.orig.tar.gz.asc",
+          "bytes": 358,
+          "sha256": "8332442d1675118c43e341630bf62aeb93972254d139bb865cc047006ca7e8d6",
+          "url": "https://archive.ubuntu.com/ubuntu/pool/main/libx/libx11/libx11_1.7.5.orig.tar.gz.asc"
+        },
+        {
+          "name": "libx11_1.7.5-1.diff.gz",
+          "bytes": 94094,
+          "sha256": "4fe3a677ed76cf216eeec0004e66e225fd4e15c9a46c45e98cb2432ed66c34fb",
+          "url": "https://archive.ubuntu.com/ubuntu/pool/main/libx/libx11/libx11_1.7.5-1.diff.gz"
+        }
+      ]
+    },
+    {
+      "package": "libxcrypt",
+      "version": "1:4.4.27-1",
+      "binary": "libcrypt1, libcrypt-dev, libcrypt1-udeb, libxcrypt-source",
+      "files": [
+        {
+          "name": "libxcrypt_4.4.27-1.dsc",
+          "bytes": 1525,
+          "sha256": "1ffc1194e44330552a28d42a84c6b638b4939f0172d2bc84f58055406546edf9",
+          "url": "https://archive.ubuntu.com/ubuntu/pool/main/libx/libxcrypt/libxcrypt_4.4.27-1.dsc"
+        },
+        {
+          "name": "libxcrypt_4.4.27.orig.tar.xz",
+          "bytes": 391772,
+          "sha256": "cc0762a751224a5cb45329fb731f25016a8d8292749d8b4010f4b68144db6961",
+          "url": "https://archive.ubuntu.com/ubuntu/pool/main/libx/libxcrypt/libxcrypt_4.4.27.orig.tar.xz"
+        },
+        {
+          "name": "libxcrypt_4.4.27-1.debian.tar.xz",
+          "bytes": 7764,
+          "sha256": "92565f123e1e3bd5ebc53bc6b50dda46dc30e952fd02bb5b081bf9c113b733e8",
+          "url": "https://archive.ubuntu.com/ubuntu/pool/main/libx/libxcrypt/libxcrypt_4.4.27-1.debian.tar.xz"
+        }
+      ]
+    },
+    {
+      "package": "libxext",
+      "version": "2:1.3.4-1build1",
+      "binary": "libxext6, libxext6-udeb, libxext-dev, libxext-doc",
+      "files": [
+        {
+          "name": "libxext_1.3.4-1build1.dsc",
+          "bytes": 2250,
+          "sha256": "0b0d4395cbcbbdb5aa60677524b9dea7fbcbb9b32d03a892095a1c666fd65f4a",
+          "url": "https://archive.ubuntu.com/ubuntu/pool/main/libx/libxext/libxext_1.3.4-1build1.dsc"
+        },
+        {
+          "name": "libxext_1.3.4.orig.tar.gz",
+          "bytes": 494434,
+          "sha256": "8ef0789f282826661ff40a8eef22430378516ac580167da35cc948be9041aac1",
+          "url": "https://archive.ubuntu.com/ubuntu/pool/main/libx/libxext/libxext_1.3.4.orig.tar.gz"
+        },
+        {
+          "name": "libxext_1.3.4-1build1.diff.gz",
+          "bytes": 12588,
+          "sha256": "0efc1abad5202351c44a469fc91cc0eea3836e302884d9f6b2a29436f94d7498",
+          "url": "https://archive.ubuntu.com/ubuntu/pool/main/libx/libxext/libxext_1.3.4-1build1.diff.gz"
+        }
+      ]
+    },
+    {
+      "package": "libxrender",
+      "version": "1:0.9.10-1build4",
+      "binary": "libxrender1, libxrender1-udeb, libxrender-dev",
+      "files": [
+        {
+          "name": "libxrender_0.9.10-1build4.dsc",
+          "bytes": 2196,
+          "sha256": "e93b6a2977502b02f6b616784dd9d4acb3686cfd2a2dbc54ad6545e0f1ffe152",
+          "url": "https://archive.ubuntu.com/ubuntu/pool/main/libx/libxrender/libxrender_0.9.10-1build4.dsc"
+        },
+        {
+          "name": "libxrender_0.9.10.orig.tar.gz",
+          "bytes": 373717,
+          "sha256": "770527cce42500790433df84ec3521e8bf095dfe5079454a92236494ab296adf",
+          "url": "https://archive.ubuntu.com/ubuntu/pool/main/libx/libxrender/libxrender_0.9.10.orig.tar.gz"
+        },
+        {
+          "name": "libxrender_0.9.10-1build4.diff.gz",
+          "bytes": 15809,
+          "sha256": "b56ff0a20ca53f321a4f574d71efae04ff6be4efdf593af763b0872ac1ce3c85",
+          "url": "https://archive.ubuntu.com/ubuntu/pool/main/libx/libxrender/libxrender_0.9.10-1build4.diff.gz"
+        }
+      ]
+    },
+    {
+      "package": "util-linux",
+      "version": "2.37.2-4ubuntu3",
+      "binary": "util-linux, util-linux-locales, mount, bsdutils, bsdextrautils, fdisk, fdisk-udeb, libblkid1, libblkid1-udeb, libblkid-dev, libfdisk1, libfdisk1-udeb, libfdisk-dev, libmount1, libmount1-udeb, libmount-dev, libsmartcols1, libsmartcols1-udeb, libsmartcols-dev, libuuid1, uuid-runtime, libuuid1-udeb, uuid-dev, util-linux-udeb, rfkill, eject, eject-udeb",
+      "files": [
+        {
+          "name": "util-linux_2.37.2-4ubuntu3.dsc",
+          "bytes": 4542,
+          "sha256": "6b93cd9f66f823ae283ea1edae444b3d484e510db392b834816caecd6be0ca4e",
+          "url": "https://archive.ubuntu.com/ubuntu/pool/main/u/util-linux/util-linux_2.37.2-4ubuntu3.dsc"
+        },
+        {
+          "name": "util-linux_2.37.2.orig.tar.xz",
+          "bytes": 5621624,
+          "sha256": "6a0764c1aae7fb607ef8a6dd2c0f6c47d5e5fd27aa08820abaad9ec14e28e9d9",
+          "url": "https://archive.ubuntu.com/ubuntu/pool/main/u/util-linux/util-linux_2.37.2.orig.tar.xz"
+        },
+        {
+          "name": "util-linux_2.37.2-4ubuntu3.debian.tar.xz",
+          "bytes": 107608,
+          "sha256": "32a90e1c58d352ec9619d92b12676797d222196115b737fb522c33ee99d89a9f",
+          "url": "https://archive.ubuntu.com/ubuntu/pool/main/u/util-linux/util-linux_2.37.2-4ubuntu3.debian.tar.xz"
+        }
+      ]
+    },
+    {
+      "package": "xft",
+      "version": "2.3.4-1",
+      "binary": "libxft2, libxft2-udeb, libxft-dev",
+      "files": [
+        {
+          "name": "xft_2.3.4-1.dsc",
+          "bytes": 2006,
+          "sha256": "289599ffdd1dae46ac6cb346bb46294e1e8401e12d9316fcabc13df36d776ab6",
+          "url": "https://archive.ubuntu.com/ubuntu/pool/main/x/xft/xft_2.3.4-1.dsc"
+        },
+        {
+          "name": "xft_2.3.4.orig.tar.gz",
+          "bytes": 429711,
+          "sha256": "1eca71bec9cb483165ce1ab94f5cd3036269f5268651df6a2d99c4a7ab644d79",
+          "url": "https://archive.ubuntu.com/ubuntu/pool/main/x/xft/xft_2.3.4.orig.tar.gz"
+        },
+        {
+          "name": "xft_2.3.4-1.diff.gz",
+          "bytes": 12527,
+          "sha256": "4759155b4ef11d14aeaf468b6e3d1728444be4eab14b51079a532b8186dcdd95",
+          "url": "https://archive.ubuntu.com/ubuntu/pool/main/x/xft/xft_2.3.4-1.diff.gz"
+        }
+      ]
+    },
+    {
+      "package": "zlib",
+      "version": "1:1.2.11.dfsg-2ubuntu9",
+      "binary": "zlib1g, zlib1g-dev, zlib1g-udeb, lib64z1, lib64z1-dev, lib32z1, lib32z1-dev, libn32z1, libn32z1-dev, libx32z1, libx32z1-dev",
+      "files": [
+        {
+          "name": "zlib_1.2.11.dfsg-2ubuntu9.dsc",
+          "bytes": 2945,
+          "sha256": "ca649cd1e1b8724f03cd27cb68606112ec9605605b669f9cce0bd4754957a6b6",
+          "url": "https://archive.ubuntu.com/ubuntu/pool/main/z/zlib/zlib_1.2.11.dfsg-2ubuntu9.dsc"
+        },
+        {
+          "name": "zlib_1.2.11.dfsg.orig.tar.gz",
+          "bytes": 370248,
+          "sha256": "80c481411a4fe8463aeb8270149a0e80bb9eaf7da44132b6e16f2b5af01bc899",
+          "url": "https://archive.ubuntu.com/ubuntu/pool/main/z/zlib/zlib_1.2.11.dfsg.orig.tar.gz"
+        },
+        {
+          "name": "zlib_1.2.11.dfsg-2ubuntu9.debian.tar.xz",
+          "bytes": 58360,
+          "sha256": "5bb062e5f5ba606cb918181a7198faaf07eb8dbab0e6186159343223c0c92354",
+          "url": "https://archive.ubuntu.com/ubuntu/pool/main/z/zlib/zlib_1.2.11.dfsg-2ubuntu9.debian.tar.xz"
+        }
+      ]
+    }
+  ]
+}

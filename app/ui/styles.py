@@ -217,10 +217,10 @@ class Entry(ctk.CTkEntry):
         super().__init__(parent, corner_radius=0, border_width=1,
                          fg_color=p.inset, border_color=p.border,
                          text_color=p.text, placeholder_text_color=p.muted, **kwargs)
-        self.bind('<Enter>', lambda event: self._set_state('_design_hover', True), add=True)
-        self.bind('<Leave>', lambda event: self._set_state('_design_hover', False), add=True)
-        self.bind('<FocusIn>', lambda event: self._set_state('_design_focus', True), add=True)
-        self.bind('<FocusOut>', lambda event: self._set_state('_design_focus', False), add=True)
+        self.bind('<Enter>', lambda event=None: self._set_state('_design_hover', True), add=True)
+        self.bind('<Leave>', lambda event=None: self._set_state('_design_hover', False), add=True)
+        self.bind('<FocusIn>', lambda event=None: self._set_state('_design_focus', True), add=True)
+        self.bind('<FocusOut>', lambda event=None: self._set_state('_design_focus', False), add=True)
 
     def _set_state(self, name, value):
         setattr(self, name, value)

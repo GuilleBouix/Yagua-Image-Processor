@@ -115,7 +115,7 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y python3-tk xvfb xauth fonts-dejavu-core file desktop-file-utils libfuse2 patchelf squashfs-tools binutils fakeroot strace zsync libgdk-pixbuf2.0-dev libgl1 libglib2.0-0 libsm6 libxext6 libxrender1 libgtk-3-0 libgomp1
+          sudo apt-get install -y python3-tk xvfb xauth fonts-dejavu-core file desktop-file-utils libfuse2 patchelf squashfs-tools binutils fakeroot strace zsync libgdk-pixbuf2.0-dev libgl1 libglib2.0-0 libsm6 libxext6 libxrender1 libgtk-3-0 libgomp1 cmake g++ make nasm patch pkg-config
       - name: Install CPU dependencies and packaging tools
         run: |
           python -m pip install -U pip wheel setuptools
@@ -139,6 +139,7 @@ jobs:
         run: |
           mkdir -p reports
           bash scripts/build_linux_appimage.sh 2>&1 | tee reports/build.log
+          cp dist/linux-release/linux-heic-native.json reports/linux-heic-native.json
       - name: Verify frozen package online and offline
         run: |
           appimage="$(find "$PWD/dist/linux-release" -maxdepth 1 -type f -name 'Yagua-*.AppImage' -print -quit)"
@@ -149,6 +150,7 @@ jobs:
           cp reports/linux-probe/offline/selftest.json reports/selftest-offline.json
           python scripts/ci/check_installed_size.py --app build/linux-release/package-check/squashfs-root --models reports/linux-probe/models --caches reports/linux-probe/caches --compressed "$appimage" --report reports/installed-size.json
           python scripts/ci/check_licenses.py --package build/linux-release/package-check/squashfs-root --platform linux --models reports/linux-probe/models --report reports/linux-licenses.json
+          "$PYTHON_BIN" scripts/ci/build_heic_linux.py --check-package build/linux-release/package-check/squashfs-root
       - name: Assemble validation report
         env:
           RELEASE_VERSION: ${{ steps.ver.outputs.version }}
@@ -166,6 +168,21 @@ jobs:
       - name: Record candidate provenance and hashes
         run: |
           python scripts/ci/candidate_manifest.py --version "${{ steps.ver.outputs.version }}" --output reports/candidate-linux.json --artifact dist/linux-release/Yagua-${{ steps.ver.outputs.version }}-x86_64.AppImage
+      - name: Prepare matching source materials without publication
+        run: |
+          python scripts/ci/source_materials.py --cache "$RUNNER_TEMP/yagua-source-materials" --output reports/Yagua-${{ steps.ver.outputs.version }}-source-materials.tar.xz --download --candidate-commit "$GITHUB_SHA" --native-build-report reports/linux-heic-native.json
+          python scripts/ci/candidate_manifest.py --version "${{ steps.ver.outputs.version }}" --output reports/candidate-linux-sources.json --artifact reports/Yagua-${{ steps.ver.outputs.version }}-source-materials.tar.xz
+      - name: Upload matching sources and build provenance
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-source-materials-${{ steps.ver.outputs.version }}
+          path: |
+            reports/Yagua-*-source-materials.tar.xz
+            reports/candidate-linux-sources.json
+            reports/linux-heic-native.json
+          compression-level: 0
+          retention-days: 30
+          if-no-files-found: error
       - name: Upload validated candidate without publication
         # All files remain Actions artifacts; this workflow cannot publish.
         uses: actions/upload-artifact@v4

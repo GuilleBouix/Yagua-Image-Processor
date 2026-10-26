@@ -1,7 +1,26 @@
 # Estado y pendientes de licencias
 
-Revisión: **2026-10-21**. Este archivo es parte de la distribución y no una
+Revisión: **2026-10-26**. Este archivo es parte de la distribución y no una
 certificación jurídica. Se preservan funciones, motores, formatos y calidad.
+
+## Actualización de los candidatos 2.0
+
+La revisión de los paquetes reales y los materiales reunidos está en
+[`distribution/README.md`](distribution/README.md), con un manifiesto de hashes
+y procedencias. Incluye fuentes/parches de los paquetes Ubuntu exactos, recetas
+de los wheels, FFmpeg Linux y bootstrap AppImage. Se añaden avisos originales
+que faltaban en el AppImage. Los ejecutables candidatos anteriores aún no
+contienen estos ajustes; necesitan una compilación posterior antes de aprobarse.
+
+Se comprobó que el DLL Intel distribuido no está modificado y que los DLL de
+tcmlib no se incluyen. Esto acota la revisión de Intel al conjunto real.
+Los pesos ISNet tienen un pendiente concreto de alcance: la licencia del
+README DIS se refiere expresamente a código y métricas, no afirma cubrirlos.
+Las fuentes reunidas no se presentan como fuentes correspondientes completas.
+El detalle del 26 de octubre está en `distribution/NATIVE_COMPONENTS.md`:
+se completaron fuentes y avisos identificados de Squashfuse, XZ y libvpx;
+queda sin identificar la variante exacta de libmvec incluida por el wheel HEIC.
+La fuente Ubuntu glibc 2.35 no se usa para dar por cubierta esa biblioteca 2.28.
 
 ## Resuelto técnicamente
 
@@ -21,8 +40,9 @@ Actualización técnica: se incluyen cinco distribuciones fuente originales de
 PyPI, verificadas contra las versiones usadas y sus hashes. Ver `SOURCE_CODE.md`.
 También se incluyen fuentes upstream de las versiones nativas detectadas en
 Windows: libheif 1.21.2, libde265 1.0.16, GEOS 3.13.1 y x265 4.1+1-1d117be.
-Se fijaron commits y hashes; falta verificar parches/recetas de los wheels y
-los builds Linux. Los avisos genéricos de pillow-heif no coinciden con todas
+Se fijaron commits y hashes; se reunieron las recetas publicadas de los wheels
+y se comprobaron versiones nativas también en Linux. Falta cerrar la entrega
+completa y comprobar reconstrucción/reenlace. Los avisos genéricos de pillow-heif no coinciden con todas
 las versiones nativas observadas y no sustituyen esa comprobación.
 Para certifi/tqdm quedan proporcionadas esas fuentes y avisos de acceso; esto no
 certifica componentes nativos ni equivalencia de todos los wheels con los sdists.
@@ -51,10 +71,11 @@ experiencia en distribución de software libre.
   están registrados; se conservan licencias de los proyectos de origen. Falta
   confirmar el alcance específico de la autorización para los pesos publicados
   y las conversiones ONNX. No se equiparan automáticamente pesos y código.
-- **Iconos:** el responsable declaró Material Symbols/Icons de Google. Su licencia
-  Apache 2.0 está incluida, pero cada PNG sin correspondencia exacta con el
-  original permanece pendiente. `github.png` representa una marca de tercero y
-  no se declara Material por su apariencia. No se sustituye ningún icono.
+- **Iconos:** el responsable confirmó la descarga de los PNG desde Material
+  Symbols/Icons de Google. Se registra esa procedencia declarada y Apache 2.0,
+  sin afirmar una comparación independiente archivo por archivo. `github.png`
+  se registra aparte con las directrices de GitHub para enlazar al proyecto.
+  No se sustituye ningún icono ni se certifica la disponibilidad de marcas.
 - **Logo:** procedencia declarada Gemini; conservar conversación/archivo original
   y modificaciones humanas si existen. No se certifica copyright exclusivo ni
   disponibilidad registral del nombre. La elección «Yagua» no se cambia.

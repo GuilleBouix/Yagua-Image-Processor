@@ -1,0 +1,61 @@
+[
+  {
+    "package": "tbb",
+    "file": "tbb12.dll",
+    "original_sha256": "b24e99b40add5ce3132793c10f7325b8e9fdfb4db03465f5103cfb43146a5a9f",
+    "packaged": [
+      {
+        "path": "_internal/tbb12.dll",
+        "sha256": "b24e99b40add5ce3132793c10f7325b8e9fdfb4db03465f5103cfb43146a5a9f"
+      }
+    ]
+  },
+  {
+    "package": "tbb",
+    "file": "tbbbind.dll",
+    "original_sha256": "b386cb41e82160ccd2f3a48356397eb5ef7196da19c7b6f4584c65acc903b515",
+    "packaged": []
+  },
+  {
+    "package": "tbb",
+    "file": "tbbbind_2_0.dll",
+    "original_sha256": "e6f5625d52f19fa3b05700295c478938fb34ecde6af2894beecc0bff7b4ddd19",
+    "packaged": []
+  },
+  {
+    "package": "tbb",
+    "file": "tbbbind_2_5.dll",
+    "original_sha256": "e3286094380fe2f06f63256f998ec294932ed47b8bc1e068f24ceb6c7474d878",
+    "packaged": []
+  },
+  {
+    "package": "tbb",
+    "file": "tbbmalloc.dll",
+    "original_sha256": "673ab4205b7ee7ac45895560a7ff9608031fe4973c8b9878a025de7b0e8e4a1a",
+    "packaged": []
+  },
+  {
+    "package": "tbb",
+    "file": "tbbmalloc_proxy.dll",
+    "original_sha256": "6638ecef21938567540a50b32b50dbc79cf8f250cfa96b5789c6085334c88fe8",
+    "packaged": []
+  },
+  {
+    "package": "tcmlib",
+    "file": "libhwloc-15.dll",
+    "original_sha256": "40c3cc41b7ee4181569a9eb253581e3a0c9751b3124cb6524aa9422ade21fb0e",
+    "packaged": []
+  },
+  {
+    "package": "tcmlib",
+    "file": "tcm.dll",
+    "original_sha256": "6c390bd5f0e57d799a4968468eb9d17b59393f91bff84be5374aaf38b3237cc7",
+    "packaged": []
+  },
+  {
+    "package": "tcmlib",
+    "file": "tcm_debug.dll",
+    "original_sha256": "4ce4b81955c9b272410415b62bec386c25add49405132fbb01bc2ac857260ef5",
+    "packaged": []
+  }
+]

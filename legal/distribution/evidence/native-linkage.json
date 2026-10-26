@@ -1,0 +1,188 @@
+{
+  "context": "Standalone system Python ctypes probe, outside AppRun; not an app startup test",
+  "libraries": [
+    {
+      "path": "usr/lib/yagua/_internal/libavcodec-156beeea.so.62.11.100",
+      "sha256": "d833257accea377cdd773f20bddd9b0d2be3028d024b88891a5a9a60663cd6b8",
+      "versions": {
+        "avcodec_license": "LGPL version 2.1 or later",
+        "avcodec_configuration": "--prefix=/ffmpeg_build --extra-cflags=-I/ffmpeg_build/include --extra-ldflags=-L/ffmpeg_build/lib --enable-openssl --enable-libvpx --enable-shared --enable-pic --bindir=/root/bin"
+      },
+      "needed": [
+        "libswresample-02b1114a.so.6.1.100",
+        "libavutil-ec54c519.so.60.8.100",
+        "libvpx-ab02766e.so.11.0.1",
+        "libm.so.6",
+        "libz.so.1",
+        "libpthread.so.0",
+        "libc.so.6"
+      ],
+      "search_paths": []
+    },
+    {
+      "path": "usr/lib/yagua/_internal/libavformat-8c8a026e.so.62.3.100",
+      "sha256": "c653856e04d865f049fb4209d58900991738a737c80fa5ccb59ab1b14d7d20aa",
+      "versions": {
+        "avformat_license": "LGPL version 2.1 or later",
+        "avformat_configuration": "--prefix=/ffmpeg_build --extra-cflags=-I/ffmpeg_build/include --extra-ldflags=-L/ffmpeg_build/lib --enable-openssl --enable-libvpx --enable-shared --enable-pic --bindir=/root/bin"
+      },
+      "needed": [
+        "libavcodec-156beeea.so.62.11.100",
+        "libavutil-ec54c519.so.60.8.100",
+        "libm.so.6",
+        "libz.so.1",
+        "libssl-60250281.so.1.1.1k",
+        "libcrypto-bdaed0ea.so.1.1.1k",
+        "libpthread.so.0",
+        "libc.so.6"
+      ],
+      "search_paths": []
+    },
+    {
+      "path": "usr/lib/yagua/_internal/libavutil-ec54c519.so.60.8.100",
+      "sha256": "6330ef30a30768db87d9d5be335bcc684a3043f4c821512970613d2941a64bdc",
+      "versions": {
+        "av_version_info": "8.0.1",
+        "avutil_license": "LGPL version 2.1 or later"
+      },
+      "needed": [
+        "libm.so.6",
+        "libdrm-b0291a67.so.2.4.0",
+        "libcrypto-bdaed0ea.so.1.1.1k",
+        "libpthread.so.0",
+        "libc.so.6"
+      ],
+      "search_paths": []
+    },
+    {
+      "path": "usr/lib/yagua/_internal/libswresample-02b1114a.so.6.1.100",
+      "sha256": "4c907e59417ef7941e5116449f3184bceb1e2ef5dd0417f248eff6e433e1fa84",
+      "versions": {
+        "swresample_license": "LGPL version 2.1 or later"
+      },
+      "needed": [
+        "libavutil-ec54c519.so.60.8.100",
+        "libm.so.6",
+        "libc.so.6"
+      ],
+      "search_paths": []
+    },
+    {
+      "path": "usr/lib/yagua/_internal/libswscale-09114b18.so.9.1.100",
+      "sha256": "60cf34d9bc10d1a73180f86832941d3d5ec2e2c6bf3560ab403c093c88c8ffd0",
+      "versions": {
+        "swscale_license": "LGPL version 2.1 or later"
+      },
+      "needed": [
+        "libavutil-ec54c519.so.60.8.100",
+        "libm.so.6",
+        "libpthread.so.0",
+        "libc.so.6"
+      ],
+      "search_paths": []
+    },
+    {
+      "path": "usr/lib/yagua/_internal/libssl-60250281.so.1.1.1k",
+      "sha256": "30236e4c8dcaf2f73e97f06f3799c496a3e9b36c56dc239ed84667bb1b5f42b1",
+      "versions": {
+        "OpenSSL_version": "OpenSSL 1.1.1k  FIPS 25 Mar 2021"
+      },
+      "needed": [
+        "libcrypto-bdaed0ea.so.1.1.1k",
+        "libz.so.1",
+        "libdl.so.2",
+        "libpthread.so.0",
+        "libc.so.6"
+      ],
+      "search_paths": []
+    },
+    {
+      "path": "usr/lib/yagua/_internal/libvpx-ab02766e.so.11.0.1",
+      "sha256": "62f1f97989a1b700d91234bf5b0c837443fff755a9355b58349a727acabd3c4e",
+      "versions": {
+        "vpx_codec_version_str": "v1.15.2"
+      },
+      "needed": [
+        "libpthread.so.0",
+        "libstdc++.so.6",
+        "libm.so.6",
+        "libgcc_s.so.1",
+        "libc.so.6"
+      ],
+      "search_paths": []
+    },
+    {
+      "path": "usr/lib/yagua/_internal/liblzma-61b1002e.so.5.8.2",
+      "sha256": "f165acd1f5452f8789768d184bb250c8296f428817129667626b5c01d6ca0594",
+      "versions": {
+        "lzma_version_string": "5.8.2"
+      },
+      "needed": [
+        "libpthread.so.0",
+        "libc.so.6"
+      ],
+      "search_paths": []
+    },
+    {
+      "path": "usr/lib/yagua/_internal/libgeos_c-abcdd5fa.so.1.19.2",
+      "sha256": "91589f52067072ab661524cf181caf856097fc901c1ecc4a98585d03f5452c02",
+      "versions": {
+        "GEOSversion": "3.13.1-CAPI-1.19.2"
+      },
+      "needed": [
+        "libgeos-3ef06f11.so.3.13.1",
+        "libstdc++.so.6",
+        "libm.so.6",
+        "libgcc_s.so.1",
+        "libc.so.6"
+      ],
+      "search_paths": []
+    },
+    {
+      "path": "usr/lib/yagua/_internal/libheif-b515bc91.so.1.21.2",
+      "sha256": "ecace5a41642998fb8b5a55964a6aad1d421ef0628c8813f60f4f8c16ffd1fb7",
+      "versions": {
+        "standalone_probe_error": "libmvec-2-583a17db.28.so: cannot open shared object file: No such file or directory"
+      },
+      "needed": [
+        "libx265-d26213b5.so.215",
+        "libde265-bac79e06.so",
+        "libpthread.so.0",
+        "libstdc++.so.6",
+        "libm.so.6",
+        "libgcc_s.so.1",
+        "libc.so.6",
+        "ld-linux-x86-64.so.2"
+      ],
+      "search_paths": []
+    },
+    {
+      "path": "usr/lib/yagua/_internal/libde265-bac79e06.so",
+      "sha256": "916f7996695581d877fea883bd1c0cd13f0b4dd3d54f48acc4417523db77767f",
+      "versions": {
+        "de265_get_version": "1.0.16"
+      },
+      "needed": [
+        "libpthread.so.0",
+        "libstdc++.so.6",
+        "libm.so.6",
+        "libgcc_s.so.1",
+        "libc.so.6"
+      ],
+      "search_paths": []
+    },
+    {
+      "path": "usr/lib/yagua/_internal/libz.7dbeb23c.so.1",
+      "sha256": "96b55bbfb48f50af95da290c4cce33d0724e6565715bfc2e859de7d9efde3cbc",
+      "versions": {
+        "zlibVersion": "1.3.1"
+      },
+      "needed": [
+        "libc.so.6"
+      ],
+      "search_paths": [
+        "$ORIGIN/."
+      ]
+    }
+  ]
+}
