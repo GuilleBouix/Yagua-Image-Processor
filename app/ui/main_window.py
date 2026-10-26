@@ -126,7 +126,7 @@ class MainWindow(UiLifetime, ctk.CTkFrame):
         except Exception:
             pass
 
-        # Check de versiones publicadas, incluidas RC, sin bloquear la interfaz.
+        # Check de versiones estables publicadas, sin bloquear la interfaz.
         if self._auto_updates:
             self.start_updates()
         yield

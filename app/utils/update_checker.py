@@ -25,7 +25,7 @@ class UpdateCheckError(RuntimeError):
 
 def get_repo() -> str:
     # Override opcional (útil para forks / staging).
-    return os.environ.get("YAGUA_UPDATE_REPO") or "GuilleBouix/Yagua-Image-Editor"
+    return os.environ.get("YAGUA_UPDATE_REPO") or "GuilleBouix/Yagua-Image-Processor"
 
 
 def get_update_platform() -> str:
@@ -56,7 +56,7 @@ def _parse_release_version(tag_name: str, prefix: str) -> Version | None:
 
 
 def check_latest_update(current_version: str) -> UpdateInfo | None:
-    """Busca versiones publicadas, estables o preliminares, de esta plataforma.
+    """Busca versiones estables publicadas de esta plataforma.
 
     None significa que la consulta fue correcta y no hay una versión superior.
     Los fallos de conexión, HTTP o respuesta se propagan como UpdateCheckError.
@@ -85,12 +85,13 @@ def check_latest_update(current_version: str) -> UpdateInfo | None:
 
     best_match: tuple[Version, str, str] | None = None
     for release in payload:
-        if not isinstance(release, dict) or release.get('draft'):
+        if not isinstance(release, dict) or release.get('draft') or release.get('prerelease'):
             continue
 
         tag_name = str(release.get('tag_name') or '').strip()
         remote_version = _parse_release_version(tag_name, prefix)
-        if remote_version is None or remote_version <= cur_v:
+        if (remote_version is None or remote_version.is_prerelease
+                or remote_version.is_devrelease or remote_version <= cur_v):
             continue
 
         raw_url = release.get('html_url')

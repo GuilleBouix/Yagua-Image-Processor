@@ -1,5 +1,6 @@
 import os
 import sys
+import gc
 from pathlib import Path
 
 # Asegurar que el root del proyecto esté en sys.path para importar app.*
@@ -46,7 +47,12 @@ def tk_session():
 @pytest.fixture()
 def ui_root(tk_session):
     # One Tcl interpreter, a fresh window per test, as in a running desktop app.
+    # Finalize unreachable widget/font cycles on Tk's thread. Otherwise an
+    # image worker can collect them and block in Font.__del__ waiting for a
+    # mainloop, while tests drive Tk manually with update().
+    gc.collect()
     root = ctk.CTkToplevel(tk_session)
     root.withdraw()
     yield root
     root.destroy()
+    gc.collect()

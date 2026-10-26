@@ -2,6 +2,29 @@
 
 Todos los cambios notables del proyecto se documentan en este archivo.
 
+## [2.0.0] - En preparación
+
+### Yagua 2.0
+
+- Versión técnica 2.0.0 para Windows x86-64 (instalador y portable) y Linux x86-64 (AppImage).
+- Interfaz unificada, precarga de los módulos visibles sin inicializar los motores de IA y reutilización de previews y miniaturas.
+- Consulta, edición, limpieza y exportación de metadatos por lotes, con previews y borradores independientes.
+- Guardado mediante copias o sobrescritura con publicación atómica y protección frente a conflictos de nombres.
+- Compresión que descarta resultados iguales o mayores que el original; el módulo Comprimir ya no ofrece eliminar EXIF.
+- Nueve idiomas de interfaz y acceso a la web oficial y su documentación.
+
+### Actualizaciones y migración desde las RC
+
+- El actualizador de 2.0.0 consulta el repositorio oficial Yagua-Image-Processor y ofrece únicamente versiones estables superiores de la misma plataforma. Descarta borradores y versiones preliminares, aunque el tag y la marca de GitHub no coincidan.
+- Quienes tengan 2.0.1-rc deben descargar e instalar 2.0.0 manualmente una vez: para la comparación de versiones, 2.0.0 es inferior a 2.0.1-rc. Ocultar las releases RC no modifica el actualizador de las aplicaciones ya instaladas.
+- La actualización sigue abriendo la página de descarga; no instala paquetes automáticamente.
+- Las releases RC continuarán públicas durante la preparación. Sólo se pasarán a borradores al aprobar el lanzamiento; se conservarán sus tags y archivos.
+
+### Estado de preparación
+
+- Esta entrada prepara las notas de Yagua 2.0; todavía no anuncia una release publicada.
+- Pendientes la estabilización y validación completa del código, los paquetes finales, la aceptación en escritorios limpios y el cierre de los requisitos de distribución.
+
 ## [2.0.1-rc.7] - 2026-10-16
 
 ### Prueba de actualización en Windows
@@ -71,7 +94,10 @@ Todos los cambios notables del proyecto se documentan en este archivo.
 - La validación de paquetes se realiza automáticamente antes de publicar. Siguen pendientes la aceptación en equipos de gama baja, instalación/desinstalación en equipos limpios y la matriz visual de escritorios Linux.
 - No se garantiza un máximo de RAM ni un tiempo de procesamiento para todas las fotografías. Los modelos deben estar descargados para usar cada opción sin conexión.
 
-## [2.0.0] - 2026-04-09
+## [2.0.0 (preparación histórica)] - 2026-04-09
+
+Registro de la preparación de abril, conservado como antecedente. No describe la
+release estable actual e incluye funciones que después se retiraron.
 
 ### Nuevas features
 

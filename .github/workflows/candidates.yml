@@ -1,0 +1,45 @@
+name: Validated candidates (no publication)
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Candidate version already recorded in this commit"
+        required: true
+        default: "2.0.0"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: candidates-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  source:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Require the committed version
+        env:
+          CANDIDATE_VERSION: ${{ inputs.version }}
+        run: |
+          python - <<'PY'
+          import os
+          from app.version import __version__
+          if os.environ['CANDIDATE_VERSION'] != __version__:
+              raise SystemExit('Commit the candidate version before building')
+          PY
+  windows:
+    needs: source
+    uses: ./.github/workflows/build-windows.yml
+    with:
+      version: ${{ inputs.version }}
+  linux:
+    needs: source
+    uses: ./.github/workflows/build-linux.yml
+    with:
+      version: ${{ inputs.version }}

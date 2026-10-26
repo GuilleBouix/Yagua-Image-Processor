@@ -50,7 +50,7 @@ def test_check_latest_update_filtra_por_linux(monkeypatch):
     assert info.release_url == "https://example/linux-250"
 
 
-def test_check_latest_update_incluye_prerelease_y_excluye_draft(monkeypatch):
+def test_check_latest_update_excluye_prerelease_y_draft(monkeypatch):
     payload = [
         {"tag_name": "linux-v3.0.0-rc.1", "prerelease": True, "draft": False, "html_url": "https://example/rc"},
         {"tag_name": "linux-v3.0.0", "prerelease": False, "draft": True, "html_url": "https://example/draft"},
@@ -63,8 +63,8 @@ def test_check_latest_update_incluye_prerelease_y_excluye_draft(monkeypatch):
     info = update_checker.check_latest_update("1.9.0")
 
     assert info is not None
-    assert info.version == "3.0.0-rc.1"
-    assert info.release_url == "https://example/rc"
+    assert info.version == "2.0.0"
+    assert info.release_url == "https://example/stable"
 
 
 def test_check_latest_update_devuelve_none_si_no_hay_release_superior(monkeypatch):
@@ -121,13 +121,17 @@ def test_update_url_rejects_non_https_and_non_strings(monkeypatch, url):
 
 @pytest.mark.parametrize('platform', ['windows', 'linux'])
 @pytest.mark.parametrize(('current', 'versions', 'expected'), [
-    ('2.0.1-rc.4', ['2.0.1-rc.5'], '2.0.1-rc.5'),
-    ('2.0.1-rc.4', ['2.0.1-rc.10', '2.0.1-rc.5'], '2.0.1-rc.10'),
-    ('2.0.1-rc.5', ['2.0.1-rc.5', '2.0.1-rc.4'], None),
-    ('2.0.1-rc.5', ['2.0.1', '2.0.1-rc.10'], '2.0.1'),
-    ('2.0.1', ['2.0.1-rc.10', '2.0.2-rc.1'], '2.0.2-rc.1'),
+    ('2.0.0', ['2.0.1-rc.7'], None),
+    ('2.0.0', ['2.0.1-rc.7', '2.0.1'], '2.0.1'),
+    ('2.0.0', ['2.1.0-rc.1', '2.0.2', '2.0.1'], '2.0.2'),
+    ('2.0.1', ['2.0.1', '2.0.0'], None),
+    ('2.0.1-rc.7', ['2.0.0'], None),
+    ('2.0.1-rc.7', ['2.0.1', '2.0.2-rc.1'], '2.0.1'),
+    ('2.0.0', ['3.0.0.dev1', '2.0.1'], '2.0.1'),
+    ('2.0.0', ['3.0.0a1', '2.0.1'], '2.0.1'),
+    ('2.0.0', ['2.0.1', '2.0.10', '2.0.2'], '2.0.10'),
 ])
-def test_prerelease_upgrade_order_and_platform(monkeypatch, platform, current, versions, expected):
+def test_stable_upgrade_order_and_platform(monkeypatch, platform, current, versions, expected):
     prefix = 'win-v' if platform == 'windows' else 'linux-v'
     other_prefix = 'linux-v' if platform == 'windows' else 'win-v'
     payload = [
@@ -147,6 +151,43 @@ def test_prerelease_upgrade_order_and_platform(monkeypatch, platform, current, v
         assert info is not None
         assert info.version == expected
         assert info.release_url == 'https://example/' + expected
+
+
+@pytest.mark.parametrize('platform', ['windows', 'linux'])
+@pytest.mark.parametrize(('version', 'flags'), [
+    ('3.0.0', {'prerelease': True}),
+    ('3.0.0-rc.1', {'prerelease': False}),
+    ('3.0.0-rc.1', {}),
+    ('3.0.0.dev1', {'prerelease': False}),
+    ('3.0.0b1', {'prerelease': False}),
+    ('3.0.0', {'draft': True}),
+])
+def test_stable_channel_checks_github_flags_and_tag(monkeypatch, platform, version, flags):
+    prefix = 'win-v' if platform == 'windows' else 'linux-v'
+    payload = [{'tag_name': prefix + version, 'html_url': 'https://example/excluded', **flags}]
+    monkeypatch.setattr(update_checker, 'get_update_platform', lambda: platform)
+    monkeypatch.setattr(update_checker.requests, 'get', lambda *args, **kwargs: _FakeResponse(payload))
+
+    assert update_checker.check_latest_update('2.0.0') is None
+
+
+@pytest.mark.parametrize('override', [None, 'owner/test-repo'])
+def test_update_request_uses_official_repo_or_explicit_override(monkeypatch, override):
+    monkeypatch.delenv('YAGUA_UPDATE_REPO', raising=False)
+    if override:
+        monkeypatch.setenv('YAGUA_UPDATE_REPO', override)
+    calls = []
+
+    def get(url, **kwargs):
+        calls.append((url, kwargs))
+        return _FakeResponse([])
+
+    monkeypatch.setattr(update_checker.requests, 'get', get)
+    assert update_checker.check_latest_update('2.0.0') is None
+    repo = override or 'GuilleBouix/Yagua-Image-Processor'
+    assert calls == [(f'https://api.github.com/repos/{repo}/releases', {
+        'timeout': 10, 'headers': {'Accept': 'application/vnd.github+json'},
+    })]
 
 
 @pytest.mark.parametrize('failure', ['connection', 'http', 'json'])

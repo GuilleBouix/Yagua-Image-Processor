@@ -1,0 +1,196 @@
+name: Build Linux candidate (no publication)
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version X.Y.Z[-rc.N] (sin prefijo linux-v)"
+        required: true
+  workflow_call:
+    inputs:
+      version:
+        type: string
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: linux-release-${{ github.event.inputs.version || github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-22.04]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install Linux system dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-tk xvfb libgl1 libglib2.0-0 libsm6 libxext6 libxrender1 libgtk-3-0 libgomp1
+      - name: Install dependencies
+        shell: bash
+        run: |
+          python -m pip install -U pip wheel setuptools
+          if [[ "$RUNNER_OS" == "Linux" ]]; then
+            python -m pip install -r requirements-linux-cpu.txt
+          else
+            python -m pip install -r requirements.txt
+          fi
+          python -m pip install -r requirements-dev.txt
+      - name: Lint and type check
+        shell: bash
+        run: |
+          ruff check app tests scripts
+          pyright --pythonpath "$(python -c 'import sys; print(sys.executable)')" app
+      - name: Tests
+        shell: bash
+        run: |
+          if [[ "$RUNNER_OS" == "Linux" ]]; then
+            xvfb-run -a python scripts/verify.py -q
+          else
+            python scripts/verify.py -q
+          fi
+
+  build_release:
+    needs: validate
+    runs-on: ubuntu-22.04
+    timeout-minutes: 60
+    outputs:
+      version: ${{ steps.ver.outputs.version }}
+      prerelease: ${{ steps.ver.outputs.prerelease }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Resolve version
+        id: ver
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+          YAGUA_RELEASE_CHECK_TOKEN: ${{ github.token }}
+        run: |
+          if [[ -n "$INPUT_VERSION" ]]; then
+            v="$INPUT_VERSION"
+          else
+            v="${GITHUB_REF_NAME#linux-v}"
+          fi
+          VERSION="$v" python - <<'PY'
+          import os, re, urllib.error, urllib.request
+          version = os.environ['VERSION']
+          if not re.fullmatch(r'\d+\.\d+\.\d+(?:-[0-9A-Za-z][0-9A-Za-z.-]*)?', version):
+              raise SystemExit('Version invalida')
+          repo = os.environ['GITHUB_REPOSITORY']
+          endpoints = [f'releases/tags/linux-v{version}']
+          if os.environ['GITHUB_EVENT_NAME'] == 'workflow_dispatch':
+              endpoints.append(f'git/ref/tags/linux-v{version}')
+          for endpoint in endpoints:
+              request = urllib.request.Request(
+                  f'https://api.github.com/repos/{repo}/{endpoint}',
+                  headers={'Authorization': 'Bearer ' + os.environ['YAGUA_RELEASE_CHECK_TOKEN']},
+              )
+              try:
+                  with urllib.request.urlopen(request, timeout=30):
+                      raise SystemExit('La version ya existe; usa otro numero RC.')
+              except urllib.error.HTTPError as error:
+                  if error.code != 404:
+                      raise
+          PY
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+          if [[ "$v" == *-* ]]; then
+            echo "prerelease=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "prerelease=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Apply version in the runner only
+        run: python scripts/ci/apply_version.py "${{ steps.ver.outputs.version }}" linux
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-tk xvfb xauth fonts-dejavu-core file desktop-file-utils libfuse2 patchelf squashfs-tools binutils fakeroot strace zsync libgdk-pixbuf2.0-dev libgl1 libglib2.0-0 libsm6 libxext6 libxrender1 libgtk-3-0 libgomp1
+      - name: Install CPU dependencies and packaging tools
+        run: |
+          python -m pip install -U pip wheel setuptools
+          python -m venv "$RUNNER_TEMP/yagua-build"
+          "$RUNNER_TEMP/yagua-build/bin/python" -m pip install -r requirements-linux-cpu.txt -r requirements-build.txt
+          "$RUNNER_TEMP/yagua-build/bin/python" -m pip check
+          python -m venv "$RUNNER_TEMP/yagua-appimage-tools"
+          "$RUNNER_TEMP/yagua-appimage-tools/bin/python" -m pip install setuptools==81.0.0 appimage-builder==1.1.0
+          echo "PYTHON_BIN=$RUNNER_TEMP/yagua-build/bin/python" >> "$GITHUB_ENV"
+          echo "$RUNNER_TEMP/yagua-appimage-tools/bin" >> "$GITHUB_PATH"
+      - name: Available disk space
+        run: df -h .
+      - name: Build and check AppImage sizes
+        env:
+          TARGET_APPDIR: ${{ github.workspace }}/build/linux-release/AppDir
+          BUILD_DIR: ${{ github.workspace }}/build/linux-release
+          DIST_DIR: ${{ github.workspace }}/dist/linux-release
+          APP_VERSION: ${{ steps.ver.outputs.version }}
+          BUILD_APPIMAGE: "1"
+          PREFLIGHT_REPORT: ${{ github.workspace }}/reports/selftest-preflight.json
+        run: |
+          mkdir -p reports
+          bash scripts/build_linux_appimage.sh 2>&1 | tee reports/build.log
+      - name: Verify frozen package online and offline
+        run: |
+          appimage="$(find "$PWD/dist/linux-release" -maxdepth 1 -type f -name 'Yagua-*.AppImage' -print -quit)"
+          xvfb-run -a python scripts/ci/probe_package.py "$appimage" reports/appimage-runtime --preflight
+          xvfb-run -a python scripts/ci/probe_package.py "$PWD/build/linux-release/package-check/squashfs-root/AppRun" reports/linux-probe
+          cp reports/appimage-runtime/preflight/selftest.json reports/selftest-appimage-runtime.json
+          cp reports/linux-probe/online/selftest.json reports/selftest-online.json
+          cp reports/linux-probe/offline/selftest.json reports/selftest-offline.json
+          python scripts/ci/check_installed_size.py --app build/linux-release/package-check/squashfs-root --models reports/linux-probe/models --caches reports/linux-probe/caches --compressed "$appimage" --report reports/installed-size.json
+          python scripts/ci/check_licenses.py --package build/linux-release/package-check/squashfs-root --platform linux --models reports/linux-probe/models --report reports/linux-licenses.json
+      - name: Assemble validation report
+        env:
+          RELEASE_VERSION: ${{ steps.ver.outputs.version }}
+        run: |
+          python scripts/ci/linux_validation_report.py
+          cp dist/linux-release/Yagua-*.AppImage dist/linux-release/Yagua-*.sha256 reports/
+      - name: Upload validated distribution
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-runtime-reports-${{ steps.ver.outputs.version }}
+          path: |
+            reports/linux-probe/*/*.json
+          retention-days: 30
+          if-no-files-found: error
+      - name: Record candidate provenance and hashes
+        run: |
+          python scripts/ci/candidate_manifest.py --version "${{ steps.ver.outputs.version }}" --output reports/candidate-linux.json --artifact dist/linux-release/Yagua-${{ steps.ver.outputs.version }}-x86_64.AppImage
+      - name: Upload validated candidate without publication
+        # All files remain Actions artifacts; this workflow cannot publish.
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-validated-${{ steps.ver.outputs.version }}
+          path: |
+            reports/*.json
+            reports/*.md
+            reports/*.log
+            reports/*.AppImage
+            reports/*.sha256
+            reports/linux-probe/models-manifest.json
+          compression-level: 0
+          retention-days: 30
+          if-no-files-found: error
+      - name: Upload failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-failure-diagnostics
+          path: |
+            reports/*.json
+            reports/*.log
+            reports/linux-probe/*/*.json
+            reports/linux-probe/*/*.log
+            dist/linux-release/sizes.json
+            build/linux-release/**/warn-*.txt
+          if-no-files-found: ignore

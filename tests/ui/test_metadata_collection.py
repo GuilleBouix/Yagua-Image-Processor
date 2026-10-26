@@ -393,7 +393,10 @@ def test_copy_confirmation_keeps_unsaved_changes_explanation(frame, ui_root, tmp
 
 @pytest.mark.parametrize('scale', [1, .75, .5])
 @pytest.mark.parametrize('geometry', [(1360, 720), (900, 600)])
-def test_workspace_lists_preview_and_fields_fit(frame, ui_root, tmp_path, geometry, scale):
+def test_workspace_lists_preview_and_fields_fit(ui_root, tmp_path, geometry, scale):
+    # Use the real reader queue: a single Tk update does not guarantee either
+    # worker delivery or the two stable viewport samples used for rendering.
+    frame = MetadataFrame(ui_root)
     width, height = geometry
     ui_root.geometry(f'{width}x{height}')
     ui_root.deiconify()
@@ -402,24 +405,50 @@ def test_workspace_lists_preview_and_fields_fit(frame, ui_root, tmp_path, geomet
     sidebar.pack_propagate(False)
     frame.pack(side='left', fill='both', expand=True)
     original = colors._load_theme()
+    original_scale = ctk.ScalingTracker.widget_scaling
     try:
         ctk.set_widget_scaling(scale)
-        frame._cargar_lote(pictures(tmp_path))
-        for tab in (t('view'), t('edit'), t('clean_batch')):
+        paths = pictures(tmp_path)
+        frame._cargar_lote(paths)
+        for index, tab in enumerate((t('view'), t('edit'), t('clean_batch'))):
+            frame._tab.set(tab)
             frame._cambiar_tab(tab)
-            ui_root.update()
-            files = frame._file_views[(t('view'), t('edit'), t('clean_batch')).index(tab)]
+            files = frame._file_views[index]
+            preview = frame._previews[index]
+
+            def ready():
+                controller = frame._collection
+                return (
+                    controller.preview_token == (controller.epoch, controller.revision, path_key(paths[0]))
+                    and preview.source is controller.preview and preview.source is not None
+                    and preview.name.cget('text') == Path(paths[0]).name
+                    and preview.photo is not None and preview.renderer.job is None
+                    and preview.viewport.winfo_ismapped() and bool(files.rows)
+                )
+
+            deadline = monotonic() + 5
+            while not ready() and monotonic() < deadline:
+                operations.drain(lambda owner: bool(owner.winfo_exists()))
+                ui_root.update()
+                sleep(.002)
+            assert ready(), (
+                f'{tab}: token={frame._collection.preview_token}, '
+                f'preview_error={frame._collection.preview_error!r}, '
+                f'status={frame._state.current.status}, source={preview.source is not None}, '
+                f'photo={preview.photo is not None}, renderer_job={preview.renderer.job}'
+            )
             assert files.winfo_width() <= frame.winfo_width()
             for row, _, thumb, info, status in files.rows.values():
                 assert row.winfo_width() <= files.list.winfo_width() + 1
                 for widget in (thumb, info, status):
                     assert widget.winfo_x() + widget.winfo_width() <= row.winfo_width() + 1
-            preview = frame._previews[(t('view'), t('edit'), t('clean_batch')).index(tab)]
             assert preview.source is not None
-            if preview.photo:
-                assert preview.photo.cget('size')[0] <= preview.image.winfo_width() / scale
+            assert preview.photo is not None
+            assert preview.photo.cget('size')[0] <= preview.image.winfo_width() / scale
+            assert preview.photo.cget('size')[1] <= preview.image.winfo_height() / scale
+            assert all(not pane.renderer.enabled for pane in frame._previews if pane is not preview)
     finally:
-        ctk.set_widget_scaling(1)
+        ctk.set_widget_scaling(original_scale)
         colors.apply_theme(original)
 
 
