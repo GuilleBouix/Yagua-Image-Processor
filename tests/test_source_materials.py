@@ -136,6 +136,13 @@ def test_manifest_tracks_exact_ubuntu_source_versions():
     assert len({e['file'] for e in document['files']}) == len(document['files'])
 
 
+def test_repository_backed_materials_match_their_pinned_hashes():
+    document = json.loads(source_materials.MANIFEST.read_text(encoding='utf-8'))
+    for entry in document['files']:
+        if 'repository_path' in entry:
+            source_materials.verify(source_materials.ROOT / entry['repository_path'], entry)
+
+
 def test_bootstrap_and_system_notices_are_in_frozen_package_inputs():
     included = {str(path) for path, _ in licensing.legal_data(source_materials.ROOT)}
     for relative in ['AppRun-LICENSE.txt', 'AppImageKit-LICENSE.txt',
