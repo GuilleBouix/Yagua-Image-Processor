@@ -578,7 +578,7 @@ class MetadataCollection:
                 wraplength=260, font=fonts.FUENTE_CHICA, text_color=colors.TEXT_GRAY)
             value_label.grid(row=0, column=1, sticky='ew')
             def resize_row(event):
-                half = int(event.width / dialog._get_widget_scaling()) // 2
+                half = int(event.width / self.view._get_widget_scaling()) // 2
                 value_label.configure(wraplength=max(80, half - 8))
                 if checkbox._text_label is not None:
                     checkbox._text_label.configure(wraplength=max(80, half - 44))
