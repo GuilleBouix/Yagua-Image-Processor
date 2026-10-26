@@ -51,10 +51,11 @@ jobs:
           }
           Write-Host "Version=$v"
 
-      - name: Apply version to files (CI-only)
+      - name: Require committed version without rewriting source
         shell: pwsh
         run: |
-          python scripts/ci/apply_version.py "${{ steps.ver.outputs.version }}" windows
+          python scripts/ci/candidate_manifest.py --check-source --version "${{ steps.ver.outputs.version }}"
+          if ($LASTEXITCODE -ne 0) { throw 'Candidate version differs from source' }
 
       - name: Install deps
         shell: pwsh

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import ast
 import hashlib
 import json
 import os
@@ -20,6 +21,15 @@ def digest(path: Path) -> str:
 
 def git(*args: str) -> str:
     return subprocess.check_output(['git', *args], cwd=ROOT).decode('utf-8').strip()
+
+
+def check_source_version(expected: str) -> None:
+    module = ast.parse((ROOT / 'app/version.py').read_text(encoding='utf-8'))
+    values = [ast.literal_eval(node.value) for node in module.body if isinstance(node, ast.Assign)
+              and any(isinstance(target, ast.Name) and target.id == '__version__'
+                      for target in node.targets)]
+    if values != [expected]:
+        raise ValueError('Candidate version differs from the committed source')
 
 
 def create(version: str, artifacts: list[Path], allow_dirty: bool = False) -> dict:
@@ -73,11 +83,14 @@ def main() -> None:
     parser.add_argument('--output', type=Path)
     parser.add_argument('--artifact', type=Path, action='append', default=[])
     parser.add_argument('--allow-dirty', action='store_true', help='Local exploratory builds only')
+    parser.add_argument('--check-source', action='store_true', help='Verify version without rewriting files')
     parser.add_argument('--verify', type=Path)
     parser.add_argument('--commit')
     parser.add_argument('--run-id')
     args = parser.parse_args()
-    if args.verify:
+    if args.check_source:
+        check_source_version(args.version)
+    elif args.verify:
         if not args.commit or not args.run_id:
             parser.error('--verify requires --commit and --run-id')
         verify(json.loads(args.verify.read_text(encoding='utf-8')), args.verify.parent,

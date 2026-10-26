@@ -110,8 +110,8 @@ jobs:
           else
             echo "prerelease=false" >> "$GITHUB_OUTPUT"
           fi
-      - name: Apply version in the runner only
-        run: python scripts/ci/apply_version.py "${{ steps.ver.outputs.version }}" linux
+      - name: Require committed version without rewriting source
+        run: python scripts/ci/candidate_manifest.py --check-source --version "${{ steps.ver.outputs.version }}"
       - name: Install system dependencies
         run: |
           sudo apt-get update

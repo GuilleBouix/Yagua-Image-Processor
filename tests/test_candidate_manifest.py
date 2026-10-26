@@ -6,6 +6,19 @@ import yaml
 from scripts.ci import candidate_manifest as candidate
 
 
+def test_version_check_preserves_source_bytes_and_rejects_other_version(tmp_path, monkeypatch):
+    monkeypatch.setattr(candidate, 'ROOT', tmp_path)
+    (tmp_path / 'app').mkdir()
+    file = tmp_path / 'app/version.py'
+    original = b'# Version\r\n__version__ = "2.0.0"\r\n'
+    file.write_bytes(original)
+    candidate.check_source_version('2.0.0')
+    assert file.read_bytes() == original
+    with pytest.raises(ValueError, match='committed source'):
+        candidate.check_source_version('2.0.1')
+    assert file.read_bytes() == original
+
+
 def test_candidate_requires_clean_sources_and_records_exact_bytes(tmp_path, monkeypatch):
     source = tmp_path / 'main.py'
     source.write_text('print(1)', encoding='utf-8')
@@ -73,6 +86,7 @@ def test_candidate_workflows_cannot_publish_and_publication_never_builds():
         assert workflow['permissions'] == {'contents': 'read'}
         assert 'push' not in workflow['on']
         assert 'action-gh-release' not in text and 'contents: write' not in text
+        assert 'apply_version.py' not in text
     for name in ('release.yml', 'release-linux.yml'):
         text = (root / name).read_text(encoding='utf-8')
         workflow = yaml.load(text, Loader=yaml.BaseLoader)
