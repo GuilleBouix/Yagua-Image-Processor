@@ -12,6 +12,7 @@ Relacionado con:
 from __future__ import annotations
 
 import logging
+import sys
 
 import customtkinter as ctk
 
@@ -195,6 +196,18 @@ class RemoveBgFrame(BaseFrame):
             wraplength=scale_wraplength(620)
         )
         self._lbl_error_dependencia.grid(row=0, column=0, padx=16, pady=(16, 8), sticky='w')
+
+        if getattr(sys, 'frozen', False):
+            ctk.CTkLabel(
+                panel,
+                text=t('rembg_packaged_help'),
+                font=fonts.FUENTE_CHICA,
+                text_color=colors.TEXT_GRAY,
+                anchor='w',
+                justify='left',
+                wraplength=scale_wraplength(620)
+            ).grid(row=1, column=0, padx=16, pady=(0, 16), sticky='w')
+            return
 
         if detalle:
             ctk.CTkLabel(

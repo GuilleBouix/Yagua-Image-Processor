@@ -95,6 +95,7 @@ TRANSLATIONS = {
     'rembg_dependency_error': 'Impossible de charger rembg.\nErreur détectée : {error}',
     'rembg_reinstall_app': 'Sur certains systèmes, si vous avez déjà installé la dépendance, il peut être nécessaire de reconstruire l\'application.',
     'rembg_install_from_source': 'Si vous exécutez le projet depuis le code source, installez les dépendances avec :',
+    'rembg_packaged_help': 'Fermez puis relancez Yagua. Si le problème persiste, consultez Paramètres > Logs.',
     'copy_command': 'Copier la commande',
     'command_copied': 'Commande copiée dans le presse-papiers.',
     'model_first_download': 'Le modèle de détourage sera téléchargé automatiquement lors du traitement.',

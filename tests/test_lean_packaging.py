@@ -1,4 +1,7 @@
 from pathlib import Path
+import os
+import subprocess
+import sys
 
 import pytest
 
@@ -19,6 +22,26 @@ def test_runtime_dependencies_have_no_build_test_or_unused_extras():
     names = {line.split('==')[0].lower() for line in runtime.splitlines() if '==' in line}
     assert not names.intersection({'pandas', 'pytest', 'coverage', 'pyinstaller', 'tkinterdnd2', 'opencv-python'})
     assert {'torch', 'torchvision', 'onnxruntime', 'numpy', 'scipy', 'numba', 'pymatting'} <= names
+
+
+def test_numba_import_survives_stale_incomplete_coverage_package(tmp_path):
+    stale = tmp_path / 'stale'
+    stale.mkdir()
+    (stale / 'coverage.py').write_text('raise RuntimeError("stale coverage was imported")\n')
+    hook = ROOT / 'scripts' / 'pyinstaller' / 'disable_numba_coverage.py'
+    script = (
+        'import runpy, sys; '
+        f'runpy.run_path({str(hook)!r}); '
+        'import numba; '
+        'from numba.misc import coverage_support; '
+        'assert sys.modules["coverage"] is None; '
+        'assert not coverage_support.coverage_available'
+    )
+    env = os.environ.copy()
+    env['PYTHONPATH'] = os.pathsep.join((str(stale), env.get('PYTHONPATH', '')))
+    completed = subprocess.run([sys.executable, '-c', script], env=env,
+                               capture_output=True, text=True, check=False)
+    assert completed.returncode == 0, completed.stderr
 
 
 @pytest.mark.parametrize('platform, count, has_tbb', [('win32', 53, True), ('linux', 51, False)])
@@ -210,6 +233,24 @@ def test_frozen_audit_accepts_api_and_current_ocr_resources(tmp_path):
     for language in ('en', 'es'):
         (characters / f'{language}_char.txt').write_text(language)
     assert audit(package, tmp_path)['forbidden_modules'] == []
+
+
+def test_frozen_audit_rejects_stale_coverage_files(tmp_path):
+    (tmp_path / 'PYZ-00.toc').write_text(repr(('archive', [])))
+    package = tmp_path / 'package'
+    characters = package / 'easyocr/character'
+    characters.mkdir(parents=True)
+    for language in ('en', 'es'):
+        (characters / f'{language}_char.txt').write_text(language)
+    stale = package / 'coverage/types.py'
+    stale.parent.mkdir()
+    stale.write_text('# stale optional package')
+
+    with pytest.raises(RuntimeError, match='stale_coverage_files'):
+        audit(package, tmp_path)
+
+    result = audit(package, tmp_path, enforce=False)
+    assert result['stale_coverage_files'] == ['coverage/types.py']
 
 
 def test_frozen_audit_rejects_torch_developer_programs(tmp_path):

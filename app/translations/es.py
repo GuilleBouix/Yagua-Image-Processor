@@ -91,6 +91,7 @@ TRANSLATIONS = {
     'rembg_dependency_error': 'No se pudo cargar rembg.\nError detectado: {error}',
     'rembg_reinstall_app':    'En algunos sistemas operativos o builds empaquetados, si ya instalaste la dependencia, puede hacer falta reconstruir y volver a instalar la app para reflejar el cambio.',
     'rembg_install_from_source': 'Si estás ejecutando el proyecto desde código fuente, podés instalar o reinstalar las dependencias con este comando:',
+    'rembg_packaged_help': 'Cerrá y volvé a abrir Yagua. Si el problema continúa, consultá Ajustes > Logs.',
     'copy_command':           'Copiar comando',
     'command_copied':         'Comando copiado al portapapeles.',
     'model_first_download':   'El modelo de recorte se descargará automáticamente al procesar.',

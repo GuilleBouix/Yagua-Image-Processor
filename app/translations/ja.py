@@ -63,6 +63,7 @@ TRANSLATIONS = {
     'rembg_dependency_error': 'rembg を読み込めませんでした。\nエラー：{error}',
     'rembg_reinstall_app': '一部の OS やパッケージ版では、依存ライブラリをインストールした後にアプリの再ビルドと再インストールが必要な場合があります。',
     'rembg_install_from_source': 'ソースから実行している場合は、次のコマンドで依存ライブラリをインストールまたは再インストールできます：',
+    'rembg_packaged_help': 'Yagua を終了して再起動してください。問題が続く場合は、設定 > ログを確認してください。',
     'copy_command': 'コマンドをコピー',
     'command_copied': 'コマンドをクリップボードにコピーしました。',
     'model_first_download': '処理時に背景除去モデルが自動でダウンロードされます。',

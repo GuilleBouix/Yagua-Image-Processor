@@ -36,6 +36,11 @@ def audit(package: Path, work: Path, enforce=True) -> dict:
     included = sorted(name for name in names
                       if any(name == prefix or name.startswith(prefix + '.') for prefix in forbidden))
     files = list(package.rglob('*'))
+    stale_coverage = [path.relative_to(package).as_posix() for path in files
+                      if path.is_file() and (path.name.lower() == 'coverage.py'
+                                             or 'coverage' in {part.lower() for part in path.parts}
+                                             or (path.name.lower().startswith('coverage-')
+                                                 and path.name.lower().endswith('.dist-info')))]
     video = [str(path.relative_to(package)) for path in files
              if path.name.lower().startswith('opencv_videoio_ffmpeg')]
     characters = sorted(path.name for path in files
@@ -49,7 +54,8 @@ def audit(package: Path, work: Path, enforce=True) -> dict:
                              if path.is_file() and path.parent.name == 'bin'
                              and path.parent.parent.name == 'torch'
                              and omit_packaged_file(f'torch/bin/{path.name}')]
-    result = {'forbidden_modules': included, 'video_plugins': video,
+    result = {'forbidden_modules': included, 'stale_coverage_files': stale_coverage,
+              'video_plugins': video,
               'ocr_characters': characters, 'unused_assets': resources,
               'python_modules': len(names), 'developer_executables': developer_executables}
     if sys.platform == 'linux':
@@ -62,7 +68,7 @@ def audit(package: Path, work: Path, enforce=True) -> dict:
                 'libSM.', 'libICE.', 'libxkbcommon',
             ))
         ]
-    if enforce and (included or video or resources or developer_executables
+    if enforce and (included or stale_coverage or video or resources or developer_executables
                     or result.get('unexpected_system_libraries')
                     or characters != ['en_char.txt', 'es_char.txt']):
         raise RuntimeError(json.dumps(result, indent=2))

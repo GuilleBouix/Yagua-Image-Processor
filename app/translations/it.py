@@ -63,6 +63,7 @@ TRANSLATIONS = {
     'rembg_dependency_error': 'Impossibile caricare rembg.\nErrore rilevato: {error}',
     'rembg_reinstall_app': "Su alcuni sistemi o versioni pacchettizzate, dopo aver installato la dipendenza potrebbe essere necessario ricompilare e reinstallare l'app.",
     'rembg_install_from_source': 'Se esegui il progetto dai sorgenti, puoi installare o reinstallare le dipendenze con questo comando:',
+    'rembg_packaged_help': 'Chiudi e riapri Yagua. Se il problema continua, consulta Impostazioni > Registri.',
     'copy_command': 'Copia comando',
     'command_copied': 'Comando copiato negli appunti.',
     'model_first_download': "Il modello verrà scaricato automaticamente durante l'elaborazione.",

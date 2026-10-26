@@ -63,6 +63,7 @@ TRANSLATIONS = {
     'rembg_dependency_error': '无法加载 rembg。\n检测到错误：{error}',
     'rembg_reinstall_app': '在某些系统或打包版本中，安装依赖项后可能需要重新构建并安装应用才能生效。',
     'rembg_install_from_source': '如果从源代码运行项目，可使用以下命令安装或重新安装依赖项：',
+    'rembg_packaged_help': '关闭并重新打开 Yagua。如果问题仍然存在，请查看设置 > 日志。',
     'copy_command': '复制命令',
     'command_copied': '命令已复制到剪贴板。',
     'model_first_download': '处理时将自动下载抠图模型。',

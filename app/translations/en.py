@@ -91,6 +91,7 @@ TRANSLATIONS = {
     'rembg_dependency_error': 'rembg could not be loaded.\nDetected error: {error}',
     'rembg_reinstall_app': 'On some operating systems or packaged builds, if you already installed the dependency, you may need to rebuild and reinstall the app for the change to take effect.',
     'rembg_install_from_source': 'If you are running the project from source, you can install or reinstall the dependencies with this command:',
+    'rembg_packaged_help': 'Close and reopen Yagua. If the problem continues, check Settings > Logs.',
     'copy_command': 'Copy command',
     'command_copied': 'Command copied to clipboard.',
     'model_first_download': 'The cutout model will be downloaded automatically when processing.',

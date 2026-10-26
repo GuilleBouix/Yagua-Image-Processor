@@ -78,6 +78,7 @@ TRANSLATIONS = {
     'rembg_dependency_error': 'rembg konnte nicht geladen werden.\nFehler: {error}',
     'rembg_reinstall_app': 'Bei einigen Systemen kann ein Neuaufbau der App erforderlich sein, nachdem die Abhängigkeit installiert wurde.',
     'rembg_install_from_source': 'Wenn du den Quellcode nutzt, installiere die Abhängigkeiten mit:',
+    'rembg_packaged_help': 'Schließe Yagua und öffne es erneut. Wenn das Problem bestehen bleibt, prüfe Einstellungen > Protokolle.',
     'copy_command': 'Befehl kopieren',
     'command_copied': 'Befehl in die Zwischenablage kopiert.',
     'model_first_download': 'Das Freistellungsmodell wird beim Verarbeiten automatisch heruntergeladen.',

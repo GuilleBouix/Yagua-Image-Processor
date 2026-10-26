@@ -334,6 +334,17 @@ def _prepare_probe_stdio() -> None:
             reconfigure(encoding='utf-8', errors='backslashreplace')
 
 
+def _verify_numba_coverage_disabled() -> dict:
+    """Ensure the frozen runtime hook blocks stale/incompatible coverage installs."""
+    if sys.modules.get('coverage', object()) is not None:
+        raise RuntimeError('The PyInstaller runtime hook did not block coverage')
+    from numba.misc import coverage_support
+
+    if coverage_support.coverage_available:
+        raise RuntimeError('Numba coverage integration is unexpectedly enabled')
+    return {'coverage_blocked': True}
+
+
 def run(report_path: Path) -> int:
     _prepare_probe_stdio()
     report_path.parent.mkdir(parents=True, exist_ok=True)
@@ -366,6 +377,7 @@ def run(report_path: Path) -> int:
         if offline:
             _deny_network()
 
+        _stage(result, 'numba-coverage-isolated', _verify_numba_coverage_disabled)
         _stage(result, 'native-imports-and-cpu', lambda: _verify_runtime(result))
         _stage(result, 'restart-target', lambda: _verify_restart_target(result))
         work = report_path.parent / report_path.stem

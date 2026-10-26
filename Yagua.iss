@@ -48,8 +48,13 @@ Filename: "{app}\Yagua.exe"; Description: "Ejecutar Yagua"; Flags: nowait postin
 procedure CurStepChanged(CurStep: TSetupStep);
 var
   ErrorCode: Integer;
+  ThanksURL: string;
 begin
-  if (CurStep = ssDone) and not WizardSilent then
-    if not ShellExec('', ExpandConstant('{cm:ThanksURL}'), '', '', SW_SHOWNORMAL, ewNoWait, ErrorCode) then
+  if (CurStep = ssDone) and not WizardSilent then begin
+    ThanksURL := ExpandConstant('{cm:ThanksURL}');
+    if ShellExec('', ThanksURL, '', '', SW_SHOWNORMAL, ewNoWait, ErrorCode) then
+      Log('Opened thank-you page: ' + ThanksURL)
+    else
       Log('Unable to open the thank-you page: ' + SysErrorMessage(ErrorCode));
+  end;
 end;
