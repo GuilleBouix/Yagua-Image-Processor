@@ -298,7 +298,7 @@ class BaseFrame(UiLifetime, ctk.CTkScrollableFrame):
         )
         # Bloquear interaccion
         for ev in ("<Button-1>", "<ButtonRelease-1>", "<Motion>", "<MouseWheel>"):
-            self._full_overlay_frame.bind(ev, lambda e: "break")
+            self._full_overlay_frame.bind(ev, lambda event=None: "break")
 
         self._full_overlay_card = ctk.CTkFrame(
             self._full_overlay_frame,

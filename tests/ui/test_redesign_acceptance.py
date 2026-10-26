@@ -34,8 +34,10 @@ def isolate(ui_root, monkeypatch):
     if fonts.FUENTE_BASE is None:
         fonts.inicializar_fuentes()
     previous = colors.get_current_theme()
-    callbacks = {window: list(items) for window, items in ctk.ScalingTracker.window_widgets_dict.items()}
-    old_scale = ctk.ScalingTracker.widget_scaling
+    tracker = ctk.ScalingTracker
+    callbacks = {window: list(items) for window, items in tracker.window_widgets_dict.items()}
+    dpi_scaling = dict(tracker.window_dpi_scaling_dict)
+    old_scale = tracker.widget_scaling
     errors = []
     monkeypatch.setattr(ui_root._root(), 'report_callback_exception',
         lambda kind, error, traceback: errors.append(f'{kind.__name__}: {error}'))
@@ -49,9 +51,11 @@ def isolate(ui_root, monkeypatch):
     # run on Windows, leaving a partial instance in the tracker during teardown.
     for child in ui_root.winfo_children():
         child.destroy()
-    ui_root.update()
-    ctk.ScalingTracker.window_widgets_dict = callbacks
-    ctk.set_widget_scaling(old_scale)
+    tracker.window_widgets_dict = callbacks
+    tracker.window_dpi_scaling_dict = dpi_scaling
+    # This fixture's windows are discarded, so update the global factor without
+    # invoking callbacks on stale or partially initialized CTkToplevel objects.
+    tracker.widget_scaling = old_scale
     colors.apply_theme(previous)
     assert not errors, errors
 
