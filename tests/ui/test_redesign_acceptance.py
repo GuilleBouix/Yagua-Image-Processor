@@ -44,6 +44,12 @@ def isolate(ui_root, monkeypatch):
         lambda self: self._build_content_ready(True, True))
     colors.apply_theme('Default')
     yield
+    # Destroy test-owned windows/widgets before restoring global scaling. A
+    # CTkToplevel can still be finishing its constructor while scaling callbacks
+    # run on Windows, leaving a partial instance in the tracker during teardown.
+    for child in ui_root.winfo_children():
+        child.destroy()
+    ui_root.update()
     ctk.ScalingTracker.window_widgets_dict = callbacks
     ctk.set_widget_scaling(old_scale)
     colors.apply_theme(previous)
