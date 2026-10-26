@@ -1077,7 +1077,7 @@
     {
       "path": "assets/screenshots/01-home.png",
       "sha256": "aeb8fe740dd48089fe68dbdce0f6deaeed50e2fbf0f57b57905daaac0a1ec028",
-      "packaged": true,
+      "packaged": false,
       "license": "NOASSERTION",
       "source": "Yagua repository screenshot",
       "status": "pending-embedded-content-provenance",
@@ -1086,7 +1086,7 @@
     {
       "path": "assets/screenshots/compress.png",
       "sha256": "3744c3093ec21bf018992e176d0eeba2b26c707034889869c8fa823f851f0dbc",
-      "packaged": true,
+      "packaged": false,
       "license": "NOASSERTION",
       "source": "Yagua repository screenshot",
       "status": "pending-embedded-content-provenance",
@@ -1095,7 +1095,7 @@
     {
       "path": "assets/screenshots/convert.png",
       "sha256": "8e1ae7dc472bb987b1854fdb809f24d0da5c90969685d950dac3f3ea39ecb1bd",
-      "packaged": true,
+      "packaged": false,
       "license": "NOASSERTION",
       "source": "Yagua repository screenshot",
       "status": "pending-embedded-content-provenance",
@@ -1104,7 +1104,7 @@
     {
       "path": "assets/screenshots/home.png",
       "sha256": "15db9c7af8ea6651fafddd4f4aeede53fd91de55f11a06dfaaca8cff968c4226",
-      "packaged": true,
+      "packaged": false,
       "license": "NOASSERTION",
       "source": "Yagua repository screenshot",
       "status": "pending-embedded-content-provenance",
@@ -1113,7 +1113,7 @@
     {
       "path": "assets/screenshots/lqip-base64.png",
       "sha256": "5bde6efc6cf2ea875fbd527d7b340effbb6748e0c4a293d6dc313e098ce44429",
-      "packaged": true,
+      "packaged": false,
       "license": "NOASSERTION",
       "source": "Yagua repository screenshot",
       "status": "pending-embedded-content-provenance",
@@ -1122,7 +1122,7 @@
     {
       "path": "assets/screenshots/metadata.png",
       "sha256": "66041e009003378274caf379c6d90332eb924e46ee81b5cdf1169185502fc4d0",
-      "packaged": true,
+      "packaged": false,
       "license": "NOASSERTION",
       "source": "Yagua repository screenshot",
       "status": "pending-embedded-content-provenance",
@@ -1131,7 +1131,7 @@
     {
       "path": "assets/screenshots/ocr.png",
       "sha256": "2f83441ef3081829ff1faad2988ea55e6e7427e499c8fde56c9072979b1f6a7e",
-      "packaged": true,
+      "packaged": false,
       "license": "NOASSERTION",
       "source": "Yagua repository screenshot",
       "status": "pending-embedded-content-provenance",
@@ -1140,7 +1140,7 @@
     {
       "path": "assets/screenshots/palette.png",
       "sha256": "cb2dc6b154122a980b053b35ed53e40cc320195bfc499b3cc2260077c518d774",
-      "packaged": true,
+      "packaged": false,
       "license": "NOASSERTION",
       "source": "Yagua repository screenshot",
       "status": "pending-embedded-content-provenance",
@@ -1149,7 +1149,7 @@
     {
       "path": "assets/screenshots/remove-background.png",
       "sha256": "5d60e1ac39987bd58f18fb74f3fe24694ab7aead256060cab313a1fc3664865e",
-      "packaged": true,
+      "packaged": false,
       "license": "NOASSERTION",
       "source": "Yagua repository screenshot",
       "status": "pending-embedded-content-provenance",
@@ -1158,7 +1158,7 @@
     {
       "path": "assets/screenshots/rename.png",
       "sha256": "9f5be469d8ab959d1986af5763d18dc98cad8cf86fec10df6c2f4dc9112666b8",
-      "packaged": true,
+      "packaged": false,
       "license": "NOASSERTION",
       "source": "Yagua repository screenshot",
       "status": "pending-embedded-content-provenance",
@@ -1167,7 +1167,7 @@
     {
       "path": "assets/screenshots/resize.png",
       "sha256": "bd435638b25d61bab465c9383a6adfaeaaa5a63f2d216099aabadf7860b94d96",
-      "packaged": true,
+      "packaged": false,
       "license": "NOASSERTION",
       "source": "Yagua repository screenshot",
       "status": "pending-embedded-content-provenance",
@@ -1176,7 +1176,7 @@
     {
       "path": "assets/screenshots/settings.png",
       "sha256": "7b411904e6f0a04ff0b30f93b315edda64b4afd22066c4bcd3752cf5d2a36e3f",
-      "packaged": true,
+      "packaged": false,
       "license": "NOASSERTION",
       "source": "Yagua repository screenshot",
       "status": "pending-embedded-content-provenance",
@@ -1185,7 +1185,7 @@
     {
       "path": "assets/screenshots/watermark.png",
       "sha256": "dd6c10211518e2d02d282f737a86fe510c7e00bd284978100b1a8b99b43ffea3",
-      "packaged": true,
+      "packaged": false,
       "license": "NOASSERTION",
       "source": "Yagua repository screenshot",
       "status": "pending-embedded-content-provenance",

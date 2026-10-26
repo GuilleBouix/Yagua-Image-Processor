@@ -158,6 +158,28 @@ jobs:
           python scripts/ci/candidate_manifest.py --version "${{ steps.ver.outputs.version }}" --output installer/candidate-windows.json --artifact "installer/Yagua_Setup_${{ steps.ver.outputs.version }}.exe" --artifact "installer/Yagua_Portable_${{ steps.ver.outputs.version }}.zip"
           if ($LASTEXITCODE -ne 0) { throw 'Candidate provenance failed' }
 
+      - name: Prepare Windows source review materials without publication
+        shell: pwsh
+        run: |
+          $sources = "reports/Yagua-${{ steps.ver.outputs.version }}-source-materials.tar.xz"
+          python scripts/ci/source_materials.py --cache "$env:RUNNER_TEMP\yagua-source-materials" --output $sources --download --candidate-commit "$env:GITHUB_SHA"
+          if ($LASTEXITCODE -ne 0) { throw 'Source material collection failed' }
+          python scripts/ci/candidate_manifest.py --version "${{ steps.ver.outputs.version }}" --output reports/candidate-windows-sources.json --artifact $sources
+          if ($LASTEXITCODE -ne 0) { throw 'Source material provenance failed' }
+
+      - name: Upload Windows source review materials without publication
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-source-materials-${{ steps.ver.outputs.version }}
+          path: |
+            reports/Yagua-*-source-materials.tar.xz
+            reports/candidate-windows-sources.json
+            installer/candidate-windows.json
+            reports/windows-licenses.json
+          compression-level: 0
+          retention-days: 30
+          if-no-files-found: error
+
       - name: Upload validated candidate without publication
         uses: actions/upload-artifact@v4
         with:

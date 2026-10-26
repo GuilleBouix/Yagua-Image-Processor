@@ -51,11 +51,13 @@ def application_modules(root: Path) -> list[str]:
 
 
 def runtime_assets(root: Path) -> list[tuple[str, str]]:
+    screenshots = root / 'assets' / 'screenshots'
     return [
         (str(path), str(path.parent.relative_to(root)))
         for path in sorted((root / 'assets').rglob('*'))
         if path.is_file() and path.suffix not in {'.icns', '.py', '.pyc'}
         and path.name not in INSTALLER_ASSETS
+        and not path.is_relative_to(screenshots)
     ]
 
 
