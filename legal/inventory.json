@@ -1925,7 +1925,7 @@
       "source": "Yagua repository; upstream source archive URLs in legal/sources/manifest.json"
     },
     "legal/REVIEW.md": {
-      "sha256": "06525e3864e1f73953401755d804d29b35d8eecec95f11bd6e298e773a6da669",
+      "sha256": "630c923d81e087bb1f252f8e524fc0ea455026b36e756f56b28cf12bbea4c207",
       "source": "Yagua repository; upstream source archive URLs in legal/sources/manifest.json"
     },
     "assets/fonts/noto-cjk/LICENSE": {
@@ -1997,7 +1997,7 @@
       "source": "Yagua candidate distribution review; original sources and URLs in legal/distribution/materials.json"
     },
     "legal/distribution/materials.json": {
-      "sha256": "ccbc195057ed1913736d572d4af8d33bf53de37698e56a31a71a57357b76989c",
+      "sha256": "72415762537d70e4b8f65daf69c7c6de87a66ca999ad90ff5a79d5d958cede49",
       "source": "Yagua candidate distribution review; original sources and URLs in legal/distribution/materials.json"
     },
     "legal/distribution/notices/AppImageKit-LICENSE.txt": {
@@ -2029,7 +2029,7 @@
       "source": "Yagua candidate distribution review; original sources and URLs in legal/distribution/materials.json"
     },
     "legal/distribution/README.md": {
-      "sha256": "c3fb15ea0548e379e352f4de5fa20869602e4ce02e92ee0224c86d1a78645df3",
+      "sha256": "4a17307bb8db8aaf5e9b029194e2a5f9ca411584badbf32b43dc0c5b86fe9611",
       "source": "Yagua candidate distribution review; original sources and URLs in legal/distribution/materials.json"
     },
     "legal/distribution/notices/common-licenses/GFDL-1.3": {
