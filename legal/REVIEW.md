@@ -85,6 +85,24 @@ experiencia en distribución de software libre.
   cualquier binario no clasificado. Los metadatos del paquete principal no
   certifican todos los componentes incluidos.
 
+## Herramienta de instalación de Windows
+
+Inno Setup se usa para construir el instalador, no se incluye como herramienta
+de desarrollo en Yagua. El workflow instala el paquete de Chocolatey sin fijar
+versión. Según los términos publicados por sus autores al 2026-10-26, consideran
+usuario comercial a una empresa con más de USD 5.000 de ingresos anuales o a una
+persona/freelancer que usa la herramienta en trabajo con fines de lucro y supera
+ese umbral. Indican que las donaciones a software libre también cuentan. A los
+usuarios comerciales les piden comprar licencia; aclaran que no es estrictamente
+obligatorio. Cada máquina CI que ejecuta simultáneamente el compilador cuenta
+como usuario.
+
+**Pendiente del responsable del proyecto:** comprobar si los ingresos/donaciones
+anuales alcanzan ese umbral y decidir si mantener Inno Setup bajo la política
+actual del proveedor. No se puede determinar ese dato desde el repositorio.
+Referencias: [licencias y umbral comercial de Inno Setup](https://jrsoftware.org/isorder.php),
+[instalación usada en CI](../.github/workflows/build-windows.yml).
+
 ## Fuentes de consulta
 
 - [pillow-heif 1.3.0: licencias de binarios](https://raw.githubusercontent.com/bigcat88/pillow_heif/v1.3.0/LICENSES_bundled.txt)
