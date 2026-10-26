@@ -109,24 +109,27 @@ def test_two_equal_samples_coalesce_and_cancel():
     assert len(viewport.jobs) == 1
     viewport.advance(16)
     assert not draws
+    renderer.request()  # An unchanged Configure must not discard this sample.
+    viewport.advance(16)
+    assert draws == [(32, (400, 180, 1))]
     viewport.width = 500
     renderer.request()
     viewport.advance(31)
-    assert not draws
+    assert len(draws) == 1
     viewport.advance(1)
-    assert draws == [(48, (500, 180, 1))]
+    assert draws == [(32, (400, 180, 1)), (64, (500, 180, 1))]
     renderer.request()
     viewport.advance(16)
     renderer.set_visible(False)
     viewport.advance(100)
-    assert len(draws) == 1 and not viewport.jobs
+    assert len(draws) == 2 and not viewport.jobs
     viewport.width = 1
     renderer.set_visible(True)
     viewport.advance(100)
-    assert len(draws) == 1 and not viewport.jobs
+    assert len(draws) == 2 and viewport.jobs
     viewport.width, viewport.scale = 250, .5
     renderer.request()
-    viewport.advance(32)
+    viewport.advance(44)
     assert draws[-1][1] == (250, 180, .5)
     viewport.mapped = False
     renderer.request()

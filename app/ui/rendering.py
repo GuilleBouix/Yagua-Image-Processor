@@ -48,9 +48,15 @@ class StableRender:
         self.sample = None
 
     def request(self, _event=None):
-        self.sample = None
         if self.closed or not self.enabled or not self.viewport.winfo_ismapped():
             return
+        size = (self.viewport.winfo_width(), self.viewport.winfo_height(),
+                self.viewport._get_widget_scaling())
+        # Repeated Map/Configure or content requests at an unchanged size do
+        # not invalidate the first stable sample. A real geometry/scale change
+        # still restarts the two-sample check.
+        if self.sample != size:
+            self.sample = None
         if self.job is None:
             self.job = self.owner.after(16, self._at_idle)
 
@@ -67,6 +73,9 @@ class StableRender:
         width, height = self.viewport.winfo_width(), self.viewport.winfo_height()
         if width <= 1 or height <= 1:
             self.sample = None
+            # A mapped frame can briefly retain a 1px allocation while its
+            # parent finishes the tab/layout update, with no later Configure.
+            self.job = self.owner.after(32, self._at_idle)
             return
         size = (width, height, self.viewport._get_widget_scaling())
         if self.sample == size:

@@ -435,7 +435,10 @@ def test_workspace_lists_preview_and_fields_fit(ui_root, tmp_path, geometry, sca
                 f'{tab}: token={frame._collection.preview_token}, '
                 f'preview_error={frame._collection.preview_error!r}, '
                 f'status={frame._state.current.status}, source={preview.source is not None}, '
-                f'photo={preview.photo is not None}, renderer_job={preview.renderer.job}'
+                f'photo={preview.photo is not None}, renderer_job={preview.renderer.job}, '
+                f'renderer_sample={preview.renderer.sample}, enabled={preview.renderer.enabled}, '
+                f'viewport=({preview.viewport.winfo_width()}x{preview.viewport.winfo_height()}), '
+                f'mapped={preview.viewport.winfo_ismapped()}'
             )
             assert files.winfo_width() <= frame.winfo_width()
             for row, _, thumb, info, status in files.rows.values():
