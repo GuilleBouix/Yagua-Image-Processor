@@ -1,9 +1,11 @@
 # Materiales de distribución de Yagua 2.0
 
-Revisión técnica iniciada el **26 de octubre de 2026** sobre los candidatos del commit
-`7b0768758c53621a45bfdcc75cea92f237cc3a3f`. Los candidatos posteriores tienen su
-propio manifiesto de fuentes y procedencia generado desde el commit de cada build.
-Esta revisión técnica no certifica cumplimiento jurídico integral.
+Revisión técnica iniciada el **26 de octubre de 2026**. La candidata privada
+validada más reciente se construyó desde `a9ca7f58259f0b60033c6d6e1776d34cf87dbe04`;
+sus artefactos incluyen manifiestos propios con commit, árbol, hashes y procedencia.
+Los materiales base de este directorio documentan además el trabajo iniciado sobre
+`7b0768758c53621a45bfdcc75cea92f237cc3a3f`. Esta revisión no certifica cumplimiento
+jurídico integral.
 
 ## Material reunido
 
@@ -55,9 +57,9 @@ verificación criptográfica con un llavero confiable si se hace una nueva audit
   El paquete Linux sí incluye bibliotecas FFmpeg LGPL 2.1 o posterior.
 - La libc de compatibilidad del AppImage informa `Ubuntu GLIBC 2.35-0ubuntu3`;
   se reunieron la fuente y los parches de esa versión exacta.
-- En el AppImage anterior no se encontraron los avisos de AppRun/AppImageKit ni
-  los cuatro copyright indicados arriba. El build candidato nuevo los incorpora;
-  los candidatos anteriores todavía no contienen esos ajustes.
+- La candidata Linux privada `a9ca7f5` incorpora los avisos AppRun/AppImageKit y
+  copyright reunidos. Sus pruebas técnicas pasaron. La aprobación legal sigue
+  marcada como pendiente en los informes de ambas plataformas.
 
 ## Iconos
 
@@ -73,8 +75,8 @@ No se atribuye Apache 2.0 a esa marca ni se afirma patrocinio de GitHub.
 
 ## Pendientes concretos
 
-El detalle actualizado de versiones consultadas, dependencias y el hueco de
-libmvec del wheel HEIC está en [`NATIVE_COMPONENTS.md`](NATIVE_COMPONENTS.md).
+El detalle de las bibliotecas nativas y la diferencia entre el AppImage anterior
+y la candidata Linux actual está en [`NATIVE_COMPONENTS.md`](NATIVE_COMPONENTS.md).
 
 1. **ISNet:** el README oficial de [DIS](https://github.com/xuebinqin/DIS#license)
    limita expresamente Apache 2.0 al código y la métrica. No se encontró una
@@ -87,12 +89,11 @@ libmvec del wheel HEIC está en [`NATIVE_COMPONENTS.md`](NATIVE_COMPONENTS.md).
    los pesos; no se encontró una declaración específica separada para cada
    conversión descargada. No se equipara esta evidencia con la limitación
    explícita encontrada en DIS.
-3. **Fuentes correspondientes:** el candidato anterior incluía una variante
-   `libmvec` del wheel HEIC cuya procedencia exacta no se identificó. Se preparó
-   una cadena HEIC recompilada desde fuentes fijadas y probada localmente; el
-   nuevo build en la base de distribución sigue siendo necesario para validar
-   el paquete. Las fuentes del runtime AppImage y libvpx también están reunidas.
-   Quedan dependencias externas variables de algunas recetas y comprobar la
+3. **Fuentes correspondientes:** la candidata Linux `a9ca7f5` ya reconstruye
+   HEIC desde fuentes fijadas y pasó las pruebas del AppImage. El `libmvec` del
+   wheel anterior fue sustituido por `libmvec.so.1` de Ubuntu GLIBC 2.35, cuya
+   fuente se reunió. Aún falta revisar la clasificación/licencia de los binarios,
+   cerrar dependencias externas variables de algunas recetas y comprobar la
    sustitución o el reenlace de LGPL en la distribución congelada.
 4. **Conjunto distribuido:** Intel permite redistribuir sus binarios sin
    modificar bajo sus condiciones. Queda revisar su combinación concreta con

@@ -6,21 +6,20 @@ certificación jurídica. Se preservan funciones, motores, formatos y calidad.
 ## Actualización de los candidatos 2.0
 
 La revisión de los paquetes reales y los materiales reunidos está en
-[`distribution/README.md`](distribution/README.md), con un manifiesto de hashes
-y procedencias. Incluye fuentes/parches de los paquetes Ubuntu exactos, recetas
-de los wheels, FFmpeg Linux y bootstrap AppImage. Se añaden avisos originales
-que faltaban en el AppImage. Los ejecutables candidatos anteriores aún no
-contienen estos ajustes; necesitan una compilación posterior antes de aprobarse.
+[`distribution/README.md`](distribution/README.md), con manifiestos de hashes
+y procedencias. La candidata privada `a9ca7f5` fue compilada y validada en
+Windows y Ubuntu; el manifiesto Linux la vincula al commit y al árbol exactos.
+Esto confirma técnicamente esos paquetes, pero no cierra las cuestiones de
+licencias ni autoriza su publicación.
 
 Se comprobó que el DLL Intel distribuido no está modificado y que los DLL de
 tcmlib no se incluyen. Esto acota la revisión de Intel al conjunto real.
-Los pesos ISNet tienen un pendiente concreto de alcance: la licencia del
-README DIS se refiere expresamente a código y métricas, no afirma cubrirlos.
-Las fuentes reunidas no se presentan como fuentes correspondientes completas.
-El detalle del 26 de octubre está en `distribution/NATIVE_COMPONENTS.md`:
-se completaron fuentes y avisos identificados de Squashfuse, XZ y libvpx;
-queda sin identificar la variante exacta de libmvec incluida por el wheel HEIC.
-La fuente Ubuntu glibc 2.35 no se usa para dar por cubierta esa biblioteca 2.28.
+La candidata Ubuntu actual ya no contiene la variante `libmvec-2-…28.so` del
+wheel HEIC anterior: incluye `libmvec.so.1` de la libc de compatibilidad Ubuntu
+GLIBC 2.35, cuya fuente exacta está entre los materiales. La clasificación de
+los binarios nativos, las obligaciones de fuentes correspondientes y la revisión
+jurídica de la combinación siguen abiertas. El detalle está en
+`distribution/NATIVE_COMPONENTS.md`.
 
 ## Resuelto técnicamente
 
@@ -36,14 +35,16 @@ La fuente Ubuntu glibc 2.35 no se usa para dar por cubierta esa biblioteca 2.28.
 
 ## Requiere revisión jurídica antes de afirmar cumplimiento integral
 
-Actualización técnica: se incluyen cinco distribuciones fuente originales de
-PyPI, verificadas contra las versiones usadas y sus hashes. Ver `SOURCE_CODE.md`.
-También se incluyen fuentes upstream de las versiones nativas detectadas en
-Windows: libheif 1.21.2, libde265 1.0.16, GEOS 3.13.1 y x265 4.1+1-1d117be.
-Se fijaron commits y hashes; se reunieron las recetas publicadas de los wheels
-y se comprobaron versiones nativas también en Linux. Falta cerrar la entrega
-completa y comprobar reconstrucción/reenlace. Los avisos genéricos de pillow-heif no coinciden con todas
-las versiones nativas observadas y no sustituyen esa comprobación.
+Actualización técnica: se incluyen fuentes originales de dependencias de PyPI,
+fuentes upstream fijadas para bibliotecas nativas y materiales de construcción
+del AppImage. La candidata Linux `a9ca7f5` reconstruye libheif 1.21.2,
+libde265 1.0.16 y x265 4.1+1-1d117be desde esas fuentes; las pruebas del
+AppImage candidato pasaron. El archivo privado `Yagua-2.0.0-source-materials`
+está ligado al commit mediante manifiesto, pero no es una oferta pública de
+fuentes ni una declaración de que se hayan satisfecho todas las obligaciones.
+Falta cerrar la entrega completa y comprobar sustitución/reenlace de LGPL en la
+distribución congelada. Los avisos genéricos de pillow-heif no sustituyen esa
+comprobación.
 Para certifi/tqdm quedan proporcionadas esas fuentes y avisos de acceso; esto no
 certifica componentes nativos ni equivalencia de todos los wheels con los sdists.
 Las acciones de la tabla que consisten en identificar builds, reunir materiales

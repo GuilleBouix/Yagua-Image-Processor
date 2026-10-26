@@ -1,7 +1,9 @@
 # Componentes nativos: revisión del 26 de octubre de 2026
 
-Paquetes candidatos del commit `7b0768758c53621a45bfdcc75cea92f237cc3a3f`.
-No se alteraron los paquetes, las dependencias ni los modelos durante esta revisión.
+La candidata privada validada más reciente usa el commit
+`a9ca7f58259f0b60033c6d6e1776d34cf87dbe04`. Los informes de Windows y Linux
+están ligados a ese build. Esta revisión no aprueba publicación ni cambios de
+dependencias o modelos.
 
 ## Qué se comprobó
 
@@ -23,7 +25,7 @@ La carga directa de libheif en ese contexto no resolvió la ruta de libmvec que
 AppRun prepara. Se conserva ese resultado sin presentarlo como un fallo nuevo de
 Yagua: los candidatos ya aprobaron las verificaciones reales de HEIC y arranque.
 
-## Hueco del AppImage anterior y reemplazo en validación
+## Diferencia entre el AppImage anterior y la candidata validada
 
 El AppImage anterior incluía esta biblioteca procedente del wheel:
 
@@ -32,9 +34,7 @@ runtime/compat/usr/lib/yagua/_internal/pillow_heif.libs/libmvec-2-583a17db.28.so
 ```
 
 Su revisión de distribución exacta no se pudo identificar con las recetas
-reunidas. Las fuentes Ubuntu glibc 2.35 entregadas para la libc de compatibilidad
-no prueban que correspondan a esta biblioteca de la serie 2.28. No se rellena
-ese dato suponiendo una revisión de CentOS/RHEL por el nombre del archivo.
+reunidas. Esa observación aplica al AppImage anterior, no a la candidata actual.
 
 El responsable autorizó recompilar la cadena el 26 de octubre. `scripts/ci/build_heic_linux.py` reconstruye
 libheif 1.21.2, libde265 1.0.16 y x265 de la misma revisión desde las fuentes
@@ -43,13 +43,17 @@ cstdint que necesita json11 con GCC 15. Se genera explícitamente el archivo de
 versión de x265 porque el snapshot original contiene datos antiguos. NUMA se
 desactiva explícitamente para mantener estable la lista de dependencias.
 
-El wrapper Python conserva pillow-heif 1.3.0. Únicamente se ajusta su enlace ELF
-a la cadena reconstruida; el informe registra hashes antes y después y conserva
-los originales en el directorio de construcción. La cadena compilada pasó las
-pruebas locales de nueve formatos y codificación/decodificación HEIC de 10 y
-12 bits. El build oficial para la base Linux objetivo y la validación del
-AppImage candidato siguen pendientes.
+El wrapper Python conserva pillow-heif 1.3.0. Se ajusta su enlace ELF a la cadena
+reconstruida; el informe registra hashes antes y después y conserva los originales
+en el directorio de construcción. La cadena compilada pasó las pruebas locales de
+nueve formatos y codificación/decodificación HEIC de 10 y 12 bits. El build Linux
+oficial para Ubuntu 22.04 y las verificaciones reales del AppImage candidato
+también pasaron en CI. El manifiesto de licencias identifica ahora dos copias de
+`libmvec.so.1`, ambas de 1,031,720 bytes, con hashes propios. El archivo fuente
+glibc 2.35 está incluido en los materiales de esa candidata.
 
-La sustitución de bibliotecas LGPL modificadas y la revisión del conjunto con
-los términos Intel siguen pendientes. Cargar una biblioteca original por su ruta
-separada no demuestra por sí solo que se haya probado una versión modificada.
+La presencia de la fuente glibc no resuelve por sí sola la clasificación del
+binario ni todas las obligaciones de distribución. La sustitución de bibliotecas
+LGPL modificadas y la revisión del conjunto con los términos Intel siguen
+pendientes. Cargar una biblioteca original por su ruta separada no demuestra por
+sí solo que se haya probado una versión modificada.
