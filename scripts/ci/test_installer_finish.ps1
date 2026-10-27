@@ -6,13 +6,56 @@ param(
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName UIAutomationClient
 Add-Type -AssemblyName UIAutomationTypes
+Add-Type -TypeDefinition @'
+using System;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
+using System.Text;
+
+public static class YaguaInstallerNative {
+    private delegate bool ChildWindowCallback(IntPtr handle, IntPtr data);
+
+    [DllImport("user32.dll")]
+    private static extern bool EnumChildWindows(IntPtr parent, ChildWindowCallback callback, IntPtr data);
+
+    [DllImport("user32.dll")]
+    public static extern bool IsWindowVisible(IntPtr handle);
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    private static extern int GetWindowText(IntPtr handle, StringBuilder text, int maxCount);
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    private static extern int GetClassName(IntPtr handle, StringBuilder text, int maxCount);
+
+    [DllImport("user32.dll")]
+    public static extern IntPtr SendMessage(IntPtr handle, uint message, IntPtr wParam, IntPtr lParam);
+
+    public static IntPtr[] GetChildren(IntPtr parent) {
+        var result = new List<IntPtr>();
+        ChildWindowCallback callback = (handle, data) => { result.Add(handle); return true; };
+        EnumChildWindows(parent, callback, IntPtr.Zero);
+        return result.ToArray();
+    }
+
+    public static string Text(IntPtr handle) {
+        var text = new StringBuilder(512);
+        GetWindowText(handle, text, text.Capacity);
+        return text.ToString();
+    }
+
+    public static string ClassName(IntPtr handle) {
+        var text = new StringBuilder(256);
+        GetClassName(handle, text, text.Capacity);
+        return text.ToString();
+    }
+}
+'@
 
 function Test-InstallerFinish([string]$Language, [string]$ExpectedUrl) {
     $installDirectory = Join-Path $WorkDirectory "installed-$Language"
     $group = "Yagua candidate test $Language"
     $logPath = Join-Path $WorkDirectory "setup-$Language.log"
     $setupProcessPrefix = [IO.Path]::GetFileNameWithoutExtension($Installer)
-    $shell = New-Object -ComObject WScript.Shell
     $arguments = @(
         "/LANG=$Language",
         "/DIR=`"$installDirectory`"",
@@ -27,6 +70,7 @@ function Test-InstallerFinish([string]$Language, [string]$ExpectedUrl) {
     $lastWindowName = ''
     $lastButtonNames = ''
     $lastUiSignature = ''
+    $lastAdvancedSignature = ''
 
     while (-not $setup.HasExited -and [DateTime]::UtcNow -lt $deadline) {
         $setup.Refresh()
@@ -66,17 +110,24 @@ function Test-InstallerFinish([string]$Language, [string]$ExpectedUrl) {
                 $buttons = $window.FindAll([System.Windows.Automation.TreeScope]::Descendants, $condition)
                 $lastWindowName = $window.Current.Name
                 $lastButtonNames = (@($buttons | ForEach-Object { $_.Current.Name }) -join ' | ')
-                $uiSignature = "$($setupProcess.Id)|$lastWindowName|$lastButtonNames"
+                $nativeControls = @(
+                    [YaguaInstallerNative]::GetChildren($setupProcess.MainWindowHandle) |
+                        Where-Object { [YaguaInstallerNative]::IsWindowVisible($_) } |
+                        ForEach-Object {
+                            [PSCustomObject]@{
+                                Handle = $_
+                                Class = [YaguaInstallerNative]::ClassName($_)
+                                Text = [YaguaInstallerNative]::Text($_).Trim()
+                            }
+                        }
+                )
+                $nativeSummary = (@($nativeControls | ForEach-Object {
+                    "$($_.Class):$($_.Text)"
+                }) -join ' | ')
+                $uiSignature = "$($setupProcess.Id)|$lastWindowName|$lastButtonNames|$nativeSummary"
                 if ($uiSignature -ne $lastUiSignature) {
-                    Write-Host "Installer UI [$($setupProcess.Id)] '$lastWindowName': $lastButtonNames"
+                    Write-Host "Installer UI [$($setupProcess.Id)] '$lastWindowName': UIA=[$lastButtonNames] Native=[$nativeSummary]"
                     $lastUiSignature = $uiSignature
-                }
-                if ($buttons.Count -eq 0) {
-                    if ($shell.AppActivate($setupProcess.Id)) {
-                        $shell.SendKeys('{ENTER}')
-                        Write-Host "Advanced installer page with Enter for $Language"
-                        $buttonInvoked = $true
-                    }
                 }
                 foreach ($button in $buttons) {
                     $name = $button.Current.Name.Trim()
@@ -97,6 +148,34 @@ function Test-InstallerFinish([string]$Language, [string]$ExpectedUrl) {
                         $buttonInvoked = $true
                         Start-Sleep -Milliseconds 350
                         break
+                    }
+                }
+                if (-not $buttonInvoked) {
+                    $nativeButton = $nativeControls | Where-Object {
+                        $_.Text -match '^\s*&?\s*(Next|Siguiente)\s*>?\s*$' -or
+                        $_.Text -match '^\s*&?\s*(Install|Instalar)\s*$' -or
+                        $_.Text -match '^\s*&?\s*(Finish|Finalizar)\s*$'
+                    } | Select-Object -First 1
+                    if ($nativeButton) {
+                        [YaguaInstallerNative]::SendMessage(
+                            $nativeButton.Handle, 0x00F5, [IntPtr]::Zero, [IntPtr]::Zero
+                        ) | Out-Null
+                        $buttonInvoked = $true
+                        if ($nativeButton.Text -match 'Finish|Finalizar') {
+                            $finishClicked = $true
+                        }
+                    } elseif ($uiSignature -ne $lastAdvancedSignature) {
+                        [YaguaInstallerNative]::SendMessage(
+                            $setupProcess.MainWindowHandle, 0x0111, [IntPtr]1, [IntPtr]::Zero
+                        ) | Out-Null
+                        [YaguaInstallerNative]::SendMessage(
+                            $setupProcess.MainWindowHandle, 0x0100, [IntPtr]13, [IntPtr]::Zero
+                        ) | Out-Null
+                        [YaguaInstallerNative]::SendMessage(
+                            $setupProcess.MainWindowHandle, 0x0101, [IntPtr]13, [IntPtr]::Zero
+                        ) | Out-Null
+                        $lastAdvancedSignature = $uiSignature
+                        $buttonInvoked = $true
                     }
                 }
             } catch {
