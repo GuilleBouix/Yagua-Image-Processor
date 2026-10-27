@@ -4,6 +4,7 @@ import json
 import os
 from pathlib import Path
 import tarfile
+import urllib.error
 
 import pytest
 import yaml
@@ -223,6 +224,66 @@ def test_candidate_waits_only_for_its_platform_stage(monkeypatch):
         {'name': 'linux / ui', 'status': 'in_progress'}])
     monkeypatch.setattr(cp.time, 'sleep', lambda *_: pytest.fail('Other-platform UI must not block quality'))
     assert [run['id'] for run in cp.candidate_runs('quality', '', False, 'windows')] == [200, 100]
+
+
+def test_recovery_bookkeeping_change_does_not_invalidate_ui_or_compilation(source):
+    file = source / 'scripts/ci/checkpoints.py'
+    file.write_text('old transport')
+    before = key('compile'), key('ui'), key('core')
+    # This helper is classified as CI tooling, not a runtime/UI input.
+    names = cp.tracked() + ['scripts/ci/checkpoints.py']
+    original = cp.tracked
+    try:
+        cp.tracked = lambda: names
+        before = key('compile'), key('ui'), key('core')
+        file.write_text('network retry fix')
+        assert (key('compile'), key('ui')) == before[:2]
+        assert key('core') != before[2]
+    finally:
+        cp.tracked = original
+
+
+def test_transient_503_retries_transport_without_becoming_a_cache_miss(monkeypatch):
+    monkeypatch.setattr(cp.time, 'sleep', lambda *_: None)
+    calls = []
+    def request():
+        calls.append(1)
+        if len(calls) < 3:
+            raise urllib.error.HTTPError('https://artifact', 503, 'Egress limit', {}, None)
+        return 'payload'
+    assert cp.retry_network(request) == 'payload'
+    assert len(calls) == 3
+
+
+def test_persistent_transport_failure_stops_instead_of_rebuilding(monkeypatch):
+    monkeypatch.setattr(cp.time, 'sleep', lambda *_: None)
+    def unavailable():
+        raise urllib.error.HTTPError('https://artifact', 503, 'Egress limit', {}, None)
+    with pytest.raises(RuntimeError, match='without rebuilding'):
+        cp.retry_network(unavailable)
+
+
+def test_checkpoint_transport_failure_never_falls_back_to_execution(source, monkeypatch):
+    receipt, _ = make_checkpoint(source)
+    artifact = {'id': 10, 'name': f'checkpoint-windows-compile-{receipt["fingerprint"]}-100-1', 'expired': False}
+    monkeypatch.setattr(cp, 'candidate_runs', lambda *_: [{'id': 100}])
+    monkeypatch.setattr(cp, 'pages', lambda *_: [artifact])
+    monkeypatch.setattr(cp, 'receipt_for', lambda *_: (receipt, {'id': 100}))
+    def outage(*_):
+        raise RuntimeError('Transport unavailable')
+    monkeypatch.setattr(cp, 'download', outage)
+    with pytest.raises(RuntimeError, match='Transport unavailable'):
+        cp.prepare('compile', 'windows', '2.0.0', {}, '100', False)
+
+
+def test_assertions_and_authentication_are_not_automatically_retried(monkeypatch):
+    monkeypatch.setattr(cp.time, 'sleep', lambda *_: pytest.fail('Must not retry'))
+    with pytest.raises(AssertionError):
+        cp.retry_network(lambda: (_ for _ in ()).throw(AssertionError('bad test')))
+    def unauthorized():
+        raise urllib.error.HTTPError('https://artifact', 403, 'Forbidden', {}, None)
+    with pytest.raises(RuntimeError, match='refused'):
+        cp.retry_network(unauthorized)
 
 
 def test_failed_ci_assertion_is_not_automatically_run_again(source, monkeypatch):

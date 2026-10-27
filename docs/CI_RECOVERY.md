@@ -17,6 +17,12 @@ GitHub retains the original commit. Successful jobs and their checkpoints remain
 available; the failed job and its dependent jobs run again. Work is recovered at
 stage boundaries, not from an arbitrary command inside a job.
 
+Transient transport errors (429, 5xx, timeouts and interrupted downloads) receive
+up to three attempts. Exhausted transport errors stop the recovery job and
+preserve upstream results; they never trigger an expensive rebuild as a fallback.
+Missing/expired or checksum-invalid checkpoints can be regenerated. Assertions,
+permission errors and authentication failures are not automatically retried.
+
 ## Continue after fixing a failure
 
 Commit and push the fix, then dispatch from the updated main:

@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import fnmatch
 import hashlib
+import http.client
 import json
 import os
 from pathlib import Path
@@ -53,7 +54,10 @@ def stage_files(stage: str, platform: str, names: list[str]) -> list[str]:
                'scripts/pyinstaller/*', 'Yagua.spec' if platform == 'windows' else 'Yagua.linux.spec')
     if platform == 'linux':
         runtime += ('requirements-linux-cpu.txt', 'scripts/ci/build_heic_linux.py', 'scripts/build_linux_runtime.sh')
-    common = ('scripts/ci/checkpoints.py', 'scripts/ci/stages/common.py',
+    # Recovery bookkeeping is tested in core/quality; it does not change the
+    # program being compiled or the UI tests being executed. The resulting
+    # selected input set, effective recipe and environment still define the key.
+    common = ('scripts/ci/stages/common.py',
               '.github/workflows/stage.yml', 'scripts/ci/stages/' + stage + '.py')
     policies = {
         'compile': runtime + (('scripts/build_linux_appimage.sh',) if platform == 'linux' else ()),
@@ -114,6 +118,28 @@ def fingerprint(stage: str, platform: str, version: str, dependencies: dict,
     return encoded_hash(inputs), inputs
 
 
+def retry_network(operation):
+    """Only retry transport failures; never reinterpret them as a cache miss."""
+    for attempt in range(3):
+        try:
+            return operation()
+        except urllib.error.HTTPError as error:
+            if error.code in {404, 410}:
+                raise
+            if error.code != 429 and error.code < 500:
+                raise RuntimeError(f'Actions request refused ({error.code}); checkpoints retained') from error
+            retry_after = error.headers.get('Retry-After', '') if error.headers else ''
+            delay = min(60, float(retry_after)) if retry_after.isdigit() else 10 * (attempt + 1)
+            cause = error
+        except (urllib.error.URLError, TimeoutError, ConnectionError, http.client.IncompleteRead) as error:
+            delay, cause = 10 * (attempt + 1), error
+        if attempt < 2:
+            print(f'Temporary Actions transport failure; retrying in {delay}s: {cause}', flush=True)
+            time.sleep(delay)
+        else:
+            raise RuntimeError('Actions transport unavailable; retry this job without rebuilding prior stages') from cause
+
+
 def api(path: str, *, raw: bool = False):
     token = os.environ.get('GH_TOKEN', '')
     url = path if path.startswith('https://') else f'https://api.github.com/repos/{os.environ["GITHUB_REPOSITORY"]}/{path}'
@@ -125,19 +151,22 @@ def api(path: str, *, raw: bool = False):
         class NoRedirect(urllib.request.HTTPRedirectHandler):
             def redirect_request(self, req, fp, code, msg, headers, newurl):
                 return None
-        try:
-            return urllib.request.build_opener(NoRedirect).open(request, timeout=120)
-        except urllib.error.HTTPError as error:
-            if error.code not in {301, 302, 303, 307, 308}:
-                raise
-            location = error.headers['Location']
-            if not location.startswith('https://'):
-                raise ValueError('Insecure artifact redirect') from error
-            # Signed artifact storage receives no GitHub token.
-            return urllib.request.urlopen(location, timeout=120)
-    response = urllib.request.urlopen(request, timeout=120)
-    with response:
-        return json.load(response)
+        def open_download():
+            try:
+                return urllib.request.build_opener(NoRedirect).open(request, timeout=120)
+            except urllib.error.HTTPError as error:
+                if error.code not in {301, 302, 303, 307, 308}:
+                    raise
+                location = error.headers['Location']
+                if not location.startswith('https://'):
+                    raise ValueError('Insecure artifact redirect') from error
+                # Signed artifact storage receives no GitHub token.
+                return urllib.request.urlopen(location, timeout=120)
+        return retry_network(open_download)
+    def read_json():
+        with urllib.request.urlopen(request, timeout=120) as response:
+            return json.load(response)
+    return retry_network(read_json)
 
 
 def pages(path: str, key: str) -> list:
@@ -161,8 +190,10 @@ def safe_name(name: str) -> None:
 def download(artifact: dict, target: Path) -> None:
     target.mkdir(parents=True)
     archive = target / 'download.zip'
-    with api(artifact['archive_download_url'], raw=True) as response, archive.open('wb') as stream:
-        shutil.copyfileobj(response, stream)
+    def transfer():
+        with api(artifact['archive_download_url'], raw=True) as response, archive.open('wb') as stream:
+            shutil.copyfileobj(response, stream)
+    retry_network(transfer)
     expected = artifact.get('digest', '')
     if expected and expected != 'sha256:' + digest(archive):
         raise ValueError('Artifact SHA-256 mismatch')
@@ -338,7 +369,11 @@ def prepare(stage: str, platform: str, version: str, dependencies: dict,
                     output('artifact_id', str(artifact['id']))
                     summary(f'### {platform} / {stage}: reused\nOrigin: {receipt["producer"]}\n')
                     return
-                except (ValueError, KeyError, OSError, tarfile.TarError, zipfile.BadZipFile) as error:
+                except urllib.error.HTTPError as error:
+                    if error.code not in {404, 410}:
+                        raise
+                    summary(f'Checkpoint {artifact["id"]} is no longer available: {error}')
+                except (ValueError, KeyError, FileNotFoundError, tarfile.TarError, zipfile.BadZipFile) as error:
                     summary(f'Ignored unusable checkpoint {artifact["id"]}: {error}')
             if (stage in VALIDATION and run.get('path') == '.github/workflows/ci.yml'
                     and run.get('head_sha') == os.environ.get('GITHUB_SHA')
