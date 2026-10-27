@@ -243,6 +243,26 @@ def test_candidate_waits_only_for_its_platform_stage(monkeypatch):
     assert [run['id'] for run in cp.candidate_runs('quality', '', False, 'windows')] == [200, 100]
 
 
+def test_another_fix_can_find_the_original_producer_through_a_recovery_run(monkeypatch):
+    monkeypatch.setenv('GITHUB_REPOSITORY', 'owner/yagua')
+    monkeypatch.setenv('GITHUB_RUN_ID', '300')
+    common = {'head_repository': {'full_name': 'owner/yagua'}, 'head_branch': 'main',
+              'event': 'workflow_dispatch', 'path': '.github/workflows/candidates.yml'}
+    current = {**common, 'id': 300, 'head_sha': 'third-fix', 'created_at': '2026-10-27T13:00:00Z'}
+    recovery = {**common, 'id': 200, 'head_sha': 'second-fix', 'created_at': '2026-10-27T12:00:00Z'}
+    original = {**common, 'id': 100, 'head_sha': 'original-build', 'created_at': '2026-10-26T12:00:00Z'}
+    foreign = {**original, 'id': 90, 'head_repository': {'full_name': 'outsider/yagua'}}
+    expired = {**original, 'id': 80, 'created_at': '2026-10-01T12:00:00Z'}
+    def api(path):
+        if path == 'actions/runs/300':
+            return current
+        if path == 'actions/runs/200':
+            return recovery
+        return {'workflow_runs': [current, recovery, original, foreign, expired]}
+    monkeypatch.setattr(cp, 'api', api)
+    assert [run['id'] for run in cp.candidate_runs('compile', '200', False, 'windows')] == [300, 200, 100]
+
+
 def test_recovery_bookkeeping_change_does_not_invalidate_ui_or_compilation(source):
     file = source / 'scripts/ci/checkpoints.py'
     file.write_text('old transport')

@@ -33,6 +33,9 @@ gh workflow run candidates.yml --ref main \
 ```
 
 The standalone Windows/Linux build workflows accept the same inputs.
+If that previous run was already a recovery, the resolver can also find the
+original producer among the latest 100 manual main runs within its 7-day
+retention window; it does not require uploading the same runtime again.
 `force_rebuild=true` bypasses all reuse. Without an explicit resume run,
 validation looks at the latest 20 completed main CI runs. A candidate waits for
 CI already running on its commit instead of starting duplicate validation.

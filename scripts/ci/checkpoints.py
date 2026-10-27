@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+from datetime import datetime, timedelta
 import fnmatch
 import hashlib
 import http.client
@@ -291,6 +292,17 @@ def candidate_runs(stage: str, resume: str, force: bool, platform: str = '') -> 
         if not trusted(previous):
             raise ValueError('Resume run must originate from main in this repository')
         result.append(previous)
+        # A previous recovery may itself have reused an older producer without
+        # uploading its large payload again. Follow recent trusted candidate
+        # runs as well, so another fix can recover that original checkpoint.
+        latest = api('actions/runs?branch=main&event=workflow_dispatch&per_page=100')['workflow_runs']
+        selected_time = datetime.fromisoformat(previous['created_at'].replace('Z', '+00:00'))
+        cutoff = selected_time - timedelta(days=7)
+        for ancestor in latest:
+            created = datetime.fromisoformat(ancestor['created_at'].replace('Z', '+00:00'))
+            if (cutoff <= created <= selected_time and trusted(ancestor)
+                    and ancestor.get('path') != '.github/workflows/ci.yml'):
+                result.append(ancestor)
     if stage in VALIDATION:
         runs = api('actions/workflows/ci.yml/runs?branch=main&per_page=20')['workflow_runs']
         for run in runs:
