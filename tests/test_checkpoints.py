@@ -58,6 +58,15 @@ def test_changes_invalidate_only_their_inputs(source, change, changed, unchanged
     assert key(unchanged) == before[1]
 
 
+def test_installer_ui_automation_fix_keeps_all_python_validation_and_build_results(source):
+    unaffected = {'quality', 'core', 'ui', 'compile', 'package', 'probe', 'sources'}
+    before = {stage: key(stage) for stage in unaffected}
+    installer = key('installer')
+    (source / 'scripts/ci/test_installer_finish.ps1').write_text('corrected Finish automation')
+    assert all(key(stage) == before[stage] for stage in unaffected)
+    assert key('installer') != installer
+
+
 def test_unknown_files_and_changed_compiler_environment_invalidate_all(source):
     before = {stage: key(stage) for stage in cp.STAGES}
     (source / 'new-unknown.cfg').write_text('changed')

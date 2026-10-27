@@ -70,6 +70,27 @@ def test_immutable_export_verifies_binaries_as_well_as_manifest(tmp_path):
         verify_export(archive, 'candidate.json', manifest)
 
 
+@pytest.mark.parametrize('prefix', ['', 'reports/'])
+def test_source_exports_support_both_actual_upload_artifact_roots(tmp_path, prefix):
+    data = b'source archive'
+    manifest = {'artifacts': [{'name': 'sources.tar.xz', 'bytes': len(data),
+                               'sha256': hashlib.sha256(data).hexdigest()}]}
+    archive = tmp_path / 'export.zip'
+    with zipfile.ZipFile(archive, 'w') as zipped:
+        zipped.writestr(prefix + 'sources.tar.xz', data)
+        zipped.writestr(prefix + 'candidate-linux-sources.json', json.dumps(manifest))
+    verify_export(archive, 'candidate-linux-sources.json', manifest)
+
+
+def test_ambiguous_source_manifest_does_not_select_an_arbitrary_copy(tmp_path):
+    archive = tmp_path / 'export.zip'
+    with zipfile.ZipFile(archive, 'w') as zipped:
+        zipped.writestr('candidate-linux-sources.json', '{}')
+        zipped.writestr('reports/candidate-linux-sources.json', '{}')
+    with pytest.raises(ValueError, match='ambiguous'):
+        verify_export(archive, 'candidate-linux-sources.json', {})
+
+
 def test_v2_round_trip_preserves_original_binary_producer_after_new_commit(tmp_path, monkeypatch):
     source = tmp_path / 'app/main.py'
     source.parent.mkdir()

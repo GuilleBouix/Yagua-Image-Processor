@@ -101,6 +101,8 @@ def stage_files(stage: str, platform: str, names: list[str]) -> list[str]:
     for name in names:
         if stage == 'core' and name.startswith('tests/ui/'):
             continue
+        if stage == 'core' and name == 'scripts/ci/test_installer_finish.ps1':
+            continue  # Exercised by the real installer job, not by the Python service tests.
         if (stage == 'ui' and name.startswith('tests/') and not name.startswith('tests/ui/')
                 and Path(name).name.startswith('test_') and name.endswith('.py')):
             continue  # Non-UI test modules are not shared helpers or image fixtures.

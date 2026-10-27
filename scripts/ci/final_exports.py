@@ -12,6 +12,16 @@ from scripts.ci.checkpoints import api, digest, output, pages
 
 def verify_export(archive: Path, manifest_name: str, expected: dict) -> None:
     with zipfile.ZipFile(archive) as zipped:
+        # upload-artifact chooses a common root from the declared paths, even
+        # when some platform-specific paths do not exist. Source-review exports
+        # can therefore have their manifest at the root or under reports/.
+        layouts = {manifest_name}
+        if Path(manifest_name).name.endswith('-sources.json'):
+            layouts.update({Path(manifest_name).name, 'reports/' + Path(manifest_name).name})
+        present = sorted(layouts.intersection(zipped.namelist()))
+        if len(present) != 1:
+            raise ValueError('Missing or ambiguous source/candidate manifest in existing export')
+        manifest_name = present[0]
         recorded = json.loads(zipped.read(manifest_name))
         if recorded != expected:
             raise ValueError('Existing export differs; start a new run with resume_run_id instead of overwriting it')
