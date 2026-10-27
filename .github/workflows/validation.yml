@@ -36,7 +36,9 @@ jobs:
     - name: Check local resources before expensive work
       env:
         VERSION: ${{ inputs.version }}
-      run: python -m scripts.ci.preflight ${VERSION:+--version "$VERSION"}
+        PLATFORM: ${{ inputs.platform }}
+        GH_TOKEN: ${{ github.token }}
+      run: python -m scripts.ci.preflight --platform "$PLATFORM" ${VERSION:+--version "$VERSION"}
   quality:
     needs: preflight
     uses: ./.github/workflows/stage.yml
