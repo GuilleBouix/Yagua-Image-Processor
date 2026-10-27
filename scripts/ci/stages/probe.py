@@ -30,7 +30,10 @@ def main():
             subprocess.run([str(compressed), '--appimage-extract'], cwd=directory,
                            check=True, stdout=subprocess.DEVNULL)
             app = directory / 'squashfs-root'
-            xvfb(PYTHON, 'scripts/ci/probe_package.py', app / 'usr/lib/yagua/Yagua',
+            # AppImage assembly can rewrite ELF loaders in the AppDir copy.
+            # Test the original PyInstaller executable from its own checkpoint;
+            # exercise the packaged copy through AppRun and the AppImage below.
+            xvfb(PYTHON, 'scripts/ci/probe_package.py', ROOT / 'dist/linux-release/Yagua/Yagua',
                  ROOT / 'reports/raw-preflight', '--preflight')
             xvfb(PYTHON, 'scripts/ci/probe_package.py', compressed,
                  ROOT / 'reports/appimage-runtime', '--preflight')

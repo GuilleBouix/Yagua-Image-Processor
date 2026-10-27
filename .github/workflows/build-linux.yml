@@ -56,7 +56,7 @@ jobs:
       force_rebuild: ${{ inputs.force_rebuild }}
       dependencies: '{"compile":"${{ needs.compile.outputs.artifact_id }}"}'
   probe:
-    needs: package
+    needs: [compile, package]
     uses: ./.github/workflows/stage.yml
     with:
       stage: probe
@@ -64,7 +64,7 @@ jobs:
       version: ${{ inputs.version }}
       resume_run_id: ${{ inputs.resume_run_id }}
       force_rebuild: ${{ inputs.force_rebuild }}
-      dependencies: '{"package":"${{ needs.package.outputs.artifact_id }}"}'
+      dependencies: '{"compile":"${{ needs.compile.outputs.artifact_id }}","package":"${{ needs.package.outputs.artifact_id }}"}'
   sources:
     needs: package
     uses: ./.github/workflows/stage.yml

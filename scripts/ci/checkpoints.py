@@ -122,7 +122,8 @@ def fingerprint(stage: str, platform: str, version: str, dependencies: dict,
         if stage == 'compile' or (stage == 'sources' and platform == 'windows'):
             entries = {}
         elif stage == 'probe':
-            entries = {n: v for n, v in entries.items() if n.endswith(('.zip', '.AppImage', 'sizes.json'))}
+            if dependency != 'compile':
+                entries = {n: v for n, v in entries.items() if n.endswith(('.zip', '.AppImage', 'sizes.json'))}
         elif stage == 'installer':
             entries = {n: v for n, v in entries.items() if n.endswith('.exe')}
         elif stage == 'sources':

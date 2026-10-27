@@ -123,6 +123,13 @@ def test_probe_consumes_portable_and_installer_consumes_setup(source):
     assert key('installer', dependencies) != installer
 
 
+def test_linux_probe_also_depends_on_the_unmodified_runtime_checkpoint(source):
+    dependencies = {'compile': {'files': {'dist/linux-release/Yagua/Yagua': {'sha256': 'raw-runtime'}}}}
+    first = cp.fingerprint('probe', 'linux', '2.0.0', dependencies, {'python': '3.13.17'})[0]
+    dependencies['compile']['files']['dist/linux-release/Yagua/Yagua']['sha256'] = 'changed-runtime'
+    assert cp.fingerprint('probe', 'linux', '2.0.0', dependencies, {'python': '3.13.17'})[0] != first
+
+
 def make_checkpoint(source, stage='compile', platform='windows'):
     cp.STATE.mkdir(exist_ok=True)
     fingerprint, inputs = cp.fingerprint(stage, platform, '2.0.0', {})
@@ -352,7 +359,7 @@ def test_pipeline_requires_all_validation_and_package_jobs():
         jobs = workflow['jobs']
         assert jobs['compile']['needs'] == 'validate'
         assert jobs['package']['needs'] == 'compile'
-        assert jobs['probe']['needs'] == 'package'
+        assert jobs['probe']['needs'] == ('package' if platform == 'windows' else ['compile', 'package'])
         assert {'validate', 'package', 'probe', 'sources'} <= set(jobs['deliver']['needs'])
         if platform == 'windows':
             assert 'installer' in jobs['deliver']['needs']
