@@ -22,11 +22,18 @@ Herramientas de escritorio gratuitas y de código abierto para convertir, compri
   <a href="../../LICENSE"><img src="https://img.shields.io/badge/license-MIT-f4c430?style=flat-square" alt="Licencia MIT" /></a>
 </p>
 
-**[Descargas](https://github.com/GuilleBouix/Yagua-Image-Processor/releases) · [Funciones](#features) · [Instalación](#installation)**
-
-[Capturas](#screenshots) · [Uso](#usage) · [Requisitos](#requirements) · [Preguntas frecuentes](#faq) · [Contribuir](#contributing)
-
 </div>
+
+## Contenido
+
+- [Descargas](https://github.com/GuilleBouix/Yagua-Image-Processor/releases)
+- [Funciones](#features)
+- [Capturas](#screenshots)
+- [Instalación](#installation)
+- [Uso](#usage)
+- [Requisitos](#requirements)
+- [Preguntas frecuentes](#faq)
+- [Contribuir](#contributing)
 
 ## ¿Por qué Yagua?
 

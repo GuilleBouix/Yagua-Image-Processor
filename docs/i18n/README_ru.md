@@ -22,11 +22,18 @@
   <a href="../../LICENSE"><img src="https://img.shields.io/badge/license-MIT-f4c430?style=flat-square" alt="Лицензия MIT" /></a>
 </p>
 
-**[Скачать](https://github.com/GuilleBouix/Yagua-Image-Processor/releases) · [Возможности](#features) · [Установка](#installation)**
-
-[Скриншоты](#screenshots) · [Использование](#usage) · [Требования](#requirements) · [Частые вопросы](#faq) · [Участие в разработке](#contributing)
-
 </div>
+
+## Содержание
+
+- [Скачать](https://github.com/GuilleBouix/Yagua-Image-Processor/releases)
+- [Возможности](#features)
+- [Скриншоты](#screenshots)
+- [Установка](#installation)
+- [Использование](#usage)
+- [Требования](#requirements)
+- [Частые вопросы](#faq)
+- [Участие в разработке](#contributing)
 
 ## Почему Yagua?
 

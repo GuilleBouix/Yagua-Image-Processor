@@ -22,11 +22,18 @@ Ferramentas de desktop gratuitas e de código aberto para converter, comprimir e
   <a href="../../LICENSE"><img src="https://img.shields.io/badge/license-MIT-f4c430?style=flat-square" alt="Licença MIT" /></a>
 </p>
 
-**[Downloads](https://github.com/GuilleBouix/Yagua-Image-Processor/releases) · [Recursos](#features) · [Instalação](#installation)**
-
-[Capturas](#screenshots) · [Uso](#usage) · [Requisitos](#requirements) · [Perguntas frequentes](#faq) · [Contribuir](#contributing)
-
 </div>
+
+## Conteúdo
+
+- [Downloads](https://github.com/GuilleBouix/Yagua-Image-Processor/releases)
+- [Recursos](#features)
+- [Capturas](#screenshots)
+- [Instalação](#installation)
+- [Uso](#usage)
+- [Requisitos](#requirements)
+- [Perguntas frequentes](#faq)
+- [Contribuir](#contributing)
 
 ## Por que Yagua?
 

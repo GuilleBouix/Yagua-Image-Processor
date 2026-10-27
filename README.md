@@ -22,11 +22,18 @@ Free, open-source desktop tools to convert, compress and process images in batch
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-f4c430?style=flat-square" alt="MIT license" /></a>
 </p>
 
-**[Downloads](https://github.com/GuilleBouix/Yagua-Image-Processor/releases) · [Features](#features) · [Installation](#installation)**
-
-[Screenshots](#screenshots) · [Usage](#usage) · [Requirements](#requirements) · [FAQ](#faq) · [Contributing](#contributing)
-
 </div>
+
+## Contents
+
+- [Downloads](https://github.com/GuilleBouix/Yagua-Image-Processor/releases)
+- [Features](#features)
+- [Screenshots](#screenshots)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Requirements](#requirements)
+- [FAQ](#faq)
+- [Contributing](#contributing)
 
 ## Why Yagua?
 

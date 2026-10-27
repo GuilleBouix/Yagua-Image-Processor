@@ -22,11 +22,18 @@
   <a href="../../LICENSE"><img src="https://img.shields.io/badge/license-MIT-f4c430?style=flat-square" alt="MIT 许可证" /></a>
 </p>
 
-**[下载](https://github.com/GuilleBouix/Yagua-Image-Processor/releases) · [功能](#features) · [安装](#installation)**
-
-[截图](#screenshots) · [使用方法](#usage) · [系统要求](#requirements) · [常见问题](#faq) · [参与贡献](#contributing)
-
 </div>
+
+## 目录
+
+- [下载](https://github.com/GuilleBouix/Yagua-Image-Processor/releases)
+- [功能](#features)
+- [截图](#screenshots)
+- [安装](#installation)
+- [使用方法](#usage)
+- [系统要求](#requirements)
+- [常见问题](#faq)
+- [参与贡献](#contributing)
 
 ## 为什么选择 Yagua？
 

@@ -22,11 +22,18 @@ Des outils de bureau gratuits et open source pour convertir, compresser et trait
   <a href="../../LICENSE"><img src="https://img.shields.io/badge/license-MIT-f4c430?style=flat-square" alt="Licence MIT" /></a>
 </p>
 
-**[Téléchargements](https://github.com/GuilleBouix/Yagua-Image-Processor/releases) · [Fonctionnalités](#features) · [Installation](#installation)**
-
-[Captures](#screenshots) · [Utilisation](#usage) · [Prérequis](#requirements) · [FAQ](#faq) · [Contribuer](#contributing)
-
 </div>
+
+## Sommaire
+
+- [Téléchargements](https://github.com/GuilleBouix/Yagua-Image-Processor/releases)
+- [Fonctionnalités](#features)
+- [Captures](#screenshots)
+- [Installation](#installation)
+- [Utilisation](#usage)
+- [Prérequis](#requirements)
+- [FAQ](#faq)
+- [Contribuer](#contributing)
 
 ## Pourquoi Yagua ?
 

@@ -22,11 +22,18 @@ Kostenlose Open-Source-Desktopwerkzeuge zum Konvertieren, Komprimieren und Verar
   <a href="../../LICENSE"><img src="https://img.shields.io/badge/license-MIT-f4c430?style=flat-square" alt="MIT-Lizenz" /></a>
 </p>
 
-**[Downloads](https://github.com/GuilleBouix/Yagua-Image-Processor/releases) · [Funktionen](#features) · [Installation](#installation)**
-
-[Screenshots](#screenshots) · [Verwendung](#usage) · [Voraussetzungen](#requirements) · [FAQ](#faq) · [Mitwirken](#contributing)
-
 </div>
+
+## Inhalt
+
+- [Downloads](https://github.com/GuilleBouix/Yagua-Image-Processor/releases)
+- [Funktionen](#features)
+- [Screenshots](#screenshots)
+- [Installation](#installation)
+- [Verwendung](#usage)
+- [Voraussetzungen](#requirements)
+- [FAQ](#faq)
+- [Mitwirken](#contributing)
 
 ## Warum Yagua?
 
