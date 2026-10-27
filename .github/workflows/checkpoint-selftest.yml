@@ -16,7 +16,7 @@ jobs:
     - uses: actions/checkout@v4
     - uses: actions/setup-python@v5
       with:
-        python-version: '3.13'
+        python-version: '3.13.17'
     - run: python -m pip install PyYAML==6.0.2 packaging==26.0 pytest==9.0.2
     - run: python -m pytest --noconftest tests/test_checkpoints.py tests/test_candidate_manifest.py tests/test_source_materials.py tests/test_checkpoint_exports.py -q
     - run: python -m scripts.ci.checkpoint_fixture seed
@@ -43,7 +43,7 @@ jobs:
     - uses: actions/checkout@v4
     - uses: actions/setup-python@v5
       with:
-        python-version: '3.13'
+        python-version: '3.13.17'
     - run: python -m pip install PyYAML==6.0.2 packaging==26.0 pytest==9.0.2
     - shell: bash
       run: python -m scripts.ci.checkpoint_fixture consume --dependency "$FIXTURE_ARTIFACT"
@@ -58,7 +58,7 @@ jobs:
     - uses: actions/checkout@v4
     - uses: actions/setup-python@v5
       with:
-        python-version: '3.13'
+        python-version: '3.13.17'
     - run: python -m pip install PyYAML==6.0.2 packaging==26.0 pytest==9.0.2
     - run: python -m pytest --noconftest tests/test_checkpoints.py tests/test_candidate_manifest.py tests/test_source_materials.py tests/test_checkpoint_exports.py -q
     - run: python -m scripts.ci.checkpoint_fixture seed
@@ -85,7 +85,7 @@ jobs:
     - uses: actions/checkout@v4
     - uses: actions/setup-python@v5
       with:
-        python-version: '3.13'
+        python-version: '3.13.17'
     - run: python -m pip install PyYAML==6.0.2 packaging==26.0 pytest==9.0.2
     - shell: bash
       run: python -m scripts.ci.checkpoint_fixture consume --dependency "$FIXTURE_ARTIFACT"

@@ -106,7 +106,7 @@ def fingerprint(stage: str, platform: str, version: str, dependencies: dict,
             consumed[dependency] = entries
     environment = environment or {
         'os': platform, 'arch': os.environ.get('RUNNER_ARCH', ''),
-        'image': os.environ.get('ImageOS', ''), 'image_version': os.environ.get('ImageVersion', ''),
+        'image': os.environ.get('ImageOS', ''),
         'python': sys.version.split()[0],
     }
     inputs = {'schema': 1, 'stage': stage, 'platform': platform, 'version': version,

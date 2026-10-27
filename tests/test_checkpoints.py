@@ -62,6 +62,16 @@ def test_unknown_files_and_changed_compiler_environment_invalidate_all(source):
     assert first != second
 
 
+def test_runner_image_patch_is_recorded_but_not_an_abi_change(source, monkeypatch):
+    monkeypatch.setenv('ImageOS', 'ubuntu22')
+    monkeypatch.setenv('ImageVersion', '20261023.322.3')
+    first = cp.fingerprint('compile', 'linux', '2.0.0', {})[0]
+    monkeypatch.setenv('ImageVersion', '20261026.341.1')
+    assert cp.fingerprint('compile', 'linux', '2.0.0', {})[0] == first
+    monkeypatch.setenv('ImageOS', 'ubuntu24')
+    assert cp.fingerprint('compile', 'linux', '2.0.0', {})[0] != first
+
+
 def test_sibling_job_configuration_does_not_recompile_runtime(source):
     before = key('compile')
     file = source / '.github/workflows/build-windows.yml'

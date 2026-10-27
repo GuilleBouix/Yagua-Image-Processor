@@ -50,6 +50,11 @@ downloading large binaries. Payload checksums are verified before extraction;
 Linux TARs preserve executable permissions and relative symlinks. PRs and the
 tiny transport selftest cannot supply reusable results to main builds.
 
+CI and candidate stages pin Python 3.13.17. Compatibility includes the base
+runner image (for example ubuntu22), architecture and Python version. The exact
+host-image revision is recorded in the producer metadata but does not invalidate
+otherwise compatible artifacts when GitHub rolls out a security refresh.
+
 Version 2 candidate manifests distinguish the currently evaluated source from
 the actual producers of reused files; version 1 manifests remain readable.
 Final exports are immutable. Retrying a partially completed delivery verifies
