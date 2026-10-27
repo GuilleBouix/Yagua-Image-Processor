@@ -11,6 +11,7 @@ function Test-InstallerFinish([string]$Language, [string]$ExpectedUrl) {
     $installDirectory = Join-Path $WorkDirectory "installed-$Language"
     $group = "Yagua candidate test $Language"
     $logPath = Join-Path $WorkDirectory "setup-$Language.log"
+    $setupProcessPrefix = [IO.Path]::GetFileNameWithoutExtension($Installer)
     $arguments = @(
         "/LANG=$Language",
         "/DIR=`"$installDirectory`"",
@@ -21,12 +22,34 @@ function Test-InstallerFinish([string]$Language, [string]$ExpectedUrl) {
     $setup = Start-Process -FilePath $Installer -ArgumentList $arguments -PassThru
     $deadline = [DateTime]::UtcNow.AddMinutes(15)
     $finishClicked = $false
+    $pageOpened = $false
 
     while (-not $setup.HasExited -and [DateTime]::UtcNow -lt $deadline) {
         $setup.Refresh()
-        if ($setup.MainWindowHandle -ne 0) {
+        if (Test-Path -LiteralPath $logPath) {
+            $currentLog = Get-Content -LiteralPath $logPath -Raw
+            if ($currentLog.Contains("Opened thank-you page: $ExpectedUrl")) {
+                $pageOpened = $true
+                break
+            }
+            if ($currentLog -match 'Unable to open the thank-you page:') {
+                throw "Installer could not open $ExpectedUrl. See $logPath"
+            }
+        }
+        $setupProcesses = @(
+            Get-Process -ErrorAction SilentlyContinue |
+                Where-Object { $_.ProcessName -like "$setupProcessPrefix*" }
+        )
+        foreach ($setupProcess in $setupProcesses) {
+            $setupProcess.Refresh()
+            if ($setupProcess.MainWindowHandle -eq 0) {
+                continue
+            }
+            $buttonInvoked = $false
             try {
-                $window = [System.Windows.Automation.AutomationElement]::FromHandle($setup.MainWindowHandle)
+                $window = [System.Windows.Automation.AutomationElement]::FromHandle(
+                    $setupProcess.MainWindowHandle
+                )
                 $condition = [System.Windows.Automation.PropertyCondition]::new(
                     [System.Windows.Automation.AutomationElement]::ControlTypeProperty,
                     [System.Windows.Automation.ControlType]::Button
@@ -39,6 +62,7 @@ function Test-InstallerFinish([string]$Language, [string]$ExpectedUrl) {
                         $button.GetCurrentPattern(
                             [System.Windows.Automation.InvokePattern]::Pattern
                         ).Invoke()
+                        $buttonInvoked = $true
                         Start-Sleep -Milliseconds 350
                         break
                     }
@@ -47,6 +71,7 @@ function Test-InstallerFinish([string]$Language, [string]$ExpectedUrl) {
                             [System.Windows.Automation.InvokePattern]::Pattern
                         ).Invoke()
                         $finishClicked = $true
+                        $buttonInvoked = $true
                         Start-Sleep -Milliseconds 350
                         break
                     }
@@ -54,8 +79,23 @@ function Test-InstallerFinish([string]$Language, [string]$ExpectedUrl) {
             } catch {
                 # The wizard can replace its page while UI Automation is reading it.
             }
+            if ($buttonInvoked) {
+                break
+            }
         }
         Start-Sleep -Milliseconds 250
+    }
+
+    if ($pageOpened) {
+        if (-not $finishClicked) {
+            throw "The thank-you page opened before the Finish button was confirmed for $Language"
+        }
+        Write-Host "Installer opened $ExpectedUrl"
+        Get-Process -Name 'Yagua' -ErrorAction SilentlyContinue | Stop-Process -Force
+        Get-Process -ErrorAction SilentlyContinue |
+            Where-Object { $_.ProcessName -like "$setupProcessPrefix*" } |
+            Stop-Process -Force -ErrorAction SilentlyContinue
+        return
     }
 
     if (-not $setup.HasExited) {
