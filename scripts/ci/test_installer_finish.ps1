@@ -23,6 +23,9 @@ function Test-InstallerFinish([string]$Language, [string]$ExpectedUrl) {
     $deadline = [DateTime]::UtcNow.AddMinutes(15)
     $finishClicked = $false
     $pageOpened = $false
+    $lastWindowName = ''
+    $lastButtonNames = ''
+    $lastUiSignature = ''
 
     while (-not $setup.HasExited -and [DateTime]::UtcNow -lt $deadline) {
         $setup.Refresh()
@@ -35,6 +38,10 @@ function Test-InstallerFinish([string]$Language, [string]$ExpectedUrl) {
             if ($currentLog -match 'Unable to open the thank-you page:') {
                 throw "Installer could not open $ExpectedUrl. See $logPath"
             }
+        }
+        if ($finishClicked) {
+            Start-Sleep -Milliseconds 250
+            continue
         }
         $setupProcesses = @(
             Get-Process -ErrorAction SilentlyContinue |
@@ -55,10 +62,17 @@ function Test-InstallerFinish([string]$Language, [string]$ExpectedUrl) {
                     [System.Windows.Automation.ControlType]::Button
                 )
                 $buttons = $window.FindAll([System.Windows.Automation.TreeScope]::Descendants, $condition)
+                $lastWindowName = $window.Current.Name
+                $lastButtonNames = (@($buttons | ForEach-Object { $_.Current.Name }) -join ' | ')
+                $uiSignature = "$($setupProcess.Id)|$lastWindowName|$lastButtonNames"
+                if ($uiSignature -ne $lastUiSignature) {
+                    Write-Host "Installer UI [$($setupProcess.Id)] '$lastWindowName': $lastButtonNames"
+                    $lastUiSignature = $uiSignature
+                }
                 foreach ($button in $buttons) {
                     $name = $button.Current.Name.Trim()
-                    if ($name -match '^(Next\s*>|Siguiente\s*>)$' -or
-                        $name -match '^(Install|Instalar)$') {
+                    if ($name -match '^\s*&?\s*(Next|Siguiente)\s*>?\s*$' -or
+                        $name -match '^\s*&?\s*(Install|Instalar)\s*$') {
                         $button.GetCurrentPattern(
                             [System.Windows.Automation.InvokePattern]::Pattern
                         ).Invoke()
@@ -66,7 +80,7 @@ function Test-InstallerFinish([string]$Language, [string]$ExpectedUrl) {
                         Start-Sleep -Milliseconds 350
                         break
                     }
-                    if ($name -match '^(Finish|Finalizar)$') {
+                    if ($name -match '^\s*&?\s*(Finish|Finalizar)\s*$') {
                         $button.GetCurrentPattern(
                             [System.Windows.Automation.InvokePattern]::Pattern
                         ).Invoke()
@@ -100,7 +114,7 @@ function Test-InstallerFinish([string]$Language, [string]$ExpectedUrl) {
 
     if (-not $setup.HasExited) {
         Stop-Process -Id $setup.Id -Force
-        throw "Installer timed out for language $Language"
+        throw "Installer timed out for language $Language. Last window: '$lastWindowName'. Buttons: $lastButtonNames"
     }
     if ($setup.ExitCode -ne 0) {
         throw "Installer exited with code $($setup.ExitCode) for language $Language"
