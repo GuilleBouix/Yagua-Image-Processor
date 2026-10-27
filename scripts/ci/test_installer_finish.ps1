@@ -12,6 +12,7 @@ function Test-InstallerFinish([string]$Language, [string]$ExpectedUrl) {
     $group = "Yagua candidate test $Language"
     $logPath = Join-Path $WorkDirectory "setup-$Language.log"
     $setupProcessPrefix = [IO.Path]::GetFileNameWithoutExtension($Installer)
+    $shell = New-Object -ComObject WScript.Shell
     $arguments = @(
         "/LANG=$Language",
         "/DIR=`"$installDirectory`"",
@@ -33,6 +34,7 @@ function Test-InstallerFinish([string]$Language, [string]$ExpectedUrl) {
             $currentLog = Get-Content -LiteralPath $logPath -Raw
             if ($currentLog.Contains("Opened thank-you page: $ExpectedUrl")) {
                 $pageOpened = $true
+                $finishClicked = $true
                 break
             }
             if ($currentLog -match 'Unable to open the thank-you page:') {
@@ -68,6 +70,13 @@ function Test-InstallerFinish([string]$Language, [string]$ExpectedUrl) {
                 if ($uiSignature -ne $lastUiSignature) {
                     Write-Host "Installer UI [$($setupProcess.Id)] '$lastWindowName': $lastButtonNames"
                     $lastUiSignature = $uiSignature
+                }
+                if ($buttons.Count -eq 0) {
+                    if ($shell.AppActivate($setupProcess.Id)) {
+                        $shell.SendKeys('{ENTER}')
+                        Write-Host "Advanced installer page with Enter for $Language"
+                        $buttonInvoked = $true
+                    }
                 }
                 foreach ($button in $buttons) {
                     $name = $button.Current.Name.Trim()
