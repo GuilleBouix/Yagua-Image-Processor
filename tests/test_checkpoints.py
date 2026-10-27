@@ -21,6 +21,10 @@ def source(tmp_path, monkeypatch):
         'scripts/ci/stages/package.py': 'original packaging',
         'scripts/ci/stages/compile.py': 'original compiler',
         'tests/ui/test_example.py': 'original UI test',
+        'tests/fixtures/sample.png': 'shared image fixture',
+        'tests/__init__.py': 'shared test initialization',
+        'tests/helpers/images.py': 'shared fixture helpers',
+        'tests/test_other.py': 'unrelated core test',
         'new-unknown.cfg': 'unknown',
     }
     for workflow in ('build-windows', 'build-linux', 'validation'):
@@ -83,6 +87,19 @@ def test_sibling_job_configuration_does_not_recompile_runtime(source):
     doc['jobs']['compile']['run'] = 'new compiler flags'
     file.write_text(yaml.safe_dump(doc))
     assert key('compile') != before
+
+
+@pytest.mark.parametrize('name', ['tests/fixtures/sample.png', 'tests/__init__.py', 'tests/helpers/images.py'])
+def test_shared_test_resources_invalidate_ui_results(source, name):
+    before = key('ui')
+    (source / name).write_text('modified shared resource')
+    assert key('ui') != before
+
+
+def test_unrelated_core_tests_do_not_invalidate_ui_results(source):
+    before = key('ui')
+    (source / 'tests/test_other.py').write_text('new CI unit assertion')
+    assert key('ui') == before
 
 
 def test_probe_consumes_portable_and_installer_consumes_setup(source):

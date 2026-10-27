@@ -72,7 +72,7 @@ def stage_files(stage: str, platform: str, names: list[str]) -> list[str]:
                     'requirements*', '*.ini', '.github/workflows/*'),
         'core': ('app/*', 'assets/*', 'legal/*', 'scripts/*', 'tests/*', 'requirements*',
                  '*.spec', '*.iss', '*.ini', 'packaging/*', '.github/workflows/*', 'LICENSE', '*.md'),
-        'ui': ('app/*', 'assets/*', 'legal/*', 'tests/ui/*', 'tests/conftest.py', 'tests/helpers*',
+        'ui': ('app/*', 'assets/*', 'legal/*', 'tests/*',
                'scripts/verify.py', 'requirements*', '*.ini'),
         'deliver': ('*',),
     }
@@ -83,6 +83,9 @@ def stage_files(stage: str, platform: str, names: list[str]) -> list[str]:
     for name in names:
         if stage == 'core' and name.startswith('tests/ui/'):
             continue
+        if (stage == 'ui' and name.startswith('tests/') and not name.startswith('tests/ui/')
+                and Path(name).name.startswith('test_') and name.endswith('.py')):
+            continue  # Non-UI test modules are not shared helpers or image fixtures.
         if matches(name, common + policies[stage]) or not matches(name, known):
             result.append(name)
     return result
