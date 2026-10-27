@@ -67,6 +67,18 @@ def test_unknown_files_and_changed_compiler_environment_invalidate_all(source):
     assert first != second
 
 
+@pytest.mark.parametrize('name', ['scripts/new_runtime_helper.py', '.github/workflows/new-builder.yml',
+                                'packaging/windows/new-builder.ps1'])
+def test_unclassified_files_inside_existing_directories_invalidate_all(source, monkeypatch, name):
+    before = {stage: key(stage) for stage in cp.STAGES}
+    file = source / name
+    file.parent.mkdir(parents=True, exist_ok=True)
+    file.write_text('new unclassified build input')
+    original = cp.tracked()
+    monkeypatch.setattr(cp, 'tracked', lambda: original + [name])
+    assert all(key(stage) != before[stage] for stage in cp.STAGES)
+
+
 def test_runner_image_patch_is_recorded_but_not_an_abi_change(source, monkeypatch):
     monkeypatch.setenv('ImageOS', 'ubuntu22')
     monkeypatch.setenv('ImageVersion', '20261023.322.3')

@@ -1,5 +1,6 @@
 """Fast source checks before downloading environments or compiling candidates."""
 import argparse
+import ast
 import json
 import re
 from pathlib import Path
@@ -35,11 +36,21 @@ def check_version(version: str, platform: str, root: Path = ROOT) -> None:
                 raise ValueError('Linux version already has a release or tag; use a new version')
 
 
+def check_stage_initializer(text: str) -> None:
+    # This package marker is intentionally inert. Executable shared helpers
+    # belong in common.py, which is an input of every stage using them.
+    tree = ast.parse(text)
+    if any(not (isinstance(node, ast.Expr) and isinstance(node.value, ast.Constant)
+                and isinstance(node.value.value, str)) for node in tree.body):
+        raise ValueError('Keep the stage initializer declarative; put executable helpers in common.py')
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--version')
     parser.add_argument('--platform', choices=['windows', 'linux'], default='')
     args = parser.parse_args()
+    check_stage_initializer((ROOT / 'scripts/ci/stages/__init__.py').read_text(encoding='utf-8'))
     if args.version:
         check_version(args.version, args.platform)
     validate_catalog(ROOT)

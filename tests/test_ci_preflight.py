@@ -5,6 +5,12 @@ import pytest
 from scripts.ci import checkpoints, preflight
 
 
+def test_unhashed_stage_package_marker_cannot_contain_hidden_executable_helpers():
+    preflight.check_stage_initializer('"""Package documentation."""\n')
+    with pytest.raises(ValueError, match='common.py'):
+        preflight.check_stage_initializer('import os\nos.environ["MODE"] = "new behavior"\n')
+
+
 def test_version_and_installer_mismatch_fail_before_build(tmp_path, monkeypatch):
     monkeypatch.setattr(preflight, 'check_source_version', lambda _: None)
     file = tmp_path / 'Yagua.iss'

@@ -25,6 +25,22 @@ ROOT = Path(__file__).resolve().parents[2]
 STATE = ROOT / '.ci-state'
 STAGES = {'quality', 'core', 'ui', 'compile', 'package', 'probe', 'installer', 'sources', 'deliver'}
 VALIDATION = {'quality', 'core', 'ui'}
+CLASSIFIED_SCRIPTS = (
+    'scripts/build_linux_appimage.sh', 'scripts/build_linux_runtime.sh',
+    'scripts/package_linux_appimage.sh', 'scripts/build_macos_app.sh', 'scripts/build_windows.ps1',
+    'scripts/check_mutations.py', 'scripts/licensing.py', 'scripts/packaging_rules.py', 'scripts/verify.py',
+    'scripts/pyinstaller/*', 'scripts/ci/apply_version.py', 'scripts/ci/audit_frozen.py',
+    'scripts/ci/build_heic_linux.py', 'scripts/ci/candidate_manifest.py', 'scripts/ci/check_installed_size.py',
+    'scripts/ci/check_licenses.py', 'scripts/ci/check_linux_size.py', 'scripts/ci/checkpoint_fixture.py',
+    'scripts/ci/checkpoints.py', 'scripts/ci/extract_release_notes.py', 'scripts/ci/final_exports.py',
+    'scripts/ci/linux_validation_report.py', 'scripts/ci/make_latest_json.py', 'scripts/ci/partitions.py',
+    'scripts/ci/preflight.py', 'scripts/ci/probe_package.py', 'scripts/ci/source_materials.py',
+    'scripts/ci/test_installer_finish.ps1', 'scripts/ci/validate_lean_runtime.py',
+    'scripts/ci/stages/__init__.py', 'scripts/ci/stages/common.py',
+) + tuple(f'scripts/ci/stages/{stage}.py' for stage in STAGES)
+CLASSIFIED_WORKFLOWS = tuple('.github/workflows/' + name for name in (
+    'build-linux.yml', 'build-windows.yml', 'candidates.yml', 'ci.yml', 'lean-runtime.yml',
+    'release-linux.yml', 'release.yml', 'stage.yml', 'validation.yml', 'checkpoint-selftest.yml'))
 
 
 def digest(path: Path) -> str:
@@ -77,9 +93,10 @@ def stage_files(stage: str, platform: str, names: list[str]) -> list[str]:
                'scripts/verify.py', 'requirements*', '*.ini'),
         'deliver': ('*',),
     }
-    known = ('app/*', 'assets/*', 'legal/*', 'scripts/*', 'tests/*', 'docs/*', 'packaging/*',
-             '.github/*', 'requirements*', '*.spec', '*.iss', '*.ini', '*.md', '*.txt',
-             'main.py', 'LICENSE', '.gitignore', '.gitattributes', '.editorconfig')
+    known = ('app/*', 'assets/*', 'legal/*', 'tests/*', 'docs/*', 'packaging/linux/*',
+             '.github/ISSUE_TEMPLATE/*', '.github/FUNDING.yml', 'requirements*', '*.spec', '*.iss',
+             '*.ini', '*.md', '*.txt', 'main.py', 'LICENSE', '.gitignore', '.gitattributes',
+             '.editorconfig') + CLASSIFIED_SCRIPTS + CLASSIFIED_WORKFLOWS
     result = []
     for name in names:
         if stage == 'core' and name.startswith('tests/ui/'):
