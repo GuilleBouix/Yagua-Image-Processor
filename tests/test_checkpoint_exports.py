@@ -3,6 +3,7 @@ import hashlib
 import json
 from pathlib import Path
 import zipfile
+from types import SimpleNamespace
 
 import pytest
 
@@ -69,9 +70,50 @@ def test_immutable_export_verifies_binaries_as_well_as_manifest(tmp_path):
         verify_export(archive, 'candidate.json', manifest)
 
 
+def test_v2_round_trip_preserves_original_binary_producer_after_new_commit(tmp_path, monkeypatch):
+    source = tmp_path / 'app/main.py'
+    source.parent.mkdir()
+    source.write_text('unchanged app')
+    binary = tmp_path / 'setup.exe'
+    binary.write_bytes(b'original compiled bytes')
+    monkeypatch.setattr(candidate, 'ROOT', tmp_path)
+    monkeypatch.setattr(candidate, 'sys', SimpleNamespace(platform='win32', version='3.13.12'))
+    monkeypatch.setattr(candidate, 'git', lambda *args: 'new-evaluation-commit' if args[0] == 'rev-parse'
+                        else 'app/main.py' if args == ('ls-files', '-z') else '')
+    monkeypatch.setenv('GITHUB_REPOSITORY', 'owner/yagua')
+    monkeypatch.setenv('GITHUB_RUN_ID', '200')
+    lineage = modern_manifest()['provenance']
+    for receipt in lineage.values():
+        receipt['inputs']['files']['app/main.py'] = candidate.digest(source)
+        receipt['fingerprint'] = encoded_hash(receipt['inputs'])
+    lineage['package']['files'] = {'installer/setup.exe': {'bytes': binary.stat().st_size,
+                                                         'sha256': candidate.digest(binary)}}
+    manifest = candidate.create('2.0.0', [binary], provenance=lineage)
+    candidate.verify(manifest, tmp_path, '2.0.0', 'new-evaluation-commit', '200')
+    assert manifest['build']['run_id'] == '200'
+    assert manifest['provenance']['compile']['producer']['run_id'] == '100'
+    assert manifest['provenance']['compile']['producer']['commit'] == 'original'
+
+
 def test_all_new_workflows_are_read_only_and_fixture_cannot_publish():
     root = Path(__file__).resolve().parents[1] / '.github/workflows'
     for name in ('stage.yml', 'validation.yml', 'checkpoint-selftest.yml'):
         text = (root / name).read_text()
         assert 'contents: write' not in text and 'action-gh-release' not in text
     assert 'windows-validated' not in (root / 'checkpoint-selftest.yml').read_text()
+
+
+def test_installer_diagnostics_do_not_copy_installed_payload(tmp_path, monkeypatch):
+    from scripts.ci.stages import installer
+    monkeypatch.setenv('RUNNER_TEMP', str(tmp_path / 'temporary'))
+    monkeypatch.setattr(installer, 'ROOT', tmp_path)
+    monkeypatch.setattr(installer, 'save', lambda *_: None)
+    def fake_installer(*_):
+        work = tmp_path / 'temporary/yagua-installer-finish'
+        (work / 'installed-spanish').mkdir(parents=True)
+        (work / 'installed-spanish/large-runtime.dll').write_bytes(b'fake-runtime')
+        (work / 'setup-spanish.log').write_text('Opened thank-you page')
+    monkeypatch.setattr(installer, 'run', fake_installer)
+    installer.main()
+    assert (tmp_path / 'reports/installer-finish/setup-spanish.log').exists()
+    assert not (tmp_path / 'reports/installer-finish/installed-spanish').exists()

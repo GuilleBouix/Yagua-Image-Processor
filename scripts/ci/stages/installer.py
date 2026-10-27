@@ -13,7 +13,7 @@ def main():
     finally:
         if directory.exists():
             shutil.copytree(directory, ROOT / 'reports/installer-finish',
-                            ignore=shutil.ignore_patterns('install-*'), dirs_exist_ok=True)
+                            ignore=shutil.ignore_patterns('installed-*'), dirs_exist_ok=True)
     save('reports/installer-finish/**/*.log', 'reports/installer-finish/**/*.json',
          'reports/installer-finish/**/*.png')
 

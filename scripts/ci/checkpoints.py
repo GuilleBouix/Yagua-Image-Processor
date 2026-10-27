@@ -245,7 +245,7 @@ def approved(receipt: dict, run: dict) -> bool:
     return any(job['name'].endswith(suffix) and job['conclusion'] == 'success' for job in jobs)
 
 
-def candidate_runs(stage: str, resume: str, force: bool) -> list[dict]:
+def candidate_runs(stage: str, resume: str, force: bool, platform: str = '') -> list[dict]:
     if force or os.environ.get('GITHUB_EVENT_NAME') == 'pull_request':
         return []
     current = api(f'actions/runs/{os.environ["GITHUB_RUN_ID"]}')
@@ -263,11 +263,15 @@ def candidate_runs(stage: str, resume: str, force: bool) -> list[dict]:
             if str(run['id']) == os.environ['GITHUB_RUN_ID']:
                 continue
             if run['head_sha'] == current['head_sha'] and run['status'] != 'completed':
-                print(f'Waiting for existing CI: {run["html_url"]}', flush=True)
+                print(f'Waiting for existing CI stage {platform}/{stage}: {run["html_url"]}', flush=True)
                 while run['status'] != 'completed':
+                    jobs = pages(f'actions/runs/{run["id"]}/jobs', 'jobs')
+                    selected = [job for job in jobs if job['name'].endswith(f'{platform} / {stage}')]
+                    if selected and all(job['status'] == 'completed' for job in selected):
+                        break
                     time.sleep(30)
                     run = api(f'actions/runs/{run["id"]}')
-            if run['status'] == 'completed' and trusted(run):
+            if (run['status'] == 'completed' or run['head_sha'] == current['head_sha']) and trusted(run):
                 result.append(run)
     return list({run['id']: run for run in result}.values())
 
@@ -311,7 +315,7 @@ def prepare(stage: str, platform: str, version: str, dependencies: dict,
     output('reused', 'false')
     output('fingerprint', key)
     if stage != 'deliver':
-        for run in candidate_runs(stage, resume, force):
+        for run in candidate_runs(stage, resume, force, platform):
             artifacts = pages(f'actions/runs/{run["id"]}/artifacts', 'artifacts')
             prefix = f'checkpoint-{platform}-{stage}-{key}-'
             for artifact in sorted(artifacts, key=lambda item: item['id'], reverse=True):
@@ -321,6 +325,13 @@ def prepare(stage: str, platform: str, version: str, dependencies: dict,
                     receipt, _ = receipt_for(artifact)
                     if receipt['fingerprint'] != key or receipt['platform'] != platform:
                         continue
+                    # Validate a reusable producer's bytes before approving this job.
+                    # A damaged checkpoint then falls back to executing its own stage,
+                    # rather than repeatedly breaking a downstream consumer.
+                    with tempfile.TemporaryDirectory() as temporary:
+                        directory = Path(temporary) / 'checkpoint'
+                        download(artifact, directory)
+                        check_receipt(receipt, directory, platform)
                     receipt['lineage'] = lineage
                     (STATE / 'reused.json').write_text(json.dumps(receipt), encoding='utf-8')
                     output('reused', 'true')
@@ -331,7 +342,7 @@ def prepare(stage: str, platform: str, version: str, dependencies: dict,
                     summary(f'Ignored unusable checkpoint {artifact["id"]}: {error}')
             if (stage in VALIDATION and run.get('path') == '.github/workflows/ci.yml'
                     and run.get('head_sha') == os.environ.get('GITHUB_SHA')
-                    and run.get('status') == 'completed' and run.get('conclusion') != 'success'):
+                    and run.get('conclusion') != 'success'):
                 jobs = pages(f'actions/runs/{run["id"]}/jobs', 'jobs')
                 if any(job['name'].endswith(f'{platform} / {stage}')
                        and job['conclusion'] in {'failure', 'timed_out', 'cancelled'} for job in jobs):

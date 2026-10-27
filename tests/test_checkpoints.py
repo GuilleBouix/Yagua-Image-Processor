@@ -180,6 +180,10 @@ def test_resume_recovers_only_complete_compatible_outputs(source, monkeypatch, e
             raise ValueError('Invalid receipt')
         return copy.deepcopy(receipt), {'id': 100}
     monkeypatch.setattr(cp, 'receipt_for', receipt_for)
+    def download(_, target):
+        import shutil
+        shutil.copytree(directory, target)
+    monkeypatch.setattr(cp, 'download', download)
     outputs = {}
     monkeypatch.setattr(cp, 'output', lambda k, v: outputs.update({k: v}))
     cp.prepare('compile', 'windows', '2.0.0', {}, '100', False)
@@ -193,6 +197,32 @@ def test_force_and_pull_requests_do_not_search_previous_runs(monkeypatch):
     assert cp.candidate_runs('compile', '100', True) == []
     monkeypatch.setenv('GITHUB_EVENT_NAME', 'pull_request')
     assert cp.candidate_runs('compile', '100', False) == []
+
+
+def test_candidate_waits_only_for_its_platform_stage(monkeypatch):
+    monkeypatch.setenv('GITHUB_REPOSITORY', 'owner/yagua')
+    monkeypatch.setenv('GITHUB_RUN_ID', '200')
+    common = {'head_repository': {'full_name': 'owner/yagua'}, 'head_branch': 'main',
+              'head_sha': 'abc', 'event': 'workflow_dispatch', 'status': 'in_progress', 'html_url': 'run'}
+    current = {**common, 'id': 200, 'path': '.github/workflows/candidates.yml'}
+    ci = {**common, 'id': 100, 'path': '.github/workflows/ci.yml'}
+    monkeypatch.setattr(cp, 'api', lambda path: current if path == 'actions/runs/200'
+                        else {'workflow_runs': [ci]})
+    monkeypatch.setattr(cp, 'pages', lambda *_: [
+        {'name': 'windows / quality', 'status': 'completed'},
+        {'name': 'linux / ui', 'status': 'in_progress'}])
+    monkeypatch.setattr(cp.time, 'sleep', lambda *_: pytest.fail('Other-platform UI must not block quality'))
+    assert [run['id'] for run in cp.candidate_runs('quality', '', False, 'windows')] == [200, 100]
+
+
+def test_failed_ci_assertion_is_not_automatically_run_again(source, monkeypatch):
+    monkeypatch.setenv('GITHUB_SHA', 'abc')
+    run = {'id': 100, 'path': '.github/workflows/ci.yml', 'head_sha': 'abc', 'conclusion': 'failure'}
+    monkeypatch.setattr(cp, 'candidate_runs', lambda *_: [run])
+    monkeypatch.setattr(cp, 'pages', lambda path, key: [] if key == 'artifacts' else [
+        {'name': 'windows / ui', 'conclusion': 'failure'}])
+    with pytest.raises(RuntimeError, match='Existing CI failed'):
+        cp.prepare('ui', 'windows', '2.0.0', {}, '', False)
 
 
 def test_pipeline_requires_all_validation_and_package_jobs():
