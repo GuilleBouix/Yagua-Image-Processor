@@ -10,6 +10,10 @@
 
 Kostenlose Open-Source-Desktopwerkzeuge zum Konvertieren, Komprimieren und Verarbeiten von Bildern im Stapel.
 
+**Offizielle Website (Seiten auf Englisch)**
+
+[Startseite](https://yagua.bouixdev.workers.dev/en/) · [Downloads](https://yagua.bouixdev.workers.dev/en/downloads/) · [Dokumentation](https://yagua.bouixdev.workers.dev/en/docs/) · [Häufige Fragen](https://yagua.bouixdev.workers.dev/en/faq/)
+
 <p align="center">
   <a href="https://github.com/GuilleBouix/Yagua-Image-Processor/releases/latest"><img src="https://img.shields.io/github/v/release/GuilleBouix/Yagua-Image-Processor?style=flat-square&amp;label=stable&amp;color=2563eb" alt="Neueste stabile Version" /></a>
   <a href="https://github.com/GuilleBouix/Yagua-Image-Processor/releases"><img src="https://img.shields.io/github/downloads/GuilleBouix/Yagua-Image-Processor/total?style=flat-square&amp;label=downloads&amp;color=22c55e" alt="Downloads insgesamt" /></a>
@@ -287,6 +291,8 @@ Siehe [`CHANGELOG.md`](../../CHANGELOG.md) für die Projekthistorie. Manche Scre
 ## Projekt unterstützen
 
 Wenn Yagua dir hilft, erleichtert ein GitHub-Stern anderen, es zu entdecken. Du kannst auch durch Fehlerberichte, Übersetzungen oder Beiträge helfen.
+
+**[Yagua schon ausprobiert? Hinterlasse eine Bewertung (auf Englisch)](https://yagua.bouixdev.workers.dev/en/project/#project-rating)**
 
 **[Über GitHub Sponsors unterstützen](https://github.com/sponsors/GuilleBouix) · [Über PayPal unterstützen](https://www.paypal.com/paypalme/guillebouix)**
 

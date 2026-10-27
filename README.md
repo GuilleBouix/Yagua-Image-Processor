@@ -10,6 +10,10 @@
 
 Free, open-source desktop tools to convert, compress and process images in batches.
 
+**Official website**
+
+[Home](https://yagua.bouixdev.workers.dev/en/) · [Downloads](https://yagua.bouixdev.workers.dev/en/downloads/) · [Documentation](https://yagua.bouixdev.workers.dev/en/docs/) · [FAQ](https://yagua.bouixdev.workers.dev/en/faq/)
+
 <p align="center">
   <a href="https://github.com/GuilleBouix/Yagua-Image-Processor/releases/latest"><img src="https://img.shields.io/github/v/release/GuilleBouix/Yagua-Image-Processor?style=flat-square&amp;label=stable&amp;color=2563eb" alt="Latest stable release" /></a>
   <a href="https://github.com/GuilleBouix/Yagua-Image-Processor/releases"><img src="https://img.shields.io/github/downloads/GuilleBouix/Yagua-Image-Processor/total?style=flat-square&amp;label=downloads&amp;color=22c55e" alt="Total downloads" /></a>
@@ -281,6 +285,8 @@ See [`CHANGELOG.md`](CHANGELOG.md) for project history. Some screenshots may lag
 ## Support the project
 
 If Yagua helps you, a GitHub star makes it easier for others to find it. You can also help with bug reports, translations or contributions.
+
+**[Tried Yagua? Leave a rating](https://yagua.bouixdev.workers.dev/en/project/#project-rating)**
 
 **[Sponsor on GitHub](https://github.com/sponsors/GuilleBouix) · [Support via PayPal](https://www.paypal.com/paypalme/guillebouix)**
 

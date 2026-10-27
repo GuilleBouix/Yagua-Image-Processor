@@ -10,6 +10,10 @@
 
 Бесплатные инструменты с открытым исходным кодом для преобразования, сжатия и пакетной обработки изображений на компьютере.
 
+**Официальный сайт (страницы на английском)**
+
+[Главная](https://yagua.bouixdev.workers.dev/en/) · [Скачать](https://yagua.bouixdev.workers.dev/en/downloads/) · [Документация](https://yagua.bouixdev.workers.dev/en/docs/) · [Частые вопросы](https://yagua.bouixdev.workers.dev/en/faq/)
+
 <p align="center">
   <a href="https://github.com/GuilleBouix/Yagua-Image-Processor/releases/latest"><img src="https://img.shields.io/github/v/release/GuilleBouix/Yagua-Image-Processor?style=flat-square&amp;label=stable&amp;color=2563eb" alt="Последняя стабильная версия" /></a>
   <a href="https://github.com/GuilleBouix/Yagua-Image-Processor/releases"><img src="https://img.shields.io/github/downloads/GuilleBouix/Yagua-Image-Processor/total?style=flat-square&amp;label=downloads&amp;color=22c55e" alt="Всего скачиваний" /></a>
@@ -291,6 +295,8 @@ python -m pytest -q
 ## Поддержать проект
 
 Если Yagua вам полезен, звезда на GitHub поможет другим найти проект. Также можно помочь сообщениями об ошибках, переводами или участием в разработке.
+
+**[Уже попробовали Yagua? Оставьте оценку (на английском)](https://yagua.bouixdev.workers.dev/en/project/#project-rating)**
 
 **[Поддержать через GitHub Sponsors](https://github.com/sponsors/GuilleBouix) · [Поддержать через PayPal](https://www.paypal.com/paypalme/guillebouix)**
 

@@ -10,6 +10,10 @@
 
 免费、开源的桌面工具，用于批量转换、压缩和处理图像。
 
+**官方网站（页面为英语）**
+
+[首页](https://yagua.bouixdev.workers.dev/en/) · [下载](https://yagua.bouixdev.workers.dev/en/downloads/) · [文档](https://yagua.bouixdev.workers.dev/en/docs/) · [常见问题](https://yagua.bouixdev.workers.dev/en/faq/)
+
 <p align="center">
   <a href="https://github.com/GuilleBouix/Yagua-Image-Processor/releases/latest"><img src="https://img.shields.io/github/v/release/GuilleBouix/Yagua-Image-Processor?style=flat-square&amp;label=stable&amp;color=2563eb" alt="最新稳定版" /></a>
   <a href="https://github.com/GuilleBouix/Yagua-Image-Processor/releases"><img src="https://img.shields.io/github/downloads/GuilleBouix/Yagua-Image-Processor/total?style=flat-square&amp;label=downloads&amp;color=22c55e" alt="总下载量" /></a>
@@ -291,6 +295,8 @@ python -m pytest -q
 ## 支持项目
 
 如果 Yagua 对你有帮助，可以在 GitHub 上点亮星标，让更多人发现它。你也可以通过报告问题、翻译和参与开发来提供帮助。
+
+**[用过 Yagua 吗？留下你的评价（英语）](https://yagua.bouixdev.workers.dev/en/project/#project-rating)**
 
 **[通过 GitHub Sponsors 支持](https://github.com/sponsors/GuilleBouix) · [通过 PayPal 支持](https://www.paypal.com/paypalme/guillebouix)**
 

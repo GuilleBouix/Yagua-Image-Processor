@@ -10,6 +10,10 @@
 
 画像の形式変換、圧縮、一括処理に使える、無料のオープンソースデスクトップアプリです。
 
+**公式サイト（ページは英語）**
+
+[ホーム](https://yagua.bouixdev.workers.dev/en/) · [ダウンロード](https://yagua.bouixdev.workers.dev/en/downloads/) · [ドキュメント](https://yagua.bouixdev.workers.dev/en/docs/) · [よくある質問](https://yagua.bouixdev.workers.dev/en/faq/)
+
 <p align="center">
   <a href="https://github.com/GuilleBouix/Yagua-Image-Processor/releases/latest"><img src="https://img.shields.io/github/v/release/GuilleBouix/Yagua-Image-Processor?style=flat-square&amp;label=stable&amp;color=2563eb" alt="最新の安定版" /></a>
   <a href="https://github.com/GuilleBouix/Yagua-Image-Processor/releases"><img src="https://img.shields.io/github/downloads/GuilleBouix/Yagua-Image-Processor/total?style=flat-square&amp;label=downloads&amp;color=22c55e" alt="累計ダウンロード数" /></a>
@@ -291,6 +295,8 @@ UI テストにはディスプレイが必要です。画面のない Linux 環�
 ## プロジェクトを支援する
 
 Yagua が役に立ったら、GitHub でスターを付けることで他の方も見つけやすくなります。不具合報告、翻訳、開発への参加でも支援できます。
+
+**[Yagua を試しましたか？評価をお寄せください（英語）](https://yagua.bouixdev.workers.dev/en/project/#project-rating)**
 
 **[GitHub Sponsors で支援](https://github.com/sponsors/GuilleBouix) · [PayPal で支援](https://www.paypal.com/paypalme/guillebouix)**
 

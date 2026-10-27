@@ -10,6 +10,10 @@
 
 Herramientas de escritorio gratuitas y de código abierto para convertir, comprimir y procesar imágenes en lote.
 
+**Web oficial**
+
+[Inicio](https://yagua.bouixdev.workers.dev/es/) · [Descargas](https://yagua.bouixdev.workers.dev/es/descargas/) · [Documentación](https://yagua.bouixdev.workers.dev/es/documentacion/) · [Preguntas frecuentes](https://yagua.bouixdev.workers.dev/es/preguntas-frecuentes/)
+
 <p align="center">
   <a href="https://github.com/GuilleBouix/Yagua-Image-Processor/releases/latest"><img src="https://img.shields.io/github/v/release/GuilleBouix/Yagua-Image-Processor?style=flat-square&amp;label=stable&amp;color=2563eb" alt="Última versión estable" /></a>
   <a href="https://github.com/GuilleBouix/Yagua-Image-Processor/releases"><img src="https://img.shields.io/github/downloads/GuilleBouix/Yagua-Image-Processor/total?style=flat-square&amp;label=downloads&amp;color=22c55e" alt="Descargas totales" /></a>
@@ -291,6 +295,8 @@ Consultá [`CHANGELOG.md`](../../CHANGELOG.md) para el historial. Algunas captur
 ## Apoyá el proyecto
 
 Si Yagua te sirve, una estrella en GitHub ayuda a que otros lo encuentren. También podés colaborar con reportes, traducciones o contribuciones.
+
+**[¿Ya probaste Yagua? Dejá tu valoración](https://yagua.bouixdev.workers.dev/es/proyecto/#project-rating)**
 
 **[Apoyar en GitHub Sponsors](https://github.com/sponsors/GuilleBouix) · [Apoyar por PayPal](https://www.paypal.com/paypalme/guillebouix)**
 
