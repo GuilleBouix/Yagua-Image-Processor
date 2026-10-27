@@ -1,0 +1,191 @@
+name: Recoverable candidate stage
+permissions:
+  contents: read
+  actions: read
+jobs:
+  stage:
+    name: ${{ inputs.platform }} / ${{ inputs.stage }}
+    runs-on: ${{ inputs.platform == 'windows' && 'windows-latest' || 'ubuntu-22.04' }}
+    timeout-minutes: 90
+    outputs:
+      artifact_id: ${{ steps.recover.outputs.artifact_id || steps.checkpoint.outputs.artifact-id }}
+    env:
+      STAGE_PLATFORM: ${{ inputs.platform }}
+      STAGE_VERSION: ${{ inputs.version }}
+      STAGE_NAME: ${{ inputs.stage }}
+      STAGE_DEPENDENCIES: ${{ inputs.dependencies }}
+      STAGE_RESUME: ${{ inputs.resume_run_id }}
+      STAGE_FORCE: ${{ inputs.force_rebuild }}
+      GH_TOKEN: ${{ github.token }}
+      YAGUA_REQUIRE_UI: '1'
+      PYTHONUTF8: '1'
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.13'
+        cache: pip
+        cache-dependency-path: requirements*.txt
+    - name: Install small orchestration dependencies
+      shell: bash
+      run: python -m pip install PyYAML==6.0.2 packaging==26.0
+    - name: Recover approved compatible results
+      id: recover
+      shell: bash
+      run: python -m scripts.ci.checkpoints --stage "$STAGE_NAME" --platform "$STAGE_PLATFORM" --version "$STAGE_VERSION" --dependencies "$STAGE_DEPENDENCIES" --resume-run-id "$STAGE_RESUME"
+    - name: Cache verified source downloads
+      if: inputs.stage == 'sources' && steps.recover.outputs.reused != 'true'
+      uses: actions/cache@v4
+      with:
+        path: ${{ runner.temp }}/yagua-source-materials
+        key: source-materials-${{ runner.os }}-${{ hashFiles('legal/distribution/materials.json') }}
+    - name: Execute stage
+      if: steps.recover.outputs.reused != 'true'
+      shell: bash
+      run: python -m "scripts.ci.stages.$STAGE_NAME"
+    - name: Save successful stage
+      if: inputs.stage != 'deliver' && steps.recover.outputs.reused != 'true'
+      id: checkpoint
+      uses: actions/upload-artifact@v4
+      with:
+        name: checkpoint-${{ inputs.platform }}-${{ inputs.stage }}-${{ steps.recover.outputs.fingerprint }}-${{ github.run_id }}-${{ github.run_attempt }}
+        path: .ci-state/upload/payload.tar
+        compression-level: 1
+        retention-days: 7
+        if-no-files-found: error
+    - name: Save small checkpoint receipt
+      if: inputs.stage != 'deliver' && steps.recover.outputs.reused != 'true'
+      uses: actions/upload-artifact@v4
+      with:
+        name: receipt-${{ inputs.platform }}-${{ inputs.stage }}-${{ steps.recover.outputs.fingerprint }}-${{ github.run_id }}-${{ github.run_attempt }}
+        path: .ci-state/upload/receipt.json
+        retention-days: 7
+        if-no-files-found: error
+    - name: Verify already uploaded immutable exports
+      if: inputs.stage == 'deliver'
+      id: exports
+      shell: bash
+      run: python -m scripts.ci.final_exports
+    - name: Upload Windows candidate
+      if: inputs.stage == 'deliver' && inputs.platform == 'windows' && steps.exports.outputs.candidate_exists != 'true'
+      uses: actions/upload-artifact@v4
+      with:
+        name: windows-validated-${{ inputs.version }}
+        path: 'installer/Yagua_*.exe
+
+          installer/Yagua_*.zip
+
+          installer/*.sha256
+
+          installer/latest.json
+
+          installer/candidate-windows.json
+
+          reports/*.json
+
+          reports/validation/*.json
+
+          reports/*.xml
+
+          reports/windows-probe/**/*.json
+
+          release_notes.md
+
+          '
+        compression-level: 0
+        retention-days: 30
+        if-no-files-found: error
+    - name: Upload Linux candidate
+      if: inputs.stage == 'deliver' && inputs.platform == 'linux' && steps.exports.outputs.candidate_exists != 'true'
+      uses: actions/upload-artifact@v4
+      with:
+        name: linux-validated-${{ inputs.version }}
+        path: 'reports/*.json
+
+          reports/*.md
+
+          reports/*.log
+
+          reports/*.AppImage
+
+          reports/*.sha256
+
+          reports/validation/*.json
+
+          reports/*.xml
+
+          reports/linux-probe/**/*.json
+
+          '
+        compression-level: 0
+        retention-days: 30
+        if-no-files-found: error
+    - name: Upload matching source materials
+      if: inputs.stage == 'deliver' && steps.exports.outputs.sources_exists != 'true'
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.platform }}-source-materials-${{ inputs.version }}
+        path: 'reports/Yagua-*-source-materials.tar.xz
+
+          reports/candidate-*-sources.json
+
+          reports/linux-heic-native.json
+
+          installer/candidate-windows.json
+
+          reports/windows-licenses.json
+
+          '
+        compression-level: 0
+        retention-days: 30
+        if-no-files-found: error
+    - name: Preserve diagnostics
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: diagnostics-${{ inputs.platform }}-${{ inputs.stage }}-${{ github.run_id }}-${{ github.run_attempt }}
+        path: '.ci-state/context.json
+
+          reports/**/*.json
+
+          reports/**/*.xml
+
+          reports/**/*.log
+
+          reports/**/*.png
+
+          build/**/warn-*.txt
+
+          '
+        retention-days: 7
+        if-no-files-found: ignore
+    - name: Explain recovery
+      if: always()
+      shell: bash
+      env:
+        STAGE_RESULT: ${{ job.status }}
+      run: "python - <<'PY'\nimport os\nfrom scripts.ci.checkpoints import summary\nsummary(f\"Result: **{os.environ['STAGE_RESULT']}**. Completed checkpoints remain available for 7 days.\\n\"\n        f\"Retry unchanged code: `gh run rerun {os.environ['GITHUB_RUN_ID']} --failed`.\\n\"\n        f\"After a fix: run the candidate workflow with `resume_run_id={os.environ['GITHUB_RUN_ID']}`.\\n\"\n        \"An unsuccessful stage is never approved by repeating only its last assertion.\")\nPY\n"
+'on':
+  workflow_call:
+    inputs:
+      stage:
+        type: string
+        required: true
+      platform:
+        type: string
+        required: true
+      version:
+        type: string
+        default: ''
+      dependencies:
+        type: string
+        default: '{}'
+      resume_run_id:
+        type: string
+        default: ''
+      force_rebuild:
+        type: boolean
+        default: false
+    outputs:
+      artifact_id:
+        value: ${{ jobs.stage.outputs.artifact_id }}

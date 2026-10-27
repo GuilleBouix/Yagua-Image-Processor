@@ -91,5 +91,8 @@ prototype-web
 
 /lean-reports/
 
+# Disposable Actions recovery workspace
+/.ci-state/
+
 # Local Markdown content prepared for the documentation website
 /documentacion web/

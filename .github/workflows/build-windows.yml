@@ -1,217 +1,101 @@
 name: Build Windows candidate (no publication)
-
-on:
+'on':
   workflow_dispatch:
     inputs:
       version:
-        description: "Version X.Y.Z (sin 'v')"
+        description: Version already recorded in source
         required: true
+      resume_run_id:
+        description: Previous run to recover compatible stages
+        required: false
+        default: ''
+      force_rebuild:
+        description: Ignore all checkpoints
+        type: boolean
+        default: false
   workflow_call:
     inputs:
       version:
         type: string
         required: true
-
+      resume_run_id:
+        type: string
+        default: ''
+      force_rebuild:
+        type: boolean
+        default: false
 permissions:
   contents: read
-
+  actions: read
 jobs:
-  build_release:
-    runs-on: windows-latest
-    timeout-minutes: 90
-    outputs:
-      version: ${{ steps.ver.outputs.version }}
-      prerelease: ${{ steps.ver.outputs.prerelease }}
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.13"
-
-      - name: Resolve version
-        id: ver
-        shell: pwsh
-        env:
-          INPUT_VERSION: ${{ inputs.version }}
-        run: |
-          if ($env:INPUT_VERSION) {
-            $v = $env:INPUT_VERSION.Trim()
-          } else {
-            $v = $env:GITHUB_REF_NAME.Trim()
-            if ($v.StartsWith("win-v")) { $v = $v.Substring(5) }
-          }
-          if ($v -notmatch '^\d+\.\d+\.\d+(?:-[0-9A-Za-z][0-9A-Za-z.-]*)?$') { throw 'Invalid version' }
-          echo "version=$v" >> $env:GITHUB_OUTPUT
-          if ($v.Contains("-")) {
-            echo "prerelease=true" >> $env:GITHUB_OUTPUT
-          } else {
-            echo "prerelease=false" >> $env:GITHUB_OUTPUT
-          }
-          Write-Host "Version=$v"
-
-      - name: Require committed version without rewriting source
-        shell: pwsh
-        run: |
-          python scripts/ci/candidate_manifest.py --check-source --version "${{ steps.ver.outputs.version }}"
-          if ($LASTEXITCODE -ne 0) { throw 'Candidate version differs from source' }
-
-      - name: Install deps
-        shell: pwsh
-        run: |
-          python -m pip install -U pip wheel setuptools
-          python -m pip install -r requirements.txt
-          python -m pip install -r requirements-dev.txt
-
-      - name: Lint and type check
-        shell: pwsh
-        run: |
-          ruff check app tests scripts
-          if ($LASTEXITCODE -ne 0) { throw 'Ruff failed' }
-          $pythonPath = (Get-Command python).Source
-          pyright --pythonpath $pythonPath app
-
-      - name: Pytest
-        shell: pwsh
-        env:
-          YAGUA_REQUIRE_UI: "1"
-        run: |
-          python scripts/verify.py -q
-
-      - name: Build (PyInstaller)
-        shell: pwsh
-        run: |
-          $buildEnv = Join-Path $env:RUNNER_TEMP 'yagua-build'
-          python -m venv $buildEnv
-          $buildPython = Join-Path $buildEnv 'Scripts/python.exe'
-          & $buildPython -m pip install -r requirements.txt -r requirements-build.txt
-          if ($LASTEXITCODE -ne 0) { throw 'Build dependencies failed' }
-          & $buildPython -m pip check
-          if ($LASTEXITCODE -ne 0) { throw 'Invalid build environment' }
-          & $buildPython -m PyInstaller --clean --noconfirm Yagua.spec
-          if ($LASTEXITCODE -ne 0) { throw 'PyInstaller failed' }
-
-      - name: Verify packaged Windows runtime and UI
-        shell: pwsh
-        run: |
-          python scripts/ci/probe_package.py dist/Yagua/Yagua.exe reports/windows-probe
-          if ($LASTEXITCODE -ne 0) { throw 'Online/offline package checks failed' }
-
-      - name: Verify packaged licenses and record native inventory
-        shell: pwsh
-        run: |
-          python scripts/ci/check_licenses.py --package dist/Yagua --platform win32 --models reports/windows-probe/models --report reports/windows-licenses.json
-          if ($LASTEXITCODE -ne 0) { throw 'Packaged legal resources failed verification' }
-
-      - name: Preserve technical license report
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-licenses-${{ steps.ver.outputs.version }}
-          path: reports/windows-licenses.json
-          if-no-files-found: error
-          retention-days: 14
-
-      - name: Install Inno Setup
-        shell: pwsh
-        run: |
-          choco install innosetup -y
-
-      - name: Build installer (Inno Setup)
-        shell: pwsh
-        run: |
-          iscc Yagua.iss
-
-      - name: Verify installer finish opens localized thank-you page
-        shell: pwsh
-        run: |
-          $installer = (Resolve-Path "installer\Yagua_Setup_${{ steps.ver.outputs.version }}.exe").Path
-          $workDirectory = Join-Path $env:RUNNER_TEMP 'yagua-installer-finish'
-          & scripts/ci/test_installer_finish.ps1 -Installer $installer -WorkDirectory $workDirectory
-
-      - name: Package portable zip + hashes
-        shell: pwsh
-        run: |
-          $ver = "${{ steps.ver.outputs.version }}"
-          $setup = "installer\\Yagua_Setup_$ver.exe"
-          if (-not (Test-Path $setup)) { throw "No se encontro instalador: $setup" }
-
-          $portable = "installer\\Yagua_Portable_$ver.zip"
-          if (Test-Path $portable) { Remove-Item -Force $portable }
-          Compress-Archive -Path "dist\\Yagua\\*" -DestinationPath $portable
-
-          $h1 = (Get-FileHash $setup -Algorithm SHA256).Hash.ToLower()
-          $h2 = (Get-FileHash $portable -Algorithm SHA256).Hash.ToLower()
-
-          "$h1  $(Split-Path -Leaf $setup)" | Out-File -Encoding ascii "$setup.sha256"
-          "$h2  $(Split-Path -Leaf $portable)" | Out-File -Encoding ascii "$portable.sha256"
-
-          python scripts/ci/make_latest_json.py $ver (Split-Path -Leaf $setup) $h1 (Split-Path -Leaf $portable) $h2 | Out-File -Encoding utf8 "installer\\latest.json"
-
-      - name: Enforce installed size including all models and caches
-        shell: pwsh
-        run: |
-          python scripts/ci/check_installed_size.py --app dist/Yagua --models reports/windows-probe/models --caches reports/windows-probe/caches --compressed "installer/Yagua_Portable_${{ steps.ver.outputs.version }}.zip" --report reports/windows-installed-size.json
-          if ($LASTEXITCODE -ne 0) { throw 'Installed size exceeds the budget' }
-
-      - name: Release notes
-        shell: pwsh
-        run: |
-          python -X utf8 scripts/ci/extract_release_notes.py "${{ steps.ver.outputs.version }}" | Out-File -Encoding utf8 "release_notes.md"
-
-      - name: Record candidate provenance and hashes
-        shell: pwsh
-        run: |
-          python scripts/ci/candidate_manifest.py --version "${{ steps.ver.outputs.version }}" --output installer/candidate-windows.json --artifact "installer/Yagua_Setup_${{ steps.ver.outputs.version }}.exe" --artifact "installer/Yagua_Portable_${{ steps.ver.outputs.version }}.zip"
-          if ($LASTEXITCODE -ne 0) { throw 'Candidate provenance failed' }
-
-      - name: Prepare Windows source review materials without publication
-        shell: pwsh
-        run: |
-          $sources = "reports/Yagua-${{ steps.ver.outputs.version }}-source-materials.tar.xz"
-          python scripts/ci/source_materials.py --cache "$env:RUNNER_TEMP\yagua-source-materials" --output $sources --download --candidate-commit "$env:GITHUB_SHA"
-          if ($LASTEXITCODE -ne 0) { throw 'Source material collection failed' }
-          python scripts/ci/candidate_manifest.py --version "${{ steps.ver.outputs.version }}" --output reports/candidate-windows-sources.json --artifact $sources
-          if ($LASTEXITCODE -ne 0) { throw 'Source material provenance failed' }
-
-      - name: Upload Windows source review materials without publication
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-source-materials-${{ steps.ver.outputs.version }}
-          path: |
-            reports/Yagua-*-source-materials.tar.xz
-            reports/candidate-windows-sources.json
-            installer/candidate-windows.json
-            reports/windows-licenses.json
-          compression-level: 0
-          retention-days: 30
-          if-no-files-found: error
-
-      - name: Upload validated candidate without publication
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-validated-${{ steps.ver.outputs.version }}
-          path: |
-            installer/Yagua_*.exe
-            installer/Yagua_*.zip
-            installer/*.sha256
-            installer/latest.json
-            installer/candidate-windows.json
-            reports/*.json
-            reports/windows-probe/*/*.json
-            reports/windows-probe/models-manifest.json
-            release_notes.md
-          compression-level: 0
-          retention-days: 30
-          if-no-files-found: error
-
-      - name: Preserve failure diagnostics
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-failure-diagnostics
-          path: |
-            reports/**/*.json
-            reports/**/*.log
-            build/**/warn-*.txt
-          if-no-files-found: ignore
+  validate:
+    uses: ./.github/workflows/validation.yml
+    with:
+      platform: windows
+      version: ${{ inputs.version }}
+      resume_run_id: ${{ inputs.resume_run_id }}
+      force_rebuild: ${{ inputs.force_rebuild }}
+  compile:
+    needs: validate
+    uses: ./.github/workflows/stage.yml
+    with:
+      stage: compile
+      platform: windows
+      version: ${{ inputs.version }}
+      resume_run_id: ${{ inputs.resume_run_id }}
+      force_rebuild: ${{ inputs.force_rebuild }}
+      dependencies: '{"quality":"${{ needs.validate.outputs.quality }}","core":"${{ needs.validate.outputs.core }}","ui":"${{ needs.validate.outputs.ui }}"}'
+  package:
+    needs: compile
+    uses: ./.github/workflows/stage.yml
+    with:
+      stage: package
+      platform: windows
+      version: ${{ inputs.version }}
+      resume_run_id: ${{ inputs.resume_run_id }}
+      force_rebuild: ${{ inputs.force_rebuild }}
+      dependencies: '{"compile":"${{ needs.compile.outputs.artifact_id }}"}'
+  probe:
+    needs: package
+    uses: ./.github/workflows/stage.yml
+    with:
+      stage: probe
+      platform: windows
+      version: ${{ inputs.version }}
+      resume_run_id: ${{ inputs.resume_run_id }}
+      force_rebuild: ${{ inputs.force_rebuild }}
+      dependencies: '{"package":"${{ needs.package.outputs.artifact_id }}"}'
+  installer:
+    needs: package
+    uses: ./.github/workflows/stage.yml
+    with:
+      stage: installer
+      platform: windows
+      version: ${{ inputs.version }}
+      resume_run_id: ${{ inputs.resume_run_id }}
+      force_rebuild: ${{ inputs.force_rebuild }}
+      dependencies: '{"package":"${{ needs.package.outputs.artifact_id }}"}'
+  sources:
+    needs: validate
+    uses: ./.github/workflows/stage.yml
+    with:
+      stage: sources
+      platform: windows
+      version: ${{ inputs.version }}
+      resume_run_id: ${{ inputs.resume_run_id }}
+      force_rebuild: ${{ inputs.force_rebuild }}
+  deliver:
+    needs:
+    - validate
+    - package
+    - probe
+    - sources
+    - installer
+    uses: ./.github/workflows/stage.yml
+    with:
+      stage: deliver
+      platform: windows
+      version: ${{ inputs.version }}
+      resume_run_id: ${{ inputs.resume_run_id }}
+      force_rebuild: ${{ inputs.force_rebuild }}
+      dependencies: '{"quality":"${{ needs.validate.outputs.quality }}","core":"${{ needs.validate.outputs.core }}","ui":"${{ needs.validate.outputs.ui }}","package":"${{ needs.package.outputs.artifact_id }}","probe":"${{ needs.probe.outputs.artifact_id }}","sources":"${{ needs.sources.outputs.artifact_id }}","installer":"${{ needs.installer.outputs.artifact_id }}"}'

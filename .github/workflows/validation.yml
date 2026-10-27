@@ -1,0 +1,66 @@
+name: Shared source validation
+'on':
+  workflow_call:
+    inputs:
+      platform:
+        type: string
+        required: true
+      version:
+        type: string
+        default: ''
+      resume_run_id:
+        type: string
+        default: ''
+      force_rebuild:
+        type: boolean
+        default: false
+    outputs:
+      quality:
+        value: ${{ jobs.quality.outputs.artifact_id }}
+      core:
+        value: ${{ jobs.core.outputs.artifact_id }}
+      ui:
+        value: ${{ jobs.ui.outputs.artifact_id }}
+permissions:
+  contents: read
+  actions: read
+jobs:
+  preflight:
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.13'
+    - run: python -m pip install packaging==26.0 PyYAML==6.0.2
+    - name: Check local resources before expensive work
+      env:
+        VERSION: ${{ inputs.version }}
+      run: python -m scripts.ci.preflight ${VERSION:+--version "$VERSION"}
+  quality:
+    needs: preflight
+    uses: ./.github/workflows/stage.yml
+    with:
+      stage: quality
+      platform: ${{ inputs.platform }}
+      version: ${{ inputs.version }}
+      resume_run_id: ${{ inputs.resume_run_id }}
+      force_rebuild: ${{ inputs.force_rebuild }}
+  core:
+    needs: quality
+    uses: ./.github/workflows/stage.yml
+    with:
+      stage: core
+      platform: ${{ inputs.platform }}
+      version: ${{ inputs.version }}
+      resume_run_id: ${{ inputs.resume_run_id }}
+      force_rebuild: ${{ inputs.force_rebuild }}
+  ui:
+    needs: quality
+    uses: ./.github/workflows/stage.yml
+    with:
+      stage: ui
+      platform: ${{ inputs.platform }}
+      version: ${{ inputs.version }}
+      resume_run_id: ${{ inputs.resume_run_id }}
+      force_rebuild: ${{ inputs.force_rebuild }}

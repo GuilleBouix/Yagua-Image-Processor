@@ -1,76 +1,18 @@
 name: CI
-
-on:
+'on':
   push:
-    branches: [ "main" ]
-  pull_request:
-
+    branches:
+    - main
+  pull_request: null
 permissions:
   contents: read
-
+  actions: read
 jobs:
   test-windows:
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.13"
-
-      - name: Install deps
-        shell: pwsh
-        run: |
-          python -m pip install -U pip wheel setuptools
-          python -m pip install -r requirements.txt
-          python -m pip install -r requirements-dev.txt
-
-      - name: Lint and type check
-        shell: pwsh
-        run: |
-          ruff check app tests scripts
-          if ($LASTEXITCODE -ne 0) { throw 'Ruff failed' }
-          $pythonPath = (Get-Command python).Source
-          pyright --pythonpath $pythonPath app
-
-      - name: Pytest
-        shell: pwsh
-        run: |
-          python scripts/verify.py -q
-
-      - name: Verify legal resources and installed versions
-        run: python scripts/ci/check_licenses.py --installed
-
+    uses: ./.github/workflows/validation.yml
+    with:
+      platform: windows
   test-linux:
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.13"
-
-      - name: Install system deps
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y python3-tk xvfb libgl1 libglib2.0-0 libsm6 libxext6 libxrender1 libgtk-3-0 libgomp1
-
-      - name: Install deps
-        run: |
-          python -m pip install -U pip wheel setuptools
-          python -m pip install -r requirements-linux-cpu.txt
-          python -m pip install -r requirements-dev.txt
-
-      - name: Lint and type check
-        run: |
-          ruff check app tests scripts
-          pyright --pythonpath "$(which python)" app
-
-      - name: Pytest
-        run: |
-          xvfb-run -a python scripts/verify.py -q
-
-      - name: Verify legal resources and installed versions
-        run: python scripts/ci/check_licenses.py --installed
+    uses: ./.github/workflows/validation.yml
+    with:
+      platform: linux

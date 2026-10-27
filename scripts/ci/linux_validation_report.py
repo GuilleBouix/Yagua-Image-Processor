@@ -36,7 +36,7 @@ def main() -> None:
     lines = [
         f'# Yagua Linux {version}', '',
         f'Commit: {sha}', f'Validation run: {run_url}', '',
-        'Windows and Linux lint, types and tests passed before this build.',
+        'Linux lint, types and tests passed before this build; see the candidate provenance for each stage.',
         'The frozen PyInstaller directory passed native imports, CPU checks and packaged-resource preflight.',
         'The AppImage runtime resolved the original AppImage as its restart target.',
         'The extracted AppImage passed startup, every registered module, real Spanish/English',

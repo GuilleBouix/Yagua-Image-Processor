@@ -1,0 +1,91 @@
+name: Checkpoint transport selftest (tiny payloads)
+'on':
+  workflow_dispatch: null
+permissions:
+  contents: read
+  actions: read
+jobs:
+  windows-seed:
+    name: windows / compile
+    runs-on: windows-latest
+    env:
+      STAGE_PLATFORM: windows
+    outputs:
+      artifact_id: ${{ steps.upload.outputs.artifact-id }}
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.13'
+    - run: python -m pip install PyYAML==6.0.2 packaging==26.0 pytest==9.0.2
+    - run: python -m pytest --noconftest tests/test_checkpoints.py tests/test_candidate_manifest.py tests/test_source_materials.py tests/test_checkpoint_exports.py -q
+    - run: python -m scripts.ci.checkpoint_fixture seed
+      id: seed
+    - id: upload
+      uses: actions/upload-artifact@v4
+      with:
+        name: checkpoint-windows-compile-${{ steps.seed.outputs.fingerprint }}-${{ github.run_id }}-${{ github.run_attempt }}
+        path: .ci-state/upload/payload.tar
+        retention-days: 1
+    - uses: actions/upload-artifact@v4
+      with:
+        name: receipt-windows-compile-${{ steps.seed.outputs.fingerprint }}-${{ github.run_id }}-${{ github.run_attempt }}
+        path: .ci-state/upload/receipt.json
+        retention-days: 1
+  windows-consume:
+    runs-on: windows-latest
+    needs: windows-seed
+    env:
+      STAGE_PLATFORM: windows
+      GH_TOKEN: ${{ github.token }}
+      FIXTURE_ARTIFACT: ${{ needs.windows-seed.outputs.artifact_id }}
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.13'
+    - run: python -m pip install PyYAML==6.0.2 packaging==26.0 pytest==9.0.2
+    - shell: bash
+      run: python -m scripts.ci.checkpoint_fixture consume --dependency "$FIXTURE_ARTIFACT"
+  linux-seed:
+    name: linux / compile
+    runs-on: ubuntu-22.04
+    env:
+      STAGE_PLATFORM: linux
+    outputs:
+      artifact_id: ${{ steps.upload.outputs.artifact-id }}
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.13'
+    - run: python -m pip install PyYAML==6.0.2 packaging==26.0 pytest==9.0.2
+    - run: python -m pytest --noconftest tests/test_checkpoints.py tests/test_candidate_manifest.py tests/test_source_materials.py tests/test_checkpoint_exports.py -q
+    - run: python -m scripts.ci.checkpoint_fixture seed
+      id: seed
+    - id: upload
+      uses: actions/upload-artifact@v4
+      with:
+        name: checkpoint-linux-compile-${{ steps.seed.outputs.fingerprint }}-${{ github.run_id }}-${{ github.run_attempt }}
+        path: .ci-state/upload/payload.tar
+        retention-days: 1
+    - uses: actions/upload-artifact@v4
+      with:
+        name: receipt-linux-compile-${{ steps.seed.outputs.fingerprint }}-${{ github.run_id }}-${{ github.run_attempt }}
+        path: .ci-state/upload/receipt.json
+        retention-days: 1
+  linux-consume:
+    runs-on: ubuntu-22.04
+    needs: linux-seed
+    env:
+      STAGE_PLATFORM: linux
+      GH_TOKEN: ${{ github.token }}
+      FIXTURE_ARTIFACT: ${{ needs.linux-seed.outputs.artifact_id }}
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.13'
+    - run: python -m pip install PyYAML==6.0.2 packaging==26.0 pytest==9.0.2
+    - shell: bash
+      run: python -m scripts.ci.checkpoint_fixture consume --dependency "$FIXTURE_ARTIFACT"

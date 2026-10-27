@@ -1,0 +1,1 @@
+"""Independently resumable candidate stages."""

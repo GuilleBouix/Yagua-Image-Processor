@@ -83,7 +83,7 @@ def test_candidate_workflows_cannot_publish_and_publication_never_builds():
     for name in ('build-windows.yml', 'build-linux.yml', 'candidates.yml'):
         text = (root / name).read_text(encoding='utf-8')
         workflow = yaml.load(text, Loader=yaml.BaseLoader)
-        assert workflow['permissions'] == {'contents': 'read'}
+        assert workflow['permissions'] == {'contents': 'read', 'actions': 'read'}
         assert 'push' not in workflow['on']
         assert 'action-gh-release' not in text and 'contents: write' not in text
         assert 'apply_version.py' not in text

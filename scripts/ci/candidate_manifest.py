@@ -32,7 +32,8 @@ def check_source_version(expected: str) -> None:
         raise ValueError('Candidate version differs from the committed source')
 
 
-def create(version: str, artifacts: list[Path], allow_dirty: bool = False) -> dict:
+def create(version: str, artifacts: list[Path], allow_dirty: bool = False,
+           provenance: dict | None = None) -> dict:
     names = git('ls-files', '-z').split('\0')
     extra = git('ls-files', '--others', '--exclude-standard', '-z').split('\0')
     extra = [name for name in extra if name.startswith(('app/', 'scripts/', 'tests/', '.github/', 'docs/'))
@@ -49,8 +50,8 @@ def create(version: str, artifacts: list[Path], allow_dirty: bool = False) -> di
         entries.append({'name': path.name, 'bytes': path.stat().st_size, 'sha256': digest(path)})
     if not entries:
         raise ValueError('At least one artifact is required')
-    return {
-        'schema_version': 1, 'version': version,
+    result = {
+        'schema_version': 2 if provenance is not None else 1, 'version': version,
         'source': {'commit': git('rev-parse', 'HEAD'), 'dirty': dirty,
                    'tree_sha256': hashlib.sha256(json.dumps(source_files, sort_keys=True).encode()).hexdigest(),
                    'files': source_files},
@@ -59,13 +60,53 @@ def create(version: str, artifacts: list[Path], allow_dirty: bool = False) -> di
                   'repository': os.environ.get('GITHUB_REPOSITORY')},
         'artifacts': entries,
     }
+    if provenance is not None:
+        result['provenance'] = provenance
+        verify_provenance(result)
+    return result
+
+
+def verify_provenance(manifest: dict) -> None:
+    """Keep the evaluated source separate from the actual origin of reused bytes."""
+    lineage = manifest.get('provenance', {})
+    required = {'quality', 'core', 'ui', 'compile', 'package', 'probe', 'sources'}
+    if manifest['build']['platform'] == 'win32':
+        required.add('installer')
+    if not required <= lineage.keys():
+        raise ValueError('Candidate lacks successful stage provenance')
+    platform = 'windows' if manifest['build']['platform'] == 'win32' else 'linux'
+    for stage, receipt in lineage.items():
+        if receipt.get('stage') != stage or receipt.get('status') != 'passed':
+            raise ValueError('Invalid stage provenance')
+        inputs = receipt['inputs']
+        if receipt.get('platform') != platform or inputs.get('platform') != platform:
+            raise ValueError('Stage provenance platform mismatch')
+        encoded = json.dumps(inputs, sort_keys=True, separators=(',', ':')).encode()
+        if hashlib.sha256(encoded).hexdigest() != receipt['fingerprint']:
+            raise ValueError('Stage input fingerprint mismatch')
+        if receipt['producer']['repository'] != manifest['build']['repository']:
+            raise ValueError('Foreign stage provenance')
+        if any(manifest['source']['files'].get(name) != checksum
+               for name, checksum in inputs['files'].items()):
+            raise ValueError(f'Stage {stage} does not match the evaluated source')
+        for dependency, files in inputs.get('dependencies', {}).items():
+            if dependency not in lineage or any(lineage[dependency]['files'].get(name) != entry
+                                                for name, entry in files.items()):
+                raise ValueError('Stage provenance dependency mismatch')
+    for artifact in manifest.get('artifacts', []):
+        if not any(Path(name).name == artifact['name']
+                   and entry == {'bytes': artifact['bytes'], 'sha256': artifact['sha256']}
+                   for receipt in lineage.values() for name, entry in receipt.get('files', {}).items()):
+            raise ValueError('Final bytes are not bound to successful stage provenance')
 
 
 def verify(manifest: dict, directory: Path, version: str, commit: str, run_id: str) -> None:
-    if (manifest.get('schema_version') != 1 or manifest.get('version') != version
+    if (manifest.get('schema_version') not in {1, 2} or manifest.get('version') != version
             or manifest['source']['commit'] != commit or manifest['source']['dirty']
             or str(manifest['build']['run_id']) != run_id):
         raise ValueError('Candidate version, commit, clean source or run does not match')
+    if manifest['schema_version'] == 2:
+        verify_provenance(manifest)
     if not manifest['artifacts']:
         raise ValueError('Empty candidate')
     for entry in manifest['artifacts']:
