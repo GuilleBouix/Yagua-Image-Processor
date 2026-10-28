@@ -821,8 +821,8 @@
     },
     {
       "file": "recipes/build_heic_linux.py",
-      "bytes": 11519,
-      "sha256": "f5b48f21dfae3f21d1ff50dd27a2851cd2ae72c37712735aa56cf1639c6857f9",
+      "bytes": 12158,
+      "sha256": "52ae9b911a5cbe0422d050aca72980f46400439f1c3ad55fd9f1aec124e71fe8",
       "repository_path": "scripts/ci/build_heic_linux.py"
     }
   ]
