@@ -74,23 +74,23 @@ Yagua-Screenshots mit englischer Oberfläche. Klicke auf ein Vorschaubild, um es
     <td align="center" width="50%"><a href="../../assets/screenshots/convert.webp"><img src="../../assets/screenshots/convert.webp" width="450" alt="Konvertierung mit ausgewählten Bildern und Ausgabeformat" /></a></td>
   </tr>
   <tr>
-    <td align="center" width="50%"><a href="../../assets/screenshots/compress.webp"><img src="../../assets/screenshots/compress.webp" width="450" alt="Komprimierung mit Qualitäts- und EXIF-Einstellungen" /></a></td>
-    <td align="center" width="50%"><a href="../../assets/screenshots/resize.webp"><img src="../../assets/screenshots/resize.webp" width="450" alt="Größenänderung mit Pixelmaßen und Einstellungen zum Seitenverhältnis" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/compress.webp"><img src="../../assets/screenshots/compress.webp" width="450" alt="Komprimierung mit Qualitäts- und Speichereinstellungen" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/resize.webp"><img src="../../assets/screenshots/resize.webp" width="450" alt="Größenänderung mit einer Vorlage für YouTube-Kanalbanner" /></a></td>
   </tr>
   <tr>
     <td align="center" width="50%"><a href="../../assets/screenshots/remove-background.webp"><img src="../../assets/screenshots/remove-background.webp" width="450" alt="Hintergrundentfernung mit ausgewähltem Bild" /></a></td>
-    <td align="center" width="50%"><a href="../../assets/screenshots/palette.webp"><img src="../../assets/screenshots/palette.webp" width="450" alt="Extrahierte Palette mit zehn Farben und Farbwerten" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/palette.webp"><img src="../../assets/screenshots/palette.webp" width="450" alt="Extrahierte Palette mit acht Farben und Farbwerten" /></a></td>
   </tr>
   <tr>
     <td align="center" width="50%"><a href="../../assets/screenshots/watermark.webp"><img src="../../assets/screenshots/watermark.webp" width="450" alt="Wasserzeicheneinstellungen und Ergebnisvorschau" /></a></td>
     <td align="center" width="50%"><a href="../../assets/screenshots/rename.webp"><img src="../../assets/screenshots/rename.webp" width="450" alt="Stapelumbenennung mit ursprünglichen und vorgeschlagenen Dateinamen" /></a></td>
   </tr>
   <tr>
-    <td align="center" width="50%"><a href="../../assets/screenshots/ocr.webp"><img src="../../assets/screenshots/ocr.webp" width="450" alt="Spanische OCR mit erkanntem Text" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/ocr.webp"><img src="../../assets/screenshots/ocr.webp" width="450" alt="Englische OCR mit erkanntem Text" /></a></td>
     <td align="center" width="50%"><a href="../../assets/screenshots/metadata.webp"><img src="../../assets/screenshots/metadata.webp" width="450" alt="EXIF-Ansicht mit Bildauswahl, Vorschau und Metadatenfeldern" /></a></td>
   </tr>
   <tr>
-    <td align="center" width="50%"><a href="../../assets/screenshots/lqip-base64.webp"><img src="../../assets/screenshots/lqip-base64.webp" width="450" alt="LQIP-Vergleich mit dem Originalbild und erzeugtem HTML-Code" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/lqip-base64.webp"><img src="../../assets/screenshots/lqip-base64.webp" width="450" alt="LQIP-Vergleich mit dem Originalbild und erzeugter Daten-URI" /></a></td>
     <td align="center" width="50%"><a href="../../assets/screenshots/settings.webp"><img src="../../assets/screenshots/settings.webp" width="450" alt="Allgemeine Einstellungen für Sprache, Thema, Skalierung und sichtbare Module" /></a></td>
   </tr>
 </table>

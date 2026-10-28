@@ -72,23 +72,23 @@ Yagua screenshots with the interface in English. Click any thumbnail to view the
     <td align="center" width="50%"><a href="assets/screenshots/convert.webp"><img src="assets/screenshots/convert.webp" width="450" alt="Conversion with selected images and output format controls" /></a></td>
   </tr>
   <tr>
-    <td align="center" width="50%"><a href="assets/screenshots/compress.webp"><img src="assets/screenshots/compress.webp" width="450" alt="Compression with quality and EXIF controls" /></a></td>
-    <td align="center" width="50%"><a href="assets/screenshots/resize.webp"><img src="assets/screenshots/resize.webp" width="450" alt="Resizing with pixel dimensions and aspect ratio controls" /></a></td>
+    <td align="center" width="50%"><a href="assets/screenshots/compress.webp"><img src="assets/screenshots/compress.webp" width="450" alt="Compression with quality and saving controls" /></a></td>
+    <td align="center" width="50%"><a href="assets/screenshots/resize.webp"><img src="assets/screenshots/resize.webp" width="450" alt="Resizing with a YouTube channel art preset" /></a></td>
   </tr>
   <tr>
     <td align="center" width="50%"><a href="assets/screenshots/remove-background.webp"><img src="assets/screenshots/remove-background.webp" width="450" alt="Background removal with a selected image" /></a></td>
-    <td align="center" width="50%"><a href="assets/screenshots/palette.webp"><img src="assets/screenshots/palette.webp" width="450" alt="Extracted palette with ten colors and color values" /></a></td>
+    <td align="center" width="50%"><a href="assets/screenshots/palette.webp"><img src="assets/screenshots/palette.webp" width="450" alt="Extracted palette with eight colors and color values" /></a></td>
   </tr>
   <tr>
     <td align="center" width="50%"><a href="assets/screenshots/watermark.webp"><img src="assets/screenshots/watermark.webp" width="450" alt="Watermark controls and result preview" /></a></td>
     <td align="center" width="50%"><a href="assets/screenshots/rename.webp"><img src="assets/screenshots/rename.webp" width="450" alt="Batch renaming with original and proposed filenames" /></a></td>
   </tr>
   <tr>
-    <td align="center" width="50%"><a href="assets/screenshots/ocr.webp"><img src="assets/screenshots/ocr.webp" width="450" alt="Spanish OCR with recognized text" /></a></td>
+    <td align="center" width="50%"><a href="assets/screenshots/ocr.webp"><img src="assets/screenshots/ocr.webp" width="450" alt="English OCR with recognized text" /></a></td>
     <td align="center" width="50%"><a href="assets/screenshots/metadata.webp"><img src="assets/screenshots/metadata.webp" width="450" alt="EXIF viewer with image selection, preview and metadata fields" /></a></td>
   </tr>
   <tr>
-    <td align="center" width="50%"><a href="assets/screenshots/lqip-base64.webp"><img src="assets/screenshots/lqip-base64.webp" width="450" alt="LQIP comparison with the original image and generated HTML code" /></a></td>
+    <td align="center" width="50%"><a href="assets/screenshots/lqip-base64.webp"><img src="assets/screenshots/lqip-base64.webp" width="450" alt="LQIP comparison with the original image and generated data URI" /></a></td>
     <td align="center" width="50%"><a href="assets/screenshots/settings.webp"><img src="assets/screenshots/settings.webp" width="450" alt="General settings with language, theme, scale and visible modules" /></a></td>
   </tr>
 </table>
