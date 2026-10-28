@@ -1,3 +1,5 @@
+"""Herramientas de mantenimiento, verificación y empaquetado del proyecto. probe."""
+
 import os
 from pathlib import Path
 import shutil
@@ -10,6 +12,7 @@ from scripts.ci.stages.common import (
 
 
 def main():
+    """Ejecuta las pruebas aisladas del ejecutable o paquete generado."""
     system(packaging=True)
     REPORTS.mkdir(exist_ok=True)
     profile = Path(os.environ['RUNNER_TEMP']) / 'yagua-package-probe'
@@ -30,9 +33,9 @@ def main():
             subprocess.run([str(compressed), '--appimage-extract'], cwd=directory,
                            check=True, stdout=subprocess.DEVNULL)
             app = directory / 'squashfs-root'
-            # AppImage assembly can rewrite ELF loaders in the AppDir copy.
-            # Test the original PyInstaller executable from its own checkpoint;
-            # exercise the packaged copy through AppRun and the AppImage below.
+            # El armado de AppImage puede reescribir los cargadores ELF de la copia AppDir.
+            # Prueba el ejecutable PyInstaller original desde su checkpoint;
+            # prueba después la copia empaquetada mediante AppRun y AppImage.
             xvfb(PYTHON, 'scripts/ci/probe_package.py', ROOT / 'dist/linux-release/Yagua/Yagua',
                  ROOT / 'reports/raw-preflight', '--preflight')
             xvfb(PYTHON, 'scripts/ci/probe_package.py', compressed,

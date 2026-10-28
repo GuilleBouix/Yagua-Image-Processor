@@ -1,3 +1,5 @@
+"""Pruebas de interfaz para ocr frame y sus estados principales."""
+
 from app.ui.frames.ocr.frame import OcrFrame
 from app.ui.frames.ocr import frame as ocr_frame_module
 from app import translations

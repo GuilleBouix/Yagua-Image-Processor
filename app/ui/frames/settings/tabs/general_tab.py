@@ -1,3 +1,5 @@
+"""Preferencias generales de idioma, escala, módulos y acciones de la aplicación."""
+
 from __future__ import annotations
 
 from app.ui.building import finish, stepwise, steps_for
@@ -20,6 +22,7 @@ class GeneralTab(ctk.CTkFrame):
     """Tab Ajustes: idioma, tema, modulos visibles."""
 
     def __init__(self, parent, *, state, set_status, defer_build=False):
+        """Conecta ajustes editables con los servicios de preferencias."""
         super().__init__(parent, fg_color='transparent')
         self._state = state
         self._set_status = set_status
@@ -30,6 +33,7 @@ class GeneralTab(ctk.CTkFrame):
 
     @stepwise
     def _build(self):
+        """Construye los controles de configuración general."""
         panel_idioma = ctk.CTkFrame(
             self,
             **styles.surface('panel'),
@@ -107,6 +111,7 @@ class GeneralTab(ctk.CTkFrame):
 
     @stepwise
     def _build_scale_panel(self, panel_scale):
+        """Agrega opciones de escala de interfaz y sus ayudas."""
         ctk.CTkLabel(
             panel_scale,
             text=t('ui_scale'),
@@ -138,6 +143,7 @@ class GeneralTab(ctk.CTkFrame):
         yield
 
         def fit_hint(event):
+            """Ajusta las ayudas al ancho de ventana sin cortar su contenido."""
             width = max(120, int(event.width / panel_scale._get_widget_scaling()) - 32)
             if hint.cget('wraplength') != width:
                 hint.configure(wraplength=width)
@@ -147,6 +153,7 @@ class GeneralTab(ctk.CTkFrame):
 
     @stepwise
     def _build_modules_panel(self, row=0):
+        """Muestra interruptores para módulos disponibles."""
         panel_modulos = ctk.CTkFrame(
             self,
             **styles.surface('panel'),
@@ -221,6 +228,7 @@ class GeneralTab(ctk.CTkFrame):
 
     @stepwise
     def _build_apply_button(self, row=0):
+        """Crea la acción que guarda cambios y solicita reiniciar."""
         self._btn_apply = styles.Button(
             self,
             role='primary',
@@ -235,6 +243,7 @@ class GeneralTab(ctk.CTkFrame):
         yield
 
     def _apply_settings(self):
+        """Valida y persiste cambios sin aplicarlos a medias."""
         if self._btn_apply.cget('state') == 'disabled':
             return
         visibles = [k for k, v in self._module_vars.items() if v.get()]
@@ -267,6 +276,7 @@ class GeneralTab(ctk.CTkFrame):
 
 
     def _save_and_restart(self, **options):
+        """Guarda preferencias y programa un reinicio seguro de la aplicación."""
         if not self.winfo_exists():
             return
         try:

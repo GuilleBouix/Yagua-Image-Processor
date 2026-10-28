@@ -1,4 +1,5 @@
 name: CI
+# Los dos jobs llaman a la misma validación para comprobar Windows y Linux.
 'on':
   push:
     branches:

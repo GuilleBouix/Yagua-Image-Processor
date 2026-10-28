@@ -1,4 +1,5 @@
 """Verified, immutable checkpoints for resumable Actions jobs (standard library + PyYAML)."""
+# Verifica y transfiere checkpoints inmutables para reanudar jobs de CI.
 from __future__ import annotations
 
 import argparse
@@ -44,23 +45,28 @@ CLASSIFIED_WORKFLOWS = tuple('.github/workflows/' + name for name in (
 
 
 def digest(path: Path) -> str:
+    """Calcula el SHA-256 de un archivo antes de reutilizarlo."""
     with path.open('rb') as stream:
         return hashlib.file_digest(stream, 'sha256').hexdigest()
 
 
 def encoded_hash(value) -> str:
+    """Normaliza una huella codificada para compararla con el recibo."""
     return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
 
 
 def git(*args: str) -> str:
+    """Consulta datos del repositorio necesarios para crear huellas reproducibles."""
     return subprocess.check_output(['git', *args], cwd=ROOT).decode().strip()
 
 
 def tracked() -> list[str]:
+    """Obtiene la lista de archivos versionados que influyen en el candidato."""
     return sorted(filter(None, git('ls-files', '-z').split('\0')))
 
 
 def matches(name: str, patterns: tuple[str, ...]) -> bool:
+    """Comprueba si una ruta coincide con alguno de los patrones de una etapa."""
     return any(fnmatch.fnmatchcase(name, pattern) for pattern in patterns)
 
 
@@ -71,9 +77,9 @@ def stage_files(stage: str, platform: str, names: list[str]) -> list[str]:
                'scripts/pyinstaller/*', 'Yagua.spec' if platform == 'windows' else 'Yagua.linux.spec')
     if platform == 'linux':
         runtime += ('requirements-linux-cpu.txt', 'scripts/ci/build_heic_linux.py', 'scripts/build_linux_runtime.sh')
-    # Recovery bookkeeping is tested in core/quality; it does not change the
-    # program being compiled or the UI tests being executed. The resulting
-    # selected input set, effective recipe and environment still define the key.
+    # Las pruebas de core/quality no cambian el
+    # programa compilado ni los tests de interfaz. La selección de entradas,
+    # la receta efectiva y el entorno siguen definiendo la huella.
     common = ('scripts/ci/stages/common.py',
               '.github/workflows/stage.yml', 'scripts/ci/stages/' + stage + '.py')
     policies = {
@@ -113,8 +119,9 @@ def stage_files(stage: str, platform: str, names: list[str]) -> list[str]:
 
 def fingerprint(stage: str, platform: str, version: str, dependencies: dict,
                 environment: dict | None = None) -> tuple[str, dict]:
+    """Calcula la huella de entradas, receta y entorno para una etapa."""
     files = {name: digest(ROOT / name) for name in stage_files(stage, platform, tracked())}
-    # Hash the effective stage job, not sibling jobs in the same YAML document.
+    # Calcula el hash del job de esta etapa, no de los jobs hermanos del mismo YAML.
     workflow = ROOT / '.github/workflows' / ('validation.yml' if stage in VALIDATION else f'build-{platform}.yml')
     jobs = yaml.safe_load(workflow.read_text(encoding='utf-8'))['jobs']
     recipe = jobs.get(stage, {})
@@ -143,7 +150,7 @@ def fingerprint(stage: str, platform: str, version: str, dependencies: dict,
 
 
 def retry_network(operation):
-    """Only retry transport failures; never reinterpret them as a cache miss."""
+    """Reintenta solo fallos de transporte y no los trata como caché vacía."""
     for attempt in range(3):
         try:
             return operation()
@@ -165,6 +172,7 @@ def retry_network(operation):
 
 
 def api(path: str, *, raw: bool = False):
+    """Consulta GitHub con límites y credenciales adecuados al tipo de recurso."""
     token = os.environ.get('GH_TOKEN', '')
     url = path if path.startswith('https://') else f'https://api.github.com/repos/{os.environ["GITHUB_REPOSITORY"]}/{path}'
     request = urllib.request.Request(url, headers={
@@ -173,9 +181,12 @@ def api(path: str, *, raw: bool = False):
     })
     if raw:
         class NoRedirect(urllib.request.HTTPRedirectHandler):
+            """Impide seguir redirecciones al transferir artefactos con URL firmada."""
             def redirect_request(self, req, fp, code, msg, headers, newurl):
+                """Rechaza redirecciones para no reenviar datos de acceso a otro host."""
                 return None
         def open_download():
+            """Abre una URL de artefacto con firma sin enviar el token de GitHub."""
             try:
                 return urllib.request.build_opener(NoRedirect).open(request, timeout=120)
             except urllib.error.HTTPError as error:
@@ -188,12 +199,14 @@ def api(path: str, *, raw: bool = False):
                 return urllib.request.urlopen(location, timeout=120)
         return retry_network(open_download)
     def read_json():
+        """Lee y decodifica una respuesta JSON de GitHub."""
         with urllib.request.urlopen(request, timeout=120) as response:
             return json.load(response)
     return retry_network(read_json)
 
 
 def pages(path: str, key: str) -> list:
+    """Recorre las páginas de una colección devuelta por la API."""
     result = []
     for page in range(1, 11):
         separator = '&' if '?' in path else '?'
@@ -205,6 +218,7 @@ def pages(path: str, key: str) -> list:
 
 
 def safe_name(name: str) -> None:
+    """Rechaza nombres de artefacto que puedan escapar del directorio esperado."""
     path = Path(name)
     if (not name or path.is_absolute() or '..' in path.parts or '\\' in name or ':' in name
             or name.startswith('/')):
@@ -212,9 +226,11 @@ def safe_name(name: str) -> None:
 
 
 def download(artifact: dict, target: Path) -> None:
+    """Descarga y valida un artefacto en una ruta temporal segura."""
     target.mkdir(parents=True)
     archive = target / 'download.zip'
     def transfer():
+        """Copia la respuesta del servidor y verifica su tamaño y hash."""
         with api(artifact['archive_download_url'], raw=True) as response, archive.open('wb') as stream:
             shutil.copyfileobj(response, stream)
     retry_network(transfer)
@@ -229,6 +245,7 @@ def download(artifact: dict, target: Path) -> None:
 
 
 def check_receipt(receipt: dict, directory: Path, platform: str) -> None:
+    """Valida el recibo y los bytes de un checkpoint antes de restaurarlo."""
     if (receipt.get('schema_version') != 1 or receipt.get('platform') != platform
             or receipt.get('stage') not in STAGES or receipt.get('status') != 'passed'):
         raise ValueError('Invalid checkpoint receipt/platform/status')
@@ -268,6 +285,7 @@ def receipt_for(artifact: dict) -> tuple[dict, dict]:
 
 
 def restore(receipt: dict, directory: Path, destination: Path) -> None:
+    """Restaura un checkpoint validado en el destino de trabajo."""
     with tarfile.open(directory / 'payload.tar') as archive:
         for member in archive.getmembers():
             safe_name(member.name)
@@ -283,6 +301,7 @@ def restore(receipt: dict, directory: Path, destination: Path) -> None:
 
 
 def trusted(run: dict) -> bool:
+    """Determina si una ejecución origen pertenece a un flujo confiable."""
     repository = os.environ['GITHUB_REPOSITORY']
     return (run.get('head_repository', {}).get('full_name') == repository
             and run.get('head_branch') == 'main' and run.get('event') in {'push', 'workflow_dispatch'}
@@ -291,6 +310,7 @@ def trusted(run: dict) -> bool:
 
 
 def approved(receipt: dict, run: dict) -> bool:
+    """Comprueba que el recibo esté aprobado para reutilizarse en esta etapa."""
     producer = receipt['producer']
     if (str(producer['run_id']) != str(run['id']) or producer['commit'] != run['head_sha']
             or producer['repository'] != os.environ['GITHUB_REPOSITORY']):
@@ -301,6 +321,7 @@ def approved(receipt: dict, run: dict) -> bool:
 
 
 def candidate_runs(stage: str, resume: str, force: bool, platform: str = '') -> list[dict]:
+    """Busca ejecuciones previas compatibles con la etapa y la versión solicitadas."""
     if force or os.environ.get('GITHUB_EVENT_NAME') == 'pull_request':
         return []
     current = api(f'actions/runs/{os.environ["GITHUB_RUN_ID"]}')
@@ -312,9 +333,9 @@ def candidate_runs(stage: str, resume: str, force: bool, platform: str = '') -> 
         if not trusted(previous):
             raise ValueError('Resume run must originate from main in this repository')
         result.append(previous)
-        # A previous recovery may itself have reused an older producer without
-        # uploading its large payload again. Follow recent trusted candidate
-        # runs as well, so another fix can recover that original checkpoint.
+        # Una recuperación anterior puede haber reutilizado un productor antiguo sin
+        # volver a subir su carga grande. Sigue también candidatos recientes y confiables
+        # para que un nuevo arreglo pueda recuperar ese checkpoint original.
         latest = api('actions/runs?branch=main&event=workflow_dispatch&per_page=100')['workflow_runs']
         selected_time = datetime.fromisoformat(previous['created_at'].replace('Z', '+00:00'))
         cutoff = selected_time - timedelta(days=7)
@@ -343,12 +364,14 @@ def candidate_runs(stage: str, resume: str, force: bool, platform: str = '') -> 
 
 
 def output(name: str, value: str) -> None:
+    """Escribe un valor en el archivo de salida de GitHub Actions."""
     if os.environ.get('GITHUB_OUTPUT'):
         with open(os.environ['GITHUB_OUTPUT'], 'a', encoding='utf-8') as stream:
             stream.write(f'{name}={value}\n')
 
 
 def summary(message: str) -> None:
+    """Agrega un bloque legible al resumen del job."""
     print(message, flush=True)
     if os.environ.get('GITHUB_STEP_SUMMARY'):
         with open(os.environ['GITHUB_STEP_SUMMARY'], 'a', encoding='utf-8') as stream:
@@ -357,6 +380,7 @@ def summary(message: str) -> None:
 
 def prepare(stage: str, platform: str, version: str, dependencies: dict,
             resume: str, force: bool) -> None:
+    """Decide si reutilizar un checkpoint o ejecutar la etapa desde cero."""
     STATE.mkdir(exist_ok=True)
     receipts = {}
     lineage = {}
@@ -370,7 +394,7 @@ def prepare(stage: str, platform: str, version: str, dependencies: dict,
         payloads[name] = artifact
         lineage.update(receipt.get('lineage', {}))
         lineage[name] = {k: v for k, v in receipt.items() if k != 'lineage'}
-    # Direct receipts override ancestry imported from older successful builds.
+    # Los recibos directos tienen prioridad sobre la procedencia importada de builds anteriores.
     lineage.update({name: {k: v for k, v in receipt.items() if k != 'lineage'}
                     for name, receipt in receipts.items()})
     key, inputs = fingerprint(stage, platform, version, receipts)
@@ -391,9 +415,9 @@ def prepare(stage: str, platform: str, version: str, dependencies: dict,
                     receipt, _ = receipt_for(artifact)
                     if receipt['fingerprint'] != key or receipt['platform'] != platform:
                         continue
-                    # Validate a reusable producer's bytes before approving this job.
-                    # A damaged checkpoint then falls back to executing its own stage,
-                    # rather than repeatedly breaking a downstream consumer.
+                    # Valida los bytes del productor reutilizable antes de aprobar este job.
+                    # Si el checkpoint está dañado, ejecuta esta etapa en su propio job
+                    # en lugar de hacer fallar repetidamente a los jobs posteriores.
                     with tempfile.TemporaryDirectory() as temporary:
                         directory = Path(temporary) / 'checkpoint'
                         download(artifact, directory)
@@ -429,6 +453,7 @@ def prepare(stage: str, platform: str, version: str, dependencies: dict,
 
 
 def save(paths: list[str]) -> dict:
+    """Publica los artefactos de esta etapa junto con su recibo de integridad."""
     context = json.loads((STATE / 'context.json').read_text())
     directory = STATE / 'upload'
     directory.mkdir()
@@ -456,6 +481,7 @@ def save(paths: list[str]) -> dict:
 
 
 def main() -> None:
+    """Prepara o guarda checkpoints verificables para reanudar jobs de Actions."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--stage', choices=sorted(STAGES), required=True)
     parser.add_argument('--platform', choices=['windows', 'linux'], required=True)

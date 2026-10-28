@@ -1,3 +1,5 @@
+"""Pruebas de interfaz para compress frame y sus estados principales."""
+
 from unittest.mock import Mock
 
 from app.ui.frames.base import BaseFrame

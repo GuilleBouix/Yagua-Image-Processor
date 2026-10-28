@@ -1,4 +1,4 @@
-"""Bundled UI fonts, registered privately for the life of this process."""
+"""Fuentes incluidas con la app y registradas de forma privada durante el proceso."""
 
 import ctypes
 import ctypes.util
@@ -26,8 +26,9 @@ FUENTE_CHICA = None
 
 
 def _register_font(path: Path) -> bool:
+    """Registra una fuente de aplicación sin instalarla en el sistema."""
     if sys.platform == 'win32':
-        # FR_PRIVATE: available to this process only, removed by Windows on exit.
+        # FR_PRIVATE: disponible solo para este proceso; Windows la retira al salir.
         library = ctypes.WinDLL('gdi32', use_last_error=True)
         add = library.AddFontResourceExW
         add.argtypes = [ctypes.c_wchar_p, ctypes.c_uint, ctypes.c_void_p]
@@ -70,16 +71,18 @@ def cargar_fuente(ruta_fuente):
 
 
 def fuente_selector_idiomas():
-    # Native names must be readable before choosing/applying a CJK language.
+    # Los nombres nativos deben poder leerse antes de elegir o aplicar un idioma CJK.
+    """Devuelve la fuente con cobertura adecuada para el idioma de interfaz."""
     family = LANGUAGE_FAMILIES.get(get_language(), 'Noto Sans CJK JP')
     return ctk.CTkFont(family=family, size=14)
 
 
 def inicializar_fuentes(language: str | None = None):
+    """Prepara las familias de fuente antes de crear los widgets."""
     global FUENTE_BASE, FUENTE_TITULO, FUENTE_CHICA
     registrar_fuentes()
     family = LANGUAGE_FAMILIES.get(language or get_language(), 'Inter')
-    # Defaults also cover menus, dropdowns and controls without an explicit font.
+    # Los valores predeterminados también cubren menús y controles sin fuente explícita.
     ctk.ThemeManager.theme['CTkFont']['family'] = family
     FUENTE_BASE = ctk.CTkFont(family=family, size=14)
     FUENTE_TITULO = ctk.CTkFont(family=family, size=22, weight='bold')

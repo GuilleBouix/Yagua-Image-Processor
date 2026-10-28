@@ -1,4 +1,5 @@
 """Measure app + all models + execution caches, with compressed size separate."""
+# Mide aplicación, modelos y cachés; mantiene el tamaño comprimido separado.
 
 import argparse
 import json
@@ -11,6 +12,7 @@ from scripts.ci.check_linux_size import MAX_BYTES, artifact_size, within_budget
 
 
 def measure(app: Path, models: Path, caches: Path, compressed: Path) -> dict:
+    """Mide por separado la aplicación, modelos y cachés de ejecución."""
     paths = [path.resolve(strict=True) for path in (app, models, caches)]
     if any(a == b or a in b.parents or b in a.parents
            for index, a in enumerate(paths) for b in paths[index + 1:]):
@@ -55,6 +57,7 @@ def measure(app: Path, models: Path, caches: Path, compressed: Path) -> dict:
 
 
 def main(argv=None) -> int:
+    """Calcula el tamaño instalado y falla si se supera el límite configurado."""
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ('app', 'models', 'caches', 'compressed', 'report'):
         parser.add_argument(f'--{name}', type=Path, required=True)

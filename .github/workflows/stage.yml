@@ -1,4 +1,5 @@
 name: Recoverable candidate stage
+# Ejecuta una etapa aislada y usa checkpoints validados para permitir reintentos.
 permissions:
   contents: read
   actions: read

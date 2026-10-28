@@ -1,4 +1,4 @@
-"""Shared save controls and asynchronous destination confirmation."""
+"""Controles de guardado compartidos y confirmación asíncrona del destino."""
 from tkinter import filedialog, messagebox
 
 import customtkinter as ctk
@@ -10,6 +10,7 @@ from app.utils.saving import plan_outputs
 
 
 def selector_steps(view, parent, row, *, columnspan=1, padx=16):
+    """Crea pasos de interfaz para construir el selector de salida."""
     if not hasattr(view, '_save_choice'):
         view._save_choice = ctk.StringVar(value=t('save_copies'))
     box = ctk.CTkFrame(parent, fg_color='transparent')
@@ -38,6 +39,7 @@ def selector_steps(view, parent, row, *, columnspan=1, padx=16):
 
 
 def set_visible(view, visible):
+    """Muestra u oculta controles de salida según el módulo activo."""
     for group in getattr(view, '_save_groups', []):
         if visible and not group.winfo_manager():
             group.grid()
@@ -46,6 +48,7 @@ def set_visible(view, visible):
 
 
 def mode(view):
+    """Devuelve la política de guardado actualmente seleccionada."""
     return 'overwrite' if view._save_choice.get() == t('save_overwrite') else 'copies'
 
 
@@ -57,6 +60,7 @@ def prepare(view, paths, target_format, proceed, *, resources=(), button=None, t
         return False
     paths, resources = tuple(paths), tuple(resources)
     def ready(plan):
+        """Indica si la selección y el plan permiten guardar."""
         message = t('save_confirm').format(replace=plan.replacements, copies=plan.copies)
         if choice == 'overwrite' and any(not item.error and item.source_format != item.target_format for item in plan.items):
             message += '\n\n' + t('save_format_hint')
@@ -70,6 +74,7 @@ def prepare(view, paths, target_format, proceed, *, resources=(), button=None, t
 
 
 def refresh(view, result):
+    """Actualiza el resumen de rutas y conflictos del plan."""
     rows = result.get('resultados', []) if isinstance(result, dict) else []
     changed = [row['ruta_entrada'] for row in rows if row.get('estado') == 'saved' and row.get('reemplazado')]
     for path in changed:
@@ -98,6 +103,7 @@ def refresh(view, result):
 
 
 def summary(result, *, strip=False):
+    """Genera un resumen legible de los destinos calculados."""
     rows = result.get('resultados', [])
     text = t('save_result').format(saved=result.get('ok', 0), skipped=result.get('sin_mejora', 0),
                                    errors=result.get('errores', 0))

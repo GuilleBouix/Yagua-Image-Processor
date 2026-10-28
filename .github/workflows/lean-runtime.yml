@@ -1,4 +1,5 @@
 name: Lean runtime validation (no publication)
+# Compara tamaño y funcionamiento del runtime en una validación aislada.
 
 on:
   push:

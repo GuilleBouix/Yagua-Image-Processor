@@ -1,4 +1,4 @@
-"""Budget checks must not allocate huge files to exercise the boundary."""
+"""Comprueba el límite de tamaño sin crear archivos gigantes para probar el umbral."""
 
 import pytest
 

@@ -14,6 +14,7 @@ from time import perf_counter
 
 @dataclass(frozen=True)
 class Operation:
+    """Identifica un trabajo global y la vista que lo inició."""
     id: str
     owner: object
     label: str
@@ -23,6 +24,7 @@ class OperationCoordinator:
     """Permite un solo trabajo global y protege sus transiciones de estado."""
 
     def __init__(self) -> None:
+        """Inicializa el bloqueo y las colas de resultados y llamadas de interfaz."""
         self._deliveries: SimpleQueue[tuple[object, Callable[[], Any]]] = SimpleQueue()
         self._lock = Lock()
         self._active: Operation | None = None
@@ -32,10 +34,12 @@ class OperationCoordinator:
 
     @property
     def active(self) -> Operation | None:
+        """Devuelve el trabajo activo como dato inmutable."""
         with self._lock:
             return self._active
 
     def begin(self, owner: object, label: str) -> Operation | None:
+        """Reserva el coordinador si no hay otro trabajo en curso."""
         with self._lock:
             if self._active is not None:
                 return None
@@ -44,6 +48,7 @@ class OperationCoordinator:
             return operation
 
     def finish(self, operation_id: str) -> bool:
+        """Libera el trabajo solo si su identificador sigue activo."""
         with self._lock:
             if self._active is None or self._active.id != operation_id:
                 return False
@@ -51,6 +56,7 @@ class OperationCoordinator:
             return True
 
     def is_busy(self, owner: object | None = None) -> bool:
+        """Comprueba si hay un trabajo global o uno del módulo indicado."""
         with self._lock:
             return self._active is not None and (owner is None or self._active.owner is owner)
 
@@ -62,11 +68,13 @@ class OperationCoordinator:
         on_success: Callable[[Any], Any],
         on_error: Callable[[BaseException], None],
     ) -> bool:
+        """Inicia el worker y encola la respuesta para procesarla desde Tk."""
         operation = self.begin(owner, label)
         if operation is None:
             return False
 
         def run() -> None:
+            """Ejecuta una tarea y devuelve su resultado o propaga el fallo capturado."""
             try:
                 self._completions.put((operation, work(), None, on_success, on_error))
             except BaseException as error:
@@ -81,6 +89,7 @@ class OperationCoordinator:
         return True
 
     def drain(self, widget_exists=lambda owner: True) -> None:
+        """Entrega resultados vigentes en Tk e ignora callbacks obsoletos."""
         deadline = perf_counter() + .008
         while not self._completions.empty():
             operation, result, error, on_success, on_error = self._completions.get()

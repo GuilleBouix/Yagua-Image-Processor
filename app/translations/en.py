@@ -21,7 +21,7 @@ organized by section:
 
 TRANSLATIONS = {
     'documentation': 'Documentation',
-    # App
+    # Aplicación
     'app_title': 'Yagua - Image Processor',
     'loading_model': 'Loading model...',
     'downloading_model': 'Downloading model...',
@@ -30,7 +30,7 @@ TRANSLATIONS = {
     'removing_bg': 'Removing background...',
     'limit_reached': 'Loaded {limit} of {total} images (maximum limit).',
     
-    # Sidebar
+    # Barra lateral
     'compress': 'Compress',
     'convert': 'Convert',
     'remove_bg': 'Remove Background',
@@ -45,7 +45,7 @@ TRANSLATIONS = {
     'developed_by': 'Developed by ',
     'github': '@guillebouix.dev',
     
-    # Compress
+    # Comprimir
     'compress_title': 'Compress',
     'select_images': 'Select images',
     'no_images': 'No images loaded',
@@ -64,7 +64,7 @@ TRANSLATIONS = {
     'conflicts_renamed': 'renamed conflicts',
     'size_reduction': 'reduction',
     
-    # Convert
+    # Convertir
     'convert_title': 'Convert',
     'convert_to': 'Convert to',
     'convert_btn': 'Convert',
@@ -73,7 +73,7 @@ TRANSLATIONS = {
     'converted_to_plural': 'converted to',
     'load_images_first_convert': 'Load at least one image first.',
 
-    # Remove Background
+    # Quitar fondo
     'remove_bg_title': 'Remove Background',
     'background_type': 'Output background',
     'bg_transparent': 'Transparent',
@@ -99,7 +99,7 @@ TRANSLATIONS = {
     'remove_bg_description': 'Optimized for products and light backgrounds: removes the background and refines edges automatically.',
     'remove_bg_fallback_notice': 'Using compatibility model ({model})',
     
-    # Palette
+    # Paleta
     'palette_title': 'Color Palette',
     'colors_to_extract': 'Colors to extract',
     'load_image_for_palette': 'Load an image to see the palette',
@@ -115,7 +115,7 @@ TRANSLATIONS = {
     'saving': 'Saving...',
     'error_generic': 'Error',
 
-    # Rename
+    # Renombrar
     'rename_title': 'Batch Rename',
     'rename_numbering': 'Prefix + Numbering',
     'rename_prefix': 'Prefix',
@@ -148,7 +148,7 @@ TRANSLATIONS = {
     'renamed': 'renamed',
     'rename_conflicts': 'conflicts skipped',
     
-    # Metadata
+    # Metadatos
     'metadata_title': 'EXIF Metadata',
     'view': 'View',
     'edit': 'Edit',
@@ -274,7 +274,7 @@ TRANSLATIONS = {
     'select_output_folder_clean': 'Output folder',
     'without_exif': 'noexif',
     
-    # Resize
+    # Redimensionar
     'resize_title': 'Resize',
     'resize_tab': 'Resize',
     'crop_tab': 'Crop',
@@ -387,7 +387,7 @@ TRANSLATIONS = {
     'ocr_lang_es_en': 'Spanish/English',
     'ocr_lang_es': 'Spanish',
     'ocr_lang_en': 'English',
-    # Watermark
+    # Marca de agua
     "watermark":                  "Watermark",
     "watermark_title":            "Watermark",
     "watermark_select_wm":        "Select watermark image",
@@ -417,7 +417,7 @@ TRANSLATIONS = {
     "watermark_preview_placeholder": "Load an image to see the preview",
     "watermark_calculando":       "Updating preview...",
 
-    # Settings
+    # Ajustes
     'settings_title': 'Settings',
     'language': 'Language',
     'select_language': 'Select language',
@@ -481,7 +481,7 @@ TRANSLATIONS['restart_when_idle'] = 'An operation is active. Restart when finish
 TRANSLATIONS['invalid_filename'] = 'The destination filename is invalid.'
 
 
-# Metadata collection and batch operations.
+# Catálogo de metadatos y operaciones por lote.
 TRANSLATIONS.update({
     'meta_search_fields': 'Search fields…',
     'meta_all_sections': 'All sections',
@@ -529,7 +529,7 @@ TRANSLATIONS.update({
 TRANSLATIONS["meta_source_changed"] = 'The file changed since it was loaded. Select it again before saving.'
 
 
-# UI startup and preloading.
+# Inicio de la interfaz y precarga de módulos.
 TRANSLATIONS.update({
     'startup_resources': 'Preparing Yagua…',
     'startup_home': 'Preparing Home…',
@@ -560,7 +560,7 @@ TRANSLATIONS.update({
 })
 
 
-# Contextual metadata UI.
+# Interfaz contextual de metadatos.
 TRANSLATIONS.update({
     'meta_start': 'Add images to get started',
     'meta_read_only_short': 'Read only. Metadata editing is available for JPEG and TIFF images.',
@@ -576,7 +576,7 @@ TRANSLATIONS.update({
     'meta_selected_count': '{marked} selected',
 })
 
-# Local legal information in Settings.
+# Información legal local en Ajustes.
 TRANSLATIONS.update({
     "legal_title": "Files, connections and licenses",
     "legal_originals": "Renaming and editing metadata modify the selected files. We recommend working on backup copies.",

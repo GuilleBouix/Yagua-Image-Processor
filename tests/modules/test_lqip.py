@@ -1,3 +1,5 @@
+"""Pruebas de regresión del módulo de procesamiento lqip."""
+
 import html
 import base64
 import json

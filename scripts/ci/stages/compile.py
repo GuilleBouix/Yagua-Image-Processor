@@ -1,9 +1,12 @@
+"""Herramientas de mantenimiento, verificación y empaquetado del proyecto. compile."""
+
 import os
 
 from scripts.ci.stages.common import PLATFORM, ROOT, build_environment, run, save, system
 
 
 def main():
+    """Compila las dependencias nativas requeridas antes de empaquetar."""
     system(packaging=True)
     interpreter = build_environment()
     if PLATFORM == 'windows':

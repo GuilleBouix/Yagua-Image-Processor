@@ -33,6 +33,7 @@ def t(key: str) -> str:
 
 
 def _peso(byte_count):
+    """Formatea el tamaño estimado de los datos Base64."""
     return f'{byte_count} B' if byte_count < 1024 else formatear_bytes(byte_count)
 
 
@@ -42,6 +43,7 @@ class LqipFrame(BaseFrame):
     design_system = True
 
     def __init__(self, parent, *, defer_build=False):
+        """Inicializa el estado de generación y delega la creación progresiva del panel."""
         self._state = LqipState()
         self._selected_index: int | None = None
         self._results: dict[int, ItemResult] = {}
@@ -62,6 +64,7 @@ class LqipFrame(BaseFrame):
         super().__init__(parent, t('lqip_title'), defer_build=defer_build)
 
     def _on_build_complete(self):
+        """Conecta eventos de controles después de construir la vista."""
         self._scrollbar.configure(corner_radius=0, width=6, border_spacing=1)
         self._resultado_preview._y_scrollbar.configure(corner_radius=0, width=6, border_spacing=1)
         self._resultado_preview._x_scrollbar.configure(corner_radius=0, height=6, border_spacing=1)
@@ -79,6 +82,7 @@ class LqipFrame(BaseFrame):
         self._render_selected()
 
     def _text_label(self, parent, text='', *, muted=False, **kwargs):
+        """Crea una etiqueta de texto con estilos y espaciado comunes."""
         return ctk.CTkLabel(
             parent, text=text, anchor='w', justify='left',
             font=fonts.FUENTE_CHICA if muted else fonts.FUENTE_BASE,
@@ -88,6 +92,7 @@ class LqipFrame(BaseFrame):
 
     @stepwise
     def _build_content(self):
+        """Construye panel de opciones, resultados y previsualización."""
         left, right = self._crear_workspace(column_weights=(2, 3), breakpoint=900)
         yield
         self._left = left
@@ -291,6 +296,7 @@ class LqipFrame(BaseFrame):
 
     @stepwise
     def _campo_numerico(self, parent, row, title, help_key, variable):
+        """Crea un control numérico ligado a la validación del módulo."""
         self._text_label(parent, t(title)).grid(row=row, column=0, sticky='w')
         yield
         entry = styles.Entry(
@@ -317,6 +323,7 @@ class LqipFrame(BaseFrame):
 
     @stepwise
     def _calidad(self, parent, row, variable, maximum):
+        """Construye el control de calidad para cada formato de salida."""
         self._text_label(parent, t('lqip_quality')).grid(row=row, column=0, sticky='w')
         yield
         value = self._text_label(parent, str(variable.get()))
@@ -341,6 +348,7 @@ class LqipFrame(BaseFrame):
 
     @stepwise
     def _preview_card(self, column, title):
+        """Crea la tarjeta que contiene la previsualización."""
         card = ctk.CTkFrame(self._comparison, **styles.surface('list'))
         yield
         card.grid(row=0, column=column, padx=(0, 4) if column == 0 else (4, 0), sticky='nsew')
@@ -375,12 +383,14 @@ class LqipFrame(BaseFrame):
         return label, meta
 
     def _action_button(self, parent, key, command, *, role='secondary'):
+        """Crea una acción accesible con estados ocupado y deshabilitado."""
         return self._new_button(
             parent, role=role, text=t(key), height=40, font=fonts.FUENTE_BASE,
             command=command,
         )
 
     def _ajustar_textos(self, event=None):
+        """Adapta textos y tarjetas al ancho de ventana."""
         if not self._ui_ready:
             return
         scale = self._get_widget_scaling()
@@ -399,6 +409,7 @@ class LqipFrame(BaseFrame):
         self._schedule_viewport_sync()
 
     def _cambiar_modo(self, label):
+        """Actualiza la variante mostrada cuando cambia el formato elegido."""
         self._modo_visible.set(label)
         self._state.modo.set(self._modo_a_interno[label])
         self._lqip_options.grid_forget()
@@ -409,6 +420,7 @@ class LqipFrame(BaseFrame):
         self._schedule_viewport_sync()
 
     def _actualizar_validacion(self):
+        """Valida opciones y refleja el estado en los controles."""
         errors = self._state.errores_validacion()
         for field, entry, label, row in (
             ('ancho', self._entry_width, self._error_width, 2),
@@ -426,6 +438,7 @@ class LqipFrame(BaseFrame):
         return not errors
 
     def _ajustes_cambiados(self, *_):
+        """Invalida renders previos cuando cambian las opciones de salida."""
         if self._resetting:
             return
         had_results = bool(self._results)
@@ -469,6 +482,7 @@ class LqipFrame(BaseFrame):
         queue = self._source_queue
 
         def load():
+            """Carga un resultado y selecciona la variante inicial de presentación."""
             for index, path in enumerate(paths):
                 queue.put((revision, cargar_original(index, path)))
 
@@ -476,6 +490,7 @@ class LqipFrame(BaseFrame):
             Thread(target=load, daemon=True).start()
 
     def _recibir_originales(self):
+        """Acepta originales cargados si la selección sigue vigente."""
         self._source_job = None
         try:
             while True:
@@ -490,11 +505,13 @@ class LqipFrame(BaseFrame):
         self._source_job = self.after(40, self._recibir_originales)
 
     def _programar_render(self, _event=None):
+        """Agrupa cambios próximos antes de solicitar un nuevo render."""
         if self._ui_ready:
             for renderer in self._preview_renderers.values():
                 renderer.request()
 
     def _imagen_preview(self, label, image, placeholder, key):
+        """Prepara la imagen reducida que usa la tarjeta de vista previa."""
         previous = self._preview_content.get(key)
         self._preview_content[key] = (label, image, placeholder)
         if image is None:
@@ -516,6 +533,7 @@ class LqipFrame(BaseFrame):
         self._preview_renderers[key].request()
 
     def _dibujar_preview(self, key, measurements):
+        """Dibuja la imagen y el resultado seleccionado en el panel."""
         content = self._preview_content.get(key)
         if content is None or content[1] is None:
             return
@@ -537,6 +555,7 @@ class LqipFrame(BaseFrame):
         label.configure(text='')
 
     def _render_selected(self):
+        """Renderiza solo el resultado y formato seleccionados actualmente."""
         if not self._ui_ready:
             return
         index = self._selected_index
@@ -599,13 +618,16 @@ class LqipFrame(BaseFrame):
         self._actualizar_codigo()
 
     def _obtener_clave_campo(self):
+        """Resuelve el campo de resultado asociado a un formato visible."""
         return self._campo_a_clave[self._campo_export.get()]
 
     def _codigo_seleccionado(self):
+        """Obtiene el código completo del formato activo."""
         item = self._results.get(self._selected_index) if self._selected_index is not None else None
         return item.result[self._obtener_clave_campo()] if item and item.result else ''
 
     def _actualizar_codigo(self):
+        """Actualiza el bloque de código según el formato activo."""
         key = self._obtener_clave_campo()
         self._lbl_format_help.configure(text=t('lqip_help_' + key))
         content = self._codigo_seleccionado()
@@ -624,6 +646,7 @@ class LqipFrame(BaseFrame):
         self._schedule_viewport_sync()
 
     def _actualizar_acciones(self):
+        """Sincroniza copiar y guardar con la selección de resultados."""
         if not hasattr(self, '_btn_guardar'):
             return
         item = self._results.get(self._selected_index) if self._selected_index is not None else None
@@ -635,6 +658,7 @@ class LqipFrame(BaseFrame):
         )
 
     def _procesar(self):
+        """Captura selección y opciones antes de generar resultados en segundo plano."""
         if self._busy or not self._imagenes or not self._actualizar_validacion():
             return
         paths = tuple(self._imagenes)
@@ -654,6 +678,7 @@ class LqipFrame(BaseFrame):
             self._lbl_info.configure(text=t('lqip_busy'))
 
     def _finalizar(self, revision, items):
+        """Actualiza la vista al recibir el resultado vigente del worker."""
         self._busy = False
         if revision == self._revision:
             items = [item for item in items if item.index == 0 and self._imagenes and item.path == self._imagenes[0]][:1]
@@ -664,12 +689,14 @@ class LqipFrame(BaseFrame):
         self._actualizar_acciones()
 
     def _fallo_generacion(self, revision, error):
+        """Muestra el error de generación y libera el estado ocupado."""
         self._busy = False
         if revision == self._revision:
             self._lbl_info.configure(text=f'{t("lqip_item_error")}: {error}')
         self._actualizar_acciones()
 
     def _copiar(self):
+        """Copia el código completo sin truncar el texto mostrado."""
         content = self._codigo_seleccionado()
         if not content:
             return
@@ -701,6 +728,7 @@ class LqipFrame(BaseFrame):
         return None
 
     def _guardar(self):
+        """Exporta el código seleccionado a un archivo de texto."""
         if not self._state.resultados:
             return
         path = filedialog.asksaveasfilename(
@@ -720,14 +748,17 @@ class LqipFrame(BaseFrame):
             self._lbl_info.configure(text=f'{t("error_generic")}: {error}')
 
     def _limpiar(self):
+        """Cancela trabajos y restablece selección, resultados y controles."""
         self._cargar_imagenes([])
         self._lbl_info.configure(text='')
 
     def on_view_hidden(self):
+        """Pausa actualizaciones visuales mientras la vista está oculta."""
         for renderer in self._preview_renderers.values():
             renderer.set_visible(False)
 
     def on_view_shown(self):
+        """Reanuda la vista y valida si hace falta refrescar el contenido."""
         super().on_view_shown()
         if self._source_job is None:
             self._source_job = self.after(40, self._recibir_originales)
@@ -735,6 +766,7 @@ class LqipFrame(BaseFrame):
             renderer.set_visible(True)
 
     def destroy(self):
+        """Invalida callbacks pendientes antes de destruir la vista."""
         self._revision += 1
         self._source_revision += 1
         for renderer in self._preview_renderers.values():

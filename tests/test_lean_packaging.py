@@ -1,3 +1,5 @@
+"""Pruebas de regresión para lean packaging y sus contratos asociados."""
+
 from pathlib import Path
 import os
 import subprocess
@@ -77,7 +79,7 @@ def test_dynamic_registry_modules_are_included_without_importing_ui():
 
 def test_linux_package_keeps_fontconfig_and_xft_for_private_ui_fonts():
     import yaml
-    # Avoid parsing the workflow's unrelated !ENV interpolation tags.
+    # Ignora las etiquetas !ENV del workflow que no forman parte de esta validación.
     text = (ROOT / 'packaging/linux/AppImageBuilder.yml').read_text(encoding='utf-8')
     include = text.split('    include:', 1)[1].split('  files:', 1)[0]
     assert {'libfontconfig1', 'libxft2', 'libfreetype6'} <= set(yaml.safe_load(include))

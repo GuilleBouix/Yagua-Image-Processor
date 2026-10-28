@@ -10,6 +10,7 @@ from app.ui import colors
 
 @dataclass(frozen=True)
 class Palette:
+    """Agrupa colores y tokens visuales compartidos por los módulos."""
     background: str
     panel: str
     inset: str
@@ -24,7 +25,9 @@ class Palette:
 
 
 def contrast(first, second):
+    """Calcula la relación de contraste entre dos colores hexadecimales."""
     def luminance(hex_color):
+        """Convierte un color sRGB a luminancia relativa para elegir texto legible."""
         values = [int(hex_color[i:i + 2], 16) / 255 for i in (1, 3, 5)]
         linear = [v / 12.92 if v <= .04045 else ((v + .055) / 1.055) ** 2.4 for v in values]
         return sum(v * weight for v, weight in zip(linear, (.2126, .7152, .0722)))
@@ -33,7 +36,7 @@ def contrast(first, second):
 
 
 def palette():
-    """Resolve at construction time; never change another view's theme globals."""
+    """Resuelve los colores al crear el widget y no modifica el tema global de otras vistas."""
     default = colors.get_current_theme() == 'Default'
     primary_text = '#0A0A0B' if default else max(
         (colors.TEXT_ACTIVE, colors.FRAMES_BG, colors.TEXT_COLOR),
@@ -54,12 +57,14 @@ def palette():
 
 
 def surface(role) -> dict[str, Any]:
+    """Devuelve los colores y bordes del tipo de superficie solicitado."""
     p = palette()
     return dict(corner_radius=0, border_width=1, border_color=p.border,
                 fg_color=p.inset if role == 'list' else p.panel)
 
 
 def scrollbar() -> dict[str, Any]:
+    """Devuelve los colores de la barra según el tema vigente."""
     p = palette()
     return dict(scrollbar_fg_color=p.inset,
                 scrollbar_button_color='#48484A' if colors.get_current_theme() == 'Default' else colors.ACENTO_DIMMED,
@@ -69,6 +74,7 @@ def scrollbar() -> dict[str, Any]:
 class Button(ctk.CTkButton):
     """Primary/secondary roles with reversible disabled, hover and focus states."""
     def __init__(self, parent, *, role='secondary', secondary_bg=None, **kwargs):
+        """Configura rol visual, estados de foco y respuesta de teclado del botón."""
         self._design_palette = palette()
         self._design_role = role
         self._design_hover = False
@@ -98,10 +104,12 @@ class Button(ctk.CTkButton):
         self._paint_state()
 
     def _set_focus(self, focused):
+        """Actualiza el foco accesible y vuelve a pintar el botón."""
         self._design_focus = focused
         self._paint_state()
 
     def _paint_state(self):
+        """Combina rol, foco, hover y estado deshabilitado en los colores del botón."""
         p = self._design_palette
         disabled = self.cget('state') == 'disabled'
         primary = self._design_role == 'primary'
@@ -124,6 +132,7 @@ class Button(ctk.CTkButton):
                 super().configure(image=image)
 
     def configure(self, require_redraw=False, **kwargs):
+        """Sincroniza cambios de estado con la apariencia del botón."""
         state_changed = 'state' in kwargs
         super().configure(require_redraw=require_redraw, **kwargs)
         if state_changed:
@@ -131,11 +140,13 @@ class Button(ctk.CTkButton):
             self._paint_state()
 
     def _on_enter(self, event=None):
+        """Activa el borde de hover al entrar el puntero."""
         self._design_hover = True
         self._paint_state()
         super()._on_enter(event)
 
     def _on_leave(self, event=None):
+        """Retira el borde de hover al salir el puntero."""
         self._design_hover = False
         self._paint_state()
         super()._on_leave(event)
@@ -144,11 +155,13 @@ class Button(ctk.CTkButton):
 class NavigationButton(Button):
     """Solid navigation states; reserve an outline for keyboard focus only."""
     def _paint_state(self):
+        """Conserva el fondo de navegación y reserva el borde para el foco."""
         super()._paint_state()
         if not self._design_focus or self.cget('state') == 'disabled':
             super().configure(border_width=0)
 
     def set_selected(self, selected, image):
+        """Cambia selección, color e icono del acceso de navegación."""
         p = self._design_palette
         self._design_role = 'primary' if selected else 'secondary'
         self._design_normal_image = image
@@ -161,6 +174,7 @@ class NavigationButton(Button):
 class SegmentedButton(ctk.CTkSegmentedButton):
     """CTk segments need separate text colors for selected and unselected items."""
     def __init__(self, parent, **kwargs):
+        """Crea segmentos con colores distintos para opciones elegidas y libres."""
         self._design_palette = palette()
         p = self._design_palette
         super().__init__(parent, corner_radius=0, border_width=1, height=30,
@@ -170,17 +184,19 @@ class SegmentedButton(ctk.CTkSegmentedButton):
                          text_color=p.text, text_color_disabled=p.muted, **kwargs)
 
     def _create_button(self, index, value):
+        """Construye cada opción como un botón con el estilo compartido."""
         button = Button(self, width=0, height=self._current_height,
                       secondary_bg=self._design_palette.inset,
                       text=value, font=self._font, state=self._state,
                       command=lambda: self.set(value, from_button_callback=True),
                       round_width_to_even_numbers=False, round_height_to_even_numbers=False)
-        # Horizontal breathing room without increasing the compact row's height.
+        # Agrega espacio horizontal sin aumentar la altura compacta de la fila.
         if button._text_label is not None:
             button._text_label.grid_configure(padx=8)
         return button
 
     def _select_button_by_value(self, value):
+        """Aplica el rol primario al segmento seleccionado."""
         super()._select_button_by_value(value)
         button = self._buttons_dict[value]
         assert isinstance(button, Button)
@@ -189,6 +205,7 @@ class SegmentedButton(ctk.CTkSegmentedButton):
         button._paint_state()
 
     def _unselect_button_by_value(self, value):
+        """Devuelve al rol secundario el segmento que dejó de estar seleccionado."""
         super()._unselect_button_by_value(value)
         if value in self._buttons_dict:
             button = self._buttons_dict[value]
@@ -198,6 +215,7 @@ class SegmentedButton(ctk.CTkSegmentedButton):
             button._paint_state()
 
     def configure(self, require_redraw=False, **kwargs):
+        """Propaga estado deshabilitado y selección a los botones internos."""
         super().configure(require_redraw=require_redraw, **kwargs)
         if 'state' in kwargs:
             p = self._design_palette
@@ -211,6 +229,7 @@ class SegmentedButton(ctk.CTkSegmentedButton):
 class Entry(ctk.CTkEntry):
     """Square input with the shared inset surface and stable focus outline."""
     def __init__(self, parent, **kwargs):
+        """Configura superficie, texto y eventos de foco del campo de entrada."""
         self._design_palette = palette()
         self._design_hover = self._design_focus = False
         p = self._design_palette
@@ -223,10 +242,12 @@ class Entry(ctk.CTkEntry):
         self.bind('<FocusOut>', lambda event=None: self._set_state('_design_focus', False), add=True)
 
     def _set_state(self, name, value):
+        """Actualiza una marca de foco o hover y refresca los colores."""
         setattr(self, name, value)
         self._paint_state()
 
     def _paint_state(self):
+        """Dibuja borde y texto según foco, puntero y estado del campo."""
         p = self._design_palette
         disabled = self.cget('state') == 'disabled'
         border = p.border if disabled else p.text if self._design_focus else p.hover_border if self._design_hover else p.border
@@ -235,14 +256,16 @@ class Entry(ctk.CTkEntry):
                           text_color=p.muted if disabled else p.text)
 
     def configure(self, require_redraw=False, **kwargs):
+        """Recalcula la apariencia cuando cambia el estado del campo."""
         super().configure(require_redraw=require_redraw, **kwargs)
         if 'state' in kwargs:
             self._paint_state()
 
 
 class ComboBox(ctk.CTkComboBox):
-    """Preserve CTk's editable selector with the shared square input styling."""
+    """Conserva la edición de CTk y aplica el estilo cuadrado compartido."""
     def __init__(self, parent, **kwargs):
+        """Configura el selector editable y conecta su estado de foco."""
         self._design_palette = palette()
         self._design_hover = self._design_focus = False
         p = self._design_palette
@@ -256,20 +279,24 @@ class ComboBox(ctk.CTkComboBox):
         self.bind('<FocusOut>', lambda event: self._set_state('_design_focus', False), add=True)
 
     def _draw(self, no_color_updates=False):
+        """Dibuja el selector y repasa el borde del área de flecha."""
         super()._draw(no_color_updates)
         self._outline_arrow()
 
     def _outline_arrow(self):
-        # CTk normally paints the arrow section's border with its fill color.
+        # CTk suele pintar el borde de la flecha con el mismo color de relleno.
+        """Mantiene visible el contorno del botón desplegable de CTk."""
         self._canvas.itemconfig('border_parts_right',
                                 fill=self._apply_appearance_mode(self._border_color),
                                 outline=self._apply_appearance_mode(self._border_color))
 
     def _set_state(self, name, value):
+        """Actualiza foco o hover y repinta el selector."""
         setattr(self, name, value)
         self._paint_state()
 
     def _paint_state(self):
+        """Ajusta colores del campo y la flecha según su estado."""
         p = self._design_palette
         disabled = self.cget('state') == 'disabled'
         border = p.border if disabled else p.text if self._design_focus else p.hover_border if self._design_hover else p.border
@@ -278,16 +305,19 @@ class ComboBox(ctk.CTkComboBox):
                           button_color=p.disabled if disabled else p.inset)
 
     def configure(self, require_redraw=False, **kwargs):
+        """Repinta el selector cuando cambia a deshabilitado o normal."""
         super().configure(require_redraw=require_redraw, **kwargs)
         if 'state' in kwargs:
             self._paint_state()
 
     def _on_enter(self, event=0):
+        """Actualiza hover y vuelve a dibujar el borde de la flecha."""
         self._set_state('_design_hover', True)
         super()._on_enter(event)
         self._outline_arrow()
 
     def _on_leave(self, event=0):
+        """Retira hover y vuelve a dibujar el borde de la flecha."""
         self._set_state('_design_hover', False)
         super()._on_leave(event)
         self._outline_arrow()
@@ -296,6 +326,7 @@ class ComboBox(ctk.CTkComboBox):
 class CheckBox(ctk.CTkCheckBox):
     """Square checkboxes use the same selection colors as segmented controls."""
     def __init__(self, parent, **kwargs):
+        """Aplica colores comunes y permite activar el control con teclado."""
         p = palette()
         super().__init__(parent, corner_radius=0, border_width=1,
                          fg_color=p.primary, hover_color=p.primary_hover,
@@ -309,8 +340,9 @@ class CheckBox(ctk.CTkCheckBox):
 
 
 class Switch(ctk.CTkSwitch):
-    """Keep the functional switch shape, with a visible thumb in both states."""
+    """Mantiene la forma funcional del interruptor y un indicador visible en ambos estados."""
     def __init__(self, parent, **kwargs):
+        """Configura colores de ambos estados y accesos de teclado del interruptor."""
         self._design_palette = palette()
         self._design_focus = False
         p = self._design_palette
@@ -324,10 +356,12 @@ class Switch(ctk.CTkSwitch):
         self.bind('<space>', lambda event=None: self.toggle(), add=True)
 
     def _set_focus(self, focused):
+        """Marca el foco y redibuja el interruptor."""
         self._design_focus = focused
         self._draw()
 
     def _draw(self, no_color_updates=False):
+        """Dibuja el estado marcado, deshabilitado, hover y foco sin ocultar el indicador."""
         p = self._design_palette
         disabled = self._state == 'disabled'
         self._button_color = '#FFFFFF' if self._check_state and not disabled else p.muted
@@ -342,16 +376,20 @@ class Switch(ctk.CTkSwitch):
         super()._draw(no_color_updates=False)
 
     def _on_enter(self, event=0):
+        """Actualiza hover y repinta el estado del interruptor."""
         super()._on_enter(event)
         self._draw()
 
     def _on_leave(self, event=0):
+        """Retira hover y repinta el estado del interruptor."""
         super()._on_leave(event)
         self._draw()
 
 
 class _Menu(ctk.CTkOptionMenu):
+    """Implementa un menú compatible con tema, estados y teclado."""
     def configure(self, require_redraw=False, **kwargs):
+        """Propaga cambios de estado al marco exterior que dibuja su borde."""
         super().configure(require_redraw=require_redraw, **kwargs)
         if 'state' in kwargs:
             assert isinstance(self.master, OptionField)
@@ -359,8 +397,9 @@ class _Menu(ctk.CTkOptionMenu):
 
 
 class OptionField(ctk.CTkFrame):
-    """A one-pixel outline around a CTk menu, with an integrated dark arrow."""
+    """Enmarca el menú CTk con un borde fino y una flecha integrada."""
     def __init__(self, parent, **kwargs):
+        """Integra un menú desplegable con un borde accesible y controles de teclado."""
         p = palette()
         self._design_palette = p
         self._design_hover = self._design_focus = False
@@ -384,10 +423,12 @@ class OptionField(ctk.CTkFrame):
         self.menu.bind('<space>', lambda event: self.menu._clicked(), add=True)
 
     def _set_state(self, name, value):
+        """Actualiza el foco o hover y solicita redibujar el marco."""
         setattr(self, name, value)
         self._paint_state()
 
     def _paint_state(self):
+        """Elige el borde del menú según foco, hover y disponibilidad."""
         p = self._design_palette
         disabled = self.menu.cget('state') == 'disabled'
         border = p.border if disabled else p.text if self._design_focus else p.hover_border if self._design_hover else p.border

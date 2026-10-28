@@ -14,6 +14,7 @@ class WatermarkState:
     """Estado del modulo de marca de agua."""
 
     def __init__(self):
+        """Inicializa valores de marca de agua y revisión del preview."""
         self.imagenes = []
 
         # Ruta de la imagen watermark seleccionada

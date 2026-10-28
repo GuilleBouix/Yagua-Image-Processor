@@ -1,3 +1,5 @@
+"""Pruebas de regresión para apply version y sus contratos asociados."""
+
 from __future__ import annotations
 
 import importlib.util

@@ -22,7 +22,7 @@ dans l'application organisées par section :
 
 TRANSLATIONS = {
     'documentation': 'Documentation',
-    # App
+    # Aplicación
     'app_title': 'Yagua - Processeur d\'Images',
     'loading_model': 'Chargement du modèle...',
     'downloading_model': 'Téléchargement du modèle...',
@@ -31,7 +31,7 @@ TRANSLATIONS = {
     'removing_bg': 'Suppression du fond...',
     'limit_reached': '{limit} sur {total} images chargées (limite maximale).',
     
-    # Sidebar
+    # Barra lateral
     'compress': 'Compresser',
     'convert': 'Convertir',
     'remove_bg': 'Supprimer Fond',
@@ -75,7 +75,7 @@ TRANSLATIONS = {
     'converted_to_plural': 'converties en',
     'load_images_first_convert': 'Veuillez charger au moins une image.',
     
-    # Quitar Fondo
+    # Quitar fondo
     'remove_bg_title': 'Supprimer le Fond',
     'background_type': 'Fond résultant',
     'bg_transparent': 'Transparent',
@@ -103,7 +103,7 @@ TRANSLATIONS = {
     'remove_bg_description': 'Optimisé pour les produits et les fonds clairs : supprime le fond et affine automatiquement les contours.',
     'remove_bg_fallback_notice': 'Modèle de compatibilité utilisé ({model})',
 
-    # Palette
+    # Paleta
     'palette_title': 'Palette de couleurs',
     'colors_to_extract': 'Couleurs à extraire',
     'load_image_for_palette': 'Charger une image pour voir la palette',
@@ -152,7 +152,7 @@ TRANSLATIONS = {
     'renamed': 'renommés',
     'rename_conflicts': 'conflits ignorés',
 
-    # Metadata
+    # Metadatos
     'metadata_title': 'Métadonnées EXIF',
     'view': 'Voir',
     'edit': 'Modifier',
@@ -278,7 +278,7 @@ TRANSLATIONS = {
     'select_output_folder_clean': 'Dossier de sortie',
     'without_exif': 'sans_exif',
     
-    # Resize
+    # Redimensionar
     'resize_title': 'Redimensionner',
     'resize_tab': 'Redimensionner',
     'crop_tab': 'Recadrer',
@@ -390,7 +390,7 @@ TRANSLATIONS = {
     'ocr_lang_es': 'Espagnol',
     'ocr_lang_en': 'Anglais',
     'select_language': 'Choisir la langue',
-    # Watermark
+    # Marca de agua
     "watermark_title": "Filigrane",
     "watermark_select_wm": "Sélectionner l'image du filigrane",
     "watermark_preset": "Préréglage",
@@ -419,7 +419,7 @@ TRANSLATIONS = {
     "watermark_preview_placeholder": "Charger une image pour l'aperçu",
     "watermark_calculando": "Mise à jour de l'aperçu...",
 
-    # Settings
+    # Ajustes
     'settings_title': 'Paramètres',
     'language': 'Langue',
     'appearance': 'Apparence',
@@ -482,7 +482,7 @@ TRANSLATIONS['restart_when_idle'] = 'Une opération est active. Redémarrer apr�
 TRANSLATIONS['invalid_filename'] = 'Le nom du fichier de destination est invalide.'
 
 
-# Metadata collection and batch operations.
+# Catálogo de metadatos y operaciones por lote.
 TRANSLATIONS.update({
     'meta_search_fields': 'Rechercher un champ…',
     'meta_all_sections': 'Toutes les sections',
@@ -530,7 +530,7 @@ TRANSLATIONS.update({
 TRANSLATIONS["meta_source_changed"] = 'Le fichier a changé depuis son chargement. Sélectionnez-le à nouveau avant de l’enregistrer.'
 
 
-# UI startup and preloading.
+# Inicio de la interfaz y precarga de módulos.
 TRANSLATIONS.update({
     'startup_resources': 'Préparation de Yagua…',
     'startup_home': 'Préparation de l’accueil…',
@@ -561,7 +561,7 @@ TRANSLATIONS.update({
 })
 
 
-# Contextual metadata UI.
+# Interfaz contextual de metadatos.
 TRANSLATIONS.update({
     'meta_start': 'Ajoutez des images pour commencer',
     'meta_read_only_short': 'Lecture seule. Les métadonnées des images JPEG et TIFF sont modifiables.',
@@ -577,7 +577,7 @@ TRANSLATIONS.update({
     'meta_selected_count': '{marked} sélectionnées',
 })
 
-# Local legal information in Settings.
+# Información legal local en Ajustes.
 TRANSLATIONS.update({
     "legal_title": "Fichiers, connexions et licences",
     "legal_originals": "Renommer et modifier les métadonnées modifie les fichiers sélectionnés. Nous recommandons de travailler sur des copies de sauvegarde.",

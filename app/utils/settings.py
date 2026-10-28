@@ -46,6 +46,7 @@ def load_settings(path: Path | None = None) -> dict:
 
 
 def save_settings(data: dict, path: Path | None = None) -> None:
+    """Guarda preferencias mediante un reemplazo atómico del archivo local."""
     from app.utils.output import atomic_write_text
     if not isinstance(data, dict):
         raise ValueError('Preferences must be an object')

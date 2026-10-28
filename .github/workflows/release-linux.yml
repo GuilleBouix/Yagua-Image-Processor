@@ -1,4 +1,5 @@
 name: Publish validated Linux candidate
+# La publicación verifica el manifiesto y hashes del candidato existente.
 
 on:
   workflow_dispatch:

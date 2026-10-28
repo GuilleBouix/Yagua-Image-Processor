@@ -17,6 +17,7 @@ class SettingsState:
     """Almacena el estado reactivo de la interfaz de ajustes."""
 
     def __init__(self):
+        """Carga el estado inicial de idioma, escala y módulos visibles."""
         self.lang_var: ctk.StringVar = ctk.StringVar(value=get_language())
         self.theme_var: ctk.StringVar = ctk.StringVar(value=colors.get_current_theme())
         self.scale_var: ctk.StringVar = ctk.StringVar(value=f'{get_ui_scale()}%')

@@ -1,4 +1,5 @@
 name: Validated candidates (no publication)
+# Valida primero el origen y después construye los candidatos por plataforma.
 'on':
   workflow_dispatch:
     inputs:

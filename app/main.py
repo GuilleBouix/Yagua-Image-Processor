@@ -33,13 +33,14 @@ def main():
             format='%(asctime)s [%(levelname)s] %(name)s: %(message)s',
         )
     except OSError:
-        # A read-only profile must not prevent the app from starting.
+        # Un perfil de solo lectura no debe impedir el inicio de la aplicación.
         logging.basicConfig(handlers=[logging.NullHandler()], level=logging.INFO)
     logging.getLogger('PIL').setLevel(logging.WARNING)
     logging.getLogger('customtkinter').setLevel(logging.WARNING)
 
     # Capturar excepciones no manejadas
     def _excepthook(exc_type, exc, tb):
+        """Registra excepciones no capturadas sin impedir el cierre normal de la aplicación."""
         logging.getLogger(__name__).exception("Excepcion no manejada", exc_info=(exc_type, exc, tb))
         return sys.__excepthook__(exc_type, exc, tb)
 

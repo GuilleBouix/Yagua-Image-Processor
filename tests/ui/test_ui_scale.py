@@ -1,3 +1,5 @@
+"""Pruebas de interfaz para ui scale y sus estados principales."""
+
 from app.ui import scale
 
 

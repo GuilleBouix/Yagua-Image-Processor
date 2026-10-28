@@ -118,6 +118,7 @@ class OcrFrame(BaseFrame):
         self._post_ui(0, self._inicializar_en_background)
 
     def _on_build_complete(self):
+        """Conecta eventos una vez creada la estructura del módulo OCR."""
         super()._on_build_complete()
         for frame in (self, self._lista_frame):
             if isinstance(frame, ctk.CTkScrollableFrame):
@@ -189,6 +190,7 @@ class OcrFrame(BaseFrame):
         self._state.idiomas.set(idiomas_str)
         idiomas = tuple(idiomas_str.split(','))
         def _worker():
+            """Ejecuta OCR en segundo plano y devuelve resultados sin tocar widgets."""
             ok = True
             try:
                 ensure_reader(idiomas)
@@ -200,6 +202,7 @@ class OcrFrame(BaseFrame):
         self._submit_job(_worker, on_success=self._finalizar_init, on_error=lambda error: self._finalizar_init(False))
 
     def _finalizar_init(self, ok: bool):
+        """Prepara el módulo después de cargar dependencias y controles."""
         if ok:
             self._ocr_ready = True
             self._btn_procesar.configure(state='normal')

@@ -1,3 +1,5 @@
+"""Pruebas de regresión para checkpoint exports y sus contratos asociados."""
+
 import copy
 import hashlib
 import json

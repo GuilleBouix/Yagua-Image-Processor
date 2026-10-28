@@ -1,4 +1,4 @@
-"""Official project destinations shared by Home and the sidebar."""
+"""Enlaces oficiales del proyecto compartidos por Inicio y la barra lateral."""
 
 import webbrowser
 

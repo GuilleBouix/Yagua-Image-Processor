@@ -1,4 +1,5 @@
 """Tiny isolated Actions transport probe; never produces a Yagua candidate."""
+# Prueba el transporte de Actions con cargas pequeñas y aisladas.
 import argparse
 import json
 import os
@@ -7,6 +8,7 @@ from scripts.ci import checkpoints as cp
 
 
 def main():
+    """Ejecuta una prueba pequeña del transporte de artefactos entre jobs."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('mode', choices=['seed', 'consume'])
     parser.add_argument('--dependency')

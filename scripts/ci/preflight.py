@@ -1,4 +1,5 @@
 """Fast source checks before downloading environments or compiling candidates."""
+# Ejecuta comprobaciones rápidas antes de preparar entornos o compilar.
 import argparse
 import ast
 import json
@@ -15,6 +16,7 @@ from scripts.licensing import validate_catalog  # noqa: E402
 
 
 def check_version(version: str, platform: str, root: Path = ROOT) -> None:
+    """Valida que la versión candidata coincida con los metadatos del instalador o release."""
     if not re.fullmatch(r'\d+\.\d+\.\d+(?:-[0-9A-Za-z][0-9A-Za-z.-]*)?', version):
         raise ValueError('Invalid candidate version')
     check_source_version(version)
@@ -37,8 +39,9 @@ def check_version(version: str, platform: str, root: Path = ROOT) -> None:
 
 
 def check_stage_initializer(text: str) -> None:
-    # This package marker is intentionally inert. Executable shared helpers
-    # belong in common.py, which is an input of every stage using them.
+    # Este marcador de paquete es intencionalmente inerte. Los helpers ejecutables
+    # van en common.py, que es una entrada de cada etapa que los utiliza.
+    """Exige que los inicializadores de etapas sigan siendo declarativos."""
     tree = ast.parse(text)
     if any(not (isinstance(node, ast.Expr) and isinstance(node.value, ast.Constant)
                 and isinstance(node.value.value, str)) for node in tree.body):
@@ -46,6 +49,7 @@ def check_stage_initializer(text: str) -> None:
 
 
 def main():
+    """Ejecuta validaciones tempranas antes de descargar dependencias o compilar."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--version')
     parser.add_argument('--platform', choices=['windows', 'linux'], default='')

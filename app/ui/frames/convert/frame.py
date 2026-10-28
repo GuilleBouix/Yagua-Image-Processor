@@ -200,6 +200,7 @@ class ConvertFrame(BaseFrame):
         yield
 
     def _on_build_complete(self):
+        """Conecta acciones y estado cuando terminó la construcción del módulo."""
         super()._on_build_complete()
         self._virtual_file_list = FileList(
             self._lista_frame, self._filas_lista, self._thumbs, design_system=True
@@ -295,6 +296,7 @@ class ConvertFrame(BaseFrame):
         paths = tuple(self._imagenes)
         fmt, quality = self._state.fmt_destino.get(), self._state.calidad.get()
         def start(folder, plan):
+            """Valida formato y selección antes de iniciar el lote de conversión."""
             self._show_full_overlay(t('processing'))
             self._submit_job(lambda: batch_convertir_safe(paths, fmt_destino=fmt,
                 carpeta_salida=folder, calidad=quality, output_policy=plan),
@@ -303,6 +305,7 @@ class ConvertFrame(BaseFrame):
         self._prepare_save(paths, fmt, start)
 
     def _fallo_conversion(self, error):
+        """Muestra el error del lote y restaura los controles del módulo."""
         logger.exception("convert.ui: fallo general", exc_info=error)
         self._btn_convertir.configure(state='normal', text=t('convert_btn'))
         self._hide_full_overlay()

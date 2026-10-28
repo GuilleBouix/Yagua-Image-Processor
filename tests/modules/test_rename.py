@@ -1,3 +1,5 @@
+"""Pruebas de regresión del módulo de procesamiento rename."""
+
 from pathlib import Path
 
 from app.modules.rename import generar_nombres_preview, renombrar_archivos

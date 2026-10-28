@@ -21,10 +21,12 @@ def _settings_path() -> Path:
 
 
 def _load_settings() -> dict:
+    """Carga preferencias y devuelve valores predeterminados ante datos inválidos."""
     return load_settings(_settings_path())
 
 
 def _save_settings(settings: dict) -> None:
+    """Guarda las preferencias locales mediante el servicio compartido."""
     save_settings(settings, _settings_path())
 
 
@@ -119,6 +121,7 @@ def restart_app() -> None:
             raise RuntimeError('Cannot restart during an active operation')
         if messagebox.askyesno(t('app_title'), t('restart_when_idle'), parent=root):
             def wait():
+                """Espera a que un reinicio o cierre diferido pueda continuar."""
                 if operations.is_busy():
                     root.after(100, wait)
                 else:

@@ -1,4 +1,4 @@
-"""Combine successful frozen-package checks with measured artifact sizes."""
+"""Combina las pruebas del paquete congelado con las mediciones de tamaño."""
 
 import json
 import os
@@ -10,6 +10,7 @@ sys.path.insert(0, str(ROOT))
 
 
 def main() -> None:
+    """Combina verificaciones del paquete Linux y tamaños medidos en un informe."""
     from scripts.ci.check_linux_size import MAX_BYTES
     from scripts.ci.extract_release_notes import _extract_section
 

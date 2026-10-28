@@ -1,4 +1,4 @@
-"""Offline technical checks for notices, not a legal compliance certificate."""
+"""Comprobaciones técnicas locales de avisos; no certifican cumplimiento legal."""
 from __future__ import annotations
 
 import fnmatch
@@ -13,19 +13,22 @@ from packaging.requirements import Requirement
 
 
 class LicenseError(ValueError):
-    """A required legal resource is missing, changed or inconsistent."""
+    """Falta un recurso legal requerido, cambió o no coincide con el inventario."""
 
 
 def canonical_name(name: str) -> str:
+    """Normaliza el nombre de una distribución para comparar inventarios."""
     return re.sub(r'[-_.]+', '-', name).lower()
 
 
 def digest(path: Path) -> str:
+    """Calcula el SHA-256 de un recurso legal o binario."""
     with path.open('rb') as stream:
         return hashlib.file_digest(stream, 'sha256').hexdigest()
 
 
 def checked_path(root: Path, relative: str) -> Path:
+    """Resuelve una ruta dentro del repositorio y rechaza escapes."""
     parts = PurePosixPath(relative)
     if parts.is_absolute() or '\\' in relative or ':' in relative or '..' in parts.parts:
         raise LicenseError(f'Unsafe legal path: {relative}')
@@ -36,6 +39,7 @@ def checked_path(root: Path, relative: str) -> Path:
 
 
 def requirements(root: Path, platform: str) -> dict[str, str]:
+    """Lee las versiones fijadas para la plataforma solicitada."""
     result = {}
     for line in (root / 'requirements.txt').read_text(encoding='utf-8').splitlines():
         if not line.strip() or line.lstrip().startswith('#'):
@@ -56,6 +60,7 @@ def requirements(root: Path, platform: str) -> dict[str, str]:
 
 
 def validate_catalog(root: Path, *, check_requirements: bool = True) -> dict:
+    """Valida estructura, versiones, hashes y procedencia del inventario legal."""
     catalog = json.loads((root / 'legal/inventory.json').read_text(encoding='utf-8'))
     if catalog.get('schema_version') != 1 or catalog.get('legal_approval') is not False:
         raise LicenseError('Unsupported legal inventory schema')
@@ -73,7 +78,7 @@ def validate_catalog(root: Path, *, check_requirements: bool = True) -> dict:
                       if platform in p['versions']}
             if actual != expected:
                 raise LicenseError(f'Legal inventory differs from {platform} runtime pins')
-        # New shipped resources require an explicit provenance record, not an inferred license.
+        # Los recursos nuevos requieren una procedencia declarada; no se infiere su licencia.
         resources = {a['path'] for a in catalog['assets']}
         current = {p.relative_to(root).as_posix() for p in (root / 'assets').rglob('*')
                    if p.is_file() and p.suffix.lower() in {'.ttf', '.otf', '.png', '.ico', '.bmp', '.icns'}}
@@ -129,8 +134,9 @@ def validate_catalog(root: Path, *, check_requirements: bool = True) -> dict:
 
 
 def legal_data(root: Path) -> list[tuple[str, str]]:
+    """Enumera los documentos legales incluidos como datos de la aplicación."""
     catalog = validate_catalog(root)
-    # inventory.json indexes the immutable originals; validate it before packaging.
+    # inventory.json identifica los originales inmutables; valídalo antes de empaquetar.
     paths = [root / name for name in catalog['files']]
     paths += [root / 'legal/inventory.json']
     return [(str(p), p.relative_to(root).parent.as_posix()) for p in paths]
@@ -151,7 +157,7 @@ def notice_files(distribution) -> list[tuple[Path, str]]:
         source = Path(distribution.locate_file(file))
         if not source.is_file():
             raise LicenseError(f'Notice recorded but missing: {distribution.metadata["Name"]}/{relative}')
-        # RECORD may point at ../Library/share/doc. Keep its structure without escaping legal/.
+        # RECORD puede apuntar a ../Library/share/doc. Conserva su estructura dentro de legal/.
         safe = PurePosixPath(*('_parent_' if p == '..' else p for p in parts)).as_posix()
         checked_path(Path('.'), safe)
         result.append((source, safe))
@@ -159,6 +165,7 @@ def notice_files(distribution) -> list[tuple[Path, str]]:
 
 
 def installed_notices(root: Path, platform: str | None = None, distributions=None) -> tuple[list, dict]:
+    """Recopila avisos de las dependencias instaladas en esta plataforma."""
     catalog = validate_catalog(root)
     platform = platform or ('win32' if sys.platform == 'win32' else 'linux')
     expected = requirements(root, platform)
@@ -174,7 +181,7 @@ def installed_notices(root: Path, platform: str | None = None, distributions=Non
             destination = f'legal/installed-notices/{name}/{relative}'
             notices.append({'path': destination, 'sha256': digest(source), 'wheel_record': relative})
             datas.append((str(source), PurePosixPath(destination).parent.as_posix()))
-        # Some wheels omit their license; the reviewed pinned upstream original is vendored.
+        # Algunos wheels omiten su licencia; se incluye el original upstream revisado y fijado.
         fallback = next(p['notices'] for p in catalog['packages'] if p['name'] == name)
         entries.append({'name': name, 'version': version, 'notices': notices,
                         'catalog_notices': fallback})
@@ -184,6 +191,7 @@ def installed_notices(root: Path, platform: str | None = None, distributions=Non
 
 
 def package_resources(package: Path) -> Path:
+    """Localiza los documentos legales incluidos en un paquete congelado."""
     for relative in ('_internal', 'usr/lib/yagua/_internal', '.'):
         candidate = package / relative
         if (candidate / 'legal/inventory.json').is_file():
@@ -192,6 +200,7 @@ def package_resources(package: Path) -> Path:
 
 
 def verify_package(package: Path, platform: str) -> dict:
+    """Comprueba recursos legales y versiones dentro del paquete final."""
     root = package_resources(package)
     catalog = validate_catalog(root, check_requirements=False)
     report_path = root / 'legal/installed-inventory.json'
@@ -227,7 +236,7 @@ def verify_package(package: Path, platform: str) -> dict:
 
 
 def verify_models(models: Path, catalog: dict) -> list[dict]:
-    """Check explicit disposable model directories only; never download weights."""
+    """Comprueba solo modelos explícitos y descartables; nunca los descarga."""
     result = []
     for model in catalog['models']:
         paths = [p for p in models.rglob(model['name']) if p.is_file()]

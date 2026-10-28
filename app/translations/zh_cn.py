@@ -1,4 +1,4 @@
-"""Complete UI translation; OCR recognition languages remain independent."""
+"""Traducción completa de la interfaz; los idiomas de reconocimiento OCR se mantienen independientes."""
 
 TRANSLATIONS = {
     'documentation': '文档',
@@ -432,7 +432,7 @@ TRANSLATIONS = {
 }
 
 
-# Metadata collection and batch operations.
+# Catálogo de metadatos y operaciones por lote.
 TRANSLATIONS.update({
     'meta_search_fields': '搜索字段…',
     'meta_all_sections': '所有分组',
@@ -480,7 +480,7 @@ TRANSLATIONS.update({
 TRANSLATIONS["meta_source_changed"] = '文件加载后发生了变化。请重新选择后再保存。'
 
 
-# UI startup and preloading.
+# Inicio de la interfaz y precarga de módulos.
 TRANSLATIONS.update({
     'startup_resources': '正在准备 Yagua…',
     'startup_home': '正在准备主页…',
@@ -511,7 +511,7 @@ TRANSLATIONS.update({
 })
 
 
-# Contextual metadata UI.
+# Interfaz contextual de metadatos.
 TRANSLATIONS.update({
     'meta_start': '添加图片以开始',
     'meta_read_only_short': '只读。可编辑 JPEG 和 TIFF 图片的元数据。',
@@ -527,7 +527,7 @@ TRANSLATIONS.update({
     'meta_selected_count': '已选择 {marked} 张',
 })
 
-# Local legal information in Settings.
+# Información legal local en Ajustes.
 TRANSLATIONS.update({
     "legal_title": "文件、网络连接与许可证",
     "legal_originals": "重命名和编辑元数据会修改所选文件。建议使用备份副本进行操作。",

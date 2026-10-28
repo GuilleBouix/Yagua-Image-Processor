@@ -21,7 +21,7 @@ na aplicação organizadas por seção:
 
 TRANSLATIONS = {
     'documentation': 'Documentação',
-    # App
+    # Aplicación
     'app_title': 'Yagua - Processador de Imagem',
     'loading_model': 'Carregando modelo...',
     'downloading_model': 'Baixando modelo...',
@@ -30,7 +30,7 @@ TRANSLATIONS = {
     'removing_bg': 'Removendo fundo...',
     'limit_reached': 'Foram carregadas {limit} de {total} imagens (limite máximo).',
     
-    # Sidebar
+    # Barra lateral
     'compress': 'Comprimir',
     'convert': 'Converter',
     'remove_bg': 'Remover Fundo',
@@ -64,7 +64,7 @@ TRANSLATIONS = {
     'conflicts_renamed': 'conflitos renomeados',
     'size_reduction': 'redução',
     
-    # Convert
+    # Convertir
     'convert_title': 'Converter',
     'convert_to': 'Converter para',
     'convert_btn': 'Converter',
@@ -73,7 +73,7 @@ TRANSLATIONS = {
     'converted_to_plural': 'convertidas para',
     'load_images_first_convert': 'Carregue pelo menos uma imagem.',
 
-    # Remover Fundo
+    # Quitar fondo
     'remove_bg_title': 'Remover Fundo',
     'background_type': 'Fundo de saída',
     'bg_transparent': 'Transparente',
@@ -99,7 +99,7 @@ TRANSLATIONS = {
     'remove_bg_description': 'Otimizado para produtos e fundos claros: remove o fundo e refina as bordas automaticamente.',
     'remove_bg_fallback_notice': 'Usando modelo de compatibilidade ({model})',
     
-    # Palette
+    # Paleta
     'palette_title': 'Paleta de Cores',
     'colors_to_extract': 'Cores a extrair',
     'load_image_for_palette': 'Carregue uma imagem para ver a paleta',
@@ -115,7 +115,7 @@ TRANSLATIONS = {
     'saving': 'Salvando...',
     'error_generic': 'Erro',
 
-    # Rename
+    # Renombrar
     'rename_title': 'Renomear Lote',
     'rename_numbering': 'Prefixo + Numeração',
     'rename_prefix': 'Prefixo',
@@ -148,7 +148,7 @@ TRANSLATIONS = {
     'renamed': 'renomeados',
     'rename_conflicts': 'conflitos ignorados',
     
-    # Metadata
+    # Metadatos
     'metadata_title': 'Metadados EXIF',
     'view': 'Ver',
     'edit': 'Editar',
@@ -274,7 +274,7 @@ TRANSLATIONS = {
     'select_output_folder_clean': 'Pasta de saída',
     'without_exif': 'semexif',
     
-    # Resize
+    # Redimensionar
     'resize_title': 'Redimensionar',
     'resize_tab': 'Redimensionar',
     'crop_tab': 'Cortar',
@@ -387,7 +387,7 @@ TRANSLATIONS = {
     'ocr_lang_es_en': 'Espanhol/Inglês',
     'ocr_lang_es': 'Espanhol',
     'ocr_lang_en': 'Inglês',
-    # Watermark
+    # Marca de agua
     "watermark":                  "Marca d'água",
     "watermark_title":            "Marca d'água",
     "watermark_select_wm":        "Selecionar imagem de marca d'água",
@@ -417,7 +417,7 @@ TRANSLATIONS = {
     "watermark_preview_placeholder": "Carregue uma imagem para ver o preview",
     "watermark_calculando":       "Atualizando preview...",
 
-    # Settings
+    # Ajustes
     'settings_title': 'Configurações',
     'language': 'Idioma',
     'select_language': 'Selecionar idioma',
@@ -481,7 +481,7 @@ TRANSLATIONS['restart_when_idle'] = 'Há um processo ativo. Reiniciar quando ter
 TRANSLATIONS['invalid_filename'] = 'O nome do arquivo de destino é inválido.'
 
 
-# Metadata collection and batch operations.
+# Catálogo de metadatos y operaciones por lote.
 TRANSLATIONS.update({
     'meta_search_fields': 'Buscar campo…',
     'meta_all_sections': 'Todas as seções',
@@ -529,7 +529,7 @@ TRANSLATIONS.update({
 TRANSLATIONS["meta_source_changed"] = 'O arquivo mudou desde o carregamento. Selecione-o novamente antes de salvar.'
 
 
-# UI startup and preloading.
+# Inicio de la interfaz y precarga de módulos.
 TRANSLATIONS.update({
     'startup_resources': 'Preparando o Yagua…',
     'startup_home': 'Preparando o Início…',
@@ -560,7 +560,7 @@ TRANSLATIONS.update({
 })
 
 
-# Contextual metadata UI.
+# Interfaz contextual de metadatos.
 TRANSLATIONS.update({
     'meta_start': 'Adicione imagens para começar',
     'meta_read_only_short': 'Somente leitura. É possível editar metadados de imagens JPEG e TIFF.',
@@ -576,7 +576,7 @@ TRANSLATIONS.update({
     'meta_selected_count': '{marked} selecionadas',
 })
 
-# Local legal information in Settings.
+# Información legal local en Ajustes.
 TRANSLATIONS.update({
     "legal_title": "Arquivos, conexões e licenças",
     "legal_originals": "Renomear e editar metadados modifica os arquivos selecionados. Recomendamos trabalhar com cópias de segurança.",

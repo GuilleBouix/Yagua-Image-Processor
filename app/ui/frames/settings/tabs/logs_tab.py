@@ -1,3 +1,5 @@
+"""Vista de los registros locales de la aplicación."""
+
 from __future__ import annotations
 
 from datetime import datetime
@@ -13,12 +15,14 @@ class LogsTab(ctk.CTkFrame):
     """Tab Logs: tabla con scroll de yagua.log."""
 
     def __init__(self, parent):
+        """Inicializa el panel para cargar y representar el log."""
         super().__init__(parent, fg_color='transparent')
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(1, weight=1, minsize=400)
         self._build()
 
     def _build(self):
+        """Construye los controles de lectura y filtrado del registro."""
         header = ctk.CTkFrame(self, fg_color='transparent')
         header.grid(row=0, column=0, sticky='ew')
         header.grid_columnconfigure(1, weight=1)
@@ -61,6 +65,7 @@ class LogsTab(ctk.CTkFrame):
         self._cargar_logs()
 
     def _render_logs_header(self):
+        """Actualiza los encabezados y opciones de visualización."""
         for w in self._logs_table.winfo_children():
             w.destroy()
         headers = [t('log_date'), t('log_level'), t('log_module'), t('log_message')]
@@ -74,6 +79,7 @@ class LogsTab(ctk.CTkFrame):
             ).grid(row=0, column=col, padx=10, pady=(8, 6), sticky='w')
 
     def _cargar_logs(self):
+        """Lee el archivo local de registro sin bloquear la ventana."""
         self._render_logs_header()
         log_path = settings_path().with_name('yagua.log')
         if not log_path.exists():
@@ -102,6 +108,7 @@ class LogsTab(ctk.CTkFrame):
             self._render_empty()
 
     def _render_empty(self):
+        """Muestra el estado vacío cuando todavía no hay entradas."""
         ctk.CTkLabel(
             self._logs_table,
             text=t('logs_empty'),
@@ -110,6 +117,7 @@ class LogsTab(ctk.CTkFrame):
         ).grid(row=1, column=0, padx=10, pady=10, sticky='w')
 
     def _parse_log_line(self, line: str):
+        """Convierte una línea de log al formato usado por la interfaz."""
         try:
             fecha, rest = line.split(' [', 1)
             nivel, rest = rest.split('] ', 1)

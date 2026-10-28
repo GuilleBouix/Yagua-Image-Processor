@@ -1,4 +1,4 @@
-"""Keep translation keys and formatting contracts aligned across all languages."""
+"""Comprueba que las claves y parámetros de traducción coincidan entre idiomas."""
 import ast
 from pathlib import Path
 from collections import Counter

@@ -1,3 +1,5 @@
+"""Herramientas de mantenimiento, verificación y empaquetado del proyecto. extract release notes."""
+
 from __future__ import annotations
 
 import re
@@ -8,6 +10,7 @@ from pathlib import Path
 def _extract_section(md: str, header: str) -> str | None:
     # header is like: [Unreleased] or [2.0.0]
     # Accept: ## [X] or ## [X] - DATE
+    """Extrae del changelog la sección que corresponde a la versión solicitada."""
     pattern = re.compile(
         rf"^##\s+\[{re.escape(header)}\][^\r\n]*\r?\n(?P<body>.*?)(?=^##\s+\[|\Z)",
         re.MULTILINE | re.DOTALL,
@@ -19,6 +22,7 @@ def _extract_section(md: str, header: str) -> str | None:
 
 
 def main(argv: list[str]) -> int:
+    """Genera notas de publicación a partir del changelog y los argumentos recibidos."""
     if len(argv) != 2:
         print("Uso: python scripts/ci/extract_release_notes.py <X.Y.Z[-pre]>", file=sys.stderr)
         return 2

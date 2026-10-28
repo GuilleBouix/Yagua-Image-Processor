@@ -40,6 +40,7 @@ __all__ = ['CompressFrame', 'ConvertFrame', 'MetadataFrame', 'PaletteFrame',
 
 
 def __getattr__(name):
+    """Importa de forma diferida el frame solicitado para reducir el costo de arranque."""
     if name not in _EXPORTS:
         raise AttributeError(name)
     value = getattr(import_module(f'app.ui.frames.{_EXPORTS[name]}'), name)

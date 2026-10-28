@@ -1,3 +1,5 @@
+"""Herramientas de mantenimiento, verificación y empaquetado del proyecto. make latest json."""
+
 from __future__ import annotations
 
 import json
@@ -5,6 +7,7 @@ import sys
 
 
 def main(argv: list[str]) -> int:
+    """Genera el manifiesto de actualización a partir de la versión validada."""
     if len(argv) != 6:
         print(
             "Uso: python scripts/ci/make_latest_json.py <version> <setup_name> <setup_sha256> <portable_name> <portable_sha256>",

@@ -1,4 +1,3 @@
-"""Single source of truth for the app version.
-"""
+"""Fuente única de la versión de la aplicación."""
 
 __version__ = "2.0.0"

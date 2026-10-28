@@ -25,6 +25,7 @@ from app.ui.rendering import VirtualRows, PooledRow, configure_changed
 class FileList:
     """File rows recycled as the viewport scrolls, with progressive thumbnails."""
     def __init__(self, container, filas, thumbs, *, corner_radius=8, design_system=False):
+        """Inicializa filas, selección y callbacks de la lista."""
         self.filas, self.thumbs = filas, thumbs
         self.corner_radius = corner_radius
         self.design_system = design_system
@@ -40,6 +41,7 @@ class FileList:
         self.virtual.on_destroy = self.loader.cancel
 
     def _create(self, parent):
+        """Construye la estructura visual de la lista de archivos."""
         from app.ui.styles import surface
         options = surface('row') if self.design_system else dict(
             fg_color=colors.SIDEBAR_BG, corner_radius=self.corner_radius)
@@ -54,6 +56,7 @@ class FileList:
         row.photo = None
         row.request_key = None
         def release():
+            """Libera la miniatura y los datos de la fila para poder reutilizarla."""
             row.thumb.configure(image=None)
             row.thumb._label.configure(image='')
             row.photo = None
@@ -62,6 +65,7 @@ class FileList:
         return row
 
     def _render(self, row, key):
+        """Dibuja las filas visibles a partir del estado de selección."""
         path, _occurrence = key
         request_key = (self.generation, key)
         if row.request_key == request_key:
@@ -73,6 +77,7 @@ class FileList:
         name = Path(path).name
         configure_changed(row.name_label, text=name if len(name) <= 32 else name[:29] + '…')
         def loaded(result, error):
+            """Aplica una carga terminada si la selección no cambió mientras procesaba."""
             if row.request_key != request_key or row.key != key:
                 return
             if result is not None:
@@ -88,6 +93,7 @@ class FileList:
         self.loader.request(path, (44, 44), loaded)
 
     def sync(self, paths):
+        """Sincroniza el widget con la selección actual del módulo."""
         self.generation += 1
         self.loader.cancel()
         seen, keys = {}, []
@@ -238,6 +244,7 @@ def load_thumbs_async(rutas, filas, thumbs, after_fn, *, thumb_size=44):
     loader = ImageRequests(rows[0])
     for path, row in zip(tuple(rutas), rows):
         def loaded(result, error, row=row):
+            """Aplica una carga terminada si la selección no cambió mientras procesaba."""
             if result is not None and tuple(filas) == rows and row.winfo_exists():
                 photo = ctk.CTkImage(light_image=result.image, dark_image=result.image, size=result.image.size)
                 thumbs.append(photo)

@@ -1,3 +1,5 @@
+"""Consulta versiones de GitHub y valida actualizaciones estables o prerelease."""
+
 from __future__ import annotations
 
 from urllib.parse import urlsplit
@@ -15,6 +17,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass(frozen=True)
 class UpdateInfo:
+    """Contiene la versión disponible y el enlace de su publicación."""
     version: str
     release_url: str
 
@@ -25,6 +28,7 @@ class UpdateCheckError(RuntimeError):
 
 def get_repo() -> str:
     # Override opcional (útil para forks / staging).
+    """Obtiene la identidad del repositorio desde la configuración de la aplicación."""
     return os.environ.get("YAGUA_UPDATE_REPO") or "GuilleBouix/Yagua-Image-Processor"
 
 
@@ -43,6 +47,7 @@ def get_release_tag_prefix(platform: str | None = None) -> str:
 
 
 def _parse_release_version(tag_name: str, prefix: str) -> Version | None:
+    """Interpreta versiones estables y prereleases devueltas por GitHub."""
     if not tag_name.startswith(prefix):
         return None
     raw_version = tag_name[len(prefix):].strip()

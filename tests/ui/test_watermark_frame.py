@@ -1,3 +1,5 @@
+"""Pruebas de interfaz para watermark frame y sus estados principales."""
+
 from unittest.mock import Mock
 
 import numpy as np

@@ -12,5 +12,6 @@ class PaletteState:
     """Almacena el estado reactivo de la interfaz de paleta."""
 
     def __init__(self):
+        """Inicializa los datos de imagen y paleta todavía no confirmados."""
         self.ruta: str | None = None
         self.paleta: list[tuple[int, int, int]] = []

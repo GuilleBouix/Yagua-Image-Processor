@@ -1,4 +1,5 @@
 """Record candidate inputs and verify the exact files before publication."""
+# Registra y valida la identidad exacta del candidato antes de su publicación.
 from __future__ import annotations
 
 import argparse
@@ -15,15 +16,18 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 def digest(path: Path) -> str:
+    """Calcula el hash de un archivo que forma parte del candidato."""
     with path.open('rb') as stream:
         return hashlib.file_digest(stream, 'sha256').hexdigest()
 
 
 def git(*args: str) -> str:
+    """Ejecuta Git y devuelve su salida para validar el estado del repositorio."""
     return subprocess.check_output(['git', *args], cwd=ROOT).decode('utf-8').strip()
 
 
 def check_source_version(expected: str) -> None:
+    """Confirma que la versión esperada coincide con el código fuente."""
     module = ast.parse((ROOT / 'app/version.py').read_text(encoding='utf-8'))
     values = [ast.literal_eval(node.value) for node in module.body if isinstance(node, ast.Assign)
               and any(isinstance(target, ast.Name) and target.id == '__version__'
@@ -34,6 +38,7 @@ def check_source_version(expected: str) -> None:
 
 def create(version: str, artifacts: list[Path], allow_dirty: bool = False,
            provenance: dict | None = None) -> dict:
+    """Registra commit, versión y hashes de los artefactos del candidato."""
     names = git('ls-files', '-z').split('\0')
     extra = git('ls-files', '--others', '--exclude-standard', '-z').split('\0')
     extra = [name for name in extra if name.startswith(('app/', 'scripts/', 'tests/', '.github/', 'docs/'))
@@ -67,7 +72,7 @@ def create(version: str, artifacts: list[Path], allow_dirty: bool = False,
 
 
 def verify_provenance(manifest: dict) -> None:
-    """Keep the evaluated source separate from the actual origin of reused bytes."""
+    """Distingue el código evaluado del origen real de los bytes reutilizados."""
     lineage = manifest.get('provenance', {})
     required = {'quality', 'core', 'ui', 'compile', 'package', 'probe', 'sources'}
     if manifest['build']['platform'] == 'win32':
@@ -101,6 +106,7 @@ def verify_provenance(manifest: dict) -> None:
 
 
 def verify(manifest: dict, directory: Path, version: str, commit: str, run_id: str) -> None:
+    """Comprueba que el manifiesto corresponde al candidato y sus artefactos."""
     if (manifest.get('schema_version') not in {1, 2} or manifest.get('version') != version
             or manifest['source']['commit'] != commit or manifest['source']['dirty']
             or str(manifest['build']['run_id']) != run_id):
@@ -119,6 +125,7 @@ def verify(manifest: dict, directory: Path, version: str, commit: str, run_id: s
 
 
 def main() -> None:
+    """Crea o valida el manifiesto firmado por el estado exacto del candidato."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--version', required=True)
     parser.add_argument('--output', type=Path)

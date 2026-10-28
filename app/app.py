@@ -44,7 +44,7 @@ class YaguaApp(UiLifetime, ctk.CTk):
         Configura titulo, geometria, fuentes, icono y el
         contenedor principal de la interfaz.
         """
-        # Register before Tk caches available font families.
+        # Registra las fuentes antes de que Tk almacene en caché las familias disponibles.
         fonts.registrar_fuentes()
         super().__init__()
         self.withdraw()
@@ -65,10 +65,10 @@ class YaguaApp(UiLifetime, ctk.CTk):
         self.minsize(900, 600)
         self._setup_icon()
         self._startup = ApplicationStartup(self)
-        # Finish CTk's first-window initialization while still hidden. An idle
+        # Completa la inicialización de la primera ventana CTk mientras sigue oculta. Una tarea idle
         # geometry flush does not do this: Windows mainloop would initialize the
-        # titlebar again, withdraw our already shown splash, and leave it hidden.
-        # This is the only full update before exposing the startup window.
+        # vuelve a inicializar la barra de título en Windows, oculta la pantalla de carga y la deja escondida.
+        # Esta es la única actualización completa antes de mostrar la ventana de inicio.
         self.update()
         
         # Maximizar ventana al iniciar
@@ -103,12 +103,14 @@ class YaguaApp(UiLifetime, ctk.CTk):
         self.protocol('WM_DELETE_WINDOW', self._request_close)
 
     def destroy(self):
+        """Cancela la inicialización pendiente y destruye la ventana de forma ordenada."""
         startup = getattr(self, '_startup', None)
         if startup is not None:
             startup.close()
         super().destroy()
 
     def _request_close(self):
+        """Pide cerrar la ventana y difiere la salida mientras haya un lote activo."""
         if not operations.active:
             self.destroy()
             return
@@ -122,6 +124,7 @@ class YaguaApp(UiLifetime, ctk.CTk):
             self.after(100, self._finish_close_when_idle)
 
     def _finish_close_when_idle(self):
+        """Cierra la aplicación cuando el coordinador confirma que no quedan trabajos."""
         if operations.active:
             self.after(100, self._finish_close_when_idle)
         else:

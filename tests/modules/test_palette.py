@@ -1,3 +1,5 @@
+"""Pruebas de regresión del módulo de procesamiento palette."""
+
 from PIL import Image
 from app.modules.palette import extraer_paleta, rgb_a_hex, exportar_paleta_imagen
 

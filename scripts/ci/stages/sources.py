@@ -1,3 +1,5 @@
+"""Herramientas de mantenimiento, verificación y empaquetado del proyecto. sources."""
+
 import os
 from pathlib import Path
 
@@ -5,6 +7,7 @@ from scripts.ci.stages.common import PLATFORM, REPORTS, ROOT, VERSION, python, s
 
 
 def main():
+    """Verifica y archiva los materiales fuente que requiere el empaquetado."""
     REPORTS.mkdir(exist_ok=True)
     args = ['--cache', str(Path(os.environ['RUNNER_TEMP']) / 'yagua-source-materials'),
             '--output', f'reports/Yagua-{VERSION}-source-materials.tar.xz', '--download',

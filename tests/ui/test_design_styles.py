@@ -1,4 +1,4 @@
-"""Shared visual roles and processing behavior of the migrated desktop UI."""
+"""Roles visuales compartidos y comportamiento de los módulos de la interfaz."""
 from time import monotonic, sleep
 
 import customtkinter as ctk
@@ -75,8 +75,8 @@ def test_entry_focus_and_hover_accept_optional_event(ui_root, monkeypatch, event
 
 
 def pump(root, condition, timeout=15):
-    # These checks validate completed workflows, not a five-second SLA.
-    # Preflight, atomic IO and Tk deliveries share CPU with the full UI matrix.
+    # Estas pruebas validan flujos completos, no un límite de cinco segundos.
+    # Preflight, E/S atómica y callbacks Tk comparten CPU con toda la matriz de interfaz.
     end = monotonic() + timeout
     while monotonic() < end and not condition():
         operations.drain(lambda owner: bool(owner.winfo_exists()))

@@ -25,6 +25,7 @@ PREVIEW_SIZE = (420, 240)
 
 @dataclass(frozen=True)
 class SourcePreview:
+    """Captura los datos necesarios para renderizar la vista previa de origen."""
     index: int
     path: str
     dimensions: tuple[int, int] | None = None
@@ -36,6 +37,7 @@ class SourcePreview:
 
 @dataclass(frozen=True)
 class ItemResult:
+    """Agrupa las variantes generadas para una imagen del lote."""
     index: int
     path: str
     result: LqipResult | None = None

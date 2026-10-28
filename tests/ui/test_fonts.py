@@ -1,3 +1,5 @@
+"""Pruebas de interfaz para fonts y sus estados principales."""
+
 import sys
 import tkinter.font as tkfont
 

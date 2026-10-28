@@ -2,6 +2,7 @@
 
 This produces review materials, not a certificate of corresponding-source completeness.
 """
+# Comprueba presencia y hashes de fuentes usadas en la compilación.
 from __future__ import annotations
 
 import argparse
@@ -20,11 +21,13 @@ MANIFEST = ROOT / 'legal/distribution/materials.json'
 
 
 def digest(path: Path) -> str:
+    """Calcula el SHA-256 de los materiales fuente archivados."""
     with path.open('rb') as stream:
         return hashlib.file_digest(stream, 'sha256').hexdigest()
 
 
 def safe_path(root: Path, name: str) -> Path:
+    """Resuelve una ruta relativa y rechaza escapes del directorio raíz."""
     parts = PurePosixPath(name)
     if (not name or parts.is_absolute() or '\\' in name or ':' in name
             or '..' in parts.parts or parts.as_posix() != name):
@@ -36,6 +39,7 @@ def safe_path(root: Path, name: str) -> Path:
 
 
 def verify(path: Path, entry: dict) -> None:
+    """Valida presencia, hash y procedencia de los materiales de construcción."""
     if path.stat().st_size != entry['bytes'] or digest(path) != entry['sha256']:
         raise ValueError(f'Material checksum mismatch: {entry["file"]}')
 
@@ -113,6 +117,7 @@ def collect(manifest: dict, cache: Path, output: Path, *, root: Path = ROOT,
 
 
 def main() -> int:
+    """Comprueba los materiales fuente requeridos para una compilación reproducible."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--manifest', type=Path, default=MANIFEST)
     parser.add_argument('--cache', type=Path, required=True)

@@ -27,10 +27,12 @@ _current_lang: Optional[str] = None
 
 
 def _load_settings() -> dict:
+    """Carga preferencias tolerando archivos inválidos o estructuras no reconocidas."""
     return load_settings(settings_path())
 
 
 def _save_settings(settings: dict) -> None:
+    """Persiste preferencias sin impedir el uso de la interfaz si falla el disco."""
     save_settings(settings, settings_path())
 
 

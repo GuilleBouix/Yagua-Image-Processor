@@ -1,3 +1,5 @@
+"""Pruebas de interfaz para metadata frame y sus estados principales."""
+
 import customtkinter as ctk
 import pytest
 

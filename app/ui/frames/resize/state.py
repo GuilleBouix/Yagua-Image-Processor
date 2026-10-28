@@ -18,6 +18,7 @@ class ResizeState:
     """Almacena el estado reactivo de la interfaz de redimension."""
 
     def __init__(self):
+        """Inicializa los valores de redimensionado, recorte y lienzo."""
         self.imagenes: list[str] = []
         self.modo_resize: ctk.StringVar = ctk.StringVar(value=t('percentage'))
         self.mantener_ratio: ctk.BooleanVar = ctk.BooleanVar(value=True)

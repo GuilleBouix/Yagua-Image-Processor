@@ -1,4 +1,5 @@
 """Verify repository or frozen-package legal resources without network access."""
+# Verifica avisos y versiones de licencias sin acceder a la red.
 from __future__ import annotations
 
 import argparse
@@ -14,6 +15,7 @@ from scripts.licensing import (  # noqa: E402
 
 
 def main(argv=None) -> int:
+    """Verifica avisos legales del repositorio o del paquete congelado."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--root', type=Path, default=Path(__file__).resolve().parents[2])
     parser.add_argument('--package', type=Path)

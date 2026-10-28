@@ -33,12 +33,14 @@ class SettingsFrame(BaseFrame):
     design_system = True
 
     def __init__(self, parent, *, defer_build=False):
+        """Inicializa el estado de preferencias y el contenedor de pestañas."""
         logger.info("settings.ui: init")
         self._state = SettingsState()
         super().__init__(parent, t('settings_title'), defer_build=defer_build)
 
     @stepwise
     def _build_content(self):
+        """Construye la estructura general de la ventana de ajustes."""
         logger.info("settings.ui: build_content")
         yield
         self.grid_columnconfigure(0, weight=1)
@@ -52,6 +54,7 @@ class SettingsFrame(BaseFrame):
 
     @stepwise
     def _build_tabs(self):
+        """Crea y registra las pestañas disponibles en Ajustes."""
         self._tab = styles.SegmentedButton(
             self,
             values=[t('settings_tab'), t('updates_tab')],
@@ -104,10 +107,12 @@ class SettingsFrame(BaseFrame):
         yield
 
     def _cambiar_tab(self, tab: str):
+        """Muestra la pestaña seleccionada y actualiza el estado visual."""
         activate_tab(self._tabs, tab)
 
     @stepwise
     def _add_donation_button(self):
+        """Agrega el acceso de apoyo externo a la aplicación."""
         logger.info("settings.ui: add_donation_button")
         yield
         if not hasattr(self, '_title_row') or not self._title_row.winfo_exists():
@@ -130,7 +135,9 @@ class SettingsFrame(BaseFrame):
         yield
 
     def _on_build_complete(self):
+        """Conecta acciones cuando terminó la construcción de Ajustes."""
         self._scrollbar.configure(corner_radius=0, width=6, border_spacing=1)
 
     def _set_status(self, text: str):
+        """Presenta el mensaje de estado en el área compartida de la ventana."""
         self._lbl_info.configure(text=text)

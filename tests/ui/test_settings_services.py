@@ -1,3 +1,5 @@
+"""Pruebas de interfaz para settings services y sus estados principales."""
+
 import json
 import os
 from pathlib import Path

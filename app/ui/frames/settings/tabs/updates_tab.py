@@ -1,3 +1,5 @@
+"""Comprobación y descarga de actualizaciones publicadas en GitHub."""
+
 from __future__ import annotations
 
 from app.ui.building import finish, stepwise, steps_for
@@ -20,10 +22,12 @@ class UpdatesTab(ctk.CTkFrame):
     """Tab Actualizaciones: solo check + link (sin auto-download/install)."""
 
     def _post_ui(self, delay, callback):
+        """Encola una actualización para aplicarla en el hilo principal de Tk."""
         from app.ui.operations import operations
         operations.post(self, callback)
 
     def __init__(self, parent, *, defer_build=False):
+        """Inicializa el estado de búsqueda y descarga de versiones."""
         super().__init__(parent, fg_color="transparent")
         self.grid_columnconfigure(0, weight=1)
         self._worker_activo = False
@@ -34,6 +38,7 @@ class UpdatesTab(ctk.CTkFrame):
 
     @stepwise
     def _build(self):
+        """Construye controles para buscar, descargar y abrir la publicación."""
         panel = ctk.CTkFrame(
             self,
             **styles.surface('panel'),
@@ -106,15 +111,18 @@ class UpdatesTab(ctk.CTkFrame):
         yield
 
     def _set_status(self, text: str):
+        """Actualiza el mensaje de estado de la pestaña."""
         if self._lbl_update_status.winfo_exists():
             self._lbl_update_status.configure(text=text)
 
     def _set_busy(self, busy: bool):
+        """Bloquea o habilita controles según el trabajo en curso."""
         self._worker_activo = busy
         if self._btn_check_updates.winfo_exists():
             self._btn_check_updates.configure(state="disabled" if busy else "normal")
 
     def _mostrar_descarga(self, version: str, url: str):
+        """Presenta la descarga disponible para la versión detectada."""
         self._download_url = url
         if self._btn_download.winfo_exists():
             self._btn_download.configure(text=t("updates_download_btn").format(version=version))  # type: ignore
@@ -123,6 +131,7 @@ class UpdatesTab(ctk.CTkFrame):
             self._lbl_manual.grid()
 
     def _ocultar_descarga(self):
+        """Retira los controles de descarga cuando dejan de aplicar."""
         self._download_url = None
         if self._btn_download.winfo_exists():
             self._btn_download.grid_remove()
@@ -130,6 +139,7 @@ class UpdatesTab(ctk.CTkFrame):
             self._lbl_manual.grid_remove()
 
     def _abrir_release(self):
+        """Abre la publicación seleccionada en el navegador predeterminado."""
         if not self._download_url:
             return
         try:
@@ -138,6 +148,7 @@ class UpdatesTab(ctk.CTkFrame):
             logger.exception("updates: no se pudo abrir el navegador")
 
     def _check_updates(self):
+        """Inicia una consulta de versiones y controla el estado ocupado."""
         if self._worker_activo:
             return
 
@@ -146,6 +157,7 @@ class UpdatesTab(ctk.CTkFrame):
         self._ocultar_descarga()
 
         def _worker():
+            """Consulta o descarga datos sin leer widgets desde el worker."""
             try:
                 info = check_latest_update(__version__)
                 if not info:

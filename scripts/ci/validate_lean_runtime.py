@@ -3,6 +3,7 @@
 Only the identical opt-in self-test instrumentation is overlaid on the baseline.
 No versions, tags, releases, editor environments or personal profiles are changed.
 """
+# Compara runtimes base y candidato sin publicar artefactos.
 
 import argparse
 import json
@@ -21,6 +22,7 @@ sys.path.insert(0, str(ROOT))
 
 
 def comparison_checks(results: dict) -> list[dict]:
+    """Compara los resultados observados con las mediciones de referencia."""
     from scripts.ci.check_linux_size import MAX_BYTES
 
     checks = []
@@ -51,6 +53,7 @@ def comparison_checks(results: dict) -> list[dict]:
 
 
 def write_summary(results: dict, reports: Path) -> bool:
+    """Escribe un resumen humano de las validaciones y límites pendientes."""
     results['checks'] = comparison_checks(results)
     results['failed_checks'] = [check['name'] for check in results['checks'] if check['status'] == 'failed']
     lines = ['# Lean runtime validation', '', '| Check | Result | Detail |', '|---|---|---|']
@@ -70,6 +73,7 @@ def write_summary(results: dict, reports: Path) -> bool:
 
 
 def command(args, cwd, log, env=None):
+    """Ejecuta una verificación y registra su estado para el informe."""
     print('RUN', *map(str, args), flush=True)
     with log.open('a', encoding='utf-8') as output:
         subprocess.run(list(map(str, args)), cwd=cwd, env=env, stdout=output,
@@ -77,6 +81,7 @@ def command(args, cwd, log, env=None):
 
 
 def validate(label: str, base_ref: str, reports: Path) -> dict:
+    """Comprueba funcionamiento, tamaño y dependencias del runtime reducido."""
     from scripts.ci.check_installed_size import measure
     from scripts.ci.audit_frozen import audit
     from scripts.ci.probe_package import isolated_environment
@@ -117,7 +122,7 @@ def validate(label: str, base_ref: str, reports: Path) -> dict:
             executable = package / 'Yagua.exe'
             compressed = Path(shutil.make_archive(str(task / 'Yagua-portable'), 'zip', package))
         else:
-            # AppImage tooling has its own environment; it cannot contaminate Analysis.
+            # Las herramientas AppImage usan otro entorno y no alteran el análisis de PyInstaller.
             tools = task / 'tools'
             command([sys.executable, '-m', 'venv', tools], ROOT, log)
             command([tools / 'bin/python', '-m', 'pip', 'install',
@@ -132,7 +137,7 @@ def validate(label: str, base_ref: str, reports: Path) -> dict:
             compressed = next(dist.glob('*.AppImage'))
             package = work / 'package-check/squashfs-root'
             executable = package / 'AppRun'
-            # Verify the actual AppImage runtime/restart path as well as extraction.
+            # Verifica el arranque y reinicio real del AppImage, además de su extracción.
             command(['xvfb-run', '-a', sys.executable, ROOT / 'scripts/ci/probe_package.py',
                      compressed, task / 'runtime-probe', '--preflight'], ROOT, log, env)
             shutil.copy2(task / 'runtime-probe/preflight/selftest.json', destination / 'appimage-runtime.json')
@@ -154,13 +159,14 @@ def validate(label: str, base_ref: str, reports: Path) -> dict:
                     shutil.copy2(probe / 'models-manifest.json', destination / 'models.json')
         result = measure(package, probe / 'models', probe / 'caches', compressed)
         (destination / 'sizes.json').write_text(json.dumps(result, indent=2) + '\n', encoding='utf-8')
-        # Keep analysis evidence and warnings, not multi-gigabyte intermediate envs.
+        # Conserva informes y advertencias, no entornos intermedios de varios gigabytes.
         for path in work.rglob('warn-*.txt'):
             shutil.copy2(path, destination / path.name)
         return result
 
 
 def main():
+    """Valida el runtime empaquetado según la plataforma y el manifiesto recibido."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--baseline', default='1914a11e9823bbf32af66631002e8db817c257e7')
     parser.add_argument('--reports', type=Path, required=True)

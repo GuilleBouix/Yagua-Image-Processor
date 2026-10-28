@@ -26,6 +26,7 @@ OCR_INSTALL_COMMAND = 'pip install --upgrade easyocr torch torchvision'
 
 
 def _idiomas_key(idiomas):
+    """Normaliza la selección para compartir el lector OCR de los mismos idiomas."""
     return tuple([i.strip().lower() for i in idiomas if i and i.strip()])
 
 
@@ -42,8 +43,8 @@ def get_reader(idiomas):
             import easyocr
         except ImportError as exc:
             raise ImportError(f'EasyOCR no está disponible. Ejecutá: {OCR_INSTALL_COMMAND}') from exc
-        # The UI already shows loading state. EasyOCR's Unicode console bar
-        # can abort downloads on Windows consoles using CP1252.
+        # La interfaz ya muestra el estado de carga. La barra Unicode de EasyOCR
+        # puede interrumpir descargas en consolas de Windows que usan CP1252.
         reader = easyocr.Reader(list(key), verbose=False)
         _READER_CACHE[key] = reader
         return reader
@@ -55,6 +56,7 @@ def ensure_reader(idiomas):
 
 
 def _avif_supported():
+    """Comprueba si Pillow tiene soporte de lectura AVIF en esta instalación."""
     try:
         return bool(features.check('avif'))
     except Exception:

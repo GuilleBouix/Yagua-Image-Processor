@@ -1,4 +1,4 @@
-"""Startup screen and resumable UI preload; workers never own Tk objects."""
+"""Pantalla de inicio y carga progresiva de módulos; los workers no usan objetos Tk."""
 from __future__ import annotations
 
 from importlib import import_module
@@ -21,7 +21,9 @@ logger = logging.getLogger(__name__)
 
 
 class LoadingScreen(ctk.CTkFrame):
+    """Presenta el progreso mientras se preparan los módulos iniciales."""
     def __init__(self, parent, enter):
+        """Crea la pantalla de progreso y conecta la acción de entrada."""
         palette = styles.palette()
         super().__init__(parent, fg_color=palette.background, corner_radius=0)
         card = ctk.CTkFrame(self, fg_color='transparent', corner_radius=0)
@@ -50,6 +52,7 @@ class LoadingScreen(ctk.CTkFrame):
 
 
 def _import_worker(jobs, results, closed):
+    """Resuelve imports fuera del hilo de interfaz y publica sus resultados."""
     while not closed.is_set():
         job = jobs.get()
         if job is None:
@@ -72,7 +75,9 @@ def _import_worker(jobs, results, closed):
 
 
 class Imports:
+    """Importa módulos en segundo plano y comunica el resultado a Tk."""
     def __init__(self, owner):
+        """Prepara colas y polling para imports diferidos."""
         self.owner = owner
         self.jobs, self.results = Queue(), SimpleQueue()
         self.closed = Event()
@@ -83,12 +88,14 @@ class Imports:
         self.worker.start()
 
     def request(self, key, path, callback):
+        """Solicita un import y registra el callback que recibirá su resultado."""
         self.pending[key] = callback
         self.jobs.put((key, path))
         if self.job is None:
             self.job = self.owner.after(10, self._poll)
 
     def _poll(self):
+        """Entrega imports terminados desde el hilo principal."""
         self.job = None
         if self.closed.is_set():
             return
@@ -104,6 +111,7 @@ class Imports:
             self.job = self.owner.after(10, self._poll)
 
     def close(self):
+        """Cancela el polling y descarta entregas pendientes al cerrar."""
         self.closed.set()
         self.jobs.put(None)
         self.pending.clear()
@@ -113,7 +121,9 @@ class Imports:
 
 
 class ModulePreloader:
+    """Prepara módulos gradualmente y pausa los que no están visibles."""
     def __init__(self, window, imports, progress, complete):
+        """Guarda módulos, callbacks y estado de precarga."""
         self.window, self.owner, self.imports = window, window.winfo_toplevel(), imports
         self.progress, self.complete = progress, complete
         self.specs = [spec for spec in iter_enabled_modules() if spec.preload_ui
@@ -129,12 +139,14 @@ class ModulePreloader:
         self.wanted = None
 
     def start(self):
+        """Inicia la preparación secuencial de los módulos registrados."""
         if self.closed:
             return
         self.running = True
         self._next()
 
     def _next(self):
+        """Selecciona el siguiente módulo que puede precargarse."""
         if not self.running or self.closed:
             return
         if self.cursor == len(self.specs):
@@ -147,6 +159,7 @@ class ModulePreloader:
         self.ensure(spec.key)
 
     def pause(self):
+        """Detiene la carga progresiva mientras la ventana no la necesita."""
         self.running = False
         self.wanted = None
         for task in self.tasks.values():
@@ -157,6 +170,7 @@ class ModulePreloader:
             self.window._get_view_host(frame).place_forget()
 
     def ensure(self, key, ready=None, failed=None):
+        """Solicita que un módulo quede preparado antes de usarlo."""
         if self.closed:
             return
         if ready is not None:
@@ -191,6 +205,7 @@ class ModulePreloader:
                                  lambda cls, error: self._imported(key, cls, error))
 
     def _imported(self, key, cls, error):
+        """Recibe la clase importada y continúa o reporta el error."""
         self.loading.discard(key)
         if self.closed:
             return
@@ -202,6 +217,7 @@ class ModulePreloader:
             self._construct(key)
 
     def _construct(self, key):
+        """Construye y conecta el frame del módulo solicitado."""
         previous = set(self.window.content.winfo_children())
         try:
             frame = self.classes[key](self.window.content, defer_build=True)
@@ -212,17 +228,19 @@ class ModulePreloader:
             self.tasks[key].resume()
         except Exception as error:
             self._failed(key, error)
-            # A constructor can fail before returning its scrollable wrapper.
+            # Un constructor puede fallar antes de devolver su contenedor desplazable.
             for child in set(self.window.content.winfo_children()) - previous:
                 if child.winfo_exists():
                     child.destroy()
 
     def _place_partial(self, frame):
+        """Ubica el frame parcial para completar su construcción de forma diferida."""
         self.window._get_view_host(frame).place(x=0, y=0, relwidth=1, relheight=1)
         if hasattr(self.window, '_loading_view'):
             self.window._get_view_host(self.window._loading_view).lift()
 
     def _warm(self, key):
+        """Prepara controles de una vista antes de mostrarla."""
         if self.closed or self.wanted != key:
             return
         frame = self.partials[key]
@@ -236,6 +254,7 @@ class ModulePreloader:
         self.warmers[key].set_visible(True)
 
     def _ready(self, key):
+        """Marca el módulo listo y notifica a las solicitudes en espera."""
         if self.closed or self.wanted != key:
             return
         frame = self.partials.pop(key)
@@ -248,6 +267,7 @@ class ModulePreloader:
         self._notify(key)
 
     def _notify(self, key):
+        """Invoca callbacks de resultado solo después de validar el estado del módulo."""
         listener = self.listeners.pop(key, None)
         if listener and listener[0]:
             listener[0](self.window.frames[key])
@@ -256,6 +276,7 @@ class ModulePreloader:
             self.owner.after(1, self._next)
 
     def _failed(self, key, error):
+        """Registra un error de preparación y notifica a quien lo solicitó."""
         logger.error('startup: module failed key=%s error=%s', key, error,
                      exc_info=(type(error), error, error.__traceback__))
         self.errors[key] = str(error)
@@ -279,6 +300,7 @@ class ModulePreloader:
             self.owner.after(1, self._next)
 
     def close(self):
+        """Cancela la precarga y limpia callbacks antes de cerrar la ventana."""
         self.closed = True
         self.pause()
         for task in self.tasks.values():
@@ -287,7 +309,9 @@ class ModulePreloader:
 
 
 class ApplicationStartup:
+    """Coordina imports, pantalla inicial y entrada a la aplicación."""
     def __init__(self, app):
+        """Conecta la ventana con el import y la preparación progresiva."""
         self.app = app
         self.started = perf_counter()
         self.imports = Imports(app)
@@ -300,10 +324,12 @@ class ApplicationStartup:
         app.after(16, self.start)
 
     def start(self):
+        """Comienza la carga inicial de la ventana principal."""
         if not self.closed:
             self.imports.request('__shell__', 'app.ui.main_window:MainWindow', self._shell_imported)
 
     def enter(self):
+        """Solicita mostrar la aplicación después de preparar su estructura."""
         self.entered_early = True
         self.screen.button.configure(state='disabled')
         if self.preloader:
@@ -313,6 +339,7 @@ class ApplicationStartup:
             self.screen.status.configure(text=t('startup_home'))
 
     def _shell_imported(self, cls, error):
+        """Recibe la importación del shell y decide si puede construir la interfaz."""
         if self.closed:
             return
         if error:
@@ -330,6 +357,7 @@ class ApplicationStartup:
             self._fatal(error)
 
     def _shell_ready(self):
+        """Presenta la ventana base y habilita la preparación del resto de módulos."""
         if self.closed:
             return
         self.preloader = ModulePreloader(self.app.main_window, self.imports, self._progress, self.finish)
@@ -340,10 +368,12 @@ class ApplicationStartup:
             self.preloader.start()
 
     def _progress(self, complete, total, label):
+        """Actualiza el progreso sin ejecutar trabajo pesado en Tk."""
         self.screen.status.configure(text=t('startup_module').format(module=label))
         self.screen.progress.set((complete + 2) / (total + 2))
 
     def finish(self):
+        """Retira el estado de carga y habilita la navegación normal."""
         if self.closed or self.app.ready:
             return
         self.screen.progress.set(1)
@@ -359,6 +389,7 @@ class ApplicationStartup:
                     (perf_counter() - self.started) * 1000, self.entered_early)
 
     def _fatal(self, error):
+        """Presenta un error de arranque y deja la aplicación en estado seguro."""
         if self.closed:
             return
         logger.error('startup: shell failed: %s', error,
@@ -368,6 +399,7 @@ class ApplicationStartup:
         self.app.destroy()
 
     def close(self):
+        """Invalida los callbacks de arranque que queden pendientes."""
         self.closed = True
         self.imports.close()
         if self.shell_task:

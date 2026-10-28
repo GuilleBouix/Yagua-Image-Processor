@@ -1,3 +1,5 @@
+"""Pruebas de regresión para package selftest y sus contratos asociados."""
+
 import re
 import io
 from pathlib import Path
@@ -123,7 +125,7 @@ def test_conversion_profile_probe_reads_exported_files(tmp_path, monkeypatch):
 def test_frozen_numba_fallback_uses_measured_cache_not_windows_known_folder(tmp_path, monkeypatch):
     from numba.core import caching
 
-    # Restore the third-party module after testing the process-local override.
+    # Restaura el módulo externo después de probar la sustitución local al proceso.
     monkeypatch.setattr(caching, 'AppDirs', caching.AppDirs)
     monkeypatch.setattr(caching.sys, 'frozen', True, raising=False)
     measured = tmp_path / 'profile/numba'

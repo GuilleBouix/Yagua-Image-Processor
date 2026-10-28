@@ -1,3 +1,5 @@
+"""Pruebas de regresión del módulo de procesamiento ocr."""
+
 from pathlib import Path
 import io
 import sys

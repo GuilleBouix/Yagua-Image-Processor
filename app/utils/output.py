@@ -19,8 +19,9 @@ logger = logging.getLogger(__name__)
 
 
 class DiscardOutput(Exception):
-    """A valid candidate was evaluated but must not be published."""
+    """El candidato es válido, pero la política de salida indica que no debe publicarse."""
     def __init__(self, result):
+        """Guarda el resultado asociado con una salida que no se publicará."""
         self.result = result
         super().__init__('no_improvement')
 
@@ -96,11 +97,13 @@ def atomic_destination(destination: str | Path, *, replace: bool = True):
 
 
 def atomic_write_text(destination: str | Path, text: str) -> None:
+    """Reemplaza un archivo de texto solo después de escribirlo completo."""
     with atomic_destination(destination) as temporary:
         temporary.write_text(text, encoding='utf-8')
 
 
 def require_single_frame(path: str | Path) -> None:
+    """Rechaza entradas animadas o multipágina que no se pueden preservar."""
     from PIL import Image
     with Image.open(path) as image:
         if getattr(image, 'n_frames', 1) != 1 or getattr(image, 'is_animated', False):
@@ -113,6 +116,7 @@ def safe_image_output(function):
 
     @wraps(function)
     def guarded(*args, **kwargs):
+        """Verifica que el origen siga estable antes de publicar la salida temporal."""
         bound = parameters.bind(*args, **kwargs)
         source = Path(bound.arguments['ruta_entrada'])
         destination = Path(bound.arguments['ruta_salida'])

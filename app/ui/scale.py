@@ -14,6 +14,7 @@ VALID_UI_SCALES = {100, 75, 50}
 
 
 def _load_settings() -> dict:
+    """Lee la escala persistida y valida que esté entre las opciones admitidas."""
     return load_settings(settings_path())
 
 

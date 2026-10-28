@@ -1,3 +1,5 @@
+"""Herramientas de mantenimiento, verificación y empaquetado del proyecto. package."""
+
 import json
 import os
 from pathlib import Path
@@ -8,9 +10,10 @@ from scripts.ci.stages.common import PLATFORM, PYTHON, ROOT, VERSION, pip, run, 
 
 
 def main():
+    """Empaqueta la aplicación y comprueba los recursos incluidos."""
     if PLATFORM == 'windows':
         run('choco', 'install', 'innosetup', '-y')
-        # Chocolatey's install directory need not appear in this process's PATH.
+        # La carpeta de instalación de Chocolatey puede no estar en PATH en este proceso.
         compiler = Path(os.environ.get('ProgramFiles(x86)', 'C:/Program Files (x86)')) / 'Inno Setup 6/ISCC.exe'
         run(compiler if compiler.exists() else 'iscc', 'Yagua.iss')
         setup = ROOT / f'installer/Yagua_Setup_{VERSION}.exe'
@@ -40,7 +43,7 @@ def main():
         run('bash', 'scripts/build_linux_appimage.sh', env=environment)
         save('dist/linux-release/*.AppImage', 'dist/linux-release/*.sha256', 'dist/linux-release/sizes.json',
              'dist/linux-release/linux-heic-native.json')
-    # Keep the source commit separate from the runtime producer recorded in the receipt lineage.
+    # Mantén separado el commit fuente del productor del runtime registrado en la cadena del recibo.
     print(json.dumps({'status': 'packaged', 'version': VERSION}))
 
 

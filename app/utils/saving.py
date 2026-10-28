@@ -18,11 +18,13 @@ ALIASES = {'JPG': 'JPEG', 'HEIC': 'HEIF', 'TIF': 'TIFF'}
 
 
 def canonical_format(value: str) -> str:
+    """Normaliza variantes de nombre al formato reconocido por Pillow."""
     value = value.upper()
     return ALIASES.get(value, value)
 
 
 def path_key(path):
+    """Normaliza una ruta para detectar duplicados entre sistemas."""
     try:
         absolute = str(Path(path).resolve())
     except (OSError, ValueError, RuntimeError):
@@ -32,12 +34,14 @@ def path_key(path):
 
 
 def fingerprint(path):
+    """Obtiene datos de archivo para detectar cambios antes de escribir."""
     stat = Path(path).stat()
     return stat.st_dev, stat.st_ino, stat.st_size, stat.st_mtime_ns, stat.st_ctime_ns
 
 
 @dataclass(frozen=True)
 class OutputItem:
+    """Describe una entrada y el destino asignado por el plan de guardado."""
     source: str
     destination: Path | None
     stamp: tuple | None
@@ -49,6 +53,7 @@ class OutputItem:
 
 @dataclass(frozen=True)
 class OutputPlan:
+    """Agrupa los archivos y la política de salida de una operación."""
     mode: SaveMode
     items: tuple[OutputItem, ...]
     protected: frozenset[str]
@@ -57,10 +62,12 @@ class OutputPlan:
 
     @property
     def replacements(self):
+        """Procesa entradas que reemplazarán su original después de validar."""
         return sum(item.replace and not item.error for item in self.items)
 
     @property
     def copies(self):
+        """Procesa entradas que deben escribirse como copias nuevas."""
         return sum(not item.replace and not item.error for item in self.items)
 
 
@@ -68,6 +75,7 @@ SavePolicy = SaveMode | OutputPlan
 
 
 def plan_outputs(paths, folder, mode: SaveMode, target_format=None, *, resources=()):
+    """Valida entradas y reserva destinos sin sobrescribir archivos existentes."""
     if mode not in ('copies', 'overwrite'):
         raise ValueError('invalid_option')
     if mode == 'copies' and not folder:
@@ -109,6 +117,7 @@ def plan_outputs(paths, folder, mode: SaveMode, target_format=None, *, resources
 
 
 def get_plan(policy: SavePolicy, paths, folder, target_format=None, *, resources=()):
+    """Construye el plan de guardado desde opciones de la interfaz."""
     if isinstance(policy, OutputPlan):
         expected_resources = {path_key(path) for path in resources}
         if expected_resources != {path_key(path) for path, _ in policy.resources} or any(
@@ -122,6 +131,7 @@ def get_plan(policy: SavePolicy, paths, folder, target_format=None, *, resources
 
 
 def _destination(item, protected):
+    """Resuelve la ruta de destino según formato y política de salida."""
     assert item.destination is not None
     if item.replace:
         return item.destination, False
@@ -134,6 +144,7 @@ def _destination(item, protected):
 
 
 def run_plan(plan: OutputPlan, processor, *, progress_cb=None) -> dict[str, Any]:
+    """Procesa las entradas del plan y registra el resultado por archivo."""
     results, failures = [], []
     for item in plan.items:
         size = item.stamp[2] if item.stamp else 0

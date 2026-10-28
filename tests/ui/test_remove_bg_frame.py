@@ -1,3 +1,5 @@
+"""Pruebas de interfaz para remove bg frame y sus estados principales."""
+
 import customtkinter as ctk
 
 from app.ui.frames.remove_bg.frame import RemoveBgFrame

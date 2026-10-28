@@ -1,4 +1,5 @@
 name: Publish validated Windows candidate
+# Solo publica artefactos ya construidos y verificados para el commit indicado.
 
 on:
   workflow_dispatch:

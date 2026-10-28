@@ -1,3 +1,5 @@
+"""Pruebas de regresión del módulo de procesamiento compress."""
+
 from pathlib import Path
 
 from app.modules.compress import comprimir_imagen

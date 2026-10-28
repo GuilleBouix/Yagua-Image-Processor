@@ -1,4 +1,4 @@
-"""Compact local notices; documents are opened only on user request."""
+"""Avisos locales; los documentos se abren solo cuando el usuario lo solicita."""
 from __future__ import annotations
 
 import logging
@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 def document_blocks(content):
     """Present the Markdown subset used by our local notices as readable text."""
     def inline(value):
+        """Representa enlaces y énfasis del Markdown como texto plano para CTk."""
         value = re.sub(r'\[([^\]]+)\]\(([^)]+)\)', r'\1 (\2)', value)
         value = re.sub(r'\*\*(.*?)\*\*', r'\1', value, flags=re.DOTALL)
         return re.sub(r'`([^`]+)`', r'\1', value)
@@ -48,7 +49,9 @@ def document_blocks(content):
 
 
 class LegalPanel(ctk.CTkFrame):
+    """Muestra avisos legales locales y abre los documentos incluidos."""
     def __init__(self, parent, *, set_status):
+        """Carga rutas legales locales y construye los avisos compactos."""
         super().__init__(parent, **styles.surface('panel'))
         self._set_status = set_status
         self._window = None
@@ -68,12 +71,14 @@ class LegalPanel(ctk.CTkFrame):
         self.bind('<Configure>', self._fit_text, add=True)
 
     def _fit_text(self, event):
+        """Adapta el texto del aviso al tamaño del panel disponible."""
         width = max(80, int(event.width / self._get_widget_scaling()) - 32)
         for label in self._labels:
             if label.cget('wraplength') != width:
                 label.configure(wraplength=width)
 
     def _open_documents(self):
+        """Abre el documento legal seleccionado dentro de la ventana local."""
         if self._window is not None and self._window.winfo_exists():
             self._window.lift()
             return
@@ -85,7 +90,7 @@ class LegalPanel(ctk.CTkFrame):
         window.transient(self.winfo_toplevel())
         self._set_window_icon(window)
         if sys.platform == 'win32':
-            # CustomTkinter schedules its own icon after 200 ms.
+            # CustomTkinter vuelve a aplicar su icono después de 200 ms.
             window.after(250, lambda: self._set_window_icon(window))
         window.grid_columnconfigure(0, weight=1)
         window.grid_rowconfigure(1, weight=1)
@@ -98,6 +103,7 @@ class LegalPanel(ctk.CTkFrame):
         text.tag_config('body', spacing1=2, spacing3=4)
 
         def show_document(name):
+            """Carga el documento local elegido y lo representa en el área de lectura."""
             try:
                 content = resource_path(documents[name]).read_text(encoding='utf-8')
             except OSError:
@@ -123,6 +129,7 @@ class LegalPanel(ctk.CTkFrame):
         show_document('Yagua (MIT)')
 
     def _set_window_icon(self, window):
+        """Aplica el icono de Yagua después de que CTk crea la ventana."""
         if not window.winfo_exists():
             return
         try:
@@ -136,6 +143,7 @@ class LegalPanel(ctk.CTkFrame):
             logger.warning('Cannot apply Yagua icon to legal window', exc_info=True)
 
     def _open_folder(self):
+        """Abre la carpeta legal local del checkout o del paquete."""
         try:
             path = resource_path('legal').resolve(strict=True)
             if sys.platform == 'win32':

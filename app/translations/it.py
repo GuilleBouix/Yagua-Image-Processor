@@ -1,4 +1,4 @@
-"""Complete UI translation; OCR recognition languages remain independent."""
+"""Traducción completa de la interfaz; los idiomas de reconocimiento OCR se mantienen independientes."""
 
 TRANSLATIONS = {
     'documentation': 'Documentazione',
@@ -432,7 +432,7 @@ TRANSLATIONS = {
 }
 
 
-# Metadata collection and batch operations.
+# Catálogo de metadatos y operaciones por lote.
 TRANSLATIONS.update({
     'meta_search_fields': 'Cerca campo…',
     'meta_all_sections': 'Tutte le sezioni',
@@ -480,7 +480,7 @@ TRANSLATIONS.update({
 TRANSLATIONS["meta_source_changed"] = 'Il file è cambiato dopo il caricamento. Selezionalo di nuovo prima di salvare.'
 
 
-# UI startup and preloading.
+# Inicio de la interfaz y precarga de módulos.
 TRANSLATIONS.update({
     'startup_resources': 'Preparazione di Yagua…',
     'startup_home': 'Preparazione della schermata iniziale…',
@@ -511,7 +511,7 @@ TRANSLATIONS.update({
 })
 
 
-# Contextual metadata UI.
+# Interfaz contextual de metadatos.
 TRANSLATIONS.update({
     'meta_start': 'Aggiungi immagini per iniziare',
     'meta_read_only_short': 'Sola lettura. Puoi modificare i metadati delle immagini JPEG e TIFF.',
@@ -527,7 +527,7 @@ TRANSLATIONS.update({
     'meta_selected_count': '{marked} selezionate',
 })
 
-# Local legal information in Settings.
+# Información legal local en Ajustes.
 TRANSLATIONS.update({
     "legal_title": "File, connessioni e licenze",
     "legal_originals": "Rinominare e modificare i metadati modifica i file selezionati. Consigliamo di lavorare su copie di sicurezza.",

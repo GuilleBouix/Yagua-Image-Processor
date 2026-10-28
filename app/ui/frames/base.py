@@ -33,7 +33,9 @@ from app.ui.operations import operations
 
 logger = logging.getLogger(__name__)
 
+
 def _file_size_label(path):
+    """Formatea el tamaño de archivo para etiquetas de interfaz."""
     try:
         return formatear_bytes(path.stat().st_size)
     except OSError:
@@ -42,17 +44,12 @@ def _file_size_label(path):
 
 
 class BaseFrame(UiLifetime, ctk.CTkScrollableFrame):
+    """Construye la estructura compartida de los módulos de la interfaz."""
+
     design_system = False
     _lista_frame: ctk.CTkFrame | ctk.CTkScrollableFrame
     _lbl_lista_vacia: ctk.CTkLabel
-    """
-    Clase base para todos los frames de modulos.
-    
-    Proporciona componentes comunes como header, lista de archivos
-    y footer de informacion. Las subclases deben implementar
-    _build_content() para agregar su contenido especifico.
-    """
-    
+
     def __init__(self, parent, title, *, defer_build=False):
         """
         Inicializa el frame base.
@@ -101,37 +98,44 @@ class BaseFrame(UiLifetime, ctk.CTkScrollableFrame):
             finish(self._build_iterator)
 
     def _post_ui(self, delay, callback):
-        # Workers use this queue, never Tk.after. Delay is kept for call-site compatibility.
+        # Los workers publican aquí; no usan Tk.after. Se conserva delay por compatibilidad con llamadas existentes.
+        """Publica una actualización de widget desde una operación asíncrona."""
         if threading.current_thread() is threading.main_thread():
             self.after(delay, callback)
         else:
             operations.post(self, callback)
 
     def _operation_blocked(self, *, global_job=False):
+        """Evita iniciar o editar una vista mientras hay una operación incompatible."""
         busy = operations.is_busy(None if global_job else self)
         if busy and hasattr(self, '_lbl_info'):
             self._lbl_info.configure(text=t('operation_busy'))
         return busy
 
     def _build_save_selector(self, parent, row, **kwargs):
+        """Crea los controles compartidos para elegir el destino de salida."""
         from app.ui.saving import selector_steps
         return selector_steps(self, parent, row, **kwargs)
 
     def _new_button(self, parent, *, role='secondary', **kwargs):
+        """Construye un botón que hereda estilo, idioma y escala de la app."""
         if self.design_system:
             from app.ui.styles import Button
             return Button(parent, role=role, **kwargs)
         return ctk.CTkButton(parent, **kwargs)
 
     def _prepare_save(self, paths, target_format, proceed, **kwargs):
+        """Captura y valida la política de salida seleccionada por el usuario."""
         from app.ui.saving import prepare
         return prepare(self, paths, target_format, proceed, **kwargs)
 
     def _sync_save_visibility(self):
+        """Muestra controles de guardado solo cuando hay resultados compatibles."""
         from app.ui.saving import set_visible
         set_visible(self, bool(self._imagenes))
 
     def _finish_save(self, result, *, strip=False):
+        """Actualiza la interfaz al terminar el guardado del lote."""
         from app.ui.saving import refresh, summary
         refresh(self, result)
         self._lbl_info.grid(sticky='ew')
@@ -139,6 +143,7 @@ class BaseFrame(UiLifetime, ctk.CTkScrollableFrame):
                                  anchor='w', justify='left', wraplength=max(120, self.winfo_width() - 48))
         if not hasattr(self, '_save_footer_binding'):
             def fit(event):
+                """Reduce o reorganiza texto para que no quede cortado."""
                 width = max(120, int(event.width / self._get_widget_scaling()) - 48)
                 if self._lbl_info.cget('wraplength') != width:
                     self._lbl_info.configure(wraplength=width)
@@ -153,6 +158,7 @@ class BaseFrame(UiLifetime, ctk.CTkScrollableFrame):
             return False
         controls = []
         def freeze(parent):
+            """Deshabilita controles mientras el módulo ejecuta un trabajo."""
             for widget in parent.winfo_children():
                 if isinstance(widget, (ctk.CTkButton, ctk.CTkEntry, ctk.CTkCheckBox,
                                        ctk.CTkSlider, ctk.CTkOptionMenu, ctk.CTkComboBox, Text, ctk.CTkSwitch)):
@@ -163,6 +169,7 @@ class BaseFrame(UiLifetime, ctk.CTkScrollableFrame):
                     freeze(widget)
 
         def restore():
+            """Restaura controles al finalizar o fallar una operación."""
             for widget, state in controls:
                 if widget.winfo_exists():
                     widget.configure(state=state)
@@ -171,6 +178,7 @@ class BaseFrame(UiLifetime, ctk.CTkScrollableFrame):
             self._hide_full_overlay()
 
         def success(result):
+            """Presenta el resultado de una operación completada."""
             restore()
             if on_success is not None:
                 on_success(result)
@@ -180,6 +188,7 @@ class BaseFrame(UiLifetime, ctk.CTkScrollableFrame):
 
 
         def failed(error):
+            """Muestra el error y restablece la interfaz del módulo."""
             restore()
             handler = on_error or getattr(self, '_handle_error', None)
             if handler is not None:
@@ -197,6 +206,7 @@ class BaseFrame(UiLifetime, ctk.CTkScrollableFrame):
         return accepted
 
     def _show_failures(self, result):
+        """Presenta los fallos individuales devueltos por el procesamiento."""
         if isinstance(result, dict) and result.get('fallos'):
             from tkinter import messagebox
             failures = tuple(result['fallos'])
@@ -212,6 +222,7 @@ class BaseFrame(UiLifetime, ctk.CTkScrollableFrame):
         return
 
     def _build(self):
+        """Construye estructura común y contenido propio del módulo."""
         finish(self._build_steps())
 
     def _build_steps(self):
@@ -460,6 +471,7 @@ class BaseFrame(UiLifetime, ctk.CTkScrollableFrame):
         state: dict[str, bool | None] = {'narrow': None}
 
         def reflow(event=None):
+            """Ajusta la disposición de controles a la escala disponible."""
             width = event.width if event is not None else host.winfo_width()
             narrow = width < breakpoint
             if state['narrow'] == narrow:
@@ -686,7 +698,7 @@ class BaseFrame(UiLifetime, ctk.CTkScrollableFrame):
             self._lbl_info.configure(text='')
             return
 
-        # No file rows exist until the first load.
+        # La lista no tiene filas hasta que se cargan los primeros archivos.
         
         # Mostrar label de lista vacia si existe y esta vivo
         if hasattr(self, '_lbl_lista_vacia') and self._lbl_lista_vacia.winfo_exists():

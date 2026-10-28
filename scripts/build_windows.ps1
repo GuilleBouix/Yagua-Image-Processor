@@ -3,6 +3,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+# Las pruebas y la compilación usan entornos nuevos en una carpeta temporal.
 $projectRoot = Split-Path -Parent $PSScriptRoot
 Set-Location -LiteralPath $projectRoot
 if (Test-Path -LiteralPath $OutputRoot) { throw 'Usa una carpeta de salida nueva.' }
@@ -10,12 +11,13 @@ New-Item -ItemType Directory -Path $OutputRoot | Out-Null
 $OutputRoot = (Resolve-Path -LiteralPath $OutputRoot).Path
 
 function Invoke-Checked {
+  # Interrumpe la secuencia si una herramienta devuelve un código de error.
   param([string]$Executable, [string[]]$Arguments)
   & $Executable @Arguments
   if ($LASTEXITCODE -ne 0) { throw "Fallo: $Executable $Arguments" }
 }
 
-# Separate environments: developer/testing tools cannot enter the frozen app.
+# Aísla las pruebas del empaquetado para excluir herramientas de desarrollo.
 Invoke-Checked python @('-m', 'venv', "$OutputRoot/test-env")
 $testPython = "$OutputRoot/test-env/Scripts/python.exe"
 Invoke-Checked $testPython @('-m', 'pip', 'install', '-r', 'requirements.txt', '-r', 'requirements-dev.txt')
@@ -32,5 +34,6 @@ Invoke-Checked $buildPython @('-m', 'pip', 'check')
 Invoke-Checked $buildPython @('-m', 'PyInstaller', '--clean', '--noconfirm', '--distpath', "$OutputRoot/dist", '--workpath', "$OutputRoot/work", 'Yagua.spec')
 Invoke-Checked $buildPython @('scripts/ci/check_licenses.py', '--package', "$OutputRoot/dist/Yagua", '--platform', 'win32', '--report', "$OutputRoot/licenses.json")
 Invoke-Checked python @('scripts/ci/probe_package.py', "$OutputRoot/dist/Yagua/Yagua.exe", "$OutputRoot/preflight", '--preflight')
+# Esta compilación local no ejecuta las comprobaciones finales de release.
 Write-Host "Build: $OutputRoot/dist/Yagua"
 Write-Host 'Faltan las pruebas reales online/offline y el limite total antes de distribuir.'

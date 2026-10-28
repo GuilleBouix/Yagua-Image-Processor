@@ -1,3 +1,5 @@
+"""Pruebas de interfaz para app main y sus estados principales."""
+
 from app import app as app_module
 from app import main as app_main
 from app.ui import main_window

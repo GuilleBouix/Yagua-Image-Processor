@@ -3,6 +3,7 @@
 This preliminary artifact check does not certify the installed total. Use
 check_installed_size.py after the online/offline model checks for that gate.
 """
+# Valida el límite de tamaño instalado de los paquetes Linux.
 
 from __future__ import annotations
 
@@ -31,10 +32,12 @@ def artifact_size(path: Path) -> int:
 
 
 def within_budget(size: int) -> bool:
+    """Comprueba el presupuesto instalado sin crear archivos gigantes."""
     return 0 <= size < MAX_BYTES
 
 
 def main(argv: list[str] | None = None) -> int:
+    """Valida el tamaño del artefacto Linux y su informe de mediciones."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('paths', nargs='+', type=Path)
     parser.add_argument('--report', type=Path)

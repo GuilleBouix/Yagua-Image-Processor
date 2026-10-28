@@ -1,3 +1,5 @@
+"""Pruebas de interfaz para resize frame y sus estados principales."""
+
 from app.ui.frames.resize.frame import ResizeFrame
 from app import translations
 import pytest

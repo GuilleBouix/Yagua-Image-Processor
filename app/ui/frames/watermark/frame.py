@@ -115,6 +115,7 @@ class WatermarkFrame(BaseFrame):
     design_system = True
 
     def __init__(self, parent, *, defer_build=False):
+        """Inicializa estado de selección y revisiones de las vistas previas."""
         logger.info("watermark.ui: init")
         self._state = WatermarkState()
 
@@ -132,6 +133,7 @@ class WatermarkFrame(BaseFrame):
         super().__init__(parent, t("watermark_title"), defer_build=defer_build)
 
     def _on_build_complete(self):
+        """Retira controles que no corresponden al diseño de marca de agua."""
         self._scrollbar.configure(corner_radius=0, width=6, border_spacing=1)
         try:
             self._btn_limpiar.grid_remove()
@@ -144,6 +146,7 @@ class WatermarkFrame(BaseFrame):
 
     @stepwise
     def _build_content(self):
+        """Construye panel de archivos, controles y preview antes/después."""
         logger.info("watermark.ui: build_content")
         yield
         izquierda, derecha = self._crear_workspace(columnspan=2, breakpoint=760)
@@ -242,6 +245,7 @@ class WatermarkFrame(BaseFrame):
     @stepwise
     def _construir_controles(self, p):
         # Preset
+        """Agrupa los controles de posición, opacidad y tamaño de la marca."""
         ctk.CTkLabel(
             p, text=t("watermark_preset"),
             font=fonts.FUENTE_CHICA, text_color=colors.TEXT_GRAY, anchor="w",
@@ -329,6 +333,7 @@ class WatermarkFrame(BaseFrame):
         yield from self._build_save_selector(p, 7, columnspan=2)
 
     def _crear_slider_fila(self, parent, row, label, var, desde, hasta, sufijo=""):
+        """Crea una fila con etiqueta, slider y lectura del valor."""
         parent.grid_columnconfigure(1, weight=1)
 
         ctk.CTkLabel(
@@ -348,6 +353,7 @@ class WatermarkFrame(BaseFrame):
         lbl_val.grid(row=0, column=1, padx=(6, 0))
 
         def _on_slide(v, lv=lbl_val):
+            """Actualiza el valor mostrado al mover el slider."""
             lv.configure(text=f"{int(v)}{sufijo}")
             self._disparar_preview()
 
@@ -367,6 +373,7 @@ class WatermarkFrame(BaseFrame):
         return lbl_val
 
     def _crear_hint_fila(self, parent, row, izq, der):
+        """Agrega una ayuda que se adapta a la escala de interfaz."""
         fila = ctk.CTkFrame(parent, fg_color="transparent", corner_radius=0)
         fila.grid(row=row, column=0, columnspan=2, padx=(16, 16), pady=(0, 2), sticky="ew")
         fila.grid_columnconfigure(0, weight=1)
@@ -376,6 +383,7 @@ class WatermarkFrame(BaseFrame):
 
     @stepwise
     def _construir_preview(self, p):
+        """Construye el panel que compara original y resultado."""
         ctk.CTkLabel(
             p, text=t("watermark_preview_despues"),
             font=fonts.FUENTE_CHICA, text_color=colors.ACENTO,
@@ -409,6 +417,7 @@ class WatermarkFrame(BaseFrame):
     # ------------------------------------------------------------------ #
 
     def _aplicar_preset(self, nombre):
+        """Carga los valores asociados al preset elegido."""
         logger.info("watermark.ui: aplicar_preset (%s)", nombre)
         preset_id = None
         if nombre in PRESET_DEFS:
@@ -453,6 +462,7 @@ class WatermarkFrame(BaseFrame):
 
     def _al_cambiar_posicion(self, valor):
         # Preferimos el map de labels traducidos.
+        """Actualiza la posición y solicita un preview nuevo."""
         try:
             pos = getattr(self, "_pos_label_to_value", {}).get(valor)
         except Exception:
@@ -463,6 +473,7 @@ class WatermarkFrame(BaseFrame):
         self._disparar_preview()
 
     def _seleccionar_watermark(self):
+        """Abre el diálogo para elegir la imagen de marca."""
         ruta = filedialog.askopenfilename(
             title=t("watermark_select_wm"),
             filetypes=[(t('images_loaded'), "*.png *.jpg *.jpeg *.webp *.bmp *.heic *.heif"), ("PNG", "*.png")],
@@ -474,6 +485,7 @@ class WatermarkFrame(BaseFrame):
         self._cargar_preview_wm(ruta)
 
     def _cargar_imagenes(self, rutas):
+        """Agrega archivos base después de validar que el módulo no esté ocupado."""
         if self._operation_blocked(global_job=False):
             return
         logger.info("watermark.ui: cargar_imagenes (total=%s)", len(rutas))
@@ -509,13 +521,16 @@ class WatermarkFrame(BaseFrame):
     # ------------------------------------------------------------------ #
 
     def _cargar_preview_base(self, ruta):
+        """Prepara la imagen original reducida que se usa en el preview."""
         self._iniciar_carga_preview("base", ruta)
 
 
     def _cargar_preview_wm(self, ruta):
+        """Prepara una imagen de marca reducida sin modificar su archivo."""
         self._iniciar_carga_preview("watermark", ruta)
 
     def _iniciar_carga_preview(self, tipo, ruta):
+        """Solicita la carga de preview con una revisión para descartar respuestas viejas."""
         try:
             path = Path(ruta).resolve()
             stat = path.stat()
@@ -547,6 +562,7 @@ class WatermarkFrame(BaseFrame):
         ).start()
 
     def _cargar_preview_en_background(self, tipo, ruta, revision):
+        """Prepara la imagen y la marca fuera del hilo de Tk."""
         try:
             imagen = _preparar_preview_imagen(ruta)
             miniatura = (
@@ -571,6 +587,7 @@ class WatermarkFrame(BaseFrame):
             logger.debug("watermark.ui: frame cerrado durante carga de preview")
 
     def _aplicar_preview_cargado(self, tipo, revision, imagen, miniatura, error):
+        """Actualiza widgets solo si la respuesta corresponde a la selección vigente."""
         if revision != self._preview_load_revisions[tipo]:
             return
         if error is not None:
@@ -599,8 +616,9 @@ class WatermarkFrame(BaseFrame):
             self._lbl_preview_status.configure(text="")
 
     def _mostrar_placeholder_preview(self):
-        # CTkLabel(image=None) leaves the native Tk image name in place.
-        # Clear it before releasing the CTkImage or updating the placeholder.
+        # CTkLabel(image=None) puede conservar el nombre de la imagen nativa de Tk.
+        # Límpialo antes de liberar CTkImage o actualizar el marcador vacío.
+        """Muestra el estado vacío cuando falta una imagen base o marca."""
         self._canvas_preview._label.configure(image='')
         self._canvas_preview.configure(
             image=None, text=t("watermark_preview_placeholder")
@@ -608,6 +626,7 @@ class WatermarkFrame(BaseFrame):
         setattr(self._canvas_preview, "_ctk_image", None)
 
     def _invalidar_preview(self):
+        """Invalida trabajos y callbacks asociados a una previsualización anterior."""
         self._preview_revision += 1
         if self._preview_job is not None:
             try:
@@ -618,6 +637,7 @@ class WatermarkFrame(BaseFrame):
 
 
     def _disparar_preview(self):
+        """Agrupa cambios de controles y agenda una actualización del preview."""
         if self._preview_base_bgra is None or self._preview_wm_bgra is None:
             return
         self._preview_revision += 1
@@ -629,6 +649,7 @@ class WatermarkFrame(BaseFrame):
         self._preview_job = self.after(_DEBOUNCE_MS, self._lanzar_hilo_preview)
 
     def _lanzar_hilo_preview(self):
+        """Inicia el worker que produce los datos de la previsualización."""
         self._preview_job = None
         if self._preview_base_bgra is None or self._preview_wm_bgra is None:
             return
@@ -658,6 +679,7 @@ class WatermarkFrame(BaseFrame):
         ).start()
 
     def _hilo_preview(self, revision, base, wm, posicion, escala, opacidad, margen):
+        """Genera una vista previa sin acceder a widgets ni variables Tk."""
         try:
             resultado = aplicar_watermark_np(
                 base, wm,
@@ -675,6 +697,7 @@ class WatermarkFrame(BaseFrame):
             logger.debug("watermark.ui: frame cerrado durante calculo de preview")
 
     def _actualizar_preview(self, revision, resultado):
+        """Combina imagen y marca usando solo los datos capturados vigentes."""
         self._preview_activo = False
         if revision != self._preview_revision:
             if (
@@ -727,9 +750,11 @@ class WatermarkFrame(BaseFrame):
         configure_changed(self._lbl_info, text='')
 
     def _reload_self(self):
+        """Pide al contenedor reconstruir el módulo si cambió su configuración."""
         self._limpiar()
 
     def _find_main_window(self):
+        """Busca la ventana principal desde los ancestros de Tk."""
         from tkinter import Misc
         w: Misc | None = self
         while w is not None:
@@ -762,6 +787,7 @@ class WatermarkFrame(BaseFrame):
         configure_changed(self._wm_info, text=f'{size}  -  {path.suffix.upper().lstrip(".")}')
 
     def _mostrar_canvas(self, canvas, img_bgra):
+        """Dibuja las imágenes comparativas en el canvas disponible."""
         try:
             if img_bgra.shape[2] == 4:
                 img_rgb = cv2.cvtColor(img_bgra, cv2.COLOR_BGRA2RGBA)
@@ -783,6 +809,7 @@ class WatermarkFrame(BaseFrame):
     # ------------------------------------------------------------------ #
 
     def _ejecutar(self):
+        """Captura selección y opciones antes de iniciar el procesamiento del lote."""
         if self._operation_blocked(global_job=True):
             return
         logger.info("watermark.ui: click_aplicar")
@@ -799,6 +826,7 @@ class WatermarkFrame(BaseFrame):
         options: dict[str, Any] = dict(posicion=self._state.posicion.get(), escala=self._state.escala.get() / 100.0,
                        opacidad=self._state.opacidad.get() / 100.0, margen=self._state.margen.get())
         def start(folder, plan):
+            """Entrega las rutas y opciones capturadas al worker del lote."""
             self._show_full_overlay(t('processing'))
             self._submit_job(lambda: batch_aplicar_watermark(paths, ruta_wm, folder,
                 **options, output_policy=plan), button=self._btn_aplicar, text=t('watermark_btn'),
@@ -806,11 +834,13 @@ class WatermarkFrame(BaseFrame):
         self._prepare_save(paths, None, start, resources=(ruta_wm,))
 
     def _proceso(self, carpeta, ruta_wm, paths, options):
+        """Aplica la marca de agua a los archivos capturados por el pedido."""
         res = batch_aplicar_watermark(paths, ruta_wm, carpeta, **options)
         self._post_ui(0, lambda: self._finalizar(res))
         return res
 
     def _finalizar(self, res):
+        """Entrega resultados del lote y libera los controles ocupados."""
         ok      = res.get("ok", 0)
         errores = res.get("errores", 0)
         logger.info("watermark.ui: finalizar_ok (ok=%s, errores=%s, conflictos=%s)", ok, errores, res.get("conflictos", 0))

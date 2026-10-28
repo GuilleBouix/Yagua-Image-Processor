@@ -1,3 +1,5 @@
+"""Herramientas de mantenimiento, verificación y empaquetado del proyecto. apply version."""
+
 from __future__ import annotations
 
 import re
@@ -11,6 +13,7 @@ _VALID_TARGETS = {"windows", "linux"}
 
 
 def _replace_line(text: str, pattern: re.Pattern[str], replacement: str) -> str:
+    """Reemplaza una línea que debe aparecer exactamente una vez en el archivo."""
     new_text, n = pattern.subn(replacement, text, count=1)
     if n != 1:
         raise RuntimeError(f"No se pudo actualizar: patron={pattern.pattern!r}")
@@ -18,6 +21,7 @@ def _replace_line(text: str, pattern: re.Pattern[str], replacement: str) -> str:
 
 
 def _apply_app_version_py(repo_root: Path, version: str) -> None:
+    """Actualiza la versión declarada por el código de la aplicación."""
     path = repo_root / "app" / "version.py"
     text = path.read_text(encoding="utf-8")
     text = _replace_line(
@@ -29,6 +33,7 @@ def _apply_app_version_py(repo_root: Path, version: str) -> None:
 
 
 def _apply_inno_iss(repo_root: Path, version: str) -> None:
+    """Sincroniza la versión y el nombre del instalador de Windows."""
     path = repo_root / "Yagua.iss"
     text = path.read_text(encoding="utf-8")
     text = _replace_line(
@@ -50,6 +55,7 @@ def _apply_inno_iss(repo_root: Path, version: str) -> None:
 
 
 def main(argv: list[str]) -> int:
+    """Valida la versión recibida y aplica los cambios de versión solicitados."""
     if len(argv) not in {2, 3}:
         print("Uso: python scripts/ci/apply_version.py <X.Y.Z> [windows|linux]", file=sys.stderr)
         return 2

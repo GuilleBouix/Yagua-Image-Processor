@@ -1,4 +1,4 @@
-"""Assert the frozen contents follow the lean policy; preserve an inventory."""
+"""Comprueba la política de archivos del paquete congelado y conserva un inventario."""
 
 import ast
 import json
@@ -11,7 +11,7 @@ from scripts.packaging_rules import omit_packaged_file
 
 
 def elf_dependencies(package: Path) -> dict[str, list[str]]:
-    """Record actual ELF dependencies, never remove binaries by their size."""
+    """Registra dependencias ELF observadas; no elimina binarios por su tamaño."""
     needed = {}
     for path in package.rglob('*'):
         if not path.is_file() or path.is_symlink():
@@ -28,6 +28,7 @@ def elf_dependencies(package: Path) -> dict[str, list[str]]:
 
 
 def audit(package: Path, work: Path, enforce=True) -> dict:
+    """Compara los archivos congelados con la política de empaquetado y guarda evidencia."""
     toc = next(work.rglob('PYZ-00.toc'))
     entries = ast.literal_eval(toc.read_text(encoding='utf-8'))[1]
     names = {entry[0] for entry in entries}

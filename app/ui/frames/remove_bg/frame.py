@@ -61,6 +61,7 @@ class RemoveBgFrame(BaseFrame):
         self._post_ui(0, self._inicializar_en_background)
 
     def _on_build_complete(self):
+        """Conecta acciones al terminar la construcción del módulo."""
         self._scrollbar.configure(corner_radius=0, width=6, border_spacing=1)
 
     def _crear_spinner(self):
@@ -75,6 +76,7 @@ class RemoveBgFrame(BaseFrame):
         self._show_overlay(t('loading_model'))
 
         def _worker():
+            """Procesa archivos fuera de Tk y recoge fallos por elemento."""
             try:
                 disponible, detalle_error = estado_rembg()
             except Exception as exc:
@@ -361,9 +363,11 @@ class RemoveBgFrame(BaseFrame):
 
         paths, fmt = tuple(self._imagenes), self._formato_salida.get()
         def start(folder, plan):
+            """Captura opciones y selección antes de iniciar la operación global."""
             self._state.set_model_info(None, False)
             self._show_overlay(t('analyzing_image'))
             def finished(result):
+                """Actualiza progreso y controles al completar el lote."""
                 if result is not None:
                     self._state.set_model_info(result.get('model_used'), result.get('used_fallback', False))
                     self._finish_save(result)

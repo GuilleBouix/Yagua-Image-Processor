@@ -220,6 +220,7 @@ class CompressFrame(BaseFrame):
         paths = tuple(self._imagenes)
         quality = self._state.calidad.get()
         def start(folder, plan):
+            """Valida calidad y selección antes de comenzar el lote de compresión."""
             self._show_full_overlay(t('processing'))
             self._submit_job(lambda: batch_comprimir(paths, folder, calidad=quality,
                 quitar_exif=False, output_policy=plan), button=self._btn_comprimir,

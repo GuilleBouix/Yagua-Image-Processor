@@ -1,3 +1,5 @@
+"""Pruebas de regresión para conftest y sus contratos asociados."""
+
 import os
 import sys
 import gc
@@ -46,10 +48,10 @@ def tk_session():
 
 @pytest.fixture()
 def ui_root(tk_session):
-    # One Tcl interpreter, a fresh window per test, as in a running desktop app.
-    # Finalize unreachable widget/font cycles on Tk's thread. Otherwise an
-    # image worker can collect them and block in Font.__del__ waiting for a
-    # mainloop, while tests drive Tk manually with update().
+    # Se reutiliza un intérprete Tcl y se crea una ventana nueva por prueba, como en la app.
+    # Libera ciclos de widgets y fuentes desde el hilo Tk. Si no, un
+    # worker de imágenes podría recolectarlos y bloquearse en Font.__del__ esperando
+    # el mainloop, mientras las pruebas controlan Tk con update().
     gc.collect()
     root = ctk.CTkToplevel(tk_session)
     root.withdraw()

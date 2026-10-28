@@ -1,4 +1,5 @@
 name: Shared source validation
+# Cada plataforma ejecuta preflight, calidad, pruebas de lógica y pruebas de UI.
 'on':
   workflow_call:
     inputs:

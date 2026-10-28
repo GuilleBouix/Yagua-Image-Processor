@@ -31,14 +31,15 @@ logger = logging.getLogger(__name__)
 
 
 class _TiffExifText(str):
-    """Preserve original bytes while Pillow infers the EXIF ASCII tag type.
 
-    Plain bytes make Pillow infer BYTE for some nested EXIF tags. Plain strings
-    lose non-ASCII bytes in its TIFF writer. Latin-1 here is a reversible byte
-    carrier, not the encoding of the user's text (which remains UTF-8).
-    """
+    """Conserva bytes originales mientras Pillow determina el tipo ASCII EXIF.
+
+    Los bytes simples pueden hacer que Pillow infiera BYTE en etiquetas EXIF anidadas.
+    Las cadenas normales tampoco sirven aquí: para UserComment TIFF indefinido se
+    necesita codificar el contenido subyacente sin perder su tipo de etiqueta."""
 
     def encode(self, encoding: str = 'utf-8', errors: str = 'strict') -> bytes:
+        """Codifica el texto según el flujo de escritura TIFF de piexif."""
         if encoding == 'ascii' and errors == 'replace':
             return super().encode('latin-1')
         return super().encode(encoding, errors)
@@ -185,6 +186,7 @@ class MetadataEditRequest:
     orientation: int | None = None
 
     def __post_init__(self):
+        """Congela los valores recibidos para evitar cambios durante el guardado."""
         object.__setattr__(self, 'values', MappingProxyType(dict(self.values)))
 
 
@@ -340,6 +342,7 @@ def _decimal_texto(valor):
 
 
 def _gps_referencia(gps, tag, defecto):
+    """Lee la referencia cardinal de una etiqueta GPS y aplica su valor inicial."""
     referencia = gps.get(tag, defecto)
     return referencia.decode('ascii', errors='ignore') if isinstance(referencia, bytes) else str(referencia)
 
@@ -507,12 +510,15 @@ def limpiar_exif(ruta_entrada, ruta_salida):
 
 
 def _rational(valor):
+    """Convierte un número a la fracción racional que espera piexif."""
     fraccion = Fraction(str(valor)).limit_denominator(1_000_000)
     return fraccion.numerator, fraccion.denominator
 
 
 def _gps_tags(latitud, longitud):
+    """Codifica coordenadas decimales y sus referencias en etiquetas GPS EXIF."""
     def _coordenada(valor):
+        """Descompone grados decimales en tres fracciones EXIF."""
         total_segundos = round(abs(valor) * 3600 * 1_000_000)
         grados, resto = divmod(total_segundos, 3600 * 1_000_000)
         minutos, microsegundos = divmod(resto, 60 * 1_000_000)
@@ -528,13 +534,14 @@ def _gps_tags(latitud, longitud):
 
 
 def editar_exif(ruta_entrada, ruta_salida, request):
+    """Escribe los cambios EXIF en una salida segura y devuelve su estado."""
     try:
         require_single_frame(ruta_entrada)
         source = Path(ruta_entrada)
         before = source.stat()
         destination = Path(ruta_salida)
         same_file = source.resolve() == destination.resolve()
-        # A private exception aborts publishing on a returned failure or no-op.
+        # Una excepción privada cancela la publicación cuando hay un fallo o no hay cambios.
         with atomic_destination(destination, replace=same_file) as temporary:
             ok, warning = _editar_exif(str(source), str(temporary), request)
             if not ok:
@@ -555,6 +562,8 @@ def editar_exif(ruta_entrada, ruta_salida, request):
 
 
 class _EditAborted(Exception):
+    """Indica que no se debe publicar una salida por falta de cambios aplicables."""
+
     pass
 
 
@@ -587,8 +596,8 @@ def _editar_exif(ruta_entrada, ruta_salida, request):
                 return False, 'no_exif'
 
             exif_dict = piexif.load(str(ruta_entrada))
-            # Pillow may store TIFF UserComment as BYTE; piexif reads it as a
-            # tuple but requires bytes when serializing the UNDEFINED EXIF tag.
+            # Pillow puede guardar UserComment TIFF como BYTE; piexif lo lee como una
+            # tupla, pero necesita bytes al serializar la etiqueta EXIF UNDEFINED.
             comentario = exif_dict['Exif'].get(piexif.ExifIFD.UserComment)
             if isinstance(comentario, tuple):
                 exif_dict['Exif'][piexif.ExifIFD.UserComment] = bytes(comentario)
@@ -665,7 +674,7 @@ def _editar_exif(ruta_entrada, ruta_salida, request):
 
             # Guardar con EXIF modificado
             if formato == 'TIFF':
-                # Pillow rebuilds these storage tags for the transformed pixels.
+                # Pillow reconstruye estas etiquetas de almacenamiento al transformar los píxeles.
                 for tag in (
                     piexif.ImageIFD.ImageWidth,
                     piexif.ImageIFD.ImageLength,
@@ -681,15 +690,15 @@ def _editar_exif(ruta_entrada, ruta_salida, request):
                     exif_dict['0th'].pop(tag, None)
             exif_bytes = piexif.dump(exif_dict)
             if formato == 'JPEG' and request.orientation is None:
-                # Replace APP1 only: no decoding/recompression of the JPEG scan.
+                # Reemplaza solo APP1: no decodifica ni recomprime los datos de imagen JPEG.
                 piexif.insert(exif_bytes, Path(ruta_entrada).read_bytes(), str(ruta_salida))
                 return True, None
             opciones_guardado: dict[str, object] = {'exif': exif_bytes}
             if formato == 'TIFF':
                 exif_tiff = Image.Exif()
                 exif_tiff.load(exif_bytes)
-                # Pillow converts parsed TIFF strings to ASCII with replacement.
-                # Restore the original bytes without changing the ASCII tag type.
+                # Pillow convierte a ASCII con reemplazo las cadenas TIFF leídas.
+                # Restaura los bytes originales sin cambiar el tipo de etiqueta ASCII.
                 for tag, bloque in _TEXT_TAGS.values():
                     if tag in exif_dict[bloque]:
                         destino = exif_tiff if bloque == '0th' else exif_tiff.get_ifd(34665)

@@ -1,3 +1,5 @@
+"""Pruebas de regresión para checkpoints y sus contratos asociados."""
+
 import copy
 import io
 import json
@@ -295,7 +297,7 @@ def test_recovery_bookkeeping_change_does_not_invalidate_ui_or_compilation(sourc
     file = source / 'scripts/ci/checkpoints.py'
     file.write_text('old transport')
     before = key('compile'), key('ui'), key('core')
-    # This helper is classified as CI tooling, not a runtime/UI input.
+    # Este helper es de CI; no forma parte de la app ni de la interfaz.
     names = cp.tracked() + ['scripts/ci/checkpoints.py']
     original = cp.tracked
     try:

@@ -1,8 +1,11 @@
+# Versión de Python y ancho de línea usados al revisar el código.
 target-version = "py313"
 line-length = 100
 
 [lint]
+# Reglas de errores de sintaxis, imports y nombres; el formato no se reescribe automáticamente.
 select = ["E4", "E7", "E9", "F"]
 
 [lint.per-file-ignores]
+# Los __init__ pueden reexportar símbolos públicos sin usarlos localmente.
 "**/__init__.py" = ["F401"]

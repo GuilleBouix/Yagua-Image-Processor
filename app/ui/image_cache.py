@@ -15,6 +15,7 @@ from PIL import Image, ImageOps
 
 @dataclass(frozen=True)
 class ReducedImage:
+    """Contiene una miniatura reducida y las dimensiones del original."""
     image: Image.Image
     dimensions: tuple[int, int]
     format: str
@@ -23,7 +24,9 @@ class ReducedImage:
 
 
 class ReducedImageCache:
+    """Mantiene miniaturas LRU dentro de un presupuesto de memoria."""
     def __init__(self, limit_bytes=64 * 1024 * 1024):
+        """Inicializa una caché LRU con el presupuesto máximo de memoria."""
         self.limit_bytes = limit_bytes
         self.bytes = 0
         self._entries: OrderedDict[tuple, ReducedImage] = OrderedDict()
@@ -31,6 +34,7 @@ class ReducedImageCache:
         self._generation = 0
 
     def load(self, path, bounds, *, mode='RGB') -> ReducedImage:
+        """Carga o reutiliza una miniatura para el tamaño y modo solicitados."""
         canonical = os.path.normcase(str(Path(path).resolve()))
         stat = Path(canonical).stat()
         signature = (canonical, stat.st_size, stat.st_mtime_ns)
@@ -56,7 +60,7 @@ class ReducedImageCache:
         with self._lock:
             if generation != self._generation or size > self.limit_bytes:
                 return result
-            # A concurrent reader may already have inserted the same image.
+            # Otro lector puede haber agregado la misma imagen mientras tanto.
             if key in self._entries:
                 return self._entries[key]
             for stale in [entry for entry in self._entries if entry[0] == canonical and entry[1:3] != signature[1:]]:
@@ -68,15 +72,18 @@ class ReducedImageCache:
         return result
 
     def _remove(self, key):
+        """Retira una entrada y descuenta sus bytes estimados."""
         item = self._entries.pop(key)
         self.bytes -= self._cost(item.image)
 
     @staticmethod
     def _cost(image):
         # Pillow also uses four storage bytes per RGB pixel internally.
+        """Calcula el uso aproximado de memoria de una miniatura."""
         return image.width * image.height * max(4, len(image.getbands()))
 
     def invalidate(self, path=None):
+        """Invalida una ruta específica o vacía la caché."""
         canonical = os.path.normcase(str(Path(path).resolve())) if path is not None else None
         with self._lock:
             self._generation += 1
@@ -95,6 +102,7 @@ class ImageRequests:
     _started = False
 
     def __init__(self, owner):
+        """Asocia solicitudes y callbacks con el ciclo de vida de una vista."""
         self.owner = owner
         self.generation = 0
         self.pending: dict[tuple, list] = {}
@@ -104,10 +112,12 @@ class ImageRequests:
                 Thread(target=self._worker, daemon=True, name='yagua-reduced-images').start()
 
     def cancel(self):
+        """Invalida las solicitudes pendientes de esta vista."""
         self.generation += 1
         self.pending.clear()
 
     def request(self, path, bounds, callback, *, priority=1, mode='RGB'):
+        """Solicita una miniatura y entrega el resultado desde el hilo de Tk."""
         key = (str(path), tuple(bounds), mode)
         if key in self.pending:
             self.pending[key].append(callback)
@@ -117,6 +127,7 @@ class ImageRequests:
 
     @classmethod
     def _worker(cls):
+        """Procesa cargas de miniaturas sin crear o modificar widgets."""
         from app.ui.operations import operations
         while True:
             _, _, request, generation, key = cls._queue.get()
@@ -130,9 +141,11 @@ class ImageRequests:
             if generation != request.generation:
                 continue
             def deliver(request=request, generation=generation, key=key, result=result, error=error):
+                """Encola la miniatura en la vista solo si su solicitud sigue vigente."""
                 if generation == request.generation:
                     for callback in request.pending.pop(key, []):
                         def apply(callback=callback, generation=generation, request=request, result=result, error=error):
+                            """Actualiza el widget desde Tk con la imagen reducida recibida."""
                             if generation == request.generation:
                                 callback(result, error)
                         operations.post(request.owner, apply)

@@ -47,16 +47,19 @@ class ResizeFrame(BaseFrame):
     design_system = True
 
     def __init__(self, parent, *, defer_build=False):
+        """Prepara el estado y la construcción diferida del módulo."""
         logger.info("resize.ui: init")
         self._state = ResizeState()
         super().__init__(parent, t('resize_title'), defer_build=defer_build)
 
     def _prepare_additional_steps(self):
+        """Agrega pasos de interfaz que deben construirse de forma progresiva."""
         if self._defer_build:
             for mode in (t('pixels'), t('preset'), t('percentage')):
                 yield from steps_for(self._actualizar_modo_resize, mode)
 
     def _on_build_complete(self):
+        """Conecta validación y acciones tras construir los controles."""
         self._scrollbar.configure(corner_radius=0, width=6, border_spacing=1)
         if isinstance(self._lista_frame, ctk.CTkScrollableFrame):
             self._lista_frame._scrollbar.configure(corner_radius=0, width=6, border_spacing=1)
@@ -502,6 +505,7 @@ class ResizeFrame(BaseFrame):
         activate_tab(self._frames, tab)
 
     def _ejecutar_resize(self):
+        """Construye el trabajo de redimensionado con las opciones capturadas."""
         if self._operation_blocked(global_job=True):
             return
         if not self._imagenes:
@@ -520,11 +524,13 @@ class ResizeFrame(BaseFrame):
         self._save_resize(batch_redimensionar, options, self._btn_resize, 'resize_tab')
 
     def _ejecutar_crop(self):
+        """Aplica el recorte configurado sin leer controles desde el worker."""
         if self._operation_blocked(global_job=True):
             return
         self._save_resize(batch_recortar, dict(ratio=self._state.ratio_var.get()), self._btn_crop, 'crop_tab')
 
     def _ejecutar_canvas(self):
+        """Prepara la expansión del lienzo con anclaje y color seleccionados."""
         if self._operation_blocked(global_job=True):
             return
         width, height, error = parse_dimensions(self._canvas_ancho.get(), self._canvas_alto.get())
@@ -536,13 +542,16 @@ class ResizeFrame(BaseFrame):
                           'apply_canvas', canvas_choice=choice)
 
     def _save_resize(self, processor, options, button, label, *, canvas_choice=None):
+        """Publica los resultados mediante el plan de salida seguro."""
         paths = tuple(self._imagenes)
         if not paths:
             self._lbl_info.configure(text=t('load_images_first_resize'))
             return
         def start(folder, plan):
+            """Valida opciones y captura los archivos antes de iniciar el trabajo."""
             self._show_full_overlay(t('processing'))
             def work():
+                """Aplica al lote las opciones inmutables capturadas por la interfaz."""
                 parameters = dict(options)
                 if canvas_choice is not None:
                     parameters['color_fondo'], _ = canvas_color_for_choice(

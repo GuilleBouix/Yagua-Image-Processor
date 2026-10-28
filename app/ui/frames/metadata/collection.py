@@ -1,4 +1,4 @@
-"""Collection controller. Workers return plain data; Tk stays on the UI thread."""
+"""Controlador del catálogo; los workers devuelven datos simples y Tk permanece en el hilo principal."""
 from __future__ import annotations
 
 from itertools import count
@@ -41,15 +41,19 @@ ERROR_KEYS = {
 
 
 def error_text(error: str) -> str:
+    """Traduce un código de error del catálogo a texto de interfaz."""
     return t(ERROR_KEYS.get(error, error))
 
 
 def decode_preview(path: str, bound: int = 1024) -> Image.Image:
+    """Obtiene una imagen reducida desde la caché compartida."""
     return image_cache.load(path, (bound, bound)).image
 
 
 class MetadataCollection:
+    """Coordina workers, selección, formularios y guardado de metadatos."""
     def __init__(self, view):
+        """Inicializa colas, revisiones y recursos de la vista EXIF."""
         self.view: Any = view
         self.epoch = 0
         self.revision = 0
@@ -72,9 +76,11 @@ class MetadataCollection:
 
     @property
     def state(self):
+        """Devuelve el estado vigente para comprobar callbacks antiguos."""
         return self.view._state
 
     def refresh(self, *, rebuild=False, key=None):
+        """Invalida trabajos asociados a una selección anterior."""
         for files in self.view._file_views:
             files.active_view = self.visible and files.tab_frame is self.view._frames.get(self.tab)
             if rebuild:
@@ -94,12 +100,14 @@ class MetadataCollection:
             self.view._sync_presentation()
 
     def request_thumbnail(self, key):
+        """Solicita una miniatura vinculada a la revisión actual."""
         token = (self.epoch, key)
         if token not in self._thumb_requests:
             self._thumb_requests.add(token)
             self.enqueue('thumb', key)
 
     def enqueue(self, kind, key):
+        """Encola trabajo con prioridad sin acceder a widgets desde el worker."""
         self.queue.put((0 if kind == 'active' else 1, next(self.sequence),
                         kind, self.epoch, self.revision, key))
         if self.worker is None:
@@ -107,6 +115,7 @@ class MetadataCollection:
             self.worker.start()
 
     def _worker(self):
+        """Carga metadatos y miniaturas fuera de Tk para mantener fluida la interfaz."""
         while not self.closed.is_set():
             try:
                 _, _, kind, epoch, revision, key = self.queue.get(timeout=.2)
@@ -114,7 +123,7 @@ class MetadataCollection:
                 continue
             if epoch != self.epoch or (kind == 'active' and revision != self.revision):
                 continue
-            # Paths are copied into the queue key, never obtained from a Tk widget.
+            # Las rutas se copian a la cola; el worker nunca las lee desde un widget Tk.
             path = key
             if kind == 'thumb':
                 try:
@@ -140,6 +149,7 @@ class MetadataCollection:
                 self.view._post_ui(0, lambda e=epoch, rev=revision, k=key, r=result: self.loaded(e, rev, k, r))
 
     def _thumbnail(self, epoch, key, result):
+        """Decodifica y reduce una imagen para su miniatura de lista."""
         item = self.state.items.get(key)
         if epoch != self.epoch or item is None:
             return
@@ -150,6 +160,7 @@ class MetadataCollection:
         self.refresh(key=key)
 
     def add(self, paths):
+        """Agrega rutas válidas, conserva selección y comunica límites o duplicados."""
         if self.view._operation_blocked(global_job=True):
             return
         self.capture()
@@ -169,6 +180,7 @@ class MetadataCollection:
         self.view._lbl_info.configure(text=self.notice)
 
     def explore(self):
+        """Abre el diálogo de archivos y agrega solo si el usuario confirma una selección."""
         if self.view._operation_blocked(global_job=True):
             return
         paths = filedialog.askopenfilenames(parent=self.view, title=t('meta_add_images'),
@@ -177,17 +189,20 @@ class MetadataCollection:
             self.add(paths)
 
     def mark(self, key, checked):
+        """Cambia la marca de un archivo cuando la operación lo permite."""
         if not self.view._operation_blocked(global_job=True):
             self.state.items[key].checked = checked
         self.refresh()
 
     def mark_all(self, checked):
+        """Marca o desmarca todos los archivos del catálogo."""
         if not self.view._operation_blocked(global_job=True):
             for item in self.state.items.values():
                 item.checked = checked
         self.refresh()
 
     def capture(self):
+        """Guarda un borrador independiente del formulario del archivo activo."""
         item = self.state.items.get(self.form_key or '')
         if item is None or item.data is None or not item.data['editable'] or item.data['edit_error']:
             return
@@ -198,10 +213,12 @@ class MetadataCollection:
             self.view._orientacion_values.get(self.view._combo_orientacion.get()))
 
     def form_values(self):
+        """Lee valores actuales y traduce opciones visibles a sus valores EXIF."""
         return {key: self.view._enum_values[key].get(widget.get(), '') if key in self.view._enum_values
                 else widget.get().strip() for key, widget in self.view._campos_edit.items()}
 
     def activate(self, key, *, force=False, preserve_notice=False):
+        """Selecciona un archivo y solicita su lectura para la revisión actual."""
         if self.view._operation_blocked(global_job=True):
             return
         if key not in self.state.items:
@@ -236,6 +253,7 @@ class MetadataCollection:
         self.enqueue('active', key)
 
     def loaded(self, epoch, revision, key, result):
+        """Aplica datos y preview solo si selección y revisión siguen vigentes."""
         if self.closed.is_set() or epoch != self.epoch or revision != self.revision or key != self.state.active:
             return
         if operations.is_busy():
@@ -277,6 +295,7 @@ class MetadataCollection:
         self.refresh()
 
     def set_form(self, values, *, enabled):
+        """Carga al formulario los valores del archivo activo sin perder borradores."""
         for widget in self.view._campos_edit.values():
             configure_changed(widget, state='readonly' if isinstance(widget, ctk.CTkComboBox) else 'normal')
         self.view._aplicar_campos_edit(values)
@@ -285,6 +304,7 @@ class MetadataCollection:
             configure_changed(widget, state=('readonly' if isinstance(widget, ctk.CTkComboBox) else 'normal') if enabled else 'disabled')
 
     def render_previews(self, placeholder=''):
+        """Actualiza las previsualizaciones vinculadas a la pestaña visible."""
         item = self.state.current
         ready = self.preview_token == (self.epoch, self.revision, self.state.active)
         data = item.data if item and ready else None
@@ -301,6 +321,7 @@ class MetadataCollection:
         configure_changed(self.view._edit_target, text=Path(item.path).name if item else t('meta_current'))
 
     def change_tab(self, tab):
+        """Cambia de pestaña conservando el borrador del archivo activo."""
         self.capture()
         self.tab = tab
         for pane in self.view._previews:
@@ -317,10 +338,12 @@ class MetadataCollection:
             self.view._lbl_info.configure(text=self.feedback)
 
     def toggle_details(self):
+        """Expande o contrae los detalles EXIF del archivo seleccionado."""
         self.details_expanded = not self.details_expanded
         self.view._sync_presentation()
 
     def _dialog(self, title, width, height):
+        """Construye un diálogo local ligado a la ventana del módulo."""
         dialog = ctk.CTkToplevel(self.view)
         self._dialog_icon(dialog)
         if sys.platform == 'win32':
@@ -337,6 +360,7 @@ class MetadataCollection:
 
     @staticmethod
     def _dialog_icon(dialog):
+        """Carga el icono del diálogo desde los recursos de la app."""
         try:
             ico = resource_path('assets/icon.ico')
             if sys.platform == 'win32' and ico.exists():
@@ -350,10 +374,12 @@ class MetadataCollection:
             logger.warning('No se pudo aplicar el icono de Yagua al diálogo', exc_info=True)
 
     def _dialog_button(self, parent, key, command, *, primary=False):
+        """Crea una acción del diálogo con el estilo de Yagua."""
         return styles.Button(parent, role='primary' if primary else 'secondary',
             text=t(key), command=command, height=40, width=1, font=fonts.FUENTE_BASE)
 
     def destination(self, count_items, *, choose_scope=False) -> 'Any':
+        """Solicita carpeta de destino y cancela sin cambiar estado si se cierra el diálogo."""
         from app.ui.saving import mode
         overwrite = mode(self.view) == 'overwrite'
         if not choose_scope:
@@ -380,6 +406,7 @@ class MetadataCollection:
             font=fonts.FUENTE_CHICA, text_color=colors.TEXT_GRAY, wraplength=480, justify='left')
         count_label.grid(row=row_offset, column=0, padx=20, pady=(12, 8), sticky='w')
         def update_count(*_args):
+            """Actualiza el conteo del diálogo según el alcance elegido."""
             count_label.configure(text=t('meta_destination_count').format(
                 count=len(self.state.marked) if scope.get() == 'marked' else int(self.state.current is not None)))
         if choose_scope:
@@ -387,6 +414,7 @@ class MetadataCollection:
             update_count()
         result = []
         def accept():
+            """Valida destino y cambios pendientes antes de cerrar el diálogo."""
             count = (len(self.state.marked) if scope.get() == 'marked' else int(self.state.current is not None)) if choose_scope else count_items
             if not count:
                 return
@@ -418,6 +446,7 @@ class MetadataCollection:
         return result[0] if result else None
 
     def save(self, *, selected: bool | None = False, clean=False):
+        """Guarda cambios validados y registra el resultado individual de cada archivo."""
         if self.view._operation_blocked(global_job=True):
             return
         self.capture()
@@ -458,11 +487,13 @@ class MetadataCollection:
             return
         overwrite, folder = destination
         def start(_folder, plan):
+            """Invalida revisiones anteriores y entrega las tareas capturadas al coordinador."""
             self.epoch += 1
             self._thumb_requests.clear()
             self.revision += 1
             self.view._lbl_info.configure(text=t('processing'))
             def work():
+                """Procesa el lote bajo el bloqueo de E/S compartido."""
                 with self.io_lock:
                     return procesar_lote(tasks, clean=clean, overwrite=overwrite,
                                          folder=_folder, output_policy=plan)
@@ -471,6 +502,7 @@ class MetadataCollection:
                                 notice=t('meta_clean_confirm') if clean else '')
 
     def finished(self, result, overwrite):
+        """Libera estado de operación y presenta resultados parciales del lote."""
         lines = []
         for row in result['items']:
             item = self.state.items.get(path_key(row['ruta']))
@@ -502,6 +534,7 @@ class MetadataCollection:
         self.view._lbl_info.configure(text='' if self.tab == t('clean_batch') else self.summary)
 
     def apply_fields(self, fields, options=None):
+        """Aplica el mismo conjunto de campos elegidos a imágenes marcadas."""
         self.capture()
         for item in self.state.marked:
             for key, value in fields.items():
@@ -521,6 +554,7 @@ class MetadataCollection:
         self.refresh()
 
     def choose_fields(self):
+        """Solicita qué etiquetas EXIF se aplicarán al lote."""
         if self.view._operation_blocked(global_job=True):
             return
         self.capture()
@@ -562,11 +596,13 @@ class MetadataCollection:
         actions.grid(row=6, column=0, padx=20, pady=(8, 16), sticky='ew')
         actions.grid_columnconfigure((0, 1), weight=1)
         def update_summary(*_args):
+            """Cuenta campos seleccionados y habilita Aplicar solo si hay cambios."""
             count = sum(variable.get() for variable in choices.values()) + sum(
                 variable.get() for variable, _value in options.values())
             summary.configure(text=t('meta_copy_summary').format(fields=count, images=len(self.state.marked)))
             apply_button.configure(state='normal' if count else 'disabled')
         def add_row(label, value, variable):
+            """Construye una fila filtrable con casilla y vista del valor."""
             row = ctk.CTkFrame(body, fg_color='transparent')
             row.grid(row=len(rows), column=0, sticky='ew', pady=4)
             row.grid_columnconfigure((0, 1), weight=1, uniform='copy-fields')
@@ -578,6 +614,7 @@ class MetadataCollection:
                 wraplength=260, font=fonts.FUENTE_CHICA, text_color=colors.TEXT_GRAY)
             value_label.grid(row=0, column=1, sticky='ew')
             def resize_row(event):
+                """Ajusta el ancho de texto al tamaño disponible de la fila."""
                 half = int(event.width / self.view._get_widget_scaling()) // 2
                 value_label.configure(wraplength=max(80, half - 8))
                 if checkbox._text_label is not None:
@@ -605,6 +642,7 @@ class MetadataCollection:
                 add_row(t(label), display, variable)
                 options[key] = (variable, value)
         def accept():
+            """Aplica únicamente campos marcados y cierra el selector."""
             selected = {key: values[key] for key, variable in choices.items() if variable.get()}
             flags = {key: value for key, (variable, value) in options.items() if variable.get()}
             self.apply_fields(selected, flags)
@@ -616,6 +654,7 @@ class MetadataCollection:
                              text_color=colors.TEXT_GRAY)
         empty.grid(row=len(rows), column=0, pady=16)
         def filter_rows(*_args):
+            """Filtra filas visibles y restablece el desplazamiento del diálogo."""
             term = self.view._texto_busqueda(query.get().strip())
             visible = 0
             for text, row in rows:
@@ -636,6 +675,7 @@ class MetadataCollection:
         self.view.wait_window(dialog)
 
     def export(self, fmt):
+        """Exporta los metadatos seleccionados al formato pedido."""
         if self.view._operation_blocked(global_job=True):
             return
         batch = self.view._export_scope.get() == t('meta_marked')
@@ -649,6 +689,7 @@ class MetadataCollection:
         if not destination:
             return
         def work():
+            """Lee o exporta las rutas capturadas fuera del hilo de interfaz."""
             with self.io_lock:
                 if batch:
                     return exportar_lote(paths, destination, fmt)
@@ -657,6 +698,7 @@ class MetadataCollection:
                 exportar_metadatos(data['metadata'], destination, fmt)
                 return []
         def success(entries):
+            """Marca fallos individuales y anuncia la ruta del archivo exportado."""
             for entry in entries:
                 item = self.state.items.get(path_key(entry['ruta']))
                 if item and entry['error']:
@@ -667,6 +709,7 @@ class MetadataCollection:
             on_error=lambda error: self.view._lbl_info.configure(text=f'{t("error_saving")}: {error}'))
 
     def clear(self):
+        """Limpia los campos EXIF seleccionados de una copia segura."""
         if self.view._operation_blocked(global_job=True):
             return
         self.capture()

@@ -1,3 +1,5 @@
+"""Pruebas de interfaz para lqip frame y sus estados principales."""
+
 from app.ui.frames.lqip.frame import LqipFrame
 from app.ui.frames.lqip import frame as frame_module
 from app.ui.frames.lqip.services import ItemResult, cargar_original, procesar_archivos
@@ -264,7 +266,7 @@ def test_translated_modes_and_formats_keep_internal_keys(ui_root, monkeypatch, l
 @pytest.mark.parametrize('source_delivery', ['before_result', 'after_result'])
 def test_long_code_button_and_select_all_copy_all_four_formats(
         ui_root, fixtures_dir, monkeypatch, source_delivery):
-    # Control source arrival instead of relying on the background thread's timing.
+    # Controla cuándo llega el resultado; no dependas del tiempo del worker.
     source_loads = []
     monkeypatch.setattr(frame_module, 'Thread', lambda *, target, **_: SimpleNamespace(
         start=lambda: source_loads.append(target)))
@@ -281,7 +283,7 @@ def test_long_code_button_and_select_all_copy_all_four_formats(
         deliver_source()
     result = _construir_resultado('A' * 16000, 'photo.jpg')
     frame._finalizar(frame._revision, [ItemResult(0, frame._imagenes[0], result=result)])
-    # The default format is already selected: clicking it does not emit a change.
+    # El formato inicial ya está seleccionado: pulsarlo no genera un evento de cambio.
     assert frame._campo_export.get() == t('lqip_field_data_uri')
     assert len(frame._resultado_preview.get('1.0', 'end-1c')) == 12000
     if source_delivery == 'after_result':

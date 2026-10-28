@@ -11,10 +11,11 @@ from scripts.ci.checkpoints import api, digest, output, pages
 
 
 def verify_export(archive: Path, manifest_name: str, expected: dict) -> None:
+    """Compara el manifiesto final con los archivos exportados al job."""
     with zipfile.ZipFile(archive) as zipped:
-        # upload-artifact chooses a common root from the declared paths, even
-        # when some platform-specific paths do not exist. Source-review exports
-        # can therefore have their manifest at the root or under reports/.
+        # upload-artifact determina una raíz común a partir de las rutas declaradas,
+        # aunque falten algunas rutas de una plataforma. Los archivos de revisión de fuentes
+        # pueden tener el manifiesto en la raíz o dentro de reports/.
         layouts = {manifest_name}
         if Path(manifest_name).name.endswith('-sources.json'):
             layouts.update({Path(manifest_name).name, 'reports/' + Path(manifest_name).name})
@@ -35,6 +36,7 @@ def verify_export(archive: Path, manifest_name: str, expected: dict) -> None:
 
 
 def main():
+    """Valida y publica exportaciones finales de forma repetible."""
     platform, version = os.environ['STAGE_PLATFORM'], os.environ['STAGE_VERSION']
     artifacts = pages(f'actions/runs/{os.environ["GITHUB_RUN_ID"]}/artifacts', 'artifacts')
     candidate = ('installer/candidate-windows.json' if platform == 'windows' else 'reports/candidate-linux.json')

@@ -1,3 +1,5 @@
+"""Pruebas de interfaz para settings frame y sus estados principales."""
+
 import pytest
 from app.translations import AVAILABLE_LANGUAGES
 from app.ui.frames.settings.frame import SettingsFrame

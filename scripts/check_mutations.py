@@ -1,4 +1,4 @@
-"""Inject regressions into disposable copies; leave the checkout untouched."""
+"""Inyecta regresiones en copias descartables sin modificar el checkout."""
 import json
 from pathlib import Path
 import shutil
@@ -23,6 +23,7 @@ CASES = [
 
 
 def main():
+    """Prepara copias descartables, inyecta fallos conocidos y comprueba si las pruebas los detectan."""
     reports = []
     for name, relative, before, after, test in CASES:
         with TemporaryDirectory(prefix='yagua-mutation-') as directory:

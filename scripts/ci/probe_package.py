@@ -1,4 +1,5 @@
 """Run a frozen app with a disposable profile and shared online/offline models."""
+# Ejecuta el paquete aislado con perfil temporal y datos locales de prueba.
 
 import argparse
 import hashlib
@@ -10,6 +11,7 @@ import time
 
 
 def model_manifest(root: Path) -> dict:
+    """Captura los modelos disponibles sin descargarlos ni modificarlos."""
     result = {}
     for path in sorted(root.rglob('*')):
         if path.is_file():
@@ -20,6 +22,7 @@ def model_manifest(root: Path) -> dict:
 
 
 def isolated_environment(root: Path) -> dict:
+    """Prepara un entorno temporal para probar el paquete sin contaminar el sistema."""
     env = os.environ.copy()
     paths = {
         'HOME': root / 'caches/home',
@@ -44,6 +47,7 @@ def isolated_environment(root: Path) -> dict:
 
 
 def run(executable: Path, root: Path, label: str, mode='full') -> dict:
+    """Ejecuta una verificación del paquete y recopila su resultado."""
     home = root / label
     home.mkdir(parents=True, exist_ok=False)
     env = isolated_environment(root)
@@ -68,6 +72,7 @@ def run(executable: Path, root: Path, label: str, mode='full') -> dict:
 
 
 def main():
+    """Lanza pruebas aisladas de un paquete congelado y genera evidencias."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('executable', type=Path)
     parser.add_argument('root', type=Path)

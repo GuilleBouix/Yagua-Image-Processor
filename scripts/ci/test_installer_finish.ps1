@@ -4,6 +4,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+# La automatización UI comprueba el final del instalador en ambos idiomas.
 Add-Type -AssemblyName UIAutomationClient
 Add-Type -AssemblyName UIAutomationTypes
 Add-Type -TypeDefinition @'
@@ -13,6 +14,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 
 public static class YaguaInstallerNative {
+    // Estas funciones Win32 exponen controles visibles a la prueba de interfaz.
     private delegate bool ChildWindowCallback(IntPtr handle, IntPtr data);
 
     [DllImport("user32.dll")]
@@ -52,6 +54,7 @@ public static class YaguaInstallerNative {
 '@
 
 function Test-InstallerFinish([string]$Language, [string]$ExpectedUrl) {
+    # Ejecuta la instalación hasta la pantalla final para inspeccionar su acción.
     $installDirectory = Join-Path $WorkDirectory "installed-$Language"
     $group = "Yagua candidate test $Language"
     $logPath = Join-Path $WorkDirectory "setup-$Language.log"
@@ -179,7 +182,7 @@ function Test-InstallerFinish([string]$Language, [string]$ExpectedUrl) {
                     }
                 }
             } catch {
-                # The wizard can replace its page while UI Automation is reading it.
+                # El asistente puede reemplazar la página mientras UI Automation la está leyendo.
             }
             if ($buttonInvoked) {
                 break

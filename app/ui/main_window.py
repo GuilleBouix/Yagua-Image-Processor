@@ -64,6 +64,7 @@ class MainWindow(UiLifetime, ctk.CTkFrame):
             finish(self._build_iterator)
 
     def _build_steps(self):
+        """Construye la ventana por bloques para mantener el loop de eventos fluido."""
         yield from steps_for(self._build)
         self.build_ready = True
   
@@ -132,11 +133,13 @@ class MainWindow(UiLifetime, ctk.CTkFrame):
         yield
 
     def start_updates(self):
+        """Inicia polling de operaciones y actualizaciones con callbacks de Tk."""
         if not self._updates_started:
             self._updates_started = True
             self.after(350, self._check_updates_on_startup)
 
     def _poll_operations(self):
+        """Recoge resultados y avisos de workers desde el hilo principal."""
         if not self.winfo_exists():
             return
         try:
@@ -146,7 +149,9 @@ class MainWindow(UiLifetime, ctk.CTkFrame):
         self.after(30, self._poll_operations)
 
     def _check_updates_on_startup(self):
+        """Consulta GitHub sin bloquear la navegación inicial."""
         def _worker():
+            """Ejecuta una consulta externa fuera del hilo de interfaz."""
             try:
                 info = check_latest_update(__version__)
             except Exception:
@@ -160,6 +165,7 @@ class MainWindow(UiLifetime, ctk.CTkFrame):
 
     def _show_update_banner(self, version: str, url: str):
         # Evitar duplicados en la misma sesión.
+        """Presenta la versión disponible sin bloquear el arranque."""
         banner = getattr(self, "_update_banner", None)
         if banner is not None:
             try:
@@ -220,6 +226,7 @@ class MainWindow(UiLifetime, ctk.CTkFrame):
         self._update_banner = banner
 
     def _hide_update_banner(self):
+        """Retira el aviso y libera los widgets que contiene."""
         try:
             if hasattr(self, "_update_banner") and self._update_banner is not None and self._update_banner.winfo_exists():
                 self._update_banner.destroy()
@@ -247,10 +254,12 @@ class MainWindow(UiLifetime, ctk.CTkFrame):
         if self._preloader is not None and self.frames[key] is None and spec and spec.preload_ui:
             self._show_module_loading(key, t('startup_module').format(module=t(spec.label_key)))
             def ready(frame):
+                """Actualiza el aviso de versión si la consulta terminó con datos válidos."""
                 if self._navigation_revision == revision:
                     self._show_view(frame, key=key)
                     self.sidebar.set_active(key)
             def failed(_error):
+                """Registra un fallo de consulta sin detener el arranque de la aplicación."""
                 if self._navigation_revision == revision:
                     self._loading_label.configure(text=t('startup_module_error'))
             self._preloader.ensure(key, ready, failed)
@@ -291,6 +300,7 @@ class MainWindow(UiLifetime, ctk.CTkFrame):
         self.sidebar.set_active(None)
 
     def _show_module_loading(self, key, text):
+        """Muestra progreso mientras se prepara el módulo solicitado."""
         if not hasattr(self, '_loading_view'):
             self._loading_view = ctk.CTkFrame(self.content, fg_color=colors.FRAMES_BG, corner_radius=0)
             self._loading_label = ctk.CTkLabel(self._loading_view, text='',
@@ -301,6 +311,7 @@ class MainWindow(UiLifetime, ctk.CTkFrame):
         self.sidebar.set_active(key)
 
     def show_preload_errors(self, labels):
+        """Expone errores de precarga sin impedir abrir otros módulos."""
         self._home.show_preload_errors(labels)
 
     def _show_view(self, view, key):
@@ -348,6 +359,7 @@ class MainWindow(UiLifetime, ctk.CTkFrame):
 
     @staticmethod
     def _notify_view_shown(view):
+        """Notifica al frame visible que puede reanudar previews y timers."""
         callback = getattr(view, "on_view_shown", None)
         if callable(callback):
             try:
@@ -357,6 +369,7 @@ class MainWindow(UiLifetime, ctk.CTkFrame):
 
     @staticmethod
     def _notify_view_hidden(view):
+        """Informa al módulo que dejó de estar visible para pausar previews."""
         callback = getattr(view, "on_view_hidden", None)
         if callable(callback):
             try:

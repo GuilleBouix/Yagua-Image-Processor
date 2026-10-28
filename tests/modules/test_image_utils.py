@@ -1,3 +1,5 @@
+"""Pruebas de regresión del módulo de procesamiento image utils."""
+
 from pathlib import Path
 
 import numpy as np

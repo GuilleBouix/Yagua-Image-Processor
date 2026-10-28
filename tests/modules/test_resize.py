@@ -1,3 +1,5 @@
+"""Pruebas de regresión del módulo de procesamiento resize."""
+
 from pathlib import Path
 
 from app.modules.resize import redimensionar, recortar, agregar_canvas

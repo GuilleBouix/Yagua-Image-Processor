@@ -17,6 +17,8 @@ from app.utils.saving import get_plan, run_plan, path_key
 
 @dataclass
 class MetadataDraft:
+    """Agrupa los valores EXIF editables y las acciones del formulario."""
+
     values: dict[str, str] = field(default_factory=dict)
     sync_dates: bool = False
     clear_gps: bool = False
@@ -24,26 +26,31 @@ class MetadataDraft:
 
     @property
     def dirty(self) -> bool:
+        """Indica si se cambió algún campo o acción del borrador."""
         return any(self.values.values()) or self.sync_dates or self.clear_gps or self.orientation is not None
 
     def copy(self) -> MetadataDraft:
+        """Crea una copia independiente del borrador actual."""
         return MetadataDraft(dict(self.values), self.sync_dates, self.clear_gps, self.orientation)
 
 
 @dataclass(frozen=True)
 class MetadataTask:
+    """Captura la ruta, la versión del archivo y los cambios de una tarea."""
+
     path: str
     draft: MetadataDraft = field(default_factory=MetadataDraft)
     fingerprint: tuple[int, int] | None = None
 
 
 def fingerprint(path: str) -> tuple[int, int]:
+    """Registra tamaño y fecha de modificación para detectar cambios externos."""
     stat = Path(path).stat()
     return stat.st_size, stat.st_mtime_ns
 
 
 def leer_archivo(path: str) -> dict:
-    """An unreadable image is an error, rather than an empty EXIF dictionary."""
+    """Si la imagen no se puede leer, informa un error en vez de devolver EXIF vacío."""
     before = fingerprint(path)
     with Image.open(path) as image:
         fmt = image.format or ''
@@ -66,6 +73,7 @@ def leer_archivo(path: str) -> dict:
 
 
 def preparar_borrador(base: dict[str, str], draft: MetadataDraft):
+    """Combina cambios explícitos con valores existentes sin borrar campos vacíos."""
     values = {key: value for key, value in draft.values.items() if value and value != base.get(key, '')}
     merged = {**base, **draft.values}
     if draft.sync_dates:
@@ -84,9 +92,11 @@ def preparar_borrador(base: dict[str, str], draft: MetadataDraft):
 
 def procesar_lote(tasks: tuple[MetadataTask, ...], *, clean: bool = False,
                   overwrite: bool = False, folder: str | None = None, output_policy=None) -> dict:
+    """Aplica ediciones por imagen y devuelve fallos parciales sin perder el lote."""
     if output_policy is not None:
         by_path = {path_key(task.path): task for task in tasks}
         def process(source, target):
+            """Aplica una tarea con las mismas validaciones de origen y salida que el lote."""
             task = by_path[path_key(source)]
             if task.fingerprint is not None and fingerprint(source) != task.fingerprint:
                 raise OSError('source_changed')
@@ -148,6 +158,7 @@ def procesar_lote(tasks: tuple[MetadataTask, ...], *, clean: bool = False,
 
 
 def exportar_lote(paths: tuple[str, ...], destination: str, fmt: str) -> list[dict]:
+    """Exporta metadatos de varias imágenes a JSON o texto."""
     if fmt not in ('txt', 'json'):
         raise ValueError('invalid_option')
     entries = []

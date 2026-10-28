@@ -1,4 +1,4 @@
-"""Integration regressions for the complete, approved desktop redesign."""
+"""Regresiones de integración para el rediseño aprobado de la aplicación de escritorio."""
 from pathlib import Path
 from time import monotonic, sleep
 
@@ -46,14 +46,14 @@ def isolate(ui_root, monkeypatch):
         lambda self: self._build_content_ready(True, True))
     colors.apply_theme('Default')
     yield
-    # Destroy test-owned windows/widgets before restoring global scaling. A
-    # CTkToplevel can still be finishing its constructor while scaling callbacks
-    # run on Windows, leaving a partial instance in the tracker during teardown.
+    # Destruye ventanas y widgets de prueba antes de restaurar la escala global. Un
+    # CTkToplevel puede seguir construyéndose mientras corren callbacks de escala
+    # en Windows y dejar una instancia parcial en el registro al limpiar.
     for child in ui_root.winfo_children():
         child.destroy()
     tracker.window_widgets_dict = callbacks
     tracker.window_dpi_scaling_dict = dpi_scaling
-    # This fixture's windows are discarded, so update the global factor without
+    # Las ventanas de esta fixture se descartan; actualiza el factor global sin
     # invoking callbacks on stale or partially initialized CTkToplevel objects.
     tracker.widget_scaling = old_scale
     colors.apply_theme(previous)

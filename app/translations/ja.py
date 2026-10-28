@@ -1,4 +1,4 @@
-"""Complete UI translation; OCR recognition languages remain independent."""
+"""Traducción completa de la interfaz; los idiomas de reconocimiento OCR se mantienen independientes."""
 
 TRANSLATIONS = {
     'documentation': 'ドキュメント',
@@ -432,7 +432,7 @@ TRANSLATIONS = {
 }
 
 
-# Metadata collection and batch operations.
+# Catálogo de metadatos y operaciones por lote.
 TRANSLATIONS.update({
     'meta_search_fields': 'フィールドを検索…',
     'meta_all_sections': 'すべてのセクション',
@@ -480,7 +480,7 @@ TRANSLATIONS.update({
 TRANSLATIONS["meta_source_changed"] = '読み込み後にファイルが変更されました。保存する前に再選択してください。'
 
 
-# UI startup and preloading.
+# Inicio de la interfaz y precarga de módulos.
 TRANSLATIONS.update({
     'startup_resources': 'Yagua を準備しています…',
     'startup_home': 'ホームを準備しています…',
@@ -511,7 +511,7 @@ TRANSLATIONS.update({
 })
 
 
-# Contextual metadata UI.
+# Interfaz contextual de metadatos.
 TRANSLATIONS.update({
     'meta_start': '画像を追加して開始',
     'meta_read_only_short': '読み取り専用です。JPEGとTIFF画像のメタデータを編集できます。',
@@ -527,7 +527,7 @@ TRANSLATIONS.update({
     'meta_selected_count': '選択 {marked} 枚',
 })
 
-# Local legal information in Settings.
+# Información legal local en Ajustes.
 TRANSLATIONS.update({
     "legal_title": "ファイル・接続・ライセンス",
     "legal_originals": "名前の変更とメタデータの編集は、選択したファイルを変更します。バックアップコピーで作業することをおすすめします。",

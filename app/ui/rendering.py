@@ -1,4 +1,4 @@
-"""Small UI updates and a reusable pool of visible rows."""
+"""Actualizaciones visuales pequeñas y reciclaje de filas visibles de listas."""
 from __future__ import annotations
 
 import math
@@ -11,19 +11,17 @@ from app.ui.lifetime import UiLifetime
 
 
 def configure_changed(widget, **values):
+    """Evita redibujos de widgets cuando los valores pedidos ya son iguales."""
     changes = {key: value for key, value in values.items() if widget.cget(key) != value}
     if changes:
         widget.configure(**changes)
 
 
 class StableRender:
-    """One render after two equal, mapped viewport samples, 16 ms apart.
-
-    Pixel updates never drive layout. Hidden widgets don't poll; Map or an
-    explicit activation starts measuring again. All callbacks stay on Tk.
-    """
+    """Dibuja una vez cuando dos mediciones del viewport coinciden con 16 ms de diferencia."""
 
     def __init__(self, owner, viewport, draw):
+        """Conecta eventos de tamaño y guarda la función de dibujo pendiente."""
         self.owner, self.viewport, self.draw = owner, viewport, draw
         self.enabled = True
         self.job = None
@@ -35,6 +33,7 @@ class StableRender:
         viewport.bind('<Destroy>', self._destroyed, add='+')
 
     def set_visible(self, visible):
+        """Pausa el render cuando el módulo está oculto."""
         self.enabled = visible
         if visible:
             self.request()
@@ -42,30 +41,34 @@ class StableRender:
             self.cancel()
 
     def cancel(self, _event=None):
+        """Cancela una solicitud de render pendiente."""
         if self.job is not None:
             self.owner.after_cancel(self.job)
             self.job = None
         self.sample = None
 
     def request(self, _event=None):
+        """Agrupa eventos próximos antes de medir y volver a dibujar."""
         if self.closed or not self.enabled or not self.viewport.winfo_ismapped():
             return
         size = (self.viewport.winfo_width(), self.viewport.winfo_height(),
                 self.viewport._get_widget_scaling())
         # Repeated Map/Configure or content requests at an unchanged size do
-        # not invalidate the first stable sample. A real geometry/scale change
-        # still restarts the two-sample check.
+        # no invalide la primera muestra estable. Un cambio real de geometría o escala
+        # reinicia la comprobación de dos muestras.
         if self.sample != size:
             self.sample = None
         if self.job is None:
             self.job = self.owner.after(16, self._at_idle)
 
     def _at_idle(self):
-        # Configure/layout idle handlers must run before sampling. Under load,
-        # a timer can fire twice while Tk still has geometry work queued.
+        # Los callbacks idle de geometría deben ejecutarse antes de medir. Con carga,
+        # un timer puede dispararse dos veces mientras Tk aún tiene geometría pendiente.
+        """Programa el render cuando Tk termina tareas prioritarias."""
         self.job = self.owner.after_idle(self._measure)
 
     def _measure(self):
+        """Dibuja usando las dimensiones actuales del viewport."""
         self.job = None
         if self.closed or not self.enabled or not self.viewport.winfo_ismapped():
             self.sample = None
@@ -73,8 +76,8 @@ class StableRender:
         width, height = self.viewport.winfo_width(), self.viewport.winfo_height()
         if width <= 1 or height <= 1:
             self.sample = None
-            # A mapped frame can briefly retain a 1px allocation while its
-            # parent finishes the tab/layout update, with no later Configure.
+            # Un frame visible puede conservar por un momento un ancho de 1 px mientras
+            # su contenedor termina el cambio de pestaña sin emitir otro Configure.
             self.job = self.owner.after(32, self._at_idle)
             return
         size = (width, height, self.viewport._get_widget_scaling())
@@ -86,7 +89,8 @@ class StableRender:
             self.job = self.owner.after(16, self._at_idle)
 
     def _destroyed(self, _event):
-        # CTkFrame forwards bindings to its internal canvas.
+        # CTkFrame reenvía los eventos al canvas interno.
+        """Cancela trabajo diferido cuando se destruye el viewport."""
         self.cancel()
         self.closed = True
 
@@ -117,11 +121,13 @@ class PooledRow(ctk.CTkFrame):
     _placement: tuple | None = None
 
     def __init__(self, *args, **kwargs):
+        """Inicializa la fila que puede soltarse y volver a usarse."""
         super().__init__(*args, **kwargs)
         self.grid_propagate(False)
         self.pack_propagate(False)
 
     def release(self):
+        """Desvincula datos y oculta la fila para reciclarla."""
         if hasattr(self, 'thumb'):
             self.thumb.configure(image=None)
             self.thumb._label.configure(image='')
@@ -129,14 +135,11 @@ class PooledRow(ctk.CTkFrame):
 
 
 class VirtualRows(UiLifetime, tk.Frame):
-    """Keep scroll extent for all items, widgets only for viewport + overscan.
-
-    The factory returns a CTkFrame; render(row, key) binds its current model.
-    The pool is bounded by viewport size, and keys survive sorting/appends.
-    """
+    """Conserva el scroll de toda la lista y crea widgets solo para filas visibles y su margen."""
     def __init__(self, parent, factory, render, *, row_height=72, overscan=2):
         # A CTkFrame allocates a full-height drawing canvas. That exceeds X11's
         # pixmap limit for long lists; this plain frame only holds the extent.
+        """Inicializa el viewport virtual y sus callbacks de desplazamiento."""
         super().__init__(parent, bg=tk.Frame.cget(parent, 'background'), height=1, bd=0, highlightthickness=0)
         self._scroll_parent = parent
         self._extent = None
@@ -157,20 +160,24 @@ class VirtualRows(UiLifetime, tk.Frame):
         self.bind('<Configure>', self.schedule, add='+')
 
     def _get_widget_scaling(self):
+        """Obtiene la escala actual de Tk para calcular alturas físicas."""
         return self._scroll_parent._get_widget_scaling()
 
     def _apply_extent(self):
+        """Actualiza el alto desplazable para la cantidad de filas."""
         extent = (len(self.keys), self._get_widget_scaling())
         if self._extent != extent:
             self._extent = extent
             self.configure(height=max(1, round(extent[0] * self.row_height * extent[1])))
 
     def _scroll_changed(self, first, last):
+        """Refresca las filas visibles cuando cambia el scroll."""
         if self._previous_scroll:
             self.tk.call(*self.tk.splitlist(self._previous_scroll), first, last)
         self.schedule()
 
     def sync(self, keys):
+        """Asocia claves de datos con el conjunto mínimo de widgets reutilizables."""
         keys = tuple(keys)
         if self.keys != keys:
             self.keys = keys
@@ -185,10 +192,12 @@ class VirtualRows(UiLifetime, tk.Frame):
         self.schedule()
 
     def schedule(self, _event=None):
+        """Agrupa cambios de tamaño antes de recalcular filas visibles."""
         if self.job is None and self.winfo_exists():
             self.job = self.after_idle(self.refresh)
 
     def refresh(self, key=None):
+        """Vuelve a dibujar una fila concreta o todas las visibles."""
         deadline = perf_counter() + .008
         if self.job is not None:
             self.after_cancel(self.job)
@@ -231,6 +240,7 @@ class VirtualRows(UiLifetime, tk.Frame):
             self.render_row(row, item)
 
     def destroy(self):
+        """Cancela callbacks y destruye las filas recicladas."""
         self.on_destroy()
         self.canvas.configure(yscrollcommand=self._previous_scroll)
         super().destroy()

@@ -1,4 +1,4 @@
-"""Cooperative widget construction. Tk work always stays on the UI thread."""
+"""Construcción progresiva de widgets; todo el trabajo de Tk permanece en el hilo principal."""
 from __future__ import annotations
 
 from collections.abc import Callable, Generator
@@ -9,7 +9,7 @@ from typing import Any
 
 
 def finish(iterator):
-    """Keep ordinary constructors synchronous, including their return values."""
+    """Ejecuta un constructor comúnmente de forma síncrona y conserva su valor de retorno."""
     while True:
         try:
             next(iterator)
@@ -18,13 +18,16 @@ def finish(iterator):
 
 
 def stepwise(function: Callable[..., Generator[Any, Any, Any]]) -> Any:
+    """Decora un constructor para avanzar por bloques sin congelar Tk."""
     @wraps(function)
     def synchronous(*args, **kwargs):
+        """Ejecuta el constructor por pasos hasta completarlo sin programación diferida."""
         return finish(function(*args, **kwargs))
     return synchronous
 
 
 def steps_for(method, *args, **kwargs):
+    """Adapta una función constructora al protocolo de pasos de interfaz."""
     function = getattr(method, '__wrapped__', None)
     if function is not None:
         return (yield from function(method.__self__, *args, **kwargs))
@@ -34,8 +37,9 @@ def steps_for(method, *args, **kwargs):
 
 
 class BuildTask:
-    """One resumable construction, with one owned timer and an 8 ms budget."""
+    """Representa una construcción reanudable con timer propio y presupuesto de 8 ms."""
     def __init__(self, owner, iterator, on_done, on_error):
+        """Registra el iterador, callbacks y métricas del constructor."""
         self.owner, self.iterator = owner, iterator
         self.on_done, self.on_error = on_done, on_error
         self.job = None
@@ -46,6 +50,7 @@ class BuildTask:
         self.slow_steps = []
 
     def resume(self):
+        """Reanuda los pasos y agenda un bloque si no hay uno pendiente."""
         if self.finished:
             return
         self.paused = False
@@ -53,14 +58,16 @@ class BuildTask:
             self.job = self.owner.after_idle(self._schedule_batch)
 
     def _schedule_batch(self):
-        # Let Tk settle the previous batch before constructing more controls.
-        # CTk scrollbars flush idle geometry internally; otherwise that work
-        # accumulates and one innocent widget can block for hundreds of ms.
+        # Deja que Tk acomode el bloque anterior antes de crear más controles.
+        # Las barras de desplazamiento de CTk procesan geometría idle; si no, ese trabajo
+        # se acumula y un widget puede bloquear la ventana durante cientos de milisegundos.
+        """Separa bloques de construcción para que Tk procese geometría y eventos."""
         self.job = None
         if not self.finished and not self.paused:
             self.job = self.owner.after(1, self._advance)
 
     def pause(self):
+        """Pausa la tarea y cancela su siguiente bloque agendado."""
         self.paused = True
         if self.job is not None:
             try:
@@ -70,11 +77,13 @@ class BuildTask:
             self.job = None
 
     def cancel(self):
+        """Marca la construcción como terminada y limpia callbacks pendientes."""
         self.pause()
         self.finished = True
         self.iterator.close()
 
     def _advance(self):
+        """Consume pasos dentro del presupuesto de tiempo y cede control a Tk."""
         self.job = None
         if self.paused or self.finished:
             return

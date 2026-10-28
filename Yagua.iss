@@ -1,7 +1,8 @@
-; Inno Setup script for Yagua
-; Build requires dist\Yagua\ (PyInstaller one-folder)
+; Instalador de Yagua generado con Inno Setup.
+; Requiere dist\Yagua\, la carpeta creada por PyInstaller.
 
 [Setup]
+; Identidad y rutas predeterminadas del instalador de Windows.
 AppId={{2A0F8C4B-6E0D-4E7B-9E92-9B8D3D34B6F1}}
 AppName=Yagua
 AppVersion=2.0.0
@@ -24,6 +25,7 @@ ArchitecturesInstallIn64BitMode=x64
 WizardStyle=modern
 
 [Languages]
+; El instalador ofrece los mismos dos idiomas que las páginas de agradecimiento.
 Name: "spanish"; MessagesFile: "compiler:Languages\Spanish.isl"
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
@@ -32,6 +34,7 @@ spanish.ThanksURL=https://yagua.bouixdev.workers.dev/es/thanks/
 english.ThanksURL=https://yagua.bouixdev.workers.dev/en/thanks/
 
 [Files]
+; Copia el directorio one-folder generado por PyInstaller.
 Source: "dist\Yagua\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
@@ -42,9 +45,11 @@ Name: "{commondesktop}\Yagua"; Filename: "{app}\Yagua.exe"; Tasks: desktopicon
 Name: "desktopicon"; Description: "Crear acceso directo en el escritorio"; GroupDescription: "Accesos directos:"
 
 [Run]
+; La apertura de la app se omite en instalaciones silenciosas.
 Filename: "{app}\Yagua.exe"; Description: "Ejecutar Yagua"; Flags: nowait postinstall skipifsilent
 
 [Code]
+; Al completar el asistente abre la página correspondiente al idioma elegido.
 procedure CurStepChanged(CurStep: TSetupStep);
 var
   ErrorCode: Integer;

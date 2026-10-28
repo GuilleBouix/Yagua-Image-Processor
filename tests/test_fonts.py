@@ -1,4 +1,4 @@
-"""Check bundled font integrity and glyph coverage without a runtime dependency."""
+"""Comprueba integridad de fuentes y cobertura de glifos sin depender de la app en ejecución."""
 import hashlib
 import json
 from pathlib import Path

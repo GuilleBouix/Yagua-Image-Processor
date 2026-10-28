@@ -1,4 +1,4 @@
-"""Language identifiers shared by preferences and UI, without application imports."""
+"""Identificadores de idioma compartidos por preferencias e interfaz, sin importar la aplicación."""
 
 LANGUAGE_MODULES = {
     'Español': 'es',

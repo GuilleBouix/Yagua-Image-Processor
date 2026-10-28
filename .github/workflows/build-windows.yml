@@ -1,4 +1,5 @@
 name: Build Windows candidate (no publication)
+# Construye el candidato por etapas y conserva artefactos para reanudarlo.
 'on':
   workflow_dispatch:
     inputs:

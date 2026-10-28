@@ -1,3 +1,5 @@
+"""Pantalla inicial de Yagua, con accesos a los módulos y avisos de arranque."""
+
 from __future__ import annotations
 
 from app.ui.building import finish, stepwise, steps_for
@@ -22,6 +24,7 @@ class HomeFrame(ctk.CTkScrollableFrame):
     """Pantalla inicial de bienvenida (solo visual)."""
 
     def __init__(self, parent, *, defer_build=False):
+        """Inicializa el estado visual y los callbacks de la pantalla principal."""
         super().__init__(
             parent,
             fg_color=colors.FRAMES_BG,
@@ -87,6 +90,7 @@ class HomeFrame(ctk.CTkScrollableFrame):
 
     @stepwise
     def _build(self):
+        """Construye accesos, información y paneles de la pantalla inicial."""
         self.grid_columnconfigure(0, weight=1)
         yield
 
@@ -205,10 +209,12 @@ class HomeFrame(ctk.CTkScrollableFrame):
         yield
 
     def _seleccionar(self, key):
+        """Solicita al módulo activo el archivo que eligió el usuario."""
         if callable(self._on_select):
             self._on_select(key)
 
     def show_preload_errors(self, labels):
+        """Muestra los errores de módulos detectados durante el arranque."""
         self._lbl_preload_errors.configure(text=t('startup_partial').format(modules=labels),
                                            wraplength=600, justify='left')
         self._lbl_preload_errors.grid(

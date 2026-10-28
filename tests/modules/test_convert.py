@@ -1,3 +1,5 @@
+"""Pruebas de regresión del módulo de procesamiento convert."""
+
 from pathlib import Path
 
 import pytest

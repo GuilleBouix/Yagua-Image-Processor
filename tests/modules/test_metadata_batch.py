@@ -1,3 +1,5 @@
+"""Pruebas de regresión del módulo de procesamiento metadata batch."""
+
 import json
 from pathlib import Path
 

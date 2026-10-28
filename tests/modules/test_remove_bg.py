@@ -1,3 +1,5 @@
+"""Pruebas de regresión del módulo de procesamiento remove bg."""
+
 import builtins
 from pathlib import Path
 

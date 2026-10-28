@@ -1,3 +1,5 @@
+"""Pruebas de regresión del módulo de procesamiento metadata."""
+
 from pathlib import Path
 
 import pytest

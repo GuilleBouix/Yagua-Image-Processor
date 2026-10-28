@@ -1,3 +1,5 @@
+"""Pruebas de interfaz para main window y sus estados principales."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass

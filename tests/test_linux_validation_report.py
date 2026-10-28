@@ -1,3 +1,5 @@
+"""Pruebas de regresión para linux validation report y sus contratos asociados."""
+
 import json
 
 import pytest

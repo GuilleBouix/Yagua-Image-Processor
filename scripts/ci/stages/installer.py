@@ -1,3 +1,5 @@
+"""Herramientas de mantenimiento, verificación y empaquetado del proyecto. installer."""
+
 import os
 from pathlib import Path
 import shutil
@@ -6,6 +8,7 @@ from scripts.ci.stages.common import ROOT, VERSION, run, save
 
 
 def main():
+    """Construye y verifica el instalador de Windows antes de entregar el candidato."""
     directory = Path(os.environ['RUNNER_TEMP']) / 'yagua-installer-finish'
     try:
         run('pwsh', '-NoProfile', '-File', 'scripts/ci/test_installer_finish.ps1',

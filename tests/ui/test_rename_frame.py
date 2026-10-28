@@ -1,3 +1,5 @@
+"""Pruebas de interfaz para rename frame y sus estados principales."""
+
 from app.ui.frames.rename.frame import RenameFrame
 
 

@@ -72,6 +72,7 @@ def _ensure_stdio():
 
 
 def _import_rembg():
+    """Carga rembg bajo demanda para no demorar el inicio de la aplicación."""
     try:
         from rembg import remove as rembg_remove, new_session
     except ImportError:
@@ -80,6 +81,7 @@ def _import_rembg():
 
 
 def _models_dir() -> Path:
+    """Devuelve el directorio local de modelos reutilizables."""
     custom_home = os.getenv('U2NET_HOME')
     if custom_home:
         return Path(custom_home).expanduser()
@@ -92,10 +94,12 @@ def _models_dir() -> Path:
 
 
 def _model_path(model_name: str) -> Path:
+    """Construye la ruta de caché para el modelo solicitado."""
     return _models_dir() / f'{model_name}.onnx'
 
 
 def _load_session(model_name: str):
+    """Carga y conserva una sesión de segmentación para reutilizarla."""
     if model_name in _SESSION_CACHE:
         logger.info("remove_bg: reusar_sesion (modelo=%s)", model_name)
         return _SESSION_CACHE[model_name]
@@ -110,6 +114,7 @@ def _load_session(model_name: str):
 
 
 def _get_processing_session(model_name: str = DEFAULT_MODEL):
+    """Resuelve el modelo principal o el respaldo disponible."""
     try:
         session = _load_session(model_name)
         return session, model_name, False
@@ -128,6 +133,7 @@ def _get_processing_session(model_name: str = DEFAULT_MODEL):
 
 
 def _extract_border_pixels(rgb: np.ndarray, border_size: int) -> np.ndarray:
+    """Extrae muestras del contorno para estimar el fondo."""
     height, width = rgb.shape[:2]
     border = max(1, min(border_size, height, width))
     strips = [
@@ -154,6 +160,7 @@ def _extract_border_pixels(rgb: np.ndarray, border_size: int) -> np.ndarray:
 
 
 def _analyze_background(imagen: Image.Image) -> BackgroundAnalysis:
+    """Analiza color y variación del fondo para ajustar el resultado."""
     rgb = np.asarray(imagen.convert('RGB'), dtype=np.float32)
     height, width = rgb.shape[:2]
     border_ratio = 0.05
@@ -187,6 +194,7 @@ def _analyze_background(imagen: Image.Image) -> BackgroundAnalysis:
 
 
 def _to_pil_image(image_like) -> Image.Image:
+    """Convierte la salida del motor al modo de imagen esperado por Pillow."""
     if isinstance(image_like, Image.Image):
         return image_like
     return Image.fromarray(image_like)  # type: ignore[arg-type]
@@ -196,6 +204,7 @@ def _decontaminate_light_halo(
     imagen: Image.Image,
     background_rgb: tuple[int, int, int],
 ) -> Image.Image:
+    """Reduce el halo claro alrededor del sujeto segmentado."""
     rgba = np.asarray(imagen.convert('RGBA'), dtype=np.float32)
     rgb = rgba[..., :3]
     alpha = rgba[..., 3]
@@ -233,6 +242,7 @@ def _process_image(
     config: RemoveBgConfig,
     status_callback: Callable[[str], None] | None = None,
 ) -> tuple[Image.Image, BackgroundAnalysis]:
+    """Ejecuta la segmentación y el refinado de bordes configurado."""
     if status_callback:
         status_callback('analyzing_image')
     analysis = _analyze_background(imagen)
@@ -267,6 +277,7 @@ def _save_output(
     formato_salida: str,
     destination=None,
 ) -> tuple[Path, bool]:
+    """Guarda la salida transparente en la ruta de destino."""
     formato = formato_salida.upper()
     extension = _FMT_A_EXT.get(formato, '.png')
     ruta_final, conflicto = (Path(destination), False) if destination else unique_output_path(

@@ -1,5 +1,6 @@
 version: 1
 
+# Metadatos y punto de entrada del AppDir creado por appimage-builder.
 AppDir:
   app_info:
     id: yagua
@@ -9,6 +10,7 @@ AppDir:
     exec: usr/lib/yagua/Yagua
     exec_args: $@
 
+# Bibliotecas del sistema que el AppImage espera encontrar en Linux.
   apt:
     arch:
       - amd64
@@ -24,6 +26,7 @@ AppDir:
       - libfreetype6
       - libgomp1
 
+# Archivos de documentación genérica que no son necesarios para ejecutar Yagua.
   files:
     exclude:
       - usr/share/man
@@ -33,6 +36,7 @@ AppDir:
       - usr/share/doc/*/TODO.*
       - usr/share/lintian
 
+# Nombre reproducible del artefacto por arquitectura y versión.
 AppImage:
   arch: x86_64
   file_name: !ENV 'Yagua-${APP_VERSION}-x86_64.AppImage'

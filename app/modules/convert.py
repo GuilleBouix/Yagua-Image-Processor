@@ -23,6 +23,8 @@ logger = logging.getLogger(__name__)
 
 
 class ConversionResult(TypedDict):
+    """Describe el formato, tamaño y destino de una conversión individual."""
+
     ruta_entrada: str | Path
     ruta_salida: str | None
     fmt_origen: str
@@ -34,6 +36,8 @@ class ConversionResult(TypedDict):
 
 
 class BatchConversionResult(TypedDict):
+    """Resume los resultados correctos, fallos y conflictos de un lote."""
+
     fallos: list[FileFailure]
     ok: int
     errores: int
@@ -45,6 +49,7 @@ class BatchConversionResult(TypedDict):
 
 @safe_image_output
 def _convertir_a_ruta(ruta_entrada, ruta_salida, formato, calidad) -> ConversionResult:
+    """Escribe una conversión temporal y descarta resultados que no mejoran."""
     size = Path(ruta_entrada).stat().st_size
     with Image.open(ruta_entrada) as original:
         origin = canonical_format(original.format or '')

@@ -1,3 +1,5 @@
+"""Pruebas de regresión para write safety y sus contratos asociados."""
+
 import piexif
 import pytest
 from PIL import Image

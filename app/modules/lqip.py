@@ -23,6 +23,8 @@ logger = logging.getLogger(__name__)
 
 
 class LqipResult(TypedDict):
+    """Define los campos de salida disponibles para cada variante generada."""
+
     nombre: str
     base64: str
     data_uri: str

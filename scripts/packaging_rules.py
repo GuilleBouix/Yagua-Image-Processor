@@ -1,4 +1,4 @@
-"""Shared PyInstaller policy for Windows and Linux (no application imports)."""
+"""Política compartida de PyInstaller para Windows y Linux, sin importar la app."""
 
 from pathlib import Path
 import importlib.metadata
@@ -18,6 +18,7 @@ OCR_LANGUAGES = ['en', 'es']
 
 
 def assert_clean_environment() -> None:
+    """Rechaza dependencias de desarrollo en el entorno de empaquetado."""
     forbidden = {'pandas', 'pytest', 'pytest-cov', 'coverage', 'tkinterdnd2', 'opencv-python'}
     installed = {str(dist.metadata.get('Name') or '').lower().replace('_', '-')
                  for dist in importlib.metadata.distributions()}
@@ -51,6 +52,7 @@ def application_modules(root: Path) -> list[str]:
 
 
 def runtime_assets(root: Path) -> list[tuple[str, str]]:
+    """Selecciona recursos necesarios para ejecutar la aplicación."""
     screenshots = root / 'assets' / 'screenshots'
     return [
         (str(path), str(path.parent.relative_to(root)))
@@ -62,6 +64,7 @@ def runtime_assets(root: Path) -> list[tuple[str, str]]:
 
 
 def runtime_distributions(root: Path, marker_environment: dict | None = None) -> list[str]:
+    """Lista las distribuciones permitidas en el runtime de la plataforma."""
     from packaging.requirements import Requirement
 
     names = []
@@ -75,6 +78,7 @@ def runtime_distributions(root: Path, marker_environment: dict | None = None) ->
 
 
 def build_inputs(root: Path) -> dict:
+    """Construye las entradas compartidas por los archivos de especificación."""
     from PyInstaller.utils.hooks import collect_data_files, copy_metadata
 
     assert_clean_environment()

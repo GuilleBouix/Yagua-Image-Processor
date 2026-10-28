@@ -1,3 +1,5 @@
+"""Pruebas de regresión para ci preflight y sus contratos asociados."""
+
 import urllib.error
 
 import pytest

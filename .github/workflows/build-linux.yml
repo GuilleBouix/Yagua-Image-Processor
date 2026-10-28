@@ -1,4 +1,5 @@
 name: Build Linux candidate (no publication)
+# Construye y prueba un candidato Linux sin publicar una release.
 'on':
   workflow_dispatch:
     inputs:

@@ -1,3 +1,5 @@
+"""Pruebas de regresión del módulo de procesamiento watermark."""
+
 from pathlib import Path
 
 import cv2

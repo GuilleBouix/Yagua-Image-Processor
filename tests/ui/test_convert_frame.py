@@ -1,3 +1,5 @@
+"""Pruebas de interfaz para convert frame y sus estados principales."""
+
 from app.ui.frames.convert.frame import ConvertFrame
 from app import translations
 import pytest

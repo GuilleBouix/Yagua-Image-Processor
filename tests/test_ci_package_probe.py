@@ -1,3 +1,5 @@
+"""Pruebas de regresión para ci package probe y sus contratos asociados."""
+
 from pathlib import Path
 
 import pytest
@@ -17,8 +19,8 @@ def test_raw_preflight_uses_original_runtime_instead_of_appimage_rewritten_elf(t
     runtime.write_bytes(b'original frozen runtime')
     (tmp_path / 'dist/linux-release/Yagua-2.0.0-x86_64.AppImage').write_bytes(b'packaged appimage')
     def extract(*_, cwd, **kwargs):
-        # The packaged ELF is not directly executable on its own: AppRun
-        # supplies its rewritten loader. It is intentionally absent here.
+        # El ELF empaquetado no se ejecuta directamente: AppRun
+        # proporciona el cargador reescrito; por eso no se incluye aquí.
         (Path(cwd) / 'squashfs-root').mkdir()
     monkeypatch.setattr(probe.subprocess, 'run', extract)
     class PreflightReached(Exception):

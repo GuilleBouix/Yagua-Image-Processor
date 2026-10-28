@@ -1,4 +1,4 @@
-"""Metadata workspace: shared collection, per-image drafts and batch actions."""
+"""Espacio de trabajo EXIF con catálogo compartido, borradores por imagen y acciones por lote."""
 from __future__ import annotations
 
 from app.ui.building import stepwise, steps_for
@@ -24,9 +24,11 @@ _cargar_preview_edicion = decode_preview
 
 
 class MetadataFrame(BaseFrame):
+    """Orquesta las pestañas de consulta, limpieza y edición EXIF."""
     design_system = True
 
     def __init__(self, parent, *, defer_build=False):
+        """Inicializa el estado del módulo y construye sus paneles."""
         self._state = MetadataState()
         self._collection = MetadataCollection(self)
         self._file_views: list[MetadataFiles] = []
@@ -39,10 +41,12 @@ class MetadataFrame(BaseFrame):
         super().__init__(parent, t('metadata_title'), defer_build=defer_build)
 
     def destroy(self):
+        """Invalida la vista y libera callbacks y recursos asociados."""
         self._collection.closed.set()
         super().destroy()
 
     def _on_build_complete(self):
+        """Conecta acciones cuando la construcción diferida termina."""
         self._scrollbar.configure(corner_radius=0, width=6, border_spacing=1)
         for panel in (self._scroll_meta, self._panel_editar):
             panel._scrollbar.configure(corner_radius=0, width=6, border_spacing=1)
@@ -52,19 +56,22 @@ class MetadataFrame(BaseFrame):
         self._collection.render_previews()
 
     def _schedule_viewport_sync(self, _event=None):
-        # Wait through the grid's idle layout pass after switching tabs or
-        # revealing controls. An idle callback can still see the old request.
+        # Espera el ciclo idle de grid después de cambiar de pestaña o
+        # mostrar controles. Un callback idle puede seguir viendo la geometría anterior.
+        """Ajusta el área desplazable después de actualizar contenido."""
         if self._viewport_sync_job is None and self.winfo_exists():
             self._viewport_sync_job = self.after(16, self._sync_viewport_height)
 
     @staticmethod
     def _show_control(widget, visible):
+        """Actualiza la visibilidad de los controles según la pestaña activa."""
         if visible and not widget.winfo_manager():
             widget.grid()
         elif not visible and widget.winfo_manager():
             widget.grid_remove()
 
     def _sync_presentation(self):
+        """Sincroniza título, selección y paneles con el estado del módulo."""
         if not self.build_ready:
             return
         current = self._state.current
@@ -99,27 +106,31 @@ class MetadataFrame(BaseFrame):
         configure_changed(self._result_text, text=self._collection.summary)
         configure_changed(self._details_button, text=t(
             'meta_hide_details' if self._collection.details_expanded else 'meta_show_details'))
-        # Visibility changes alter requested size without necessarily emitting
-        # Configure: the outer canvas may still have the previous tab's height.
+        # Al cambiar visibilidad puede variar el tamaño sin emitir necesariamente
+        # Configure: el canvas exterior puede conservar la altura de la pestaña anterior.
         self._schedule_viewport_sync()
 
     def on_view_hidden(self):
+        """Invalida cargas visuales que no deben terminar en una pestaña oculta."""
         self._collection.visible = False
         for pane in self._previews:
             pane.set_visible(False)
         self._collection.refresh()
 
     def on_view_shown(self):
+        """Refresca la presentación al volver a mostrar el módulo."""
         super().on_view_shown()
         self._collection.visible = True
         self._collection.refresh()
         self._collection.render_previews()
 
     def _action(self, parent, key, command, *, role='primary', height=40):
+        """Ejecuta una acción sobre la selección capturada del catálogo."""
         return self._new_button(parent, role=role, text=t(key), height=height, width=1,
             font=fonts.FUENTE_BASE, command=command)
 
     def _crear_lista(self, parent, *, row):
+        """Construye listas virtualizadas para archivos EXIF."""
         files = MetadataFiles(parent, self._state, self._collection.activate,
                               self._collection.mark, self._collection.mark_all)
         files.grid(row=row, column=0, padx=16, pady=(0, 12), sticky='ew')
@@ -129,6 +140,7 @@ class MetadataFrame(BaseFrame):
         return files
 
     def _crear_preview(self, parent, *, row, height=180):
+        """Crea el panel de vista previa reutilizable."""
         preview = MetadataPreview(parent, height=height)
         preview.grid(row=row, column=0, padx=16, pady=16, sticky='nsew')
         self._previews.append(preview)
@@ -137,6 +149,7 @@ class MetadataFrame(BaseFrame):
 
     @stepwise
     def _build_content(self):
+        """Construye las pestañas y paneles del editor EXIF."""
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(2, weight=1)
         yield
@@ -165,6 +178,7 @@ class MetadataFrame(BaseFrame):
 
     @stepwise
     def _build_tab_ver(self):
+        """Construye la consulta de metadatos de la pestaña Ver."""
         frame = ctk.CTkFrame(self._contenedor, fg_color='transparent')
         if self._defer_build:
             frame.grid(row=0, column=0, sticky='nsew')
@@ -219,6 +233,7 @@ class MetadataFrame(BaseFrame):
 
     @stepwise
     def _build_tab_limpiar(self):
+        """Construye selección y acciones de limpieza EXIF."""
         frame = ctk.CTkFrame(self._contenedor, fg_color='transparent')
         if self._defer_build:
             frame.grid(row=0, column=0, sticky='nsew')
@@ -265,7 +280,7 @@ class MetadataFrame(BaseFrame):
 
     @stepwise
     def _build_tab_editar(self):
-        """Keep the collection compact and give the editor most of the workspace."""
+        """Mantiene compacto el catálogo y reserva el espacio principal para el editor."""
         f = ctk.CTkFrame(self._contenedor, fg_color='transparent')
         if self._defer_build:
             f.grid(row=0, column=0, sticky='nsew')
@@ -321,8 +336,8 @@ class MetadataFrame(BaseFrame):
         yield
         self._edit_section.grid(row=0, column=1, sticky='ew')
         yield
-        # A small minimum lets the form use the available height without pushing
-        # the save actions below the window. Extra space expands this grid row.
+        # Un mínimo bajo permite usar el alto disponible sin empujar
+        # las acciones de guardado fuera de la ventana. El espacio extra amplía esta fila.
         viewport = ctk.CTkFrame(derecha, fg_color='transparent', height=220)
         self._edit_viewport = viewport
         yield
@@ -456,6 +471,7 @@ class MetadataFrame(BaseFrame):
         return f
 
     def _fila_editor(self, section, group, field, label, row):
+        """Crea una fila para editar una etiqueta EXIF."""
         container = ctk.CTkFrame(section, fg_color='transparent')
         container.grid(row=row, column=0, sticky='ew', pady=4)
         container.grid_columnconfigure(0, weight=2, uniform='edit-fields')
@@ -465,10 +481,12 @@ class MetadataFrame(BaseFrame):
 
     @staticmethod
     def _texto_busqueda(text):
+        """Crea el campo usado para filtrar etiquetas editables."""
         return ''.join(char for char in unicodedata.normalize('NFKD', text.casefold())
                        if not unicodedata.combining(char))
 
     def _filtrar_campos(self):
+        """Muestra solo etiquetas que coinciden con la búsqueda."""
         query = self._texto_busqueda(self._edit_query.get().strip())
         selected = self._edit_sections.get(self._edit_section.get())
         visible_groups = set()
@@ -492,6 +510,7 @@ class MetadataFrame(BaseFrame):
         self._panel_editar._parent_canvas.yview_moveto(0)
 
     def _ajustar_editor(self, width):
+        """Ajusta el editor al ancho disponible."""
         logical = max(200, int(width / self._get_widget_scaling()) - 40)
         self._edit_target.configure(wraplength=logical)
         self._info_tecnica.configure(wraplength=logical)
@@ -501,6 +520,7 @@ class MetadataFrame(BaseFrame):
                     child.configure(wraplength=max(80, int(logical * .4) - 16))
 
     def _agregar_campo_edicion(self, panel, campo: str, fila: int) -> int:
+        """Agrega el control correcto según el tipo de etiqueta EXIF."""
         etiqueta = t(CAMPOS_EDITABLES[campo])
         ctk.CTkLabel(
             panel, text=etiqueta, font=fonts.FUENTE_BASE,
@@ -682,31 +702,41 @@ class MetadataFrame(BaseFrame):
 
 
     def _explorar_lote(self):
+        """Abre el diálogo para agregar varias imágenes al catálogo."""
         self._collection.explore()
 
     def _explorar_ver(self):
+        """Abre una imagen en el flujo de consulta."""
         self._collection.explore()
 
     def _explorar_editar(self):
+        """Abre una imagen para cargar sus datos en el formulario de edición."""
         self._collection.explore()
 
     def _cargar_lote(self, rutas):
+        """Solicita lectura asíncrona para las imágenes elegidas."""
         self._collection.add(rutas)
 
     def _guardar_edicion(self):
+        """Valida los campos actuales y solicita el guardado de la imagen editada."""
         self._collection.save()
 
     def _limpiar_lote(self):
+        """Quita archivos del lote sin tocar los originales."""
         self._collection.save(selected=True, clean=True)
 
     def _exportar(self, fmt):
+        """Exporta los metadatos de la imagen o selección activa."""
         self._collection.export(fmt)
 
     def _cambiar_tab(self, tab):
+        """Cambia la vista activa y sincroniza el estado del catálogo."""
         self._collection.change_tab(tab)
 
     def _limpiar(self):
+        """Limpia los campos del editor y restablece selectores."""
         self._collection.clear()
 
     def _limpiar_todo(self):
+        """Limpia el formulario y restablece también los selectores."""
         self._collection.clear()

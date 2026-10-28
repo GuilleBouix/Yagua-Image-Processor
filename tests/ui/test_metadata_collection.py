@@ -1,3 +1,5 @@
+"""Pruebas de interfaz para metadata collection y sus estados principales."""
+
 from pathlib import Path
 from time import monotonic, sleep
 
@@ -394,8 +396,8 @@ def test_copy_confirmation_keeps_unsaved_changes_explanation(frame, ui_root, tmp
 @pytest.mark.parametrize('scale', [1, .75, .5])
 @pytest.mark.parametrize('geometry', [(1360, 720), (900, 600)])
 def test_workspace_lists_preview_and_fields_fit(ui_root, tmp_path, geometry, scale):
-    # Use the real reader queue: a single Tk update does not guarantee either
-    # worker delivery or the two stable viewport samples used for rendering.
+    # Usa la cola real de lectura: una actualización de Tk no garantiza
+    # que termine el worker ni que lleguen las dos mediciones estables del viewport.
     frame = MetadataFrame(ui_root)
     width, height = geometry
     ui_root.geometry(f'{width}x{height}')

@@ -1,3 +1,5 @@
+"""Herramientas de mantenimiento, verificación y empaquetado del proyecto. deliver."""
+
 import json
 from pathlib import Path
 import shutil
@@ -7,6 +9,7 @@ from scripts.ci.stages.common import PLATFORM, REPORTS, ROOT, VERSION, python
 
 
 def main():
+    """Reúne artefactos e informes y los prepara para transferir al siguiente job."""
     context = json.loads((ROOT / '.ci-state/context.json').read_text())
     lineage = context['lineage']
     required = {'quality', 'core', 'ui', 'compile', 'package', 'probe', 'sources'}

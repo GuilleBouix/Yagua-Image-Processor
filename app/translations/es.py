@@ -21,7 +21,7 @@ en la aplicación organizadas por seccion:
 
 TRANSLATIONS = {
     'documentation': 'Documentación',
-    # App
+    # Aplicación
     'app_title': 'Yagua - Procesador de Imágenes',
     'loading_model': 'Cargando modelo...',
     'downloading_model': 'Descargando modelo...',
@@ -30,7 +30,7 @@ TRANSLATIONS = {
     'removing_bg': 'Quitando fondo...',
     'limit_reached': 'Se cargaron {limit} de {total} imágenes (límite máximo).',
     
-    # Sidebar
+    # Barra lateral
     'compress': 'Comprimir',
     'convert': 'Convertir',
     'remove_bg': 'Quitar Fondo',
@@ -73,7 +73,7 @@ TRANSLATIONS = {
     'converted_to_plural': 'convertidas a',
     'load_images_first_convert': 'Carga al menos una imagen.',
     
-    # Quitar Fondo
+    # Quitar fondo
     'remove_bg_title':        'Quitar Fondo',
     'background_type':        'Fondo resultante',
     'bg_transparent':         'Transparente',
@@ -99,7 +99,7 @@ TRANSLATIONS = {
     'remove_bg_description': 'Optimizado para productos y fondos claros: elimina el fondo y refina bordes automáticamente.',
     'remove_bg_fallback_notice': 'Usando modelo de compatibilidad ({model})',
 
-    # Palette
+    # Paleta
     'palette_title': 'Paleta de colores',
     'colors_to_extract': 'Colores a extraer',
     'load_image_for_palette': 'Carga una imagen para ver la paleta',
@@ -149,7 +149,7 @@ TRANSLATIONS = {
     'rename_conflicts':    'conflictos omitidos',
     
 
-    # Metadata
+    # Metadatos
     'metadata_title': 'Metadatos EXIF',
     'view': 'Ver',
     'edit': 'Editar',
@@ -275,7 +275,7 @@ TRANSLATIONS = {
     'select_output_folder_clean': 'Carpeta de salida',
     'without_exif': 'sinexif',
     
-    # Resize
+    # Redimensionar
     'resize_title': 'Redimensionar',
     'resize_tab': 'Redimensionar',
     'crop_tab': 'Recortar',
@@ -388,7 +388,7 @@ TRANSLATIONS = {
     'ocr_lang_es_en': 'Español/Inglés',
     'ocr_lang_es': 'Español',
     'ocr_lang_en': 'Inglés',
-    # Watermark
+    # Marca de agua
     "watermark":                  "Marca de agua",
     "watermark_title":            "Marca de agua",
     "watermark_select_wm":        "Seleccionar imagen de marca de agua",
@@ -418,7 +418,7 @@ TRANSLATIONS = {
     "watermark_preview_placeholder": "Cargá una imagen para ver el preview",
     "watermark_calculando":       "Actualizando preview...",
 
-    # Settings
+    # Ajustes
     'settings_title': 'Ajustes',
     'language': 'Idioma',
     'select_language': 'Seleccionar idioma',
@@ -482,7 +482,7 @@ TRANSLATIONS['restart_when_idle'] = 'Hay un proceso activo. ¿Reiniciar cuando t
 TRANSLATIONS['invalid_filename'] = 'El nombre de destino no es válido.'
 
 
-# Metadata collection and batch operations.
+# Catálogo de metadatos y operaciones por lote.
 TRANSLATIONS.update({
     'meta_search_fields': 'Buscar campo…',
     'meta_all_sections': 'Todas las secciones',
@@ -530,7 +530,7 @@ TRANSLATIONS.update({
 TRANSLATIONS["meta_source_changed"] = 'El archivo cambió desde que se cargó. Volvé a seleccionarlo antes de guardar.'
 
 
-# UI startup and preloading.
+# Inicio de la interfaz y precarga de módulos.
 TRANSLATIONS.update({
     'startup_resources': 'Preparando Yagua…',
     'startup_home': 'Preparando Inicio…',
@@ -561,7 +561,7 @@ TRANSLATIONS.update({
 })
 
 
-# Contextual metadata UI.
+# Interfaz contextual de metadatos.
 TRANSLATIONS.update({
     'meta_start': 'Agregá imágenes para empezar',
     'meta_read_only_short': 'Sólo lectura. Podés editar metadatos de imágenes JPEG o TIFF.',
@@ -577,7 +577,7 @@ TRANSLATIONS.update({
     'meta_selected_count': '{marked} seleccionadas',
 })
 
-# Local legal information in Settings.
+# Información legal local en Ajustes.
 TRANSLATIONS.update({
     "legal_title": "Archivos, conexiones y licencias",
     "legal_originals": "Renombrar y editar metadatos modifican los archivos seleccionados. Recomendamos trabajar sobre copias de seguridad.",

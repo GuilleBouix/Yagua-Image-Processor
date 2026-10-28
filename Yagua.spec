@@ -3,6 +3,7 @@ from pathlib import Path
 import runpy
 
 project_root = Path(SPECPATH)
+# La política compartida concentra imports dinámicos y recursos runtime.
 rules = runpy.run_path(str(project_root / 'scripts' / 'packaging_rules.py'))
 inputs = rules['build_inputs'](project_root)
 block_cipher = None
@@ -20,8 +21,8 @@ a = Analysis(
     cipher=block_cipher,
     noarchive=False,
 )
-# Filter only proven developer programs and the Windows video plugin.
-# Keep all runtime Torch/SciPy modules and DLL/SO dependencies intact.
+# Excluir solo herramientas de desarrollo identificadas y el plugin de video de Windows.
+# Conservar completos los módulos de Torch/SciPy y sus DLL/SO de runtime.
 for collection in (a.datas, a.binaries):
     collection[:] = [entry for entry in collection
                      if not rules['omit_packaged_file'](entry[0])]

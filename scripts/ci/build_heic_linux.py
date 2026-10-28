@@ -1,4 +1,5 @@
 """Build the pinned HEIC libraries locally; do not download or replace dependencies globally."""
+# Compila dependencias HEIC fijadas en un entorno Linux descartable.
 from __future__ import annotations
 
 import argparse
@@ -33,11 +34,13 @@ HEIF_FLAGS = [
 
 
 def digest(path: Path) -> str:
+    """Calcula el SHA-256 usado para identificar fuentes y binarios."""
     with path.open('rb') as stream:
         return hashlib.file_digest(stream, 'sha256').hexdigest()
 
 
 def extract_sources(work: Path, root: Path = ROOT) -> tuple[dict, dict]:
+    """Verifica y extrae las fuentes fijadas para la compilación local de HEIC."""
     manifest = json.loads((root / 'legal/sources/manifest.json').read_text(encoding='utf-8'))
     wanted = {'libheif', 'libde265', 'x265', 'pillow-heif'}
     entries = {e['name']: e for e in manifest['archives'] + manifest['native_archives']
@@ -98,7 +101,7 @@ def install_libraries(prefix: Path, work: Path, run) -> dict:
         raise ValueError(f'Unexpected libheif dependency: {old_names}')
     run(['patchelf', '--replace-needed', old_names[0], 'libheif.so.1', str(extension)])
     run(['patchelf', '--set-rpath', '$ORIGIN/pillow_heif.libs', str(extension)])
-    # Fresh process: never keep a prebuilt library loaded while checking its replacement.
+    # Proceso nuevo: no mantengas cargada la biblioteca anterior al verificar su reemplazo.
     code = '''import ctypes,json,pillow_heif
 from pathlib import Path
 import _pillow_heif
@@ -125,6 +128,7 @@ print(json.dumps({'info':pillow_heif.libheif_info(),'x265_bit_depths':depths}))
 
 
 def build(work: Path, report: Path, jobs: int = 2, install: bool = True) -> dict:
+    """Compila las bibliotecas HEIC en el directorio de trabajo y registra los pasos."""
     if sys.platform != 'linux' or os.uname().machine != 'x86_64':
         raise ValueError('HEIC source build requires Linux x86_64')
     if not 1 <= jobs <= 32:
@@ -139,10 +143,12 @@ def build(work: Path, report: Path, jobs: int = 2, install: bool = True) -> dict
     environment['LD_LIBRARY_PATH'] = str(prefix / 'lib') + os.pathsep + environment.get('LD_LIBRARY_PATH', '')
 
     def run(command):
+        """Ejecuta un comando de compilación y deja constancia de su resultado."""
         result['commands'].append(command)
         subprocess.run(command, env=environment, check=True)
 
     def cmake(source: Path, directory: Path, flags: list[str], install_target=False):
+        """Configura y ejecuta CMake con opciones explícitas para cada dependencia."""
         run(['cmake', '-S', str(source), '-B', str(directory),
              '-DCMAKE_BUILD_TYPE=Release', '-DCMAKE_POSITION_INDEPENDENT_CODE=ON',
              '-DCMAKE_POLICY_VERSION_MINIMUM=3.5', '-DFETCHCONTENT_FULLY_DISCONNECTED=ON',
@@ -160,22 +166,22 @@ def build(work: Path, report: Path, jobs: int = 2, install: bool = True) -> dict
             result['tools'][tool] = subprocess.check_output([tool, '--version'], text=True).splitlines()[0]
         sources, result['sources'] = extract_sources(work)
         x265 = sources['x265']
-        # The archived upstream x265Version.txt is stale. Generate truthful metadata
-        # from the pinned revision and the version observed in the validated candidate.
+        # El x265Version.txt archivado está desactualizado. Genera metadatos coherentes
+        # con la revisión fijada y la versión observada en el candidato validado.
         version_text = 'repositorychangeset: 1d117be\nreleasetagdistance: 1\nreleasetag: 4.1\n'
         (x265 / 'x265Version.txt').write_text(version_text, encoding='utf-8')
         result['generated_files'] = {'x265Version.txt': version_text}
         for patch_name in ['x265_cmake_1.patch', 'x265_cmake_2.patch']:
             patch = sources['pillow-heif'] / 'libheif' / patch_name
             run(['patch', '-d', str(x265), '-p1', '-i', str(patch)])
-        # GCC 15 no longer supplies this missing integer-types include indirectly.
+        # GCC 15 ya no incluye indirectamente estos tipos enteros faltantes.
         compatibility_patch = ROOT / 'legal/distribution/patches/x265-json11-cstdint.patch'
         run(['patch', '-d', str(x265), '-p1', '-i', str(compatibility_patch)])
         result['additional_patches'] = [
             {'path': compatibility_patch.relative_to(ROOT).as_posix(),
              'sha256': digest(compatibility_patch)}]
-        # Match the existing wheel's dependency set instead of opportunistically
-        # linking libnuma when a CI image happens to have its headers installed.
+        # Usa las dependencias del wheel existente en lugar de enlazar libnuma
+        # solo porque la imagen de CI tenga instalados sus encabezados.
         high = ['-DHIGH_BIT_DEPTH=ON', '-DEXPORT_C_API=OFF', '-DENABLE_SHARED=OFF',
                 '-DENABLE_CLI=OFF', '-DENABLE_LIBNUMA=OFF']
         for depth in (10, 12):
@@ -204,6 +210,7 @@ def build(work: Path, report: Path, jobs: int = 2, install: bool = True) -> dict
 
 
 def check_package(package: Path) -> None:
+    """Comprueba que el paquete use las bibliotecas HEIC recién construidas."""
     if not package.is_dir():
         raise ValueError(f'HEIC package directory missing: {package}')
     unknown = list(package.rglob('libmvec-2-*.so*'))
@@ -212,6 +219,7 @@ def check_package(package: Path) -> None:
 
 
 def main() -> int:
+    """Valida argumentos y coordina la compilación local de las dependencias HEIC."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--work-dir', type=Path)
     parser.add_argument('--report', type=Path)

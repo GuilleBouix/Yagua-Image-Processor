@@ -1,4 +1,4 @@
-"""Small collection and preview widgets, shared by the three metadata tabs."""
+"""Widgets compactos para la lista y vista previa de las pestañas EXIF."""
 from __future__ import annotations
 
 from pathlib import Path
@@ -15,8 +15,10 @@ from app.ui.frames.metadata.state import MetadataState
 
 
 class MetadataFiles(ctk.CTkFrame):
+    """Lista virtualizada de archivos con selección y acciones por imagen."""
     tab_frame: object = None
     def __init__(self, parent, state: MetadataState, activate, mark, mark_all):
+        """Conecta la lista con el estado y las acciones del módulo."""
         super().__init__(parent, fg_color='transparent')
         self.state = state
         self.activate, self.mark = activate, mark
@@ -35,7 +37,7 @@ class MetadataFiles(ctk.CTkFrame):
             styles.Button(buttons, text=t(text), width=1, height=30,
                           font=fonts.FUENTE_CHICA,
                           command=lambda v=value: mark_all(v)).grid(row=0, column=column, padx=2, sticky='ew')
-        # The CTk scrollbar otherwise imposes its own 200px requested height.
+        # La barra de CTk impondría de otro modo su altura solicitada de 200 px.
         viewport = ctk.CTkFrame(self, height=136, fg_color='transparent')
         viewport.grid(row=2, column=0, sticky='ew')
         viewport.grid_propagate(False)
@@ -53,13 +55,16 @@ class MetadataFiles(ctk.CTkFrame):
 
     @property
     def rows(self):
+        """Devuelve las filas que corresponden a la revisión actual."""
         return {key: (row, row.variable, row.thumb, row.info_label, row.status_label)
                 for key, row in self.virtual.rows.items()}
 
     def rebuild(self):
+        """Reconstruye solo las filas necesarias para la selección actual."""
         self.refresh()
 
     def _create_row(self, parent):
+        """Crea una fila reutilizable para un archivo de la lista."""
         row = PooledRow(parent, **styles.surface('row'))
         row.grid_columnconfigure(2, weight=1)
         row.variable = ctk.BooleanVar(value=False)
@@ -77,6 +82,7 @@ class MetadataFiles(ctk.CTkFrame):
                                  text_color=colors.TEXT_GRAY, width=1)
         row.status_label.grid(row=2, column=2, padx=(0, 6), pady=(0, 6), sticky='ew')
         def activate(_event):
+            """Activa la fila al pulsar cualquiera de sus controles visuales."""
             if row.key:
                 self.activate(row.key)
         row.bind('<Button-1>', activate, add=True)
@@ -86,6 +92,7 @@ class MetadataFiles(ctk.CTkFrame):
         return row
 
     def _render_row(self, row, key):
+        """Actualiza una fila con ruta, selección y estado del archivo."""
         item = self.state.items.get(key)
         if item is None:
             return
@@ -110,6 +117,7 @@ class MetadataFiles(ctk.CTkFrame):
             self.request_thumbnail(key)
 
     def refresh(self, key=None):
+        """Refresca filas afectadas sin reiniciar toda la lista."""
         count, marked = len(self.state.items), len(self.state.marked)
         text = t('meta_image_count' if count == 1 else 'meta_images_count').format(count=count)
         text += ' · ' + t('meta_selected_one' if marked == 1 else 'meta_selected_count').format(marked=marked)
@@ -131,8 +139,10 @@ class MetadataFiles(ctk.CTkFrame):
 
 
 class MetadataPreview(UiLifetime, ctk.CTkFrame):
+    """Panel de vista previa que ignora cargas antiguas."""
     tab_frame: object = None
     def __init__(self, parent, *, height=240):
+        """Inicializa el panel y el estado de su vista previa."""
         super().__init__(parent, fg_color='transparent')
         self.source: Image.Image | None = None
         self.photo: ctk.CTkImage | None = None
@@ -149,7 +159,7 @@ class MetadataPreview(UiLifetime, ctk.CTkFrame):
         self.image = ctk.CTkLabel(self.viewport, text=t('select_image_view'), width=1, height=1,
                                  fg_color=styles.palette().inset, corner_radius=0,
                                  text_color=colors.TEXT_GRAY, justify='center')
-        # place ignores the image's requested size when allocating its viewport.
+        # place no usa el tamaño solicitado de la imagen para asignar su viewport.
         self.image.place(relx=0, rely=0, relwidth=1, relheight=1)
         self.renderer = StableRender(self, self.viewport, self.render)
         self.info = ctk.CTkLabel(self, text='', width=1, anchor='w', justify='left', font=fonts.FUENTE_CHICA,
@@ -158,11 +168,13 @@ class MetadataPreview(UiLifetime, ctk.CTkFrame):
         self.viewport.bind('<Configure>', self._wrap, add=True)
 
     def _wrap(self, event):
+        """Ajusta el texto de detalles al ancho disponible."""
         width = max(1, int(event.width / self._get_widget_scaling()) - 24)
         for label in (self.name, self.info, self.image):
             configure_changed(label, wraplength=width)
 
     def show(self, path='', source=None, info='', error=''):
+        """Muestra datos de una selección y descarta resultados obsoletos."""
         changed = self.source is not source
         self.source = source
         if changed:
@@ -179,12 +191,15 @@ class MetadataPreview(UiLifetime, ctk.CTkFrame):
         self.schedule()
 
     def schedule(self, _event=None):
+        """Agrupa cambios de tamaño antes de volver a dibujar."""
         self.renderer.request()
 
     def set_visible(self, visible):
+        """Pausa la carga de preview si el panel no está visible."""
         self.renderer.set_visible(visible)
 
     def render(self, measurements):
+        """Dibuja la selección vigente en el panel de vista previa."""
         pixels_x, pixels_y, scale = measurements
         width = max(1, int(pixels_x / scale) - 24)
         height = max(1, int(pixels_y / scale) - 24)

@@ -1,3 +1,5 @@
+"""Pruebas de interfaz para palette frame y sus estados principales."""
+
 from app.ui.frames.palette.frame import PaletteFrame
 
 

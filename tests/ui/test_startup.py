@@ -1,4 +1,4 @@
-"""Offline startup, cooperative construction and resumable navigation."""
+"""Arranque sin red, construcción progresiva y navegación reanudable."""
 from __future__ import annotations
 
 import importlib
@@ -171,8 +171,8 @@ assert not any(name in sys.modules for name in (
 @pytest.mark.parametrize('scale', [1, .75, .5])
 @pytest.mark.parametrize('early', [False, True])
 def test_real_entrypoint_mainloop_displays_splash_and_home(tk_session, scale, early):
-    # Pumping update() from the test before entering mainloop masked CTk's
-    # Windows titlebar/withdraw initialization. Exercise app.main.main itself.
+    # Llamar update() antes del mainloop ocultaba la inicialización de la barra
+    # de título y withdraw de CTk en Windows. Prueba directamente app.main.main.
     code = f'scale = {scale!r}\nearly = {early!r}\n' + textwrap.dedent('''
         import ctypes
         import json
@@ -403,7 +403,7 @@ def test_real_startup_early_entry_navigation_and_close(ui_root, monkeypatch, tmp
             assert window.frames['lqip']._source_job is None
         else:
             assert not loader.running
-        # Change tools before an asynchronous build completes: only latest wins.
+        # Cambia la selección antes de terminar el build asíncrono: solo vale la más reciente.
         window.show_module('metadata')
         window.show_module('lqip')
         wait(ui_root, lambda: window.frames['lqip'] is not None)

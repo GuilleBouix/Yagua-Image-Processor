@@ -1,3 +1,5 @@
+"""Pruebas de regresión para update checker y sus contratos asociados."""
+
 from __future__ import annotations
 
 import pytest

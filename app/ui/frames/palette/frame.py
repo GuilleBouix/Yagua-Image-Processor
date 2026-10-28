@@ -45,12 +45,14 @@ class PaletteFrame(BaseFrame):
     design_system = True
 
     def __init__(self, parent, *, defer_build=False):
+        """Inicializa selección y datos de la paleta que se mostrará."""
         logger.info("palette.ui: init")
         self._state = PaletteState()
         self._preview_img: ctk.CTkImage | None = None
         super().__init__(parent, t('palette_title'), defer_build=defer_build)
 
     def _on_build_complete(self):
+        """Conecta controles cuando terminó la construcción diferida."""
         self._scrollbar.configure(corner_radius=0, width=6, border_spacing=1)
 
     @stepwise
@@ -266,12 +268,14 @@ class PaletteFrame(BaseFrame):
         n = int(self._seg_n.get())
         self._show_full_overlay(t('processing'))
         def work():
+            """Valida y analiza un candidato sin reemplazar una paleta válida anterior."""
             preview = cargar_preview(archivo, (80, 80))
             palette, error = extraer_paleta_safe(archivo, n)
             if error:
                 raise ValueError(error)
             return preview, palette
         def loaded(result):
+            """Actualiza la vista solo si la carga solicitada terminó correctamente."""
             preview, palette = result
             self._state.ruta = archivo
             self._mostrar_cargado(archivo, preview)
@@ -345,6 +349,7 @@ class PaletteFrame(BaseFrame):
 
         palette = tuple(self._state.paleta)
         def _proceso():
+            """Extrae los colores y prepara su representación para la interfaz."""
             exportar_paleta_imagen(palette, ruta)
             self._post_ui(0, lambda: self._btn_guardar.configure(
                 state='normal', text=t('save_palette_btn')

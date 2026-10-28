@@ -278,6 +278,7 @@ class RenameFrame(BaseFrame):
         yield
 
     def _on_build_complete(self):
+        """Conecta los controles al terminar la construcción de la vista."""
         super()._on_build_complete()
         for frame in (self, self._lista_frame, self._lista_preview):
             if isinstance(frame, ctk.CTkScrollableFrame):
@@ -349,10 +350,12 @@ class RenameFrame(BaseFrame):
         self._preview_job = self.after(60, lambda: self._start_preview(paths, options, revision))
 
     def _start_preview(self, paths, options, revision):
+        """Inicia la previsualización con los valores actuales del formulario."""
         self._preview_job = None
         threading.Thread(target=self._generar_preview, args=(paths, options, revision), daemon=True).start()
 
     def _limpiar(self):
+        """Restablece selección y reglas de renombrado."""
         if self._operation_blocked():
             return
         self._rename_revision = getattr(self, '_rename_revision', 0) + 1
@@ -385,6 +388,7 @@ class RenameFrame(BaseFrame):
                 if isinstance(widget, ctk.CTkLabel):
                     widget.grid_remove()
             def create(parent):
+                """Construye una fila editable de reglas o previsualización."""
                 row = PooledRow(parent, corner_radius=0, fg_color='transparent')
                 row.grid_columnconfigure((0, 1), weight=1, uniform='rename-preview')
                 row.original_label = ctk.CTkLabel(row, text='', width=1, font=fonts.FUENTE_CHICA,
@@ -394,6 +398,7 @@ class RenameFrame(BaseFrame):
                 row.new_label.grid(row=0, column=1, sticky='ew', padx=4)
                 return row
             def render(row, index):
+                """Refresca nombres propuestos sin modificar todavía los archivos."""
                 original, nuevo = self._preview_data[index]
                 configure_changed(row.original_label, text=original)
                 configure_changed(row.new_label, text=nuevo, text_color=colors.ACENTO if original != nuevo else colors.TEXT_GRAY)

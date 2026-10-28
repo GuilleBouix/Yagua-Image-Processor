@@ -5,7 +5,7 @@ Diccionario de textos para la interfaz en idioma aleman.
 
 TRANSLATIONS = {
     'documentation': 'Dokumentation',
-    # App
+    # Aplicación
     'app_title': 'Yagua - Bildprozessor',
     'loading_model': 'Modell wird geladen...',
     'downloading_model': 'Modell wird heruntergeladen...',
@@ -14,7 +14,7 @@ TRANSLATIONS = {
     'removing_bg': 'Hintergrund wird entfernt...',
     'limit_reached': '{limit} von {total} Bildern geladen (Maximalwert).',
     
-    # Sidebar
+    # Barra lateral
     'compress': 'Komprimieren',
     'convert': 'Konvertieren',
     'remove_bg': 'Hintergrund entfernen',
@@ -58,7 +58,7 @@ TRANSLATIONS = {
     'converted_to_plural': 'konvertiert in',
     'load_images_first_convert': 'Bitte lade mindestens ein Bild.',
     
-    # Quitar Fondo
+    # Quitar fondo
     'remove_bg_title': 'Hintergrund entfernen',
     'background_type': 'Ergebnishintergrund',
     'bg_transparent': 'Transparent',
@@ -86,7 +86,7 @@ TRANSLATIONS = {
     'remove_bg_description': 'Optimiert für Produkte und helle Hintergründe: entfernt den Hintergrund und verfeinert die Kanten automatisch.',
     'remove_bg_fallback_notice': 'Kompatibilitätsmodell wird verwendet ({model})',
 
-    # Palette
+    # Paleta
     'palette_title': 'Farbpalette',
     'colors_to_extract': 'Anzahl Farben',
     'load_image_for_palette': 'Bild laden, um Palette zu sehen',
@@ -135,7 +135,7 @@ TRANSLATIONS = {
     'renamed': 'umbenannt',
     'rename_conflicts': 'Konflikte übersprungen',
 
-    # Metadata
+    # Metadatos
     'metadata_title': 'EXIF-Metadaten',
     'view': 'Ansehen',
     'edit': 'Bearbeiten',
@@ -261,7 +261,7 @@ TRANSLATIONS = {
     'select_output_folder_clean': 'Ausgabeordner',
     'without_exif': 'ohne_exif',
     
-    # Resize
+    # Redimensionar
     'resize_title': 'Skalieren',
     'resize_tab': 'Skalieren',
     'crop_tab': 'Zuschneiden',
@@ -373,7 +373,7 @@ TRANSLATIONS = {
     'ocr_lang_es': 'Spanisch',
     'ocr_lang_en': 'Englisch',
     'select_language': 'Sprache wählen',
-    # Watermark
+    # Marca de agua
     "watermark_title": "Wasserzeichen",
     "watermark_select_wm": "Wasserzeichen-Bild wählen",
     "watermark_preset": "Voreinstellung",
@@ -402,7 +402,7 @@ TRANSLATIONS = {
     "watermark_preview_placeholder": "Bild laden für Vorschau",
     "watermark_calculando": "Vorschau wird aktualisiert...",
 
-    # Settings
+    # Ajustes
     'settings_title': 'Einstellungen',
     'language': 'Sprache',
     'appearance': 'Aussehen',
@@ -465,7 +465,7 @@ TRANSLATIONS['restart_when_idle'] = 'Ein Vorgang läuft. Danach neu starten?'
 TRANSLATIONS['invalid_filename'] = 'Der Zieldateiname ist ungültig.'
 
 
-# Metadata collection and batch operations.
+# Catálogo de metadatos y operaciones por lote.
 TRANSLATIONS.update({
     'meta_search_fields': 'Feld suchen…',
     'meta_all_sections': 'Alle Bereiche',
@@ -513,7 +513,7 @@ TRANSLATIONS.update({
 TRANSLATIONS["meta_source_changed"] = 'Die Datei wurde seit dem Laden geändert. Vor dem Speichern erneut auswählen.'
 
 
-# UI startup and preloading.
+# Inicio de la interfaz y precarga de módulos.
 TRANSLATIONS.update({
     'startup_resources': 'Yagua wird vorbereitet…',
     'startup_home': 'Startseite wird vorbereitet…',
@@ -544,7 +544,7 @@ TRANSLATIONS.update({
 })
 
 
-# Contextual metadata UI.
+# Interfaz contextual de metadatos.
 TRANSLATIONS.update({
     'meta_start': 'Füge Bilder hinzu, um zu beginnen',
     'meta_read_only_short': 'Nur lesen. Metadaten lassen sich bei JPEG- und TIFF-Bildern bearbeiten.',
@@ -560,7 +560,7 @@ TRANSLATIONS.update({
     'meta_selected_count': '{marked} ausgewählt',
 })
 
-# Local legal information in Settings.
+# Información legal local en Ajustes.
 TRANSLATIONS.update({
     "legal_title": "Dateien, Verbindungen und Lizenzen",
     "legal_originals": "Umbenennen und Bearbeiten von Metadaten verändert die ausgewählten Dateien. Wir empfehlen, mit Sicherungskopien zu arbeiten.",

@@ -1,4 +1,4 @@
-"""Opt-in Linux package verification; normal application startup never calls this."""
+"""Verificación opcional del paquete Linux; el arranque normal no la ejecuta."""
 
 from __future__ import annotations
 
@@ -18,6 +18,7 @@ from app.utils.paths import resource_path
 
 
 def _load_inter_font(size: int = 52):
+    """Carga la fuente local necesaria para las muestras de prueba de interfaz."""
     from PIL import ImageFont
 
     font_path = resource_path('assets/fonts/Inter.ttf')
@@ -34,6 +35,7 @@ def _wait_for_ui(app, ready, on_ready, on_timeout, timeout_seconds=30.0, clock=t
     deadline = clock() + timeout_seconds
 
     def poll():
+        """Consulta progreso del arranque hasta completar o agotar el tiempo límite."""
         if ready():
             on_ready()
         elif clock() >= deadline:
@@ -45,6 +47,7 @@ def _wait_for_ui(app, ready, on_ready, on_timeout, timeout_seconds=30.0, clock=t
 
 
 def _stage(result: dict, name: str, action):
+    """Ejecuta una comprobación y guarda estado, duración o excepción en el informe."""
     print(f'[package-selftest] START {name}', flush=True)
     result['current_stage'] = name
     item: dict = {'name': name, 'status': 'running'}
@@ -72,6 +75,7 @@ def _peak_rss_bytes() -> int:
         from ctypes import wintypes
 
         class Counters(ctypes.Structure):
+            """Estructura de Windows para consultar el uso máximo de memoria."""
             _fields_ = [('cb', wintypes.DWORD), ('faults', wintypes.DWORD)] + [
                 (name, ctypes.c_size_t) for name in (
                     'peak_working_set', 'working_set', 'quota_peak_paged', 'quota_paged',
@@ -92,7 +96,9 @@ def _peak_rss_bytes() -> int:
 
 
 def _deny_network() -> None:
+    """Bloquea conexiones para confirmar que las pruebas locales no dependen de red."""
     def denied(*args, **kwargs):
+        """Falla cualquier intento de red durante la verificación local."""
         raise RuntimeError('Network access forbidden during offline verification')
 
     socket.socket.connect = denied
@@ -100,6 +106,7 @@ def _deny_network() -> None:
 
 
 def _verify_runtime(result: dict):
+    """Comprueba que las bibliotecas incluidas pueden cargarse dentro del paquete."""
     modules = {
         name: importlib.import_module(name)
         for name in ('numpy', 'scipy', 'cv2', 'onnxruntime', 'torch', 'torchvision')
@@ -133,6 +140,7 @@ def _verify_runtime(result: dict):
 
 
 def _verify_restart_target(result: dict) -> None:
+    """Valida el ejecutable y los argumentos usados para reiniciar la aplicación."""
     from app.ui.frames.settings.services import _restart_command
 
     command = _restart_command()
@@ -149,6 +157,7 @@ def _verify_restart_target(result: dict) -> None:
 
 
 def _render_ocr_sample(work: Path):
+    """Genera una muestra local que permite comprobar el OCR empaquetado."""
     from PIL import Image, ImageDraw
 
     image_path = work / 'ocr-sample.png'
@@ -186,7 +195,7 @@ def _verify_image_formats(work: Path, observations: dict | None = None) -> list[
             if observations is not None:
                 observations[fmt] = {'mode': output.mode, 'size': list(output.size),
                                      'pixel_sha256': hashlib.sha256(output.tobytes()).hexdigest()}
-        # The real OCR input path decodes through Pillow then cv2, not FFmpeg.
+        # La entrada OCR real se decodifica con Pillow y luego cv2, no con FFmpeg.
         if ocr.preprocesar_imagen(output_path).size == 0:
             raise RuntimeError(f'OCR could not decode {fmt}')
     profile = ImageCms.ImageCmsProfile(ImageCms.createProfile('sRGB')).tobytes()
@@ -218,7 +227,7 @@ def _verify_image_formats(work: Path, observations: dict | None = None) -> list[
 
 
 def _verify_heic_depths(work: Path) -> dict[str, int]:
-    """Check actual 10/12-bit encoding, not only the presence of a codec name."""
+    """Comprueba codificación real de 10 y 12 bits, no solo la presencia del codec."""
     import numpy as np
     import pillow_heif
 
@@ -237,6 +246,7 @@ def _verify_heic_depths(work: Path) -> dict[str, int]:
 
 
 def _verify_conversion_profiles(work: Path) -> dict[str, bool]:
+    """Comprueba que la conversión preserve perfiles ICC compatibles."""
     from PIL import Image, ImageCms
     from app.modules.convert import convertir_imagen
 
@@ -250,18 +260,19 @@ def _verify_conversion_profiles(work: Path) -> dict[str, bool]:
             with Image.open(result['ruta_salida'] or str(source)) as output:
                 retained = output.info.get('icc_profile') == profile
             preserved[f'{mode}-{fmt}'] = retained
-            # Only historical comparison permits the confirmed pre-existing bug.
-            # Candidate and release validation must preserve every RGB profile.
+            # Solo la comparación histórica permite conservar el fallo previo ya confirmado.
+            # La validación de candidatos y releases debe conservar todos los perfiles RGB.
             if not retained and os.environ.get('YAGUA_PACKAGE_BASELINE_ALLOW_ICC_LOSS') != '1':
                 raise RuntimeError(f'{mode} -> {fmt}: conversion lost ICC profile')
     return preserved
 
 
 def _redirect_probe_numba_cache(directory: Path) -> None:
-    # Numba's user-provided locator ignores frozen modules without a source file.
-    # Its fallback queries Windows known folders, ignoring LOCALAPPDATA. Redirect
-    # that fallback only in this disposable verification process, before rembg
+    # El localizador de Numba ignora módulos congelados que no tienen archivo fuente.
+    # Su alternativa consulta carpetas conocidas de Windows e ignora LOCALAPPDATA. Redirige
+    # esa alternativa solo en este proceso temporal y antes de importar rembg
     # imports PyMatting and eagerly compiles its kernels.
+    """Redirige la caché de Numba a la carpeta descartable de verificación."""
     from types import SimpleNamespace
     from numba.core import caching
 
@@ -270,15 +281,17 @@ def _redirect_probe_numba_cache(directory: Path) -> None:
 
 
 def _update_checker_name(module) -> str:
-    # The same probe also runs against older baseline source snapshots.
+    # La misma prueba también se aplica a snapshots anteriores usados como base.
+    """Obtiene la identidad del repo del checker sin iniciar una consulta de red."""
     return 'check_latest_update' if hasattr(module, 'check_latest_update') else 'check_latest_stable'
 
 
 def _verify_ui_fonts(app) -> dict:
+    """Valida carga de fuentes y glifos necesarios para la interfaz."""
     from app.ui import fonts
     import tkinter.font as tkfont
 
-    # The probe is also overlaid on baseline packages predating bundled CJK fonts.
+    # La prueba también se ejecuta sobre paquetes base anteriores a las fuentes CJK incluidas.
     if not hasattr(fonts, 'CJK_FONTS'):
         return {'baseline': True}
     registered = fonts.registrar_fuentes()
@@ -293,6 +306,7 @@ def _verify_ui_fonts(app) -> dict:
 
 
 def _await_startup(app, timeout_seconds=60.0):
+    """Espera de forma acotada a que el arranque oculte su estado de carga."""
     deadline = time.monotonic() + timeout_seconds
     while not app.ready and time.monotonic() < deadline:
         if not app.winfo_exists():
@@ -307,6 +321,7 @@ def _await_startup(app, timeout_seconds=60.0):
 
 
 def _verify_startup() -> None:
+    """Arranca la interfaz y verifica que complete la inicialización."""
     import customtkinter as ctk
     from app.app import YaguaApp
     from app.ui import main_window
@@ -328,6 +343,7 @@ def _verify_startup() -> None:
 def _prepare_probe_stdio() -> None:
     # Instrumentation only: redirected Windows CI handles may use CP1252 even
     # in a windowed executable. EasyOCR's progress bar needs Unicode output.
+    """Configura salida de texto compatible con las consolas del paquete."""
     for stream in (sys.stdout, sys.stderr):
         reconfigure = getattr(stream, 'reconfigure', None)
         if callable(reconfigure):
@@ -346,6 +362,7 @@ def _verify_numba_coverage_disabled() -> dict:
 
 
 def run(report_path: Path) -> int:
+    """Ejecuta las comprobaciones locales del paquete y escribe un informe."""
     _prepare_probe_stdio()
     report_path.parent.mkdir(parents=True, exist_ok=True)
     mode = os.environ.get('YAGUA_PACKAGE_SELFTEST_MODE', 'full')
@@ -400,6 +417,7 @@ def run(report_path: Path) -> int:
                 lambda: _verify_heic_depths(work))
 
             def verify_ocr(languages):
+                """Comprueba que OCR funciona con la muestra local y recursos disponibles."""
                 batch_result = ocr.batch_procesar([str(image_path)], idiomas=languages)
                 if batch_result['ok'] != 1 or batch_result['errores'] != 0:
                     raise RuntimeError(f'OCR batch failed: {batch_result}')
@@ -418,6 +436,7 @@ def run(report_path: Path) -> int:
                 batch = _stage(result, f'ocr-{label}', lambda: verify_ocr(languages))
 
             def verify_background_removal(fallback=False):
+                """Comprueba carga y ejecución del modelo de fondo disponible localmente."""
                 import hashlib
                 foreground = Image.new('RGB', (256, 256), 'white')
                 ImageDraw.Draw(foreground).ellipse((55, 30, 200, 230), fill=(180, 35, 45))
@@ -428,6 +447,7 @@ def run(report_path: Path) -> int:
                 load_session = remove_bg._load_session
 
                 def load(model):
+                    """Carga la dependencia de forma aislada para registrar fallos de importación."""
                     if fallback and model == remove_bg.DEFAULT_MODEL:
                         raise RuntimeError('Self-test: simulate default model unavailable')
                     return load_session(model)
@@ -456,6 +476,7 @@ def run(report_path: Path) -> int:
                 model = remove_bg.FALLBACK_MODEL if fallback else remove_bg.DEFAULT_MODEL
 
                 def load_background_model():
+                    """Carga un modelo local de fondo o informa que todavía no está instalado."""
                     _redirect_probe_numba_cache(Path(os.environ['NUMBA_CACHE_DIR']))
                     return remove_bg._load_session(model)
 
@@ -466,6 +487,7 @@ def run(report_path: Path) -> int:
             result['numba_threading_layer'] = numba.threading_layer()
 
             def verify_ui():
+                """Abre ventanas de prueba y comprueba que los módulos se construyan sin error."""
                 from app.app import YaguaApp
                 from app.ui import main_window
                 from app.ui.module_registry import iter_all_modules
@@ -477,12 +499,14 @@ def run(report_path: Path) -> int:
                 callback_errors: list[str] = []
 
                 def callback_error(kind, value, tb):
+                    """Registra errores de callbacks de Tk como fallos del selftest."""
                     callback_errors.append(''.join(traceback.format_exception(kind, value, tb)))
 
                 app.report_callback_exception = callback_error
                 keys = [spec.key for spec in iter_all_modules() if spec.enabled]
 
                 def create_frames():
+                    """Construye los módulos requeridos para la verificación del paquete."""
                     try:
                         for key in keys:
                             app.main_window.show_module(key)
@@ -493,6 +517,7 @@ def run(report_path: Path) -> int:
                         return
 
                     def ready():
+                        """Continúa los checks después de que la interfaz esté lista."""
                         ocr_frame = app.main_window.frames.get('ocr')
                         remove_frame = app.main_window.frames.get('remove_bg')
                         return (
@@ -504,6 +529,7 @@ def run(report_path: Path) -> int:
                         )
 
                     def finish_checks():
+                        """Escribe resultados de cada prueba y cierra la ventana temporal."""
                         try:
                             app.main_window.show_module('ocr')
                             frame = app.main_window.frames['ocr']
@@ -528,6 +554,7 @@ def run(report_path: Path) -> int:
                             app.destroy()
 
                     def timeout():
+                        """Registra el timeout y limpia recursos de la interfaz temporal."""
                         details = '\n'.join(callback_errors) if callback_errors else 'frames not ready'
                         result['ui_error'] = f'UI initialization timed out after 30 seconds: {details}'
                         app.destroy()

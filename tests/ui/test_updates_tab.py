@@ -1,3 +1,5 @@
+"""Pruebas de interfaz para updates tab y sus estados principales."""
+
 from types import SimpleNamespace
 
 import pytest
