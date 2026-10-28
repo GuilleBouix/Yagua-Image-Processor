@@ -96,3 +96,6 @@ prototype-web
 
 # Local Markdown content prepared for the documentation website
 /documentacion web/
+
+# Local Playwright MCP test artifacts
+/.playwright-mcp/
