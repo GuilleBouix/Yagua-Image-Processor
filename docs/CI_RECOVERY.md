@@ -5,6 +5,30 @@ tests, UI tests, compilation, packaging, package verification, installer checks,
 source materials and final delivery are separate jobs. No candidate workflow
 creates a tag or release.
 
+## Catch source and UI errors before compiling
+
+The shared validation workflow checks Python syntax before installing the full
+runtime. Its preflight job has a ten-minute limit and still verifies local source
+materials and legal resources.
+
+The UI stage runs the files listed in `scripts/ci/partitions.py::UI_PRIORITY`
+first (lists, previews, Resize/Crop/Canvas and batch palettes), then the remaining
+UI files. Each test belongs to exactly one group. The collection partition check
+rejects missing tests or overlap; no test is skipped merely because it failed.
+Both groups must pass before saving an approved UI checkpoint or compiling.
+
+Each group stops on its first failure and reports slow tests. A 60-second
+faulthandler timeout prints Python stacks for hangs; it does not approve a timed
+out test or retry assertions automatically. Diagnostics preserve the group XMLs;
+successful stages also keep the merged `reports/ui.xml` for compatibility.
+Changing the partition recipe invalidates the UI checkpoint.
+
+Long lists keep their full logical scroll range, but their physical Tk window
+only covers the viewport and its small buffer. This prevents the X11 `BadAlloc`
+that occurred when a 500-row list requested a surface over 36,000 pixels tall.
+Regression tests check 500 and 5,000 rows at 100/75/50%, both scroll directions,
+reuse of rows and bounded physical dimensions. The original assertions remain.
+
 ## Retry without changing code
 
 Use **Re-run failed jobs** in Actions, or:

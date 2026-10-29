@@ -137,13 +137,32 @@ def test_overwrite_refreshes_sizes_and_thumbnails_without_recreating_rows(ui_roo
     assert view._last_save_result['ok'] == 1
 
 
-def test_summary_reports_exact_growth_bytes_and_skipped_exif():
+def test_summary_hides_technical_metrics_but_keeps_unapplied_exif_notice():
     result = dict(ok=1, sin_mejora=1, errores=0, exif_no_aplicado=1, resultados=[
         dict(estado='saved', tam_original=100, tam_resultado=125),
         dict(estado='unchanged', tam_original=100, tam_resultado=100)])
     text = summary(result, strip=True)
-    assert '25 B' in text and '+25.0%' in text
-    assert t('save_exif_skipped').format(count=1) in text
+    assert '25 B' not in text and '%' not in text and '→' not in text
+    assert t('status_saved').format(count=1) in text
+    assert t('status_unchanged').format(count=1) in text
+    assert t('status_errors').format(count=0) not in text
+    assert t('status_exif_not_applied').format(count=1) in text
+    assert t('status_size_increased') not in text
+    assert t('status_size_increased') in summary(result, size_notice=True)
+    assert result['resultados'][0]['tam_resultado'] == 125
+
+
+def test_summary_shows_only_saved_count_when_everything_succeeded():
+    result = dict(ok=9, sin_mejora=0, errores=0, conflictos=3, resultados=[
+        dict(estado='saved', tam_original=13780000, tam_resultado=16820000)])
+    assert summary(result) == t('status_saved').format(count=9)
+
+
+def test_summary_distinguishes_skips_failures_and_no_output():
+    assert summary(dict(ok=0, omitidos=2, errores=1)) == (
+        t('status_omitted').format(count=2) + ' · ' + t('status_errors').format(count=1))
+    assert summary(dict(ok=0, sin_mejora=3, errores=0)) == t('status_unchanged').format(count=3)
+    assert summary(dict(ok=0, errores=0)) == t('status_empty')
 
 
 @pytest.mark.parametrize('language', translations.AVAILABLE_LANGUAGES)

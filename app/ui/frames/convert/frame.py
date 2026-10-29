@@ -18,6 +18,7 @@ import customtkinter as ctk
 
 from app.ui import colors, fonts, styles
 from app.translations import t
+from app.ui.status import operation_summary
 from app.ui.frames.base import BaseFrame
 from app.ui.file_list import FileList
 from app.ui.frames.convert.services import (
@@ -41,6 +42,7 @@ class ConvertFrame(BaseFrame):
     """
     
     design_system = True
+    show_size_notice = True
 
     def __init__(self, parent, *, defer_build=False):
         """
@@ -323,10 +325,5 @@ class ConvertFrame(BaseFrame):
         self._btn_convertir.configure(state='normal', text=t('convert_btn'))
         self._hide_full_overlay()
         logger.info("convert.ui: finalizar_ok (ok=%s, errores=%s, conflictos=%s)", ok, errores, conflictos)
-        noun = t('image_loaded' if ok == 1 else 'images_loaded')
-        msg = f'{ok} {noun} {t("converted_to" if ok == 1 else "converted_to_plural")} {fmt}'
-        if errores:
-            msg += f'  -  {errores} {t("error_occurred")}'
-        if conflictos:
-            msg += f'  -  {conflictos} {t("conflicts_renamed")}'
+        msg = operation_summary(ok, errores)
         self._lbl_info.configure(text=msg)

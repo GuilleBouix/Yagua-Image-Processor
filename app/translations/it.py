@@ -556,3 +556,44 @@ TRANSLATIONS.update({
     "remove_bg_contour": "Contrai / espandi",
     "remove_bg_apply_hint": "Elabora di nuovo per applicare le impostazioni."
 })
+
+TRANSLATIONS.update({
+    'crop_mode_ratio': 'Proporzioni',
+    'crop_mode_dimensions': 'Dimensioni',
+    'crop_exact_hint': 'Ritaglio esatto centrato, senza ingrandire né aggiungere bordi.',
+    'crop_too_large': 'Il ritaglio supera le dimensioni di questa immagine.',
+    'save_omitted': 'Saltata',
+    'save_result_omitted': '{saved} salvati · {skipped} saltati · {errors} errori',
+})
+
+TRANSLATIONS.update({
+    'canvas_color': 'Colore',
+    'canvas_choose_color': 'Scegli colore di sfondo',
+    'canvas_png_notice': '{count} saranno salvate in PNG. Gli originali saranno conservati.',
+})
+
+TRANSLATIONS.update({
+    'status_saved': 'Salvate: {count}',
+    'status_processed': 'Elaborate: {count}',
+    'status_renamed': 'Rinominati: {count}',
+    'status_unchanged': 'Senza modifiche: {count}',
+    'status_omitted': 'Saltate: {count}',
+    'status_errors': 'Errori: {count}',
+    'status_empty': 'Nessun file elaborato.',
+    'status_size_increased': 'Alcuni file sono più grandi.',
+    'status_exif_not_applied': 'EXIF non rimossi: {count}',
+})
+
+TRANSLATIONS.update({
+    'palette_add_images': 'Aggiungi immagini',
+    'palette_extract_all': 'Estrai tutte',
+    'palette_save_open': 'Salva palette',
+    'palette_save_all': 'Salva tutte',
+    'palette_image_count': '{count} immagini',
+    'palette_duplicates': 'Duplicate: {count}',
+    'palette_excluded': 'Escluse: {count} (massimo 100)',
+    'palette_limit': 'Limite di 100 immagini raggiunto.',
+    'palette_no_visible_colors': 'Questa immagine non ha colori visibili.',
+    'palette_read_error': 'Impossibile leggere questa immagine.',
+    'palette_source_protected': 'Scegli un altro nome per conservare le immagini del lotto.',
+})

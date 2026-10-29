@@ -139,7 +139,8 @@ class BaseFrame(UiLifetime, ctk.CTkScrollableFrame):
         from app.ui.saving import refresh, summary
         refresh(self, result)
         self._lbl_info.grid(sticky='ew')
-        self._lbl_info.configure(text=summary(result, strip=strip), width=1,
+        self._lbl_info.configure(text=summary(result, strip=strip,
+                                 size_notice=getattr(self, 'show_size_notice', False)), width=1,
                                  anchor='w', justify='left', wraplength=max(120, self.winfo_width() - 48))
         if not hasattr(self, '_save_footer_binding'):
             def fit(event):

@@ -711,7 +711,7 @@ class LqipFrame(BaseFrame):
         except TclError:
             self._lbl_info.configure(text=t('lqip_copy_failed'))
             return
-        self._lbl_info.configure(text=t('lqip_copied_full').format(count=len(content)))
+        self._lbl_info.configure(text=t('text_copied'))
 
     def _copiar_desde_preview(self, _event=None):
         """Copiar toda la vista abreviada entrega el código original completo."""

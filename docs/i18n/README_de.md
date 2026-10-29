@@ -55,7 +55,7 @@ Die Tabelle zeigt die Desktopmodule. Verfügbarkeit und Bedienelemente hängen v
 | Komprimieren | Dateigröße verringern und das ursprüngliche Format behalten. | JPEG, PNG, WebP, AVIF, HEIC/HEIF und weitere unterstützte Rasterformate. | 100 Bilder |
 | Skalieren / Zuschneiden / Leinwand | Abmessungen ändern, zuschneiden oder Fläche hinzufügen; Größenvorlagen verwenden. | Übliche Rasterbilder, darunter JPEG, PNG und WebP. | 100 Bilder |
 | Hintergrund entfernen | Hintergründe lokal mit KI entfernen. | PNG-, WebP- oder TIFF-Ausgabe mit Transparenz. | 10 Bilder |
-| Farbpalette | Farben extrahieren, HEX/RGB/HSL-Werte kopieren und eine Palette exportieren. | Ein unterstütztes Bild → Farben und PNG-Palette. | 1 Bild |
+| Farbpalette | Farben extrahieren, HEX/RGB/HSL kopieren und ein PNG pro Bild exportieren. | Unterstützte Bilder → einzelne Paletten; den ganzen Stapel speichern. | 100 Bilder |
 | Wasserzeichen | Ein Logo hinzufügen; Position, Größe, Deckkraft und Abstand anpassen. | Unterstützte Ausgangsbilder; transparentes PNG für das Logo empfohlen. | 100 Bilder + 1 Logo |
 | Umbenennen | Nummerierung, Datumsangaben und Groß-/Kleinschreibung vorab ansehen. | Ändert Dateinamen im ursprünglichen Ordner. | 100 Dateien |
 | OCR | Spanischen und/oder englischen Text mit EasyOCR erkennen; kopieren oder als TXT exportieren. | Unterstützte Rasterbilder → Text. | 10 Bilder |
@@ -219,7 +219,7 @@ Die Paketprüfung dokumentiert diese ungefähren Beobachtungen aus CI-Builds, di
 ### Ausführung und Verarbeitung
 
 - **Quellcode:** Python 3.13, Tk und die Bibliotheken aus [`requirements.txt`](../../requirements.txt). Fertige Pakete benötigen keine separate Python-Installation.
-- **Stapel:** Die Funktionstabelle zeigt die aktuellen Oberflächengrenzen: ein Bild für Palette, LQIP / Base64 oder EXIF-Bearbeitung, 10 für OCR/Hintergrundentfernung und 100 für die anderen aufgeführten Stapelvorgänge.
+- **Stapel:** Die Funktionstabelle zeigt die aktuellen Oberflächengrenzen: ein Bild für LQIP / Base64 oder EXIF-Bearbeitung, 10 für OCR/Hintergrundentfernung und 100 für die anderen aufgeführten Stapelvorgänge.
 - **Codecs:** HEIC/HEIF verwendet `pillow-heif`, das in den Quellcode-Abhängigkeiten enthalten ist. AVIF und andere Formate hängen von Pillow-Codecs und Plattform ab. JPEG unterstützt keine Transparenz; verwende bei Bedarf PNG oder WebP. PNG-Komprimierung kann das Bild auf 256 Farben reduzieren: Prüfe das Ergebnis.
 - **KI-Modelle:** Downloads können beim ersten Einsatz oder bei einer neu gewählten Modell-/Sprachkombination erfolgen. Für Offline-Nutzung müssen die Modelle gespeichert sein. Das getestete Paket führt OCR und Hintergrundentfernung auf der CPU aus.
 

@@ -13,8 +13,24 @@ packages may not include these controls. It does not announce a release.
   dimensions after applying EXIF orientation.
 - Resize follows the existing percentage, pixel, preset and aspect-ratio
   controls. Preserving the ratio fits inside current bounds without upscaling.
-- Crop keeps the current centered crop; its preview does not let you drag or
-  shift the crop area.
+- Crop offers Aspect ratio and Dimensions. Aspect ratio preserves the existing
+  centered crop. Dimensions requires positive integer width and height and crops
+  exactly that many pixels from the center, without scaling or padding, after
+  EXIF orientation. For example, 1000 × 700 to 800 × 600 removes 100 pixels from
+  each side and 50 from the top and bottom. A crop that does not fit shows a
+  preview hint; the batch skips that image, preserves its original and continues.
+  These skips count separately from errors and compression's “No improvement”.
+  Switching modes preserves inputs but applies only the visible mode. There is
+  no editor for dragging or shifting the crop area.
+  Synchronized sliders and manual inputs control width and height. Opening or
+  selecting another image loads its EXIF-oriented original dimensions and uses
+  them as the slider limits. Manual entries never extend those limits; an
+  oversized manual crop shows the corresponding hint. One-pixel dimensions have
+  fixed sliders. Source dimensions are read off the UI thread and stale replies
+  from previous selections are ignored.
+  Both modes keep their controls and hints mounted in a shared space. Switching
+  modes only raises the matching panel, without rebuilding widgets or changing
+  the form height.
 - Canvas centers the image and reduces it if it exceeds the canvas. Width and
   height sliders stay synchronized with the manual inputs and start at
   1080 × 1080 px. The initial range is 1–8192 px; a larger manual value extends
@@ -22,7 +38,21 @@ packages may not include these controls. It does not announce a release.
 - Incomplete or invalid values hide the previous result and show a short hint.
   Changing parameters does not write files.
 - The checkerboard indicates transparency and is not added to the output file.
-  Canvas keeps the existing processing rules for transparency and formats.
+  Canvas offers Color or Transparent and starts with white. The HEX button opens
+  Tkinter's native color picker. Cancelling or switching to Transparent keeps
+  the last color. Controls retain their space when switching modes. Alpha is
+  composited once: translucent pixels blend with a solid background or retain
+  their alpha on a transparent background.
+
+Transparent Canvas resolves each output by its actual source format. PNG, WebP,
+TIFF, AVIF and HEIF retain their format when an encoder is available; decode-only
+formats also become PNG. JPEG, BMP, GIF and ICO become PNG to keep
+full alpha and the requested dimensions. Confirmation shows the conversion count.
+Converted originals are always kept, including in Overwrite mode; unchanged
+formats may be replaced after confirmation. Names are numbered on conflicts and
+other batch inputs remain protected. Transparent AVIF and HEIF use quality 100
+to avoid default alpha quantization; encoding may take longer and produce larger
+files.
 
 Previews use reduced pixels. They help review geometry and composition but do
 not show 1:1 detail or final compression. Resize batches remain limited to 100
@@ -90,6 +120,22 @@ and time; batches still process sequentially.
 
 ### Processing contract
 
+`agregar_canvas` accepts optional keyword-only `output_format=None`, preserving
+the source format by default. `batch_canvas` uses `canvas_output_format` to choose
+each transparent output and passes the target explicitly. `plan_outputs`,
+`get_plan` and save preparation accept optional `format_resolver`, a pure callable
+from actual source format to target format. Explicit `target_format` takes
+precedence. Supplied plans are checked against that same policy before processing.
+Existing calls and result keys remain supported. Preview and processing share
+the alpha composition helper. No dependencies, models or installers are added.
+
+`recortar` and `batch_recortar` accept optional keyword-only `ancho` and `alto`
+for an exact centered crop. Both must be positive integers. Explicit dimensions
+take precedence over a ratio; existing ratio and coordinate calls keep working.
+Single-image calls reject a crop that does not fit with `crop_too_large`. Batches
+continue and count it in `omitidos`. Output-plan rows use `estado='skipped'` and
+`motivo='crop_too_large'`, preserving the existing result keys and error counts.
+
 `quitar_fondo` and `batch_quitar_fondo` accept the optional keyword-only
 parameter `config: RemoveBgConfig | None`. Existing calls and result keys are
 preserved. `None` uses the defaults.
@@ -103,6 +149,11 @@ model keeps the same settings and changes only the model identity.
 Pipeline order: background analysis, requested segmentation refinement, edge
 adjustment, light-halo reduction and saving. Later refinements use existing
 Pillow and NumPy dependencies.
+
+Operation summaries share a short format: only nonzero result, skip and error
+counts, without sizes, percentages or model details. Convert keeps a short
+notice when an output is larger; unapplied EXIF removal is also reported.
+Full processing results and Metadata's existing detailed results remain intact.
 
 ## Validation and reproduction
 

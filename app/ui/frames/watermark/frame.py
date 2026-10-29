@@ -27,6 +27,7 @@ from app.ui import colors, fonts, styles
 from app.ui.rendering import configure_changed
 from app.ui.scale import scale_wraplength
 from app.translations import t
+from app.ui.status import operation_summary
 from app.ui.frames.base import BaseFrame
 from app.ui.frames.watermark.state import WatermarkState
 from app.ui.frames.watermark.services import aplicar_watermark_np, batch_aplicar_watermark
@@ -846,7 +847,5 @@ class WatermarkFrame(BaseFrame):
         logger.info("watermark.ui: finalizar_ok (ok=%s, errores=%s, conflictos=%s)", ok, errores, res.get("conflictos", 0))
         self._hide_full_overlay()
         self._btn_aplicar.configure(state="normal", text=t("watermark_btn"))
-        msg = t("watermark_procesadas").format(ok=ok) # type: ignore
-        if errores:
-            msg += f"  —  {errores} {t('error_occurred')}"
+        msg = operation_summary(ok, errores, action='processed')
         self._lbl_info.configure(text=msg)

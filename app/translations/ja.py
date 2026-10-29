@@ -556,3 +556,44 @@ TRANSLATIONS.update({
     "remove_bg_contour": "縮小 / 拡張",
     "remove_bg_apply_hint": "設定を適用するには、もう一度処理してください。"
 })
+
+TRANSLATIONS.update({
+    'crop_mode_ratio': '縦横比',
+    'crop_mode_dimensions': 'サイズ',
+    'crop_exact_hint': '拡大や余白の追加なしで中央を指定サイズに切り抜きます。',
+    'crop_too_large': '切り抜きサイズが画像のサイズを超えています。',
+    'save_omitted': 'スキップ',
+    'save_result_omitted': '保存: {saved} · スキップ: {skipped} · エラー: {errors}',
+})
+
+TRANSLATIONS.update({
+    'canvas_color': '色',
+    'canvas_choose_color': '背景色を選択',
+    'canvas_png_notice': '{count} 枚を PNG で保存します。元のファイルは保持されます。',
+})
+
+TRANSLATIONS.update({
+    'status_saved': '保存: {count}',
+    'status_processed': '処理済み: {count}',
+    'status_renamed': '名前変更: {count}',
+    'status_unchanged': '変更なし: {count}',
+    'status_omitted': 'スキップ: {count}',
+    'status_errors': 'エラー: {count}',
+    'status_empty': '処理されたファイルはありません。',
+    'status_size_increased': 'サイズが大きくなったファイルがあります。',
+    'status_exif_not_applied': 'EXIF 未削除: {count}',
+})
+
+TRANSLATIONS.update({
+    'palette_add_images': '画像を追加',
+    'palette_extract_all': 'すべて抽出',
+    'palette_save_open': 'パレットを保存',
+    'palette_save_all': 'すべて保存',
+    'palette_image_count': '{count} 枚の画像',
+    'palette_duplicates': '重複: {count}',
+    'palette_excluded': '除外: {count}（上限100枚）',
+    'palette_limit': '画像の上限100枚に達しました。',
+    'palette_no_visible_colors': 'この画像には表示できる色がありません。',
+    'palette_read_error': '画像を読み込めませんでした。',
+    'palette_source_protected': '元の画像を保護するため別の名前を選んでください。',
+})

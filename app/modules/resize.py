@@ -14,8 +14,8 @@ from PIL import Image
 from app.modules.resize_geometry import resize_size, centered_crop, canvas_geometry
 
 from app.utils.image_utils import normalize_common
-from app.utils.output import unique_output_path, safe_image_output
-from app.utils.saving import get_plan, run_plan
+from app.utils.output import unique_output_path, safe_image_output, DiscardOutput
+from app.utils.saving import get_plan, run_plan, canonical_format
 
 from app.utils.results import FileFailure, file_failure
 
@@ -158,7 +158,7 @@ def redimensionar(ruta_entrada, ruta_salida, ancho=None, alto=None,
 
 @safe_image_output
 def recortar(ruta_entrada, ruta_salida, ratio=None,
-              izq=0, sup=0, der=None, inf=None):
+              izq=0, sup=0, der=None, inf=None, *, ancho=None, alto=None):
     """
     Recorta una imagen segun ratio o coordenadas especificas.
     
@@ -172,6 +172,7 @@ def recortar(ruta_entrada, ruta_salida, ratio=None,
         sup: Coordenada superior del recorte.
         der: Coordenada derecha del recorte.
         inf: Coordenada inferior del recorte.
+        ancho, alto: Tamaño exacto del recorte centrado; deben caber en el original.
         
     Returns:
         Diccionario con dimensiones originales y recortadas.
@@ -181,15 +182,17 @@ def recortar(ruta_entrada, ruta_salida, ratio=None,
     with Image.open(ruta_entrada) as imagen:
         formato = imagen.format or _formato_desde_ruta(ruta_entrada)
         imagen = normalize_common(imagen)
-        ancho, alto = imagen.size
+        original_width, original_height = imagen.size
 
         # Calcular recortes si hay ratio especificado
-        if ratio and ratio in RATIOS:
+        if ancho is not None or alto is not None:
+            izq, sup, der, inf = centered_crop(imagen.size, dimensions=(ancho, alto))
+        elif ratio and ratio in RATIOS:
             izq, sup, der, inf = centered_crop(imagen.size, RATIOS[ratio])
         else:
             # Usar coordenadas proporcionadas o limites de la imagen
-            der = der if der is not None else ancho
-            inf = inf if inf is not None else alto
+            der = der if der is not None else original_width
+            inf = inf if inf is not None else original_height
 
         # Recortar la imagen
         img_recortada = imagen.crop((izq, sup, der, inf))
@@ -199,14 +202,34 @@ def recortar(ruta_entrada, ruta_salida, ratio=None,
 
         return {
             'ruta_salida': ruta_salida,
-            'original': (ancho, alto),
+            'original': (original_width, original_height),
             'resultado': img_recortada.size,
         }
 
 
+def canvas_output_format(source_format):
+    """Conserva formatos con alfa completo y lienzos libres; usa PNG para los demás."""
+    source_format = canonical_format(source_format)
+    Image.init()
+    return source_format if source_format in {'PNG', 'WEBP', 'TIFF', 'AVIF', 'HEIF'} and source_format in Image.SAVE else 'PNG'
+
+
+def compose_canvas(image, size, offset, background):
+    """Compone alfa una sola vez, compartido por preview y salida real."""
+    if any(type(value) is not int or value < 1 for value in size):
+        raise ValueError('invalid_dimensions')
+    if background is not None and (len(background) != 3 or any(
+            type(value) is not int or not 0 <= value <= 255 for value in background)):
+        raise ValueError('invalid_option')
+    canvas = Image.new('RGBA', size, (*background, 255) if background is not None else (0, 0, 0, 0))
+    rgba = image if image.mode == 'RGBA' else image.convert('RGBA')
+    canvas.alpha_composite(rgba, dest=offset)
+    return canvas
+
+
 @safe_image_output
 def agregar_canvas(ruta_entrada, ruta_salida, ancho_final, alto_final,
-                   color_fondo=(255, 255, 255), centrar=True):
+                   color_fondo=(255, 255, 255), centrar=True, *, output_format=None):
     """
     Agrega canvas (borde) a una imagen para alcanzar dimensiones especificas.
     
@@ -217,6 +240,7 @@ def agregar_canvas(ruta_entrada, ruta_salida, ancho_final, alto_final,
         alto_final: Alto final deseado.
         color_fondo: Tupla RGB para el color del canvas, o None para transparente.
         centrar: Si es True, centra la imagen en el canvas.
+        output_format: Formato explícito del destino; None conserva el original.
         
     Returns:
         Diccionario con dimensiones originales y finales.
@@ -224,9 +248,10 @@ def agregar_canvas(ruta_entrada, ruta_salida, ancho_final, alto_final,
 
     logger.info("Canvas: %s -> %s", ruta_entrada, ruta_salida)
     with Image.open(ruta_entrada) as imagen:
-        formato = imagen.format or _formato_desde_ruta(ruta_entrada)
+        formato = canonical_format(output_format or imagen.format or _formato_desde_ruta(ruta_entrada))
         imagen = normalize_common(imagen)
         ancho, alto = imagen.size
+        original_size = imagen.size
 
         _, offset = canvas_geometry(imagen.size, (ancho_final, alto_final), centrar)
         # Reducir imagen si es mas grande que el canvas
@@ -234,38 +259,21 @@ def agregar_canvas(ruta_entrada, ruta_salida, ancho_final, alto_final,
             imagen.thumbnail((ancho_final, alto_final), Image.Resampling.LANCZOS)
             ancho, alto = imagen.size
 
-        # Crear canvas con el tamano final
-        if color_fondo is None:
-            # Canvas transparente
-            canvas = Image.new('RGBA', (ancho_final, alto_final), (0, 0, 0, 0))
-            if imagen.mode != 'RGBA':
-                imagen = imagen.convert('RGBA')
-        else:
-            # Canvas con color solido
-            modo = 'RGBA' if imagen.mode == 'RGBA' else 'RGB'
-            fondo_color = (*color_fondo, 255) if modo == 'RGBA' else color_fondo
-            canvas = Image.new(modo, (ancho_final, alto_final), fondo_color)
+        canvas = compose_canvas(imagen, (ancho_final, alto_final), offset, color_fondo)
 
-        # Calcular posicion para centrar o esquina superior
-        coord_x, coord_y = offset
-
-        # Pegar la imagen en el canvas
-        if imagen.mode == 'RGBA':
-            canvas.paste(imagen, (coord_x, coord_y), mask=imagen.split()[3])
-        else:
-            canvas.paste(imagen, (coord_x, coord_y))
-
-        # Guardar en el formato original
-        
-        # Convertir a RGB si es JPEG y tiene transparencia
+        # El plan indica el formato; las llamadas directas antiguas conservan el original.
+        # JPEG requiere RGB incluso cuando el lienzo de trabajo es RGBA.
         if formato == 'JPEG' and canvas.mode == 'RGBA':
             canvas = canvas.convert('RGB')
         
-        canvas.save(ruta_salida, formato)
+        # Estos codificadores también cuantizan alfa con su calidad predeterminada.
+        # Canvas no ofrece un ajuste de calidad; preservar el canal evita alterar bordes.
+        options = {'quality': 100} if color_fondo is None and formato in {'AVIF', 'HEIF'} else {}
+        canvas.save(ruta_salida, formato, **options)
 
         return {
             'ruta_salida': ruta_salida,
-            'original': (ancho, alto),
+            'original': original_size,
             'resultado': (ancho_final, alto_final),
         }
 
@@ -403,7 +411,8 @@ def batch_redimensionar(rutas, carpeta_salida, *,
     return {'fallos': fallos, 'ok': len(rutas) - errores, 'errores': errores, 'conflictos': conflictos}
 
 
-def batch_recortar(rutas, carpeta_salida, *, ratio=None, sufijo='_crop', output_policy=None):
+def batch_recortar(rutas, carpeta_salida, *, ratio=None, sufijo='_crop', output_policy=None,
+                   ancho=None, alto=None):
     """
     Recorta multiples imagenes en lote.
     
@@ -412,14 +421,25 @@ def batch_recortar(rutas, carpeta_salida, *, ratio=None, sufijo='_crop', output_
         carpeta_salida: Carpeta donde guardar las imagenes.
         ratio: Ratio de recorte.
         sufijo: Sufijo para el nombre del archivo.
+        ancho, alto: Tamaño exacto centrado; las entradas pequeñas se omiten.
         
     Returns:
         Diccionario con exitos, errores y conflictos.
     """
+    def crop_one(source, target):
+        """Omite únicamente el tamaño que no cabe; los demás fallos siguen siendo errores."""
+        try:
+            return recortar(source, target, ratio=ratio, ancho=ancho, alto=alto)
+        except ValueError as error:
+            if str(error) == 'crop_too_large':
+                raise DiscardOutput(dict(estado='skipped', motivo='crop_too_large')) from error
+            raise
+
     if output_policy is not None:
         return run_plan(get_plan(output_policy, rutas, carpeta_salida),
-                        lambda source, target: recortar(source, target, ratio=ratio))
+                        crop_one)
     fallos: list[FileFailure] = []
+    omitidas = []
 
     logger.info("Batch recortar: %s archivos -> %s", len(rutas), carpeta_salida)
     errores = 0
@@ -433,13 +453,16 @@ def batch_recortar(rutas, carpeta_salida, *, ratio=None, sufijo='_crop', output_
             salida = str(salida_path)
             if conflicto:
                 conflictos += 1
-            recortar(ruta, salida, ratio=ratio)
+            crop_one(ruta, salida)
+        except DiscardOutput:
+            omitidas.append(dict(ruta=str(ruta), motivo='crop_too_large'))
         except Exception as exc:
             fallos.append(file_failure(str(ruta), exc))
             logger.warning("Error al recortar %s: %s", ruta, exc)
             errores += 1
     
-    return {'fallos': fallos, 'ok': len(rutas) - errores, 'errores': errores, 'conflictos': conflictos}
+    return {'fallos': fallos, 'ok': len(rutas) - errores - len(omitidas), 'errores': errores,
+            'conflictos': conflictos, 'omitidos': len(omitidas), 'omitidas': omitidas}
 
 
 def batch_canvas(rutas, carpeta_salida, *, ancho, alto, color_fondo, sufijo='_canvas', output_policy=None):
@@ -458,8 +481,11 @@ def batch_canvas(rutas, carpeta_salida, *, ancho, alto, color_fondo, sufijo='_ca
         Diccionario con exitos, errores y conflictos.
     """
     if output_policy is not None:
-        return run_plan(get_plan(output_policy, rutas, carpeta_salida),
-                        lambda source, target: agregar_canvas(source, target, ancho, alto, color_fondo=color_fondo))
+        resolver = canvas_output_format if color_fondo is None else None
+        plan = get_plan(output_policy, rutas, carpeta_salida, format_resolver=resolver)
+        formats = {item.source: item.target_format for item in plan.items}
+        return run_plan(plan, lambda source, target: agregar_canvas(
+            source, target, ancho, alto, color_fondo=color_fondo, output_format=formats[source]))
     fallos: list[FileFailure] = []
 
     logger.info("Batch canvas: %s archivos -> %s", len(rutas), carpeta_salida)
@@ -468,13 +494,17 @@ def batch_canvas(rutas, carpeta_salida, *, ancho, alto, color_fondo, sufijo='_ca
     
     for ruta in rutas:
         try:
+            with Image.open(ruta) as image:
+                original_format = canonical_format(image.format or _formato_desde_ruta(ruta))
+            target_format = canvas_output_format(original_format) if color_fondo is None else original_format
             salida_path, conflicto = unique_output_path(
-                carpeta_salida, ruta, sufijo=sufijo
+                carpeta_salida, ruta, sufijo=sufijo,
+                extension='.png' if target_format != original_format else None,
             )
             salida = str(salida_path)
             if conflicto:
                 conflictos += 1
-            agregar_canvas(ruta, salida, ancho, alto, color_fondo=color_fondo)
+            agregar_canvas(ruta, salida, ancho, alto, color_fondo=color_fondo, output_format=target_format)
         except Exception as exc:
             fallos.append(file_failure(str(ruta), exc))
             logger.warning("Error al aplicar canvas %s: %s", ruta, exc)

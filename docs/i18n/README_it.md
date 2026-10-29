@@ -55,7 +55,7 @@ La tabella elenca i moduli desktop. La disponibilità e i controlli dipendono da
 | Comprimere | Ridurre le dimensioni del file mantenendo il formato originale. | JPEG, PNG, WebP, AVIF, HEIC/HEIF e altri formati raster supportati. | 100 immagini |
 | Ridimensionare / Ritagliare / Tela | Impostare le dimensioni, ritagliare o aggiungere spazio alla tela; usare dimensioni predefinite. | Immagini raster comuni, tra cui JPEG, PNG e WebP. | 100 immagini |
 | Rimuovere lo sfondo | Rimuovere gli sfondi localmente con l’IA. | Output PNG, WebP o TIFF con trasparenza. | 10 immagini |
-| Tavolozza colori | Estrarre colori, copiare valori HEX/RGB/HSL ed esportare una tavolozza. | Un’immagine supportata → colori e una tavolozza PNG. | 1 immagine |
+| Tavolozza colori | Estrarre colori, copiare HEX/RGB/HSL ed esportare un PNG per immagine. | Immagini supportate → tavolozze individuali; salvare tutto il lotto. | 100 immagini |
 | Filigrana | Applicare un logo; regolare posizione, dimensioni, opacità e margine. | Immagini di base supportate; per il logo è consigliato un PNG trasparente. | 100 immagini + 1 logo |
 | Rinominare | Visualizzare in anteprima nomi numerati, date e modifiche a maiuscole/minuscole. | Modifica i nomi dei file nella cartella corrente. | 100 file |
 | OCR | Estrarre testo in spagnolo e/o inglese con EasyOCR; copiarlo o esportarlo in TXT. | Immagini raster supportate → testo. | 10 immagini |
@@ -223,7 +223,7 @@ L’analisi dei pacchetti riporta queste osservazioni approssimative dalle build
 ### Ambiente di esecuzione ed elaborazione
 
 - **Da sorgente:** Python 3.13, Tk e le librerie in [`requirements.txt`](../../requirements.txt). I pacchetti precompilati non richiedono un’installazione separata di Python.
-- **Limiti dei batch:** La tabella delle funzionalità indica i limiti attuali dell’interfaccia: un’immagine per Tavolozza, LQIP / Base64 o modifica EXIF, 10 per OCR/rimozione dello sfondo e 100 per le altre operazioni in batch elencate.
+- **Limiti dei batch:** La tabella delle funzionalità indica i limiti attuali dell’interfaccia: un’immagine per LQIP / Base64 o modifica EXIF, 10 per OCR/rimozione dello sfondo e 100 per le altre operazioni in batch elencate.
 - **Codec:** HEIC/HEIF usa `pillow-heif`, incluso nelle dipendenze da sorgente. AVIF e altri formati dipendono dai codec di Pillow e dalla piattaforma. JPEG non supporta la trasparenza; usa PNG o WebP quando serve il canale alfa. La compressione PNG può ridurre l’immagine a 256 colori: controlla il risultato.
 - **Modelli IA:** Possono essere scaricati al primo utilizzo o quando un nuovo modello o una nuova lingua lo richiedono. Per l’uso offline i modelli devono essere già presenti. Il pacchetto testato esegue OCR e rimozione dello sfondo sulla CPU.
 

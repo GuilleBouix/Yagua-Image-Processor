@@ -21,6 +21,7 @@ from app.translations import t
 from app.ui import colors, fonts, styles
 from app.ui.frames.metadata.state import path_key
 from app.ui.operations import operations
+from app.ui.status import operation_summary
 from app.utils.paths import resource_path
 from app.ui.image_cache import image_cache
 from app.ui.rendering import activate_tab, configure_changed
@@ -519,7 +520,7 @@ class MetadataCollection:
                 item.draft = MetadataDraft()
                 item.thumbnail = None
                 self.enqueue('thumb', path_key(item.path))
-        self.summary = t('meta_result').format(ok=result['ok'], unchanged=result['unchanged'], errors=result['errores'])
+        self.summary = operation_summary(result['ok'], result['errores'], unchanged=result['unchanged'])
         self.feedback = self.summary
         self.details_expanded = False
         self.view._summary.configure(state='normal')

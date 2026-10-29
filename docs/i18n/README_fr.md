@@ -55,7 +55,7 @@ Le tableau présente les modules de bureau. Leur disponibilité et leurs command
 | Compresser | Réduire la taille du fichier tout en conservant son format d’origine. | JPEG, PNG, WebP, AVIF, HEIC/HEIF et autres formats matriciels compatibles. | 100 images |
 | Redimensionner / Recadrer / Canevas | Modifier les dimensions, recadrer ou ajouter de l’espace ; utiliser des tailles prédéfinies. | Images matricielles courantes, dont JPEG, PNG et WebP. | 100 images |
 | Supprimer l’arrière-plan | Retirer les arrière-plans localement avec l’IA. | Sortie PNG, WebP ou TIFF avec transparence. | 10 images |
-| Palette de couleurs | Extraire des couleurs, copier les valeurs HEX/RGB/HSL et exporter une palette. | Une image compatible → couleurs et palette PNG. | 1 image |
+| Palette de couleurs | Extraire des couleurs, copier HEX/RGB/HSL et exporter un PNG par image. | Images compatibles → palettes individuelles ; enregistrer tout le lot. | 100 images |
 | Filigrane | Appliquer un logo ; régler position, taille, opacité et marge. | Images de base compatibles ; PNG transparent conseillé pour le logo. | 100 images + 1 logo |
 | Renommer | Prévisualiser une numérotation, des dates et des changements de casse. | Modifie les noms dans leur dossier d’origine. | 100 fichiers |
 | OCR | Extraire du texte en espagnol et/ou anglais avec EasyOCR ; le copier ou l’exporter en TXT. | Images matricielles compatibles → texte. | 10 images |
@@ -221,7 +221,7 @@ L’audit des paquets rapporte ces observations approximatives pour des compilat
 ### Exécution et traitement
 
 - **Code source :** Python 3.13, Tk et les bibliothèques de [`requirements.txt`](../../requirements.txt). Les paquets compilés ne nécessitent pas d’installation séparée de Python.
-- **Lots :** Le tableau des fonctionnalités indique les limites actuelles de l’interface : une image pour Palette, LQIP / Base64 ou modification EXIF, 10 pour OCR/suppression d’arrière-plan et 100 pour les autres opérations par lots indiquées.
+- **Lots :** Le tableau des fonctionnalités indique les limites actuelles de l’interface : une image pour LQIP / Base64 ou modification EXIF, 10 pour OCR/suppression d’arrière-plan et 100 pour les autres opérations par lots indiquées.
 - **Codecs :** HEIC/HEIF utilise `pillow-heif`, inclus dans les dépendances du code. AVIF et d’autres formats dépendent des codecs Pillow et de la plateforme. JPEG ne gère pas la transparence ; utilisez PNG ou WebP si nécessaire. La compression PNG peut réduire l’image à 256 couleurs : vérifiez le résultat.
 - **Modèles d’IA :** Des téléchargements peuvent avoir lieu au premier usage ou lorsqu’un nouveau modèle/une nouvelle langue nécessite un autre modèle. L’usage hors ligne exige des modèles en cache. Le paquet testé exécute l’OCR et la suppression d’arrière-plan sur CPU.
 

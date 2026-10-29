@@ -1,205 +1,150 @@
-"""Interfaz grafica para extraer paleta de colores de una imagen.
-
-Permite seleccionar una imagen, extraer los N colores dominantes
-y copiar cada color en distintos formatos (HEX, RGB, HSL).
-
-Relaciones:
-    - BaseFrame: app.ui.frames.base.BaseFrame
-    - Traducciones: app.translations
-    - Colores: app.ui.colors
-    - Fuentes: app.ui.fonts
-    - Servicios: app.ui.frames.palette.services
-    - Estado: app.ui.frames.palette.state
-"""
+"""Batch palette workspace with reusable rows, swatches and lazy extraction."""
 
 from __future__ import annotations
 
-from app.ui.building import stepwise
 import logging
 from pathlib import Path
+from threading import Lock, Thread
 from tkinter import filedialog
-import tkinter as tk
 
 import customtkinter as ctk
 
+from app.modules.palette_batch import PaletteCache, process_palettes
 from app.ui import colors, fonts, styles
+from app.ui.building import stepwise
+from app.ui.file_list import FileList
+from app.ui.operations import operations
 from app.ui.rendering import configure_changed
+from app.ui.status import operation_summary
 from app.translations import t
 from app.ui.frames.base import BaseFrame
-from app.ui.frames.palette.services import (
-    cargar_preview,
-    extraer_paleta_safe,
-    exportar_paleta_imagen,
-    formatos_color,
-    rgb_a_hex,
-)
+from app.ui.frames.palette.services import exportar_paleta_imagen, formatos_color, rgb_a_hex
 from app.ui.frames.palette.state import PaletteState
-
 
 logger = logging.getLogger(__name__)
 
 
 class PaletteFrame(BaseFrame):
-    """Frame principal del modulo de extraccion de paleta de colores."""
+    """Inspect one palette while extracting or exporting a bounded collection."""
 
     design_system = True
 
     def __init__(self, parent, *, defer_build=False):
-        """Inicializa selección y datos de la paleta que se mostrará."""
-        logger.info("palette.ui: init")
+        """Inicializa colección, caché y revisión de solicitudes antes de construir Tk."""
         self._state = PaletteState()
-        self._preview_img: ctk.CTkImage | None = None
+        self._cache = PaletteCache()
+        self._request_lock = Lock()
+        self._pending = None
+        self._worker_running = False
+        self._closed = False
+        self._revision = 0
+        self._copy_timer = None
+        self._results = []
+        self._visible_color_count = 0
         super().__init__(parent, t('palette_title'), defer_build=defer_build)
 
     def _on_build_complete(self):
-        """Conecta controles cuando terminó la construcción diferida."""
-        self._scrollbar.configure(corner_radius=0, width=6, border_spacing=1)
+        """Activa únicamente las acciones que ya tienen imágenes o resultados."""
+        super()._on_build_complete()
+        self._update_controls()
 
     @stepwise
     def _build_content(self):
-        """Construir el contenido principal del frame."""
-        logger.info("palette.ui: build_content")
-        yield
-        self.grid_columnconfigure(0, weight=1)
-        yield
-
+        """Create controls once, preserving incremental startup construction."""
         self._btn_seleccionar = self._crear_boton_seleccionar(
-            self, t('select_image_for_palette'), self._explorar
-        )
+            self, t('palette_add_images'), self._explorar)
+        self._btn_seleccionar.grid(row=1, column=0, padx=24, pady=(8, 12), sticky='ew')
         yield
-        self._btn_seleccionar.grid(row=1, column=0, padx=24, pady=8, sticky='ew')
-        yield
-
-        self._frame_preview = ctk.CTkFrame(
-            self,
-            height=110,
-            **styles.surface('list'),
-        )
-        yield
-        self._frame_preview.grid(row=2, column=0, padx=24, pady=8, sticky='ew')
-        yield
+        self._frame_preview = ctk.CTkFrame(self, height=160, **styles.surface('list'))
+        self._frame_preview.grid(row=3, column=0, padx=24, pady=(0, 12), sticky='ew')
         self._frame_preview.grid_propagate(False)
-        yield
         self._frame_preview.grid_columnconfigure(0, weight=1)
+        self._frame_preview.grid_rowconfigure(1, weight=1)
         yield
-        self._frame_preview.grid_columnconfigure(1, weight=1)
+        self._count_label = ctk.CTkLabel(self._frame_preview, text='', font=fonts.FUENTE_CHICA,
+                                        text_color=colors.TEXT_GRAY, anchor='w')
+        self._count_label.grid(row=0, column=0, sticky='ew', padx=12, pady=(4, 0))
         yield
-        self._frame_preview.grid_rowconfigure(0, weight=1)
+        self._lista_frame = ctk.CTkScrollableFrame(self._frame_preview, height=120,
+            corner_radius=0, fg_color=styles.palette().inset, **styles.scrollbar())
+        self._lista_frame.grid(row=1, column=0, sticky='nsew', padx=1, pady=1)
+        self._lista_frame._scrollbar.configure(corner_radius=0, width=6, border_spacing=1)
         yield
-
-        self._lbl_preview = ctk.CTkLabel(
-            self._frame_preview, text='',
-            width=80, height=80, fg_color='transparent'
-        )
+        self._files = FileList(self._lista_frame, self._filas_lista, self._thumbs,
+                               design_system=True, on_select=self._select_image)
+        self._files.sync([])
         yield
-        self._lbl_preview.grid(row=0, column=0, padx=(16, 12), pady=8, sticky='w')
-        yield
-
-        self._lbl_nombre = ctk.CTkLabel(
-            self._frame_preview, text='',
-            font=fonts.FUENTE_BASE,
-            text_color=colors.TEXT_COLOR,
-            fg_color='transparent', anchor='w'
-        )
-        yield
-        self._lbl_nombre.grid(row=0, column=1, sticky='w', pady=(16, 2))
-        yield
-
-        self._lbl_meta = ctk.CTkLabel(
-            self._frame_preview, text='',
-            font=fonts.FUENTE_CHICA,
-            text_color=colors.TEXT_GRAY,
-            fg_color='transparent', anchor='w'
-        )
-        yield
-        self._lbl_meta.grid(row=0, column=1, sticky='w', pady=(38, 0))
-        yield
-
-        self._mostrar_vacio()
-        yield
-
-        self._panel_paleta = ctk.CTkFrame(
-            self,
-            **styles.surface('panel'),
-        )
-        yield
-        self._panel_paleta.grid(row=2, column=0, padx=24, pady=8, sticky='ew')
-        yield
+        self._panel_paleta = ctk.CTkFrame(self, **styles.surface('panel'))
+        self._panel_paleta.grid(row=2, column=0, padx=24, pady=(0, 8), sticky='ew')
         self._panel_paleta.grid_columnconfigure(0, weight=1)
         yield
-        self._construir_panel_paleta()
+        top = ctk.CTkFrame(self._panel_paleta, fg_color='transparent', corner_radius=0)
+        top.grid(row=0, column=0, padx=16, pady=(8, 8), sticky='ew')
+        top.grid_columnconfigure(0, weight=1)
         yield
-
-    def _construir_panel_paleta(self):
-        """Construir el panel con selector de cantidad y swatches de color."""
-        p = self._panel_paleta
-
-        fila_top = ctk.CTkFrame(p, fg_color='transparent', corner_radius=0)
-        fila_top.grid(row=0, column=0, padx=16, pady=(16, 8), sticky='ew')
-        fila_top.grid_columnconfigure(1, weight=1)
-
-        ctk.CTkLabel(
-            fila_top, text=t('colors_to_extract'),
-            font=fonts.FUENTE_BASE,
-            text_color=colors.TEXT_GRAY, anchor='w'
-        ).grid(row=0, column=0, sticky='w')
-
-        self._seg_n = styles.SegmentedButton(
-            fila_top,
-            values=['4', '6', '8', '10', '12'],
-            font=fonts.FUENTE_CHICA,
-            command=self._auto_extraer
-        )
+        self._active_label = ctk.CTkLabel(top, text=t('colors_to_extract'), width=1,
+            anchor='w', font=fonts.FUENTE_BASE, text_color=colors.TEXT_GRAY)
+        self._active_label.grid(row=0, column=0, sticky='ew', padx=(0, 8))
+        yield
+        self._seg_n = styles.SegmentedButton(top, values=['4', '6', '8', '10', '12'],
+            font=fonts.FUENTE_CHICA, command=self._auto_extraer)
         self._seg_n.set('6')
         self._seg_n.grid(row=0, column=1, sticky='e')
-
-        self._swatches_frame = ctk.CTkFrame(p, height=240, **styles.surface('list'))
-        self._swatches_frame.grid_propagate(False)
+        yield
+        self._swatch_host = ctk.CTkFrame(self._panel_paleta, height=240, **styles.surface('list'))
+        self._swatch_host.grid(row=1, column=0, padx=16, pady=(0, 8), sticky='ew')
+        self._swatch_host.grid_propagate(False)
+        self._swatch_host.grid_columnconfigure(0, weight=1)
+        self._swatch_host.grid_rowconfigure(0, weight=1)
+        yield
+        self._swatches_frame = ctk.CTkScrollableFrame(self._swatch_host, height=222,
+            orientation='horizontal', corner_radius=0, fg_color=styles.palette().inset,
+            **styles.scrollbar())
+        self._swatches_frame.grid(row=0, column=0, sticky='nsew', padx=1, pady=1)
+        self._swatches_frame._scrollbar.configure(corner_radius=0, height=6, border_spacing=1)
+        self._swatches_frame._parent_canvas.bind('<Configure>', self._fit_swatches_width, add=True)
         self._swatch_pool = []
-        self._swatches_frame.grid(row=1, column=0, padx=16, pady=(0, 8), sticky='ew')
+        yield
+        self._palette_empty = ctk.CTkLabel(self._swatch_host, text=t('load_image_for_palette'),
+            font=fonts.FUENTE_CHICA, text_color=colors.TEXT_GRAY)
+        self._palette_empty.place(relx=.5, rely=.5, anchor='center')
+        yield
+        self._actions = actions = ctk.CTkFrame(self, fg_color='transparent', corner_radius=0)
+        actions.grid(row=4, column=0, padx=24, pady=(0, 12), sticky='ew')
+        actions.grid_columnconfigure((0, 1), weight=1, uniform='actions')
+        yield
+        self._btn_guardar = self._new_button(actions, text=t('palette_save_open'),
+            font=fonts.FUENTE_BASE, command=self._guardar_imagen)
+        self._btn_guardar.grid(row=0, column=0, sticky='ew', padx=(0, 4))
+        yield
+        self._btn_guardar_todas = self._new_button(actions, role='primary', text=t('palette_save_all'),
+            font=fonts.FUENTE_BASE, command=self._guardar_todas)
+        self._btn_guardar_todas.grid(row=0, column=1, sticky='ew', padx=(4, 0))
+        yield
 
-        self._palette_empty = ctk.CTkLabel(
-            self._swatches_frame,
-            text=t('load_image_for_palette'),
-            font=fonts.FUENTE_CHICA,
-            text_color=colors.TEXT_GRAY
-        )
-        self._palette_empty.place(relx=0.5, rely=0.5, anchor='center')
+    def _update_controls(self):
+        """Enable only actions that have an input or a current palette."""
+        self._btn_guardar.configure(state='normal' if self._state.paleta else 'disabled')
+        self._btn_guardar_todas.configure(state='normal' if self._state.paths else 'disabled')
+        self._count_label.configure(text=t('palette_image_count').format(count=len(self._state.paths))
+                                    if self._state.paths else '')
 
-        self._btn_guardar = self._new_button(
-            p,
-            role='primary',
-            text=t('save_palette_btn'),
-            font=fonts.FUENTE_BASE,
-            command=self._guardar_imagen
-        )
-        self._btn_guardar.grid(row=2, column=0, padx=16, pady=(0, 16), sticky='ew')
+    def _empty_palette(self, message):
+        """Hide obsolete colors without destroying reusable swatches."""
+        self._state.paleta = []
+        self._visible_color_count = 0
+        for col, *_rest in self._swatch_pool:
+            col.grid_remove()
+        self._palette_empty.configure(text=message)
+        self._palette_empty.place(relx=.5, rely=.5, anchor='center')
 
-    def _mostrar_vacio(self):
-        """Mostrar estado inicial sin imagen cargada."""
-        self._frame_preview.configure(border_color=styles.palette().border)
-        self._lbl_preview.configure(image=None)
-        self._lbl_nombre.configure(text=t('no_image_selected'))
-        self._lbl_meta.configure(text=t('select_image_for_palette'))
-
-    def _mostrar_cargado(self, ruta: str, loaded=None):
-        """Actualizar preview con la imagen cargada.
-
-        Args:
-            ruta: Ruta del archivo de imagen
-        """
-        self._frame_preview.configure(border_color=styles.palette().border)
-        preview, w, h, ext = loaded if loaded is not None else cargar_preview(ruta, (80, 80))
-        self._preview_img = ctk.CTkImage(
-            light_image=preview, dark_image=preview,
-            size=(preview.width, preview.height)
-        )
-        self._lbl_preview.configure(image=self._preview_img)
-
-        p = Path(ruta)
-        nombre = p.name if len(p.name) <= 34 else p.name[:31] + '...'
-        self._lbl_nombre.configure(text=nombre)
-        self._lbl_meta.configure(text=f'{w} x {h} px  -  {ext}')
+    def _fit_swatches_width(self, _event=None):
+        """Fill the viewport, keeping horizontal scrolling only when needed."""
+        canvas = self._swatches_frame._parent_canvas
+        width = max(canvas.winfo_width(), self._visible_color_count * 72)
+        window = self._swatches_frame._create_window_id
+        if int(float(canvas.itemcget(window, 'width'))) != width:
+            canvas.itemconfigure(window, width=width)
 
     def _renderizar_paleta(self, paleta: list[tuple[int, int, int]]):
         """Renderizar los swatches de color en el panel.
@@ -208,18 +153,21 @@ class PaletteFrame(BaseFrame):
             paleta: Lista de tuplas RGB con los colores extraidos
         """
         self._palette_empty.place_forget()
+        self._visible_color_count = len(paleta)
         for index, (col, canvas, label, buttons) in enumerate(self._swatch_pool):
             if index >= len(paleta):
                 col.grid_remove()
-            self._swatches_frame.grid_columnconfigure(index, weight=0)
+            self._swatches_frame.grid_columnconfigure(index, weight=0, minsize=0, uniform='')
         for indice, color_rgb in enumerate(paleta):
             hex_color = rgb_a_hex(color_rgb)
             if indice == len(self._swatch_pool):
                 col = ctk.CTkFrame(self._swatches_frame, corner_radius=0, fg_color='transparent')
                 col.grid_columnconfigure(0, weight=1)
-                canvas = tk.Canvas(col, width=50, height=50, bg=hex_color,
-                    highlightthickness=0, bd=0, cursor='hand2')
-                canvas.grid(row=0, column=0, sticky='ew', ipady=6)
+                # Use a scaled CTk swatch: a native 50px canvas kept its full
+                # height at 50% scale and clipped the last copy button.
+                canvas = ctk.CTkFrame(col, width=50, height=64, corner_radius=0,
+                                      border_width=0, fg_color=hex_color, cursor='hand2')
+                canvas.grid(row=0, column=0, sticky='ew')
                 label = ctk.CTkLabel(col, text='', font=ctk.CTkFont(size=9), text_color=colors.TEXT_GRAY)
                 label.grid(row=1, column=0, pady=(3, 2))
                 buttons = []
@@ -232,145 +180,231 @@ class PaletteFrame(BaseFrame):
             col, canvas, label, buttons = self._swatch_pool[indice]
             if getattr(col, '_rgb', None) != color_rgb:
                 col._rgb = color_rgb
-                canvas.configure(bg=hex_color)
+                canvas.configure(fg_color=hex_color)
                 configure_changed(label, text=hex_color)
                 for button, valor in zip(buttons, formatos_color(color_rgb).values()):
                     button.configure(command=lambda v=valor: self._copiar(v))
-            self._swatches_frame.grid_columnconfigure(indice, weight=1)
+            self._swatches_frame.grid_columnconfigure(indice, weight=1, uniform='swatch', minsize=68)
             col.grid(row=0, column=indice, padx=2, pady=(4, 8), sticky='nsew')
+        self.after_idle(self._fit_swatches_width)
 
-    def _copiar(self, valor: str):
-        """Copiar valor al portapapeles y mostrar confirmacion.
-
-        Args:
-            valor: Texto a copiar al portapapeles
-        """
-        logger.info("palette.ui: copiar_color (%s)", valor)
+    def _copiar(self, valor):
+        """Copy a color without letting a previous notification replace new state."""
         self.clipboard_clear()
         self.clipboard_append(valor)
         self._lbl_info.configure(text=f'{t("copied")} {valor}')
-        self.after(2000, lambda: self._lbl_info.configure(
-            text=f'{len(self._state.paleta)} {t("colors_extracted")} - {t("click_format_to_copy")}'
-        ))
+        if self._copy_timer is not None:
+            self.after_cancel(self._copy_timer)
+        revision = self._revision
+        def restore():
+            self._copy_timer = None
+            if revision == self._revision:
+                self._lbl_info.configure(text='')
+        self._copy_timer = self.after(2000, restore)
 
     def _explorar(self):
-        """Abrir dialogo para seleccionar una imagen."""
-        if self._operation_blocked(global_job=False):
+        """Añade una selección múltiple sin interrumpir operaciones de guardado."""
+        if self._operation_blocked(global_job=True):
             return
-        logger.info("palette.ui: explorar_imagen")
-        archivo = filedialog.askopenfilename(
-            title=t('select_image_for_palette'),
-            filetypes=[(t('images_loaded'), '*.jpg *.jpeg *.png *.webp *.bmp *.tiff *.avif *.heic *.heif')]
-        )
-        if not archivo:
-            logger.info("palette.ui: explorar_cancelado")
-            return
-        n = int(self._seg_n.get())
-        self._show_full_overlay(t('processing'))
-        def work():
-            """Valida y analiza un candidato sin reemplazar una paleta válida anterior."""
-            preview = cargar_preview(archivo, (80, 80))
-            palette, error = extraer_paleta_safe(archivo, n)
-            if error:
-                raise ValueError(error)
-            return preview, palette
-        def loaded(result):
-            """Actualiza la vista solo si la carga solicitada terminó correctamente."""
-            preview, palette = result
-            self._state.ruta = archivo
-            self._mostrar_cargado(archivo, preview)
-            self._aplicar_paleta(palette)
-        self._submit_job(work, on_success=loaded)
+        paths = filedialog.askopenfilenames(title=t('palette_add_images'),
+            filetypes=[(t('images_loaded'), '*.jpg *.jpeg *.png *.webp *.bmp *.tif *.tiff *.avif *.heic *.heif *.gif *.ico')])
+        if paths:
+            self._add_images(paths)
+
+    def _add_images(self, paths):
+        """Keep selection and rows while appending a bounded, deduplicated load."""
+        duplicates, excluded = self._state.add(paths)
+        self._imagenes = list(self._state.paths)
+        self._files.sync(self._state.paths)
+        self._update_controls()
+        notices = []
+        if excluded:
+            notices.append(t('palette_excluded').format(count=excluded))
+        elif len(self._state.paths) == 100:
+            notices.append(t('palette_limit'))
+        if duplicates:
+            notices.append(t('palette_duplicates').format(count=duplicates))
+        self._lbl_info.configure(text=' · '.join(notices))
+
+    def _select_image(self, path):
+        """Abre una fila e invalida colores y respuestas de la selección anterior."""
+        if operations.is_busy(self):
+            return False
+        self._state.ruta = path or None
+        self._revision += 1
+        if not path:
+            return True
+        self._active_label.configure(text=Path(path).name)
+        self._empty_palette(t('processing'))
+        self._lbl_info.configure(text='')
+        self._update_controls()
+        self._queue_extract(path, int(self._seg_n.get()))
+        return True
 
     def _auto_extraer(self, *_):
-        """Re-extraer paleta al cambiar la cantidad de colores.
-
-        Args:
-            *_: Argumentos ignorados del callback del segmented button
-        """
-        if self._operation_blocked(global_job=True):
+        """Recalcula sólo la imagen abierta con la nueva cantidad de colores."""
+        if self._operation_blocked(global_job=True) or not self._state.ruta:
             return
-        if not self._state.ruta:
+        self._select_image(self._state.ruta)
+
+    def _queue_extract(self, path, count):
+        """One running extraction and only the most recent pending request."""
+        request = self._revision, path, count, self._cache
+        with self._request_lock:
+            self._pending = request
+            if self._worker_running:
+                return
+            self._worker_running = True
+        try:
+            Thread(target=self._extract_worker, daemon=True).start()
+        except Exception:
+            with self._request_lock:
+                self._worker_running = False
+                self._pending = None
+            self._deliver_palette(request, (), 'palette_read_error')
+
+    def _extract_worker(self):
+        """Read and quantize outside Tk, replacing obsolete pending requests."""
+        while True:
+            with self._request_lock:
+                request, self._pending = self._pending, None
+                if request is None or self._closed:
+                    self._worker_running = False
+                    return
+            revision, path, count, cache = request
+            try:
+                palette, error = cache.extract(path, count), ''
+            except Exception as exc:
+                logger.warning('palette extraction failed: %s: %s', path, exc)
+                palette, error = (), str(exc)
+            operations.post(self, lambda req=request, colors=palette, err=error:
+                            self._deliver_palette(req, colors, err))
+
+    def _deliver_palette(self, request, palette, error):
+        """Aplica una respuesta vigente en Tk y mantiene los errores por archivo."""
+        if request[0] != self._revision or self._closed:
             return
-        logger.info("palette.ui: auto_extraer")
-        n = int(self._seg_n.get())
-        self._show_full_overlay(t('processing'))
-        path = self._state.ruta
-        self._submit_job(lambda: self._proceso_extraccion(n, path))
+        if error:
+            message = t('palette_no_visible_colors' if error == 'palette_no_visible_colors'
+                        else 'palette_read_error')
+            self._empty_palette(message)
+            self._set_file_error(self._state.ruta, message)
+        else:
+            self._set_file_error(self._state.ruta, '')
+            self._aplicar_paleta(list(palette))
+        self._update_controls()
 
-    def _proceso_extraccion(self, n: int, path):
-        """Ejecutar extraccion de paleta en hilo separado.
+    def _set_file_error(self, path, message):
+        """Update an error on its visible row without rebuilding or decoding it."""
+        self._files.statuses[path] = message
+        for key, row in self._files.virtual.rows.items():
+            if key[0] == path:
+                base = row.info_label.cget('text').split(' · ')[0]
+                configure_changed(row.info_label, text=base + (f' · {message}' if message else ''))
 
-        Args:
-            n: Numero de colores a extraer
-        """
-        logger.info("palette.ui: proceso_extraccion_inicio (n=%s)", n)
-        paleta, err = extraer_paleta_safe(path, n)  # type: ignore
-        if err:
-            logger.warning("palette.ui: proceso_extraccion_error (%s)", err)
-            self._post_ui(0, self._hide_full_overlay)
-            self._post_ui(0, lambda: self._lbl_info.configure(text=f'{t("error_generic")}: {err}'))
-            return
-        self._post_ui(0, lambda: self._aplicar_paleta(paleta))
-
-    def _aplicar_paleta(self, paleta: list[tuple[int, int, int]]):
-        """Aplicar la paleta extraida a la interfaz.
-
-        Args:
-            paleta: Lista de tuplas RGB con los colores extraidos
-        """
+    def _aplicar_paleta(self, paleta):
         self._state.paleta = paleta
         self._renderizar_paleta(paleta)
-        logger.info("palette.ui: aplicar_paleta (n=%s)", len(paleta))
-        self._hide_full_overlay()
-        self._lbl_info.configure(
-            text=f'{len(paleta)} {t("colors_extracted")} - {t("click_format_to_copy")}'
-        )
+        self._update_controls()
+
+    def _batch(self, folder=None):
+        """Captura el lote y procesa en serie con progreso y resultados separados."""
+        if self._operation_blocked(global_job=True) or not self._state.paths:
+            return
+        self._revision += 1
+        with self._request_lock:
+            self._pending = None
+        paths, count, cache = tuple(self._state.paths), int(self._seg_n.get()), self._cache
+        revision = self._revision
+        self._show_full_overlay(t('processing'))
+        assert self._full_overlay_bar is not None
+        bar = self._full_overlay_bar
+        bar.stop()
+        bar.configure(mode='determinate')
+        bar.set(0)
+        def progress(done, total):
+            operations.post(self, lambda: self._progress(revision, done, total))
+        def work():
+            return process_palettes(paths, count, cache, folder=folder, progress=progress)
+        def finished(results):
+            bar.configure(mode='indeterminate')
+            self._results = results
+            for item in results:
+                if item['path'] == self._state.ruta:
+                    self._deliver_palette((revision,), item['palette'], item['error'])
+                if item['error']:
+                    logger.warning('palette batch failed: %s: %s', item['path'], item['error'])
+                self._set_file_error(item['path'], t('palette_no_visible_colors')
+                    if item['error'] == 'palette_no_visible_colors'
+                    else t('palette_read_error') if item['error'] else '')
+            errors = sum(bool(item['error']) for item in results)
+            self._lbl_info.configure(text=operation_summary(len(results) - errors, errors,
+                                    action='saved' if folder is not None else 'processed'))
+            self._update_controls()
+        self._submit_job(work, on_success=finished)
+
+    def _progress(self, revision, done, total):
+        """Actualiza el avance sólo mientras sigue activa esta operación."""
+        if (revision == self._revision and operations.is_busy(self)
+                and self._full_overlay_label is not None and self._full_overlay_bar is not None):
+            self._full_overlay_label.configure(text=f'{t("processing")} {done}/{total}')
+            self._full_overlay_bar.set(done / total)
+
+    def _guardar_todas(self):
+        """Pide una carpeta; cancelar conserva la colección y no escribe archivos."""
+        if self._operation_blocked(global_job=True) or not self._state.paths:
+            return
+        folder = filedialog.askdirectory(title=t('palette_save_all'))
+        if folder:
+            self._batch(folder)
 
     def _guardar_imagen(self):
-        """Guardar la paleta como imagen PNG."""
-        if self._operation_blocked(global_job=True):
+        """Exporta la paleta abierta, releyendo cambios y protegiendo el lote."""
+        if self._operation_blocked(global_job=True) or not self._state.paleta:
             return
-        logger.info("palette.ui: guardar_imagen")
-        if not self._state.paleta:
-            self._lbl_info.configure(text=t('save_palette_first'))
+        source, count, cache = self._state.ruta, int(self._seg_n.get()), self._cache
+        if source is None:
             return
-        ruta = filedialog.asksaveasfilename(
-            title=t('save_palette'),
-            defaultextension='.png',
-            filetypes=[('PNG', '*.png')],
-            initialfile='paleta.png'
-        )
-        if not ruta:
-            logger.info("palette.ui: guardar_cancelado")
+        path = filedialog.asksaveasfilename(title=t('save_palette'), defaultextension='.png',
+            filetypes=[('PNG', '*.png')], initialfile=f'{Path(source).stem}_paleta.png')
+        if not path:
             return
-        self._btn_guardar.configure(state='disabled', text=t('saving'))
+        from app.modules.palette_batch import path_key
+        if path_key(path) in self._state.paths:
+            self._lbl_info.configure(text=t('palette_source_protected'))
+            return
         self._show_full_overlay(t('processing'))
-
-        palette = tuple(self._state.paleta)
-        def _proceso():
-            """Extrae los colores y prepara su representación para la interfaz."""
-            exportar_paleta_imagen(palette, ruta)
-            self._post_ui(0, lambda: self._btn_guardar.configure(
-                state='normal', text=t('save_palette_btn')
-            ))
-            self._post_ui(0, lambda: self._lbl_info.configure(
-                text=f'{t("saved_as")} {Path(ruta).name}'
-            ))
-            self._post_ui(0, self._hide_full_overlay)
-
-        self._submit_job(_proceso, button=self._btn_guardar, text=t('save_palette_btn'))
+        def work():
+            # Revalidate the source even if the palette was shown earlier.
+            palette = cache.extract(source, count)
+            exportar_paleta_imagen(palette, path)
+            return palette
+        def finished(palette):
+            self._aplicar_paleta(list(palette))
+            self._lbl_info.configure(text=operation_summary(1))
+        self._submit_job(work, on_success=finished)
 
     def _limpiar(self):
-        """Limpiar estado y reiniciar la interfaz."""
+        """Vacía datos y caché sin destruir filas ni aceptar respuestas antiguas."""
         if self._operation_blocked(global_job=False):
             return
-        logger.info("palette.ui: limpiar")
-        self._state.ruta = None
-        self._state.paleta = []
-        self._preview_img = None
-        self._mostrar_vacio()
-        for col, *_rest in self._swatch_pool:
-            col.grid_remove()
-        self._palette_empty.place(relx=0.5, rely=0.5, anchor='center')
+        self._revision += 1
+        with self._request_lock:
+            self._pending = None
+        self._cache = PaletteCache()
+        self._state = PaletteState()
+        self._imagenes = []
+        self._results = []
+        self._files.statuses.clear()
+        self._files.sync([])
+        self._empty_palette(t('load_image_for_palette'))
+        self._active_label.configure(text=t('colors_to_extract'))
         self._lbl_info.configure(text='')
+        self._update_controls()
+
+    def destroy(self):
+        """Stop pending work; late deliveries are ignored by the coordinator."""
+        with self._request_lock:
+            self._closed = True
+            self._pending = None
+        super().destroy()

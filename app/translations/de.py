@@ -589,3 +589,44 @@ TRANSLATIONS.update({
     "remove_bg_contour": "Verkleinern / erweitern",
     "remove_bg_apply_hint": "Erneut verarbeiten, um die Einstellungen anzuwenden."
 })
+
+TRANSLATIONS.update({
+    'crop_mode_ratio': 'Seitenverhältnis',
+    'crop_mode_dimensions': 'Abmessungen',
+    'crop_exact_hint': 'Exakter mittiger Zuschnitt, ohne Vergrößern oder Auffüllen.',
+    'crop_too_large': 'Der Zuschnitt überschreitet die Bildabmessungen.',
+    'save_omitted': 'Übersprungen',
+    'save_result_omitted': '{saved} gespeichert · {skipped} übersprungen · {errors} Fehler',
+})
+
+TRANSLATIONS.update({
+    'canvas_color': 'Farbe',
+    'canvas_choose_color': 'Hintergrundfarbe wählen',
+    'canvas_png_notice': '{count} werden als PNG gespeichert. Originale bleiben erhalten.',
+})
+
+TRANSLATIONS.update({
+    'status_saved': 'Gespeichert: {count}',
+    'status_processed': 'Verarbeitet: {count}',
+    'status_renamed': 'Umbenannt: {count}',
+    'status_unchanged': 'Unverändert: {count}',
+    'status_omitted': 'Übersprungen: {count}',
+    'status_errors': 'Fehler: {count}',
+    'status_empty': 'Keine Dateien verarbeitet.',
+    'status_size_increased': 'Einige Dateien sind größer.',
+    'status_exif_not_applied': 'EXIF nicht entfernt: {count}',
+})
+
+TRANSLATIONS.update({
+    'palette_add_images': 'Bilder hinzufügen',
+    'palette_extract_all': 'Alle extrahieren',
+    'palette_save_open': 'Palette speichern',
+    'palette_save_all': 'Alle speichern',
+    'palette_image_count': '{count} Bilder',
+    'palette_duplicates': 'Duplikate: {count}',
+    'palette_excluded': 'Ausgeschlossen: {count} (maximal 100)',
+    'palette_limit': 'Limit von 100 Bildern erreicht.',
+    'palette_no_visible_colors': 'Dieses Bild hat keine sichtbaren Farben.',
+    'palette_read_error': 'Dieses Bild konnte nicht gelesen werden.',
+    'palette_source_protected': 'Wähle einen anderen Namen, um die Stapelbilder zu erhalten.',
+})

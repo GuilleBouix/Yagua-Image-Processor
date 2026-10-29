@@ -53,7 +53,7 @@ The table lists the desktop modules. Availability and controls depend on your in
 | Compress | Reduce file size while keeping the original format. | JPEG, PNG, WebP, AVIF, HEIC/HEIF and other supported raster formats. | 100 images |
 | Resize / Crop / Canvas | Set dimensions, crop or add canvas space; use size presets. | Common raster images, including JPEG, PNG and WebP. | 100 images |
 | Remove background | Remove backgrounds locally with AI. | PNG, WebP or TIFF output with transparency. | 10 images |
-| Color palette | Extract colors, copy HEX/RGB/HSL values and export a palette. | One supported image → colors and a PNG palette. | 1 image |
+| Color palette | Extract colors, copy HEX/RGB/HSL values and export one PNG per image. | Supported images → individual palettes; save the whole batch. | 100 images |
 | Watermark | Apply an image logo; adjust position, size, opacity and margin. | Supported base images; transparent PNG recommended for the logo. | 100 images + 1 logo |
 | Rename | Preview numbered names, dates and letter case changes. | Changes filenames in their current folder. | 100 files |
 | OCR | Extract Spanish and/or English text with EasyOCR; copy it or export as TXT. | Supported raster images → text. | 10 images |
@@ -217,7 +217,7 @@ The package audit records these approximate observations from CI builds tested o
 ### Runtime and processing
 
 - **From source:** Python 3.13, Tk and the libraries in [`requirements.txt`](requirements.txt). Prebuilt packages do not require a separate Python installation.
-- **Batch limits:** The feature table lists current UI limits: one image for Palette, LQIP / Base64 or EXIF editing, 10 for OCR/background removal and 100 for the other listed batch operations.
+- **Batch limits:** The feature table lists current UI limits: one image for LQIP / Base64 or EXIF editing, 10 for OCR/background removal and 100 for the other listed batch operations.
 - **Codecs:** HEIC/HEIF uses `pillow-heif`, included in source dependencies. AVIF and other formats depend on Pillow codecs and platform. JPEG has no transparency; use PNG or WebP when alpha is needed. PNG compression can reduce the image to 256 colors, so check the result.
 - **AI models:** Downloads can occur on first use or when a newly selected model/language needs one. Offline use requires the models to be present. The tested package runs OCR and background removal on CPU.
 

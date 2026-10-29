@@ -91,7 +91,8 @@ def test_cancelled_decoder_does_not_deliver_into_new_generation(ui_root, tmp_pat
 
 
 @pytest.mark.parametrize('scale', [1, .75, .5])
-def test_virtual_rows_bounded_reused_and_scrolled(ui_root, scale):
+@pytest.mark.parametrize('count', [500, 5000])
+def test_virtual_rows_bounded_reused_and_scrolled(ui_root, scale, count):
     ui_root.geometry('900x600')
     ui_root.deiconify()
     ctk.set_widget_scaling(scale)
@@ -106,18 +107,25 @@ def test_virtual_rows_bounded_reused_and_scrolled(ui_root, scale):
         def render(row, key):
             configure_changed(row.name_label, text=str(key))
         rows = VirtualRows(container, factory, render)
-        rows.sync(range(500))
+        rows.sync(range(count))
         pump(ui_root)
         assert 0 in rows.rows and len(rows.rows) < 35
         identities = {id(row) for row in rows.rows.values()}
-        rows.sync(range(501))
+        rows.sync(range(count + 1))
         pump(ui_root)
         assert identities == {id(row) for row in rows.rows.values()}
         container._parent_canvas.yview_moveto(1)
         pump(ui_root)
-        assert 500 in rows.rows
+        assert count in rows.rows
+        physical_limit = container._parent_canvas.winfo_height() + round(6 * rows.row_height * scale) + 1
+        assert rows.winfo_height() <= physical_limit
+        assert container.winfo_height() <= physical_limit
+        assert float(container._parent_canvas.cget('scrollregion').split()[-1]) >= (count + 1) * rows.row_height * scale
         assert len(rows.rows) + len(rows.pool) < 35
         assert identities & {id(row) for row in rows.rows.values()}
+        container._parent_canvas.yview_moveto(0)
+        pump(ui_root)
+        assert 0 in rows.rows
         rows.sync([])
         pump(ui_root)
         assert not rows.rows
@@ -217,3 +225,23 @@ def test_palette_swatches_remain_equal_width(ui_root):
     pump(ui_root)
     widths = [col.winfo_width() for col, *_rest in view._swatch_pool]
     assert max(widths) - min(widths) <= 2, widths
+
+
+def test_palette_fills_width_after_changing_color_count(ui_root):
+    from app.ui.frames.palette.frame import PaletteFrame
+    from tests.ui.test_live_previews import pump_stable_geometry
+    ui_root.minsize(1400, 900)
+    ui_root.maxsize(1400, 900)
+    ui_root.geometry('1400x900')
+    ui_root.deiconify()
+    view = PaletteFrame(ui_root)
+    view.pack(fill='both', expand=True)
+    for count in (12, 4, 6, 8, 10, 12, 4):
+        view._renderizar_paleta([(index * 20, 40, 80) for index in range(count)])
+        pump_stable_geometry(ui_root, view._swatch_host, view._swatches_frame)
+        canvas = view._swatches_frame._parent_canvas
+        assert view._swatches_frame.winfo_width() == canvas.winfo_width()
+        columns = [row[0] for row in view._swatch_pool[:count]]
+        assert abs(columns[-1].winfo_x() + columns[-1].winfo_width() + 2 - canvas.winfo_width()) <= 2
+        widths = [col.winfo_width() for col in columns]
+        assert max(widths) - min(widths) <= 2

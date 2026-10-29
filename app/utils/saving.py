@@ -74,7 +74,7 @@ class OutputPlan:
 SavePolicy = SaveMode | OutputPlan
 
 
-def plan_outputs(paths, folder, mode: SaveMode, target_format=None, *, resources=()):
+def plan_outputs(paths, folder, mode: SaveMode, target_format=None, *, resources=(), format_resolver=None):
     """Valida entradas y reserva destinos sin sobrescribir archivos existentes."""
     if mode not in ('copies', 'overwrite'):
         raise ValueError('invalid_option')
@@ -100,7 +100,7 @@ def plan_outputs(paths, folder, mode: SaveMode, target_format=None, *, resources
             require_single_frame(source)
             with Image.open(source) as image:
                 original = canonical_format(image.format or '')
-            target = canonical_format(target_format or original)
+            target = canonical_format(target_format or (format_resolver(original) if format_resolver else original))
             replace = mode == 'overwrite' and original == target
             if replace and path_key(source) in resource_keys:
                 raise ValueError('output_resource_conflict')
@@ -116,18 +116,19 @@ def plan_outputs(paths, folder, mode: SaveMode, target_format=None, *, resources
     return OutputPlan(mode, tuple(items), protected, inputs, resource_stamps)
 
 
-def get_plan(policy: SavePolicy, paths, folder, target_format=None, *, resources=()):
+def get_plan(policy: SavePolicy, paths, folder, target_format=None, *, resources=(), format_resolver=None):
     """Construye el plan de guardado desde opciones de la interfaz."""
     if isinstance(policy, OutputPlan):
         expected_resources = {path_key(path) for path in resources}
         if expected_resources != {path_key(path) for path, _ in policy.resources} or any(
-                not item.error and item.target_format != canonical_format(target_format or item.source_format)
+                not item.error and item.target_format != canonical_format(target_format or
+                    (format_resolver(item.source_format) if format_resolver else item.source_format))
                 for item in policy.items):
             raise ValueError('invalid_output_plan')
         if {path_key(path) for path in paths} != policy.inputs:
             raise ValueError('invalid_output_plan')
         return policy
-    return plan_outputs(paths, folder, policy, target_format, resources=resources)
+    return plan_outputs(paths, folder, policy, target_format, resources=resources, format_resolver=format_resolver)
 
 
 def _destination(item, protected):
@@ -187,7 +188,8 @@ def run_plan(plan: OutputPlan, processor, *, progress_cb=None) -> dict[str, Any]
                 row['salida'] = str(destination)
         except DiscardOutput as skipped:
             row.update(skipped.result)
-            row.update(estado='unchanged', ruta_salida=None, destino='', tam_original=size,
+            status = 'skipped' if skipped.result.get('estado') == 'skipped' else 'unchanged'
+            row.update(estado=status, ruta_salida=None, destino='', tam_original=size,
                        tam_resultado=size, tam_comprimido=size)
         except Exception as error:
             row['error'] = str(error)
@@ -201,6 +203,7 @@ def run_plan(plan: OutputPlan, processor, *, progress_cb=None) -> dict[str, Any]
                 ok=sum(row['estado'] == 'saved' for row in results), errores=len(failures),
                 sin_mejora=sum(row['estado'] == 'unchanged' for row in results),
                 unchanged=sum(row['estado'] == 'unchanged' for row in results),
+                omitidos=sum(row['estado'] == 'skipped' for row in results),
                 conflictos=sum(row['conflicto'] for row in results if row['estado'] == 'saved'),
                 total_original=total, total_comprimido=final,
                 reduccion_pct=round((1-final/total)*100, 1) if total else 0,

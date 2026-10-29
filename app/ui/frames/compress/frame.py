@@ -18,10 +18,10 @@ import customtkinter as ctk
 
 from app.ui import colors, fonts, styles
 from app.translations import t
+from app.ui.status import operation_summary
 from app.ui.frames.base import BaseFrame
 from app.ui.frames.compress.services import (
     batch_comprimir,
-    formatear_bytes,
 )
 from app.ui.frames.compress.state import CompressState
 
@@ -264,14 +264,5 @@ class CompressFrame(BaseFrame):
         self._btn_comprimir.configure(state='normal', text=t('compress_btn'))
         logger.info("compress.ui: finalizar_ok (ok=%s, errores=%s, conflictos=%s)", n, errores, conflictos)
         self._hide_full_overlay()
-        suffix = t('files_loaded').capitalize() if n > 1 else t('image_loaded')
-        msg = (
-            f'{n} {suffix} - '
-            f'{formatear_bytes(orig)} -> {formatear_bytes(comp)} - '
-            f'{reduccion}% {t("compressed")}'
-        )
-        if errores:
-            msg += f'  -  {errores} {t("error_occurred")}'
-        if conflictos:
-            msg += f'  -  {conflictos} {t("conflicts_renamed")}'
+        msg = operation_summary(n, errores)
         self._lbl_info.configure(text=msg)

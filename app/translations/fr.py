@@ -606,3 +606,44 @@ TRANSLATIONS.update({
     "remove_bg_contour": "Contracter / étendre",
     "remove_bg_apply_hint": "Relancez le traitement pour appliquer les réglages."
 })
+
+TRANSLATIONS.update({
+    'crop_mode_ratio': 'Proportions',
+    'crop_mode_dimensions': 'Dimensions',
+    'crop_exact_hint': 'Recadrage exact centré, sans agrandissement ni remplissage.',
+    'crop_too_large': 'Le recadrage dépasse les dimensions de cette image.',
+    'save_omitted': 'Ignorée',
+    'save_result_omitted': '{saved} enregistrés · {skipped} ignorés · {errors} erreurs',
+})
+
+TRANSLATIONS.update({
+    'canvas_color': 'Couleur',
+    'canvas_choose_color': 'Choisir la couleur de fond',
+    'canvas_png_notice': '{count} seront enregistrées en PNG. Les originaux seront conservés.',
+})
+
+TRANSLATIONS.update({
+    'status_saved': 'Enregistrées : {count}',
+    'status_processed': 'Traitées : {count}',
+    'status_renamed': 'Renommés : {count}',
+    'status_unchanged': 'Sans modification : {count}',
+    'status_omitted': 'Ignorées : {count}',
+    'status_errors': 'Erreurs : {count}',
+    'status_empty': 'Aucun fichier traité.',
+    'status_size_increased': 'Certains fichiers sont plus volumineux.',
+    'status_exif_not_applied': 'EXIF non supprimé : {count}',
+})
+
+TRANSLATIONS.update({
+    'palette_add_images': 'Ajouter des images',
+    'palette_extract_all': 'Tout extraire',
+    'palette_save_open': 'Enregistrer la palette',
+    'palette_save_all': 'Tout enregistrer',
+    'palette_image_count': '{count} images',
+    'palette_duplicates': 'Doublons : {count}',
+    'palette_excluded': 'Exclues : {count} (100 maximum)',
+    'palette_limit': 'Limite de 100 images atteinte.',
+    'palette_no_visible_colors': 'Cette image ne contient aucune couleur visible.',
+    'palette_read_error': 'Impossible de lire cette image.',
+    'palette_source_protected': 'Choisissez un autre nom pour préserver les images du lot.',
+})

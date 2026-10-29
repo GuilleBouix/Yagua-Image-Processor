@@ -9,6 +9,7 @@ Relacionado con:
 
 import logging
 from pathlib import Path
+from typing import cast
 
 from PIL import Image
 
@@ -56,10 +57,19 @@ def extraer_paleta(ruta, n_colores=6):
     logger.info("Extraer paleta: %s (n=%s)", ruta, n_colores)
     require_single_frame(ruta)
     with Image.open(ruta) as imagen:
-        imagen = imagen.convert('RGB')
-
-        # Reducir tamano para acelerar el analisis
-        imagen.thumbnail((400, 400), Image.Resampling.LANCZOS)
+        # Alpha is a visibility mask, never a background color to quantize.
+        if 'A' in imagen.getbands() or 'transparency' in imagen.info:
+            imagen = imagen.convert('RGBA')
+            imagen.thumbnail((400, 400), Image.Resampling.LANCZOS)
+            pixels_rgba = cast(list[tuple[int, int, int, int]], list(imagen.get_flattened_data()))
+            visibles = [(r, g, b) for r, g, b, alpha in pixels_rgba if alpha]
+            if not visibles:
+                raise ValueError('palette_no_visible_colors')
+            imagen = Image.new('RGB', (len(visibles), 1))
+            imagen.putdata(visibles)
+        else:
+            imagen = imagen.convert('RGB')
+            imagen.thumbnail((400, 400), Image.Resampling.LANCZOS)
 
         # Cuantizar a N colores usando MEDIANCUT
         img_quantized = imagen.quantize(colors=n_colores, method=Image.Quantize.MEDIANCUT)
@@ -173,7 +183,7 @@ def formatos_color(rgb_tuple):
 
 
 def exportar_paleta_imagen(paleta, ruta_salida, ancho_swatch=120,
-                          alto_swatch=120, padding=20, mostrar_hex=True):
+                          alto_swatch=120, padding=20, mostrar_hex=True, *, replace=True):
     """
     Genera una imagen PNG con los swatches de la paleta.
     
@@ -235,7 +245,7 @@ def exportar_paleta_imagen(paleta, ruta_salida, ancho_swatch=120,
             draw.text((text_x, text_y), hex_str, fill=(180, 180, 190), font=fuente)
 
     # Guardar imagen
-    with atomic_destination(ruta_salida) as temporary:
+    with atomic_destination(ruta_salida, replace=replace) as temporary:
         imagen.save(temporary, 'PNG', optimize=True)
     return ruta_salida
 

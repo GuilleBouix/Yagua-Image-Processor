@@ -11,6 +11,7 @@ import customtkinter as ctk
 from PIL import Image, ImageDraw
 
 from app.modules.resize_geometry import fit_size, resize_size, centered_crop, canvas_geometry
+from app.modules.resize import compose_canvas
 from app.translations import t
 from app.ui import fonts, styles
 from app.ui.image_cache import image_cache
@@ -34,7 +35,7 @@ def render_pixels(source, bounds, spec, checker_colors):
     if kind == 'resize':
         output = resize_size(original, **spec['options'])
     elif kind == 'crop':
-        logical_box = centered_crop(original, spec['ratio'])
+        logical_box = centered_crop(original, spec.get('ratio'), dimensions=spec.get('dimensions'))
         output = logical_box[2] - logical_box[0], logical_box[3] - logical_box[1]
         coordinates = tuple(round(value * image.size[i % 2] / original[i % 2])
                             for i, value in enumerate(logical_box))
@@ -51,12 +52,8 @@ def render_pixels(source, bounds, spec, checker_colors):
         placed_size = tuple(max(1, min(display[i], round(fitted[i] * scale[i]))) for i in (0, 1))
         position = round(offset[0] * scale[0]), round(offset[1] * scale[1])
         background = spec['background']
-        rendered = Image.new('RGBA', display, (*background, 255) if background else (0, 0, 0, 0))
         placed = image.resize(placed_size, Image.Resampling.LANCZOS)
-        # The saved canvas uses paste with the source alpha as its mask.
-        rendered.paste(placed, position, placed.getchannel('A'))
-        if source.format == 'JPEG':
-            rendered = rendered.convert('RGB').convert('RGBA')
+        rendered = compose_canvas(placed, display, position, background)
     else:
         cropped = image.crop(box) if box is not None else image
         rendered = cropped.resize(display, Image.Resampling.LANCZOS)
@@ -198,7 +195,8 @@ class LivePreview(UiLifetime, ctk.CTkFrame):
             return
         self._last_key = key
         if error or result is None:
-            self._clear_pixels(t('preview_error'))
+            message = str(error)
+            self._clear_pixels(t(message if message in ('crop_too_large', 'invalid_dimensions') else 'preview_error'))
             return
         pixels, original, output = result
         self.photo = ctk.CTkImage(light_image=pixels, dark_image=pixels, size=pixels.size)

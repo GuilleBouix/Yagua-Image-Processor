@@ -137,12 +137,12 @@ class PooledRow(ctk.CTkFrame):
 class VirtualRows(UiLifetime, tk.Frame):
     """Conserva el scroll de toda la lista y crea widgets solo para filas visibles y su margen."""
     def __init__(self, parent, factory, render, *, row_height=72, overscan=2):
-        # A CTkFrame allocates a full-height drawing canvas. That exceeds X11's
-        # pixmap limit for long lists; this plain frame only holds the extent.
         """Inicializa el viewport virtual y sus callbacks de desplazamiento."""
         super().__init__(parent, bg=tk.Frame.cget(parent, 'background'), height=1, bd=0, highlightthickness=0)
         self._scroll_parent = parent
         self._extent = None
+        self._origin = 0
+        self._closed = False
         self.pack(fill='x', expand=False)
         self.pack_propagate(False)
         self.factory, self.render_row = factory, render
@@ -155,7 +155,12 @@ class VirtualRows(UiLifetime, tk.Frame):
         self.canvas = parent._parent_canvas
         self._previous_scroll = self.canvas.cget('yscrollcommand')
         self.canvas.configure(yscrollcommand=self._scroll_changed)
-        self.canvas.bind('<Configure>', self.schedule, add='+')
+        self._canvas_configure = self.canvas.bind('<Configure>', self.schedule, add='+')
+        self._canvas_map = self.canvas.bind('<Map>', self.schedule, add='+')
+        # CTk normally derives the scrollregion from its physical child window.
+        # Our logical range is independent of that bounded window's height.
+        self._previous_parent_configure = parent.bind('<Configure>')
+        self._parent_configure = parent.bind('<Configure>', self._apply_extent)
         self.bind('<Map>', self.schedule, add='+')
         self.bind('<Configure>', self.schedule, add='+')
 
@@ -163,15 +168,26 @@ class VirtualRows(UiLifetime, tk.Frame):
         """Obtiene la escala actual de Tk para calcular alturas físicas."""
         return self._scroll_parent._get_widget_scaling()
 
-    def _apply_extent(self):
-        """Actualiza el alto desplazable para la cantidad de filas."""
-        extent = (len(self.keys), self._get_widget_scaling())
+    def _apply_extent(self, _event=None):
+        """Keep a logical scrollbar range without allocating a giant X11 surface."""
+        if self._closed:
+            return
+        scale = self._get_widget_scaling()
+        height = max(1, self.canvas.winfo_height())
+        physical = max(1, height + math.ceil((self.overscan * 2 + 2) * self.row_height * scale))
+        extent = (len(self.keys), scale, height, self.canvas.winfo_width())
         if self._extent != extent:
             self._extent = extent
-            self.configure(height=max(1, round(extent[0] * self.row_height * extent[1])))
+            self.configure(height=min(physical, max(1, round(len(self.keys) * self.row_height * scale))))
+        region = (0, 0, max(1, self.canvas.winfo_width()),
+                  max(height, round(len(self.keys) * self.row_height * scale)))
+        if tuple(map(float, self.canvas.cget('scrollregion').split())) != region:
+            self.canvas.configure(scrollregion=region)
 
     def _scroll_changed(self, first, last):
         """Refresca las filas visibles cuando cambia el scroll."""
+        if self._closed:
+            return
         if self._previous_scroll:
             self.tk.call(*self.tk.splitlist(self._previous_scroll), first, last)
         self.schedule()
@@ -193,7 +209,7 @@ class VirtualRows(UiLifetime, tk.Frame):
 
     def schedule(self, _event=None):
         """Agrupa cambios de tamaño antes de recalcular filas visibles."""
-        if self.job is None and self.winfo_exists():
+        if not self._closed and self.job is None and self.winfo_exists():
             self.job = self.after_idle(self.refresh)
 
     def refresh(self, key=None):
@@ -202,7 +218,7 @@ class VirtualRows(UiLifetime, tk.Frame):
         if self.job is not None:
             self.after_cancel(self.job)
             self.job = None
-        if not self.winfo_ismapped():
+        if self._closed or not self.canvas.winfo_ismapped():
             return
         self._apply_extent()
         if key is not None:
@@ -215,6 +231,13 @@ class VirtualRows(UiLifetime, tk.Frame):
         count = math.ceil(max(1, self.canvas.winfo_height()) / scale / self.row_height) + self.overscan * 2
         first = min(first, max(0, len(self.keys) - 1))
         visible = self.keys[first:first + count]
+        # Move the small child window along the logical list. Row coordinates
+        # stay local, below X11 drawable limits even at the end of a large batch.
+        self._origin = first * self.row_height
+        window = self._scroll_parent._create_window_id
+        position = (0, round(self._origin * scale))
+        if tuple(self.canvas.coords(window)) != position:
+            self.canvas.coords(window, *position)
         for old in list(self.rows):
             if old not in visible:
                 row = self.rows.pop(old)
@@ -232,7 +255,7 @@ class VirtualRows(UiLifetime, tk.Frame):
                 row.key = item
                 self.rows[item] = row
             row = self.rows[item]
-            placement = (index * self.row_height, self.row_height - 6)
+            placement = (index * self.row_height - self._origin, self.row_height - 6)
             if getattr(row, '_placement', None) != placement or not row.winfo_ismapped():
                 configure_changed(row, height=placement[1])
                 row.place(x=0, y=placement[0], relwidth=1)
@@ -241,6 +264,14 @@ class VirtualRows(UiLifetime, tk.Frame):
 
     def destroy(self):
         """Cancela callbacks y destruye las filas recicladas."""
+        self._closed = True
+        if self.job is not None:
+            self.after_cancel(self.job)
+            self.job = None
+        self.canvas.unbind('<Configure>', self._canvas_configure)
+        self.canvas.unbind('<Map>', self._canvas_map)
         self.on_destroy()
+        self._scroll_parent.unbind('<Configure>', self._parent_configure)
+        self._scroll_parent.tk.call('bind', self._scroll_parent._w, '<Configure>', self._previous_parent_configure)
         self.canvas.configure(yscrollcommand=self._previous_scroll)
         super().destroy()

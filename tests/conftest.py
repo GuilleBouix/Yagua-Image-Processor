@@ -43,6 +43,10 @@ def tk_session():
         pytest.skip(f'Tk no disponible en el entorno de test: {error}')
     root.withdraw()
     yield root
+    # Unmap the complete workspace before CTk destroys children. Its scrollbar
+    # draw flushes idle events; those must not render half-destroyed sibling views.
+    root.withdraw()
+    root.update_idletasks()
     root.destroy()
 
 
@@ -55,6 +59,10 @@ def ui_root(tk_session):
     gc.collect()
     root = ctk.CTkToplevel(tk_session)
     root.withdraw()
+    # Keep mapped test windows away from the user's desktop. Width/height and
+    # Tk visibility remain real; keyboard/mouse actions cannot close a test view.
+    if sys.platform == 'win32':
+        root.geometry('+12000+12000')
     yield root
     root.destroy()
     gc.collect()

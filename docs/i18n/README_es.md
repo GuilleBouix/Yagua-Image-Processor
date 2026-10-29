@@ -55,7 +55,7 @@ La tabla enumera los módulos de escritorio. La disponibilidad y los controles d
 | Comprimir | Reducir el tamaño del archivo conservando su formato original. | JPEG, PNG, WebP, AVIF, HEIC/HEIF y otros formatos ráster compatibles. | 100 imágenes |
 | Redimensionar / Recortar / Lienzo | Cambiar dimensiones, recortar o agregar espacio; usar tamaños predefinidos. | Imágenes ráster habituales, como JPEG, PNG y WebP. | 100 imágenes |
 | Quitar fondo | Eliminar fondos localmente con IA. | Salida PNG, WebP o TIFF con transparencia. | 10 imágenes |
-| Paleta de colores | Extraer colores, copiar valores HEX/RGB/HSL y exportar una paleta. | Una imagen compatible → colores y paleta PNG. | 1 imagen |
+| Paleta de colores | Extraer colores, copiar valores HEX/RGB/HSL y exportar un PNG por imagen. | Imágenes compatibles → paletas individuales; guardar todo el lote. | 100 imágenes |
 | Marca de agua | Aplicar un logo; ajustar posición, tamaño, opacidad y margen. | Imágenes base compatibles; se recomienda PNG transparente para el logo. | 100 imágenes + 1 logo |
 | Renombrar | Previsualizar numeración, fechas y cambios de mayúsculas/minúsculas. | Cambia los nombres en la carpeta original. | 100 archivos |
 | OCR | Extraer texto en español y/o inglés con EasyOCR; copiarlo o exportarlo como TXT. | Imágenes ráster compatibles → texto. | 10 imágenes |
@@ -227,7 +227,7 @@ La auditoría de paquetes registra estas observaciones aproximadas en compilacio
 ### Ejecución y procesamiento
 
 - **Desde código:** Python 3.13, Tk y las bibliotecas de [`requirements.txt`](../../requirements.txt). Los paquetes compilados no requieren instalar Python por separado.
-- **Lotes:** La tabla de funciones muestra los límites actuales de la interfaz: una imagen para Paleta, LQIP / Base64 o edición EXIF, 10 para OCR/quitar fondo y 100 para las otras operaciones en lote indicadas.
+- **Lotes:** La tabla de funciones muestra los límites actuales de la interfaz: una imagen para LQIP / Base64 o edición EXIF, 10 para OCR/quitar fondo y 100 para las otras operaciones en lote indicadas.
 - **Códecs:** HEIC/HEIF usa `pillow-heif`, incluido en las dependencias del código. AVIF y otros formatos dependen de los códecs de Pillow y la plataforma. JPEG no admite transparencia; usá PNG o WebP si la necesitás. La compresión PNG puede reducir la imagen a 256 colores: revisá el resultado.
 - **Modelos de IA:** Puede haber descargas en el primer uso o al elegir un modelo/idioma que necesite otro modelo. Para trabajar sin conexión deben estar guardados. El paquete probado ejecuta OCR y quitar fondo por CPU.
 

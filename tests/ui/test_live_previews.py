@@ -143,6 +143,53 @@ def test_resize_tabs_selection_and_stable_viewport(ui_root, tmp_path, geometry, 
         ctk.set_widget_scaling(1)
 
 
+@pytest.mark.parametrize('geometry,scale', [('1400x900', 1), ('900x600', 1),
+    ('1400x900', .75), ('900x600', .75), ('1400x900', .5), ('900x600', .5)])
+@pytest.mark.parametrize('count', [1, 100])
+def test_exact_crop_preview_recovers_and_keeps_viewport(ui_root, tmp_path, geometry, scale, count):
+    ctk.set_widget_scaling(scale)
+    try:
+        ui_root.deiconify()
+        ui_root.state('normal')
+        ui_root.geometry(geometry)
+        expected = tuple(map(int, geometry.split('x')))
+        pump(ui_root, lambda: (ui_root.winfo_width(), ui_root.winfo_height()) == expected)
+        view = ResizeFrame(ui_root)
+        view.pack(fill='both', expand=True)
+        paths = pictures(tmp_path, count)
+        view._cargar_imagenes(paths)
+        view._tab.set(t('crop_tab'))
+        view._cambiar_tab(t('crop_tab'))
+        view._state.crop_mode.set(t('crop_mode_dimensions'))
+        pump(ui_root, lambda: view._crop_source_dimensions is not None)
+        view._state.crop_width_var.set('80')
+        view._state.crop_height_var.set('60')
+        pump(ui_root, lambda: view._preview.output_dimensions == (80, 60))
+        pump_workspace_geometry(ui_root, view)
+        viewport = view._preview.viewport
+        size = viewport.winfo_width(), viewport.winfo_height()
+        view._state.crop_width_var.set('1000')
+        pump(ui_root, lambda: view._preview.image.cget('text') == t('crop_too_large'))
+        assert view._preview.photo is None
+        view._state.crop_width_var.set('')
+        assert view._preview.image.cget('text') == t('invalid_dimensions')
+        view._virtual_file_list.select((paths[-1], 0))
+        pump(ui_root, lambda: view._crop_source_dimensions is not None)
+        view._state.crop_width_var.set('70')
+        view._state.crop_height_var.set('60')
+        pump(ui_root, lambda: view._preview.output_dimensions == (70, 60)
+             and view._preview.applied_path == paths[-1])
+        pump_workspace_geometry(ui_root, view)
+        assert (viewport.winfo_width(), viewport.winfo_height()) == size
+        assert view._imagenes == paths
+        assert view._btn_crop.winfo_rooty() + view._btn_crop.winfo_height() <= ui_root.winfo_rooty() + ui_root.winfo_height()
+        view._limpiar()
+        view._cargar_imagenes(paths[:1])
+        pump(ui_root, lambda: view._preview.output_dimensions == (100, 80))
+    finally:
+        ctk.set_widget_scaling(1)
+
+
 def test_stale_worker_hidden_view_and_clear(ui_root, tmp_path, monkeypatch):
     import app.ui.preview as preview_module
     ui_root.deiconify()

@@ -42,9 +42,19 @@ def resize_size(size, ancho=None, alto=None, porcentaje=None, preset=None, mante
     return fit_size(size, (ancho, alto)) if mantener_ratio else (ancho, alto)
 
 
-def centered_crop(size, ratio):
-    """Calcula el recorte centrado en coordenadas enteras del original."""
+def centered_crop(size, ratio=None, *, dimensions=None):
+    """Calcula un recorte centrado por proporción o píxeles, sin rellenar ni ampliar."""
     width, height = size
+    if dimensions is not None:
+        crop_width, crop_height = dimensions
+        if any(type(value) is not int or value < 1 for value in dimensions):
+            raise ValueError('invalid_dimensions')
+        if crop_width > width or crop_height > height:
+            raise ValueError('crop_too_large')
+        left, top = (width - crop_width) // 2, (height - crop_height) // 2
+        return left, top, left + crop_width, top + crop_height
+    if ratio is None:
+        raise ValueError('invalid_dimensions')
     rx, ry = ratio
     crop_width, crop_height = ((int(height * rx / ry), height) if width / height > rx / ry
                                else (width, int(width * ry / rx)))

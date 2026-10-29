@@ -19,6 +19,7 @@ import customtkinter as ctk
 
 from app.ui import colors, fonts, styles
 from app.translations import t
+from app.ui.status import operation_summary
 from app.ui.frames.base import BaseFrame
 from app.ui.frames.rename.services import generar_nombres_preview, renombrar_archivos
 from app.ui.frames.rename.state import RenameState
@@ -438,12 +439,7 @@ class RenameFrame(BaseFrame):
         self._btn_renombrar.configure(state='normal', text=t('rename_btn'))
         self.logger.info("rename.ui: finalizar_ok (ok=%s, errores=%s, conflictos=%s)", ok, errores, conflictos)
         self._hide_full_overlay()
-        suffix = t('files_loaded') if ok > 1 else t('file_loaded')
-        msg = f'{ok} {suffix} {t("renamed")}'
-        if conflictos:
-            msg += f'  -  {conflictos} {t("rename_conflicts")}'
-        if errores:
-            msg += f'  -  {errores} {t("error_occurred")}'
+        msg = operation_summary(ok, errores, action='renamed', skipped=conflictos)
         # Limpiar despues de renombrar exitoso
         self._imagenes = []
         self._state.imagenes = []

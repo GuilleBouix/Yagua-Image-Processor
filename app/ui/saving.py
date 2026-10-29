@@ -7,6 +7,7 @@ from app.translations import t
 from app.ui import colors, fonts
 from app.ui.image_cache import image_cache
 from app.utils.saving import plan_outputs
+from app.ui.status import operation_summary
 
 
 def selector_steps(view, parent, row, *, columnspan=1, padx=16):
@@ -52,7 +53,8 @@ def mode(view):
     return 'overwrite' if view._save_choice.get() == t('save_overwrite') else 'copies'
 
 
-def prepare(view, paths, target_format, proceed, *, resources=(), button=None, text=None, folder=None, notice=''):
+def prepare(view, paths, target_format, proceed, *, resources=(), button=None, text=None, folder=None, notice='',
+            format_resolver=None, format_notice=''):
     """Snapshot before IO; header reads stay off Tk and no model is loaded."""
     choice = mode(view)
     folder = (folder or filedialog.askdirectory(title=t('select_output_folder'), parent=view)) if choice == 'copies' else None
@@ -62,14 +64,18 @@ def prepare(view, paths, target_format, proceed, *, resources=(), button=None, t
     def ready(plan):
         """Indica si la selección y el plan permiten guardar."""
         message = t('save_confirm').format(replace=plan.replacements, copies=plan.copies)
-        if choice == 'overwrite' and any(not item.error and item.source_format != item.target_format for item in plan.items):
+        conversions = sum(not item.error and item.source_format != item.target_format for item in plan.items)
+        if conversions and format_notice:
+            message += '\n\n' + format_notice.format(count=conversions)
+        elif choice == 'overwrite' and conversions:
             message += '\n\n' + t('save_format_hint')
         if notice:
             message += '\n\n' + notice
         if not messagebox.askyesno(t('save_mode'), message, parent=view):
             return
         proceed(folder, plan)
-    return view._submit_job(lambda: plan_outputs(paths, folder, choice, target_format, resources=resources),
+    return view._submit_job(lambda: plan_outputs(paths, folder, choice, target_format, resources=resources,
+                                                format_resolver=format_resolver),
                             on_success=ready, button=button, text=text)
 
 
@@ -83,14 +89,14 @@ def refresh(view, result):
     if hasattr(view, '_virtual_file_list'):
         statuses = {}
         for row in rows:
-            status = t({'saved': 'save_saved', 'unchanged': 'save_skipped', 'error': 'error_generic'}[row['estado']])
+            status = t({'saved': 'save_saved', 'unchanged': 'save_skipped',
+                        'skipped': 'save_omitted', 'error': 'error_generic'}[row['estado']])
+            if row['estado'] == 'skipped':
+                status += ': ' + t(row['motivo'])
             if row.get('exif_no_aplicado'):
                 status += ' · ' + t('save_exif_not_applied')
             if row['estado'] == 'error':
                 status += ': ' + t(row['error'])
-            if row['estado'] == 'saved' and row['tam_resultado'] > row['tam_original']:
-                delta = row['tam_resultado'] - row['tam_original']
-                status += f" · +{delta} B (+{round(delta / row['tam_original'] * 100, 1)}%)"
             statuses[row['ruta_entrada']] = status
         view._virtual_file_list.statuses = statuses
         view._virtual_file_list.sync(view._imagenes)
@@ -102,26 +108,13 @@ def refresh(view, result):
                 view._cargar_preview_base(view._imagenes[0])
 
 
-def summary(result, *, strip=False):
-    """Genera un resumen legible de los destinos calculados."""
-    rows = result.get('resultados', [])
-    text = t('save_result').format(saved=result.get('ok', 0), skipped=result.get('sin_mejora', 0),
-                                   errors=result.get('errores', 0))
-    valid = [row for row in rows if row.get('estado') != 'error']
-    before = sum(row.get('tam_original', 0) for row in valid)
-    after = sum(row.get('tam_resultado', row.get('tam_comprimido', 0)) for row in valid)
-    if before:
-        from app.modules.compress import formatear_bytes
-        text += f' · {formatear_bytes(before)} → {formatear_bytes(after)}'
-        growth = [row for row in valid if row.get('estado') == 'saved' and row['tam_resultado'] > row['tam_original']]
-        if growth:
-            delta = sum(row['tam_resultado'] - row['tam_original'] for row in growth)
-            base = sum(row['tam_original'] for row in growth)
-            text += ' · ' + t('save_growth').format(count=len(growth), size=f'{delta} B', percent=round(delta/base*100, 1))
-        else:
-            text += ' · ' + t('save_reduction').format(percent=round((1-after/before)*100, 1))
+def summary(result, *, strip=False, size_notice=False):
+    """Resume el resultado; los datos completos permanecen en el objeto original."""
+    text = operation_summary(result.get('ok', 0), result.get('errores', 0),
+        unchanged=result.get('sin_mejora', 0), skipped=result.get('omitidos', 0))
+    if size_notice and any(row.get('estado') == 'saved' and
+            row.get('tam_resultado', 0) > row.get('tam_original', 0) for row in result.get('resultados', [])):
+        text += ' · ' + t('status_size_increased')
     if strip and result.get('exif_no_aplicado'):
-        text += ' · ' + t('save_exif_skipped').format(count=result['exif_no_aplicado'])
-    if result.get('conflictos'):
-        text += ' · ' + t('save_conflicts').format(count=result['conflictos'])
+        text += ' · ' + t('status_exif_not_applied').format(count=result['exif_no_aplicado'])
     return text

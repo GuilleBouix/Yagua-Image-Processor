@@ -301,7 +301,7 @@ def test_long_code_button_and_select_all_copy_all_four_formats(
             frame._btn_copiar._clicked()
             ui_root.update()
             assert frame.clipboard_get().replace('\r\n', '\n') == expected
-            assert str(len(expected)) in frame._lbl_info.cget('text')
+            assert frame._lbl_info.cget('text') == t('text_copied')
             textbox = frame._resultado_preview._textbox
             textbox.tag_add('sel', '1.0', 'end-1c')
             assert frame._copiar_desde_preview() == 'break'

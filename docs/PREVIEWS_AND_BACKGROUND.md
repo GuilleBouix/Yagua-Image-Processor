@@ -3,6 +3,9 @@
 Describe el código fuente de `main` preparado para Yagua 2.0. Los paquetes de
 prueba anteriores pueden no incluir estos controles. No anuncia una release.
 
+La colección de Paleta, su límite y exportaciones se describen en
+[Paletas por lotes](PALETTE_BATCH.md).
+
 ## Uso
 
 ### Redimensionar, Recortar y Canvas
@@ -13,8 +16,24 @@ prueba anteriores pueden no incluir estos controles. No anuncia una release.
   originales y finales, después de corregir la orientación EXIF.
 - Redimensionar respeta porcentaje, píxeles, presets y conservación de proporción.
   Mantener proporción usa el ajuste dentro de los límites actuales, sin ampliar.
-- Recortar conserva el recorte centrado existente; la preview no incorpora un
-  editor para arrastrar o desplazar el área de recorte.
+- Recortar permite elegir Proporción o Dimensiones. Proporción conserva el
+  recorte centrado existente. Dimensiones exige ancho y alto enteros positivos
+  y obtiene exactamente esos píxeles del centro, sin ampliar ni rellenar. Se usa
+  el tamaño después de corregir EXIF. Por ejemplo, 1000 × 700 a 800 × 600 elimina
+  100 píxeles de cada lado y 50 arriba y abajo. Si el tamaño no cabe, la preview
+  informa el motivo y el lote omite esa imagen, conserva el original y continúa
+  con las demás. Las omisiones no cuentan como errores ni como «Sin mejora».
+  Los valores se conservan al cambiar de modo; solo se aplica el modo visible.
+  No hay un editor para arrastrar o desplazar el área de recorte.
+  Ancho y alto se ajustan con sliders o entradas manuales sincronizadas. Al abrir
+  o seleccionar otra imagen se cargan sus dimensiones originales orientadas y
+  se usan como máximos de los sliders. Las entradas manuales no amplían esos
+  límites; un recorte manual que no cabe muestra el aviso correspondiente. Las
+  imágenes de un píxel tienen su slider fijo. La lectura se hace en segundo plano
+  y se ignoran respuestas de selecciones anteriores.
+  Los controles y las indicaciones de ambos modos permanecen montados en un
+  espacio común. Cambiar de modo sólo eleva el panel correspondiente, sin
+  reconstruir widgets ni cambiar la altura del formulario.
 - Canvas mantiene la imagen centrada y la reduce si excede el lienzo. Sus sliders
   de ancho y alto están sincronizados con los inputs y empiezan en 1080 × 1080 px.
   El rango inicial es 1–8192 px; un valor manual mayor amplía el rango del slider.
@@ -22,7 +41,21 @@ prueba anteriores pueden no incluir estos controles. No anuncia una release.
 - Los valores incompletos o inválidos ocultan el resultado anterior y muestran
   una indicación. Cambiar parámetros no escribe archivos.
 - El damero representa transparencia; no se añade al archivo de salida. Canvas
-  conserva la política de transparencia y formatos del procesamiento existente.
+  ofrece Color o Transparente, empezando con blanco. El botón con código HEX
+  abre el selector nativo de Tkinter. Cancelar o pasar a Transparente conserva
+  el último color elegido; los controles mantienen su espacio al alternar modos.
+  Los bordes semitransparentes se componen una sola vez: sobre color quedan
+  mezclados con ese color y sobre transparencia conservan su alfa.
+
+Al guardar Canvas transparente, cada entrada se decide por su formato real.
+PNG, WebP, TIFF, AVIF y HEIF conservan su formato si hay un codificador disponible;
+si sólo se puede leer el formato, también pasan a PNG. JPEG, BMP, GIF e ICO pasan a PNG
+para conservar alfa completo y las dimensiones solicitadas. La confirmación
+indica cuántas cambian a PNG. Esos originales siempre se conservan, incluso en
+Sobrescribir; los formatos que no cambian sí pueden reemplazarse tras confirmar.
+Se numeran conflictos y se protegen las demás entradas del lote. AVIF y HEIF se
+codifican con calidad 100 en este modo para no cuantizar el canal alfa con los
+valores predeterminados del codificador; esto puede aumentar tiempo y tamaño.
 
 La preview usa píxeles reducidos. Permite revisar geometría y composición, pero
 no representa una inspección del detalle o la compresión final a escala 1:1.
@@ -89,6 +122,24 @@ más CPU, memoria y tiempo; los lotes siguen procesándose secuencialmente.
 
 ### Contrato de procesamiento
 
+`agregar_canvas` añade `output_format=None` como parámetro opcional por palabra
+clave. Por defecto conserva el formato original. `batch_canvas` resuelve el
+formato de cada salida transparente mediante `canvas_output_format` y lo pasa
+explícitamente. `plan_outputs`, `get_plan` y la preparación del guardado admiten
+`format_resolver` opcional, una función pura que recibe el formato real y devuelve
+el destino; un `target_format` explícito tiene prioridad. Los planes recibidos se
+validan con la misma regla antes de procesar. Las llamadas anteriores y claves
+de resultados se conservan. La composición usa el mismo helper en preview y
+procesamiento. No se agregan dependencias ni se cambian modelos o instaladores.
+
+`recortar` y `batch_recortar` aceptan `ancho` y `alto` opcionales, sólo por palabra
+clave. Ambos deben ser enteros positivos. Las dimensiones explícitas prevalecen
+sobre la proporción; las llamadas previas con proporciones o coordenadas siguen
+funcionando. Una llamada individual rechaza un tamaño que no cabe mediante
+`crop_too_large`. El lote continúa y lo cuenta en `omitidos`. Las filas del plan
+de salida usan `estado='skipped'` y `motivo='crop_too_large'`, conservando las claves
+de resultados y los contadores de errores existentes.
+
 `quitar_fondo` y `batch_quitar_fondo` aceptan el nuevo parámetro opcional de sólo
 palabra clave `config: RemoveBgConfig | None`. Las llamadas anteriores y las
 claves de sus resultados se conservan. `None` usa los valores iniciales.
@@ -102,6 +153,12 @@ de respaldo, se conserva la configuración y sólo cambia la identidad del model
 Orden del pipeline: análisis del fondo, segmentación/refinado solicitado,
 ajuste de contorno, reducción de halo claro y guardado. Los refinamientos
 posteriores usan Pillow y NumPy existentes.
+
+Los resúmenes de operación comparten un formato breve: sólo muestran cantidades
+con resultado, omisiones o errores, sin contadores en cero, tamaños, porcentajes
+ni detalles del modelo. Convertir conserva un aviso breve si alguna salida pesa
+más; la eliminación de EXIF no aplicada también se indica. Los datos completos
+del procesamiento y los detalles de Metadatos se conservan.
 
 ## Validación y reproducción
 

@@ -77,7 +77,7 @@ def test_remove_bg_packaged_error_hides_terminal_instructions(monkeypatch, ui_ro
     assert frame._btn_copiar_comando is None
 
 
-def test_remove_bg_frame_footer_avisa_fallback(monkeypatch, ui_root):
+def test_remove_bg_frame_footer_keeps_model_detail_in_state(monkeypatch, ui_root):
     monkeypatch.setattr(RemoveBgFrame, "_inicializar_en_background", lambda self: self._build_content_ready(True, True))
 
     frame = RemoveBgFrame(ui_root)
@@ -86,5 +86,5 @@ def test_remove_bg_frame_footer_avisa_fallback(monkeypatch, ui_root):
 
     frame._finalizar(1, 0, 0, used_fallback=True, model_used="u2netp")
 
-    assert "u2netp" in frame._lbl_info.cget("text")
-    assert t("remove_bg_fallback_notice").format(model="u2netp") in frame._lbl_info.cget("text")
+    assert frame._lbl_info.cget('text') == t('status_processed').format(count=1)
+    assert frame._state.model_used == 'u2netp'

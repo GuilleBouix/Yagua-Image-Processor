@@ -556,3 +556,44 @@ TRANSLATIONS.update({
     "remove_bg_contour": "收缩 / 扩展",
     "remove_bg_apply_hint": "请重新处理以应用这些设置。"
 })
+
+TRANSLATIONS.update({
+    'crop_mode_ratio': '宽高比',
+    'crop_mode_dimensions': '尺寸',
+    'crop_exact_hint': '按指定尺寸从中心裁剪，不放大或填充。',
+    'crop_too_large': '裁剪尺寸超出此图像的尺寸。',
+    'save_omitted': '已跳过',
+    'save_result_omitted': '已保存 {saved} · 已跳过 {skipped} · 错误 {errors}',
+})
+
+TRANSLATIONS.update({
+    'canvas_color': '颜色',
+    'canvas_choose_color': '选择背景颜色',
+    'canvas_png_notice': '{count} 张图像将保存为 PNG。原始文件将保留。',
+})
+
+TRANSLATIONS.update({
+    'status_saved': '已保存：{count}',
+    'status_processed': '已处理：{count}',
+    'status_renamed': '已重命名：{count}',
+    'status_unchanged': '未更改：{count}',
+    'status_omitted': '已跳过：{count}',
+    'status_errors': '错误：{count}',
+    'status_empty': '未处理任何文件。',
+    'status_size_increased': '部分文件变大了。',
+    'status_exif_not_applied': '未移除 EXIF：{count}',
+})
+
+TRANSLATIONS.update({
+    'palette_add_images': '添加图片',
+    'palette_extract_all': '全部提取',
+    'palette_save_open': '保存调色板',
+    'palette_save_all': '全部保存',
+    'palette_image_count': '{count} 张图片',
+    'palette_duplicates': '重复：{count}',
+    'palette_excluded': '已排除：{count}（最多100张）',
+    'palette_limit': '已达到100张图片的上限。',
+    'palette_no_visible_colors': '此图片没有可见颜色。',
+    'palette_read_error': '无法读取此图片。',
+    'palette_source_protected': '请选择其他名称以保留批次中的原图。',
+})

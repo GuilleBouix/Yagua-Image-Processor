@@ -556,3 +556,44 @@ TRANSLATIONS.update({
     "remove_bg_contour": "Сжать / расширить",
     "remove_bg_apply_hint": "Повторите обработку, чтобы применить настройки."
 })
+
+TRANSLATIONS.update({
+    'crop_mode_ratio': 'Пропорции',
+    'crop_mode_dimensions': 'Размеры',
+    'crop_exact_hint': 'Точная обрезка по центру, без увеличения и заполнения.',
+    'crop_too_large': 'Размер обрезки превышает размер изображения.',
+    'save_omitted': 'Пропущено',
+    'save_result_omitted': 'Сохранено: {saved} · Пропущено: {skipped} · Ошибок: {errors}',
+})
+
+TRANSLATIONS.update({
+    'canvas_color': 'Цвет',
+    'canvas_choose_color': 'Выбрать цвет фона',
+    'canvas_png_notice': 'В PNG будет сохранено: {count}. Оригиналы сохранятся.',
+})
+
+TRANSLATIONS.update({
+    'status_saved': 'Сохранено: {count}',
+    'status_processed': 'Обработано: {count}',
+    'status_renamed': 'Переименовано: {count}',
+    'status_unchanged': 'Без изменений: {count}',
+    'status_omitted': 'Пропущено: {count}',
+    'status_errors': 'Ошибок: {count}',
+    'status_empty': 'Файлы не обработаны.',
+    'status_size_increased': 'Некоторые файлы стали больше.',
+    'status_exif_not_applied': 'EXIF не удалён: {count}',
+})
+
+TRANSLATIONS.update({
+    'palette_add_images': 'Добавить изображения',
+    'palette_extract_all': 'Извлечь все',
+    'palette_save_open': 'Сохранить палитру',
+    'palette_save_all': 'Сохранить все',
+    'palette_image_count': 'Изображений: {count}',
+    'palette_duplicates': 'Дубликаты: {count}',
+    'palette_excluded': 'Исключено: {count} (максимум 100)',
+    'palette_limit': 'Достигнут предел в 100 изображений.',
+    'palette_no_visible_colors': 'У изображения нет видимых цветов.',
+    'palette_read_error': 'Не удалось прочитать изображение.',
+    'palette_source_protected': 'Выберите другое имя, чтобы сохранить изображения пакета.',
+})

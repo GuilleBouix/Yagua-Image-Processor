@@ -39,7 +39,12 @@ def test_modules_construct_across_language_theme_scale(ui_root, monkeypatch, lan
                 frame.pack_forget()
                 frame.pack()
                 ui_root.update_idletasks()
-                frame.destroy()
+                # CTkScrollableFrame.destroy removes only its inner Tk window.
+                # Destroy its owning container too: otherwise each language/theme
+                # leaves ~100 empty canvases and scrollbars for root teardown.
+                outer = frame._parent_frame
+                frame.destroy()  # Cancel owned timers before dismantling the canvas.
+                outer.destroy()
     finally:
         ctk.ScalingTracker.window_widgets_dict.clear()
         ctk.set_widget_scaling(1.0)

@@ -20,6 +20,7 @@ import customtkinter as ctk
 from app.ui import colors, fonts, styles
 from app.translations import t
 from app.ui.operations import operations
+from app.ui.status import operation_summary
 from app.ui.frames.base import BaseFrame
 from app.ui.frames.ocr.services import batch_procesar, exportar_texto, ensure_reader
 from app.ui.frames.ocr.state import OcrState
@@ -389,13 +390,8 @@ class OcrFrame(BaseFrame):
 
         ok = res['ok']
         errores = res['errores']
-        suffix = t('files_loaded').capitalize() if ok > 1 else t('image_loaded')
-        msg = f'{ok} {suffix} {t("text_extracted")}'
-        if errores:
-            msg += f' - {errores} {t("error_occurred")}'
         avif_omitidos = res.get('avif_omitidos', 0)
-        if avif_omitidos:
-            msg += f' - {t("ocr_avif_requires_plugin")}'
+        msg = operation_summary(ok, errores, action='processed', skipped=avif_omitidos)
         self._lbl_info.configure(text=msg)
         logger.info("ocr.ui: finalizar_ok (ok=%s, errores=%s, avif_omitidos=%s)", ok, errores, avif_omitidos)
 

@@ -19,6 +19,7 @@ import customtkinter as ctk
 from app.ui import colors, fonts, styles
 from app.ui.scale import scale_wraplength
 from app.translations import t
+from app.ui.status import operation_summary
 from app.ui.preview import LivePreview
 from app.utils.saving import path_key
 from app.ui.operations import operations
@@ -437,14 +438,9 @@ class RemoveBgFrame(BaseFrame):
         self._hide_overlay()
         self._state.set_model_info(model_used, used_fallback)
         self._btn_procesar.configure(state='normal', text=t('remove_bg_btn'))
-        suffix = t('files_loaded').capitalize() if ok > 1 else t('image_loaded')
-        msg = f'{ok} {suffix} {t("processed")}'
-        if errores:
-            msg += f'  -  {errores} {t("error_occurred")}'
-        if conflictos:
-            msg += f'  -  {conflictos} {t("conflicts_renamed")}'
-        if self._state.used_fallback and self._state.model_used:
-            msg += f'  -  {t("remove_bg_fallback_notice").format(model=self._state.model_used)}'
+        msg = operation_summary(ok, errores, action='processed')
+        logger.info('remove_bg.ui: result ok=%s errors=%s fallback=%s model=%s',
+                    ok, errores, used_fallback, model_used)
         self._lbl_info.configure(text=msg)
 
     def _select_preview_file(self, path):

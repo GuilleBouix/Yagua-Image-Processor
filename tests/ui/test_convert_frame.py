@@ -22,5 +22,5 @@ def test_result_uses_current_language(ui_root, monkeypatch, language):
     frame = ConvertFrame(ui_root)
     for count in (0, 1, 2):
         frame._finalizar(count, 0, 'PNG')
-        noun = translations.t('image_loaded' if count == 1 else 'images_loaded')
-        assert frame._lbl_info.cget('text').startswith(f'{count} {noun} ')
+        expected = translations.t('status_saved').format(count=count) if count else translations.t('status_empty')
+        assert frame._lbl_info.cget('text') == expected

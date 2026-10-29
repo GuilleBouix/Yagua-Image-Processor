@@ -605,3 +605,44 @@ TRANSLATIONS.update({
     "remove_bg_contour": "Contract / expand",
     "remove_bg_apply_hint": "Process again to apply these settings."
 })
+
+TRANSLATIONS.update({
+    'crop_mode_ratio': 'Aspect ratio',
+    'crop_mode_dimensions': 'Dimensions',
+    'crop_exact_hint': 'Exact centered crop, without enlarging or padding.',
+    'crop_too_large': 'The crop exceeds this image’s dimensions.',
+    'save_omitted': 'Skipped',
+    'save_result_omitted': '{saved} saved · {skipped} skipped · {errors} errors',
+})
+
+TRANSLATIONS.update({
+    'canvas_color': 'Color',
+    'canvas_choose_color': 'Choose background color',
+    'canvas_png_notice': '{count} will be saved as PNG. Originals will be kept.',
+})
+
+TRANSLATIONS.update({
+    'status_saved': 'Saved: {count}',
+    'status_processed': 'Processed: {count}',
+    'status_renamed': 'Renamed: {count}',
+    'status_unchanged': 'Unchanged: {count}',
+    'status_omitted': 'Skipped: {count}',
+    'status_errors': 'Errors: {count}',
+    'status_empty': 'No files were processed.',
+    'status_size_increased': 'Some files are larger.',
+    'status_exif_not_applied': 'EXIF not removed: {count}',
+})
+
+TRANSLATIONS.update({
+    'palette_add_images': 'Add images',
+    'palette_extract_all': 'Extract all',
+    'palette_save_open': 'Save palette',
+    'palette_save_all': 'Save all',
+    'palette_image_count': '{count} images',
+    'palette_duplicates': 'Duplicates: {count}',
+    'palette_excluded': 'Excluded: {count} (maximum 100)',
+    'palette_limit': '100-image limit reached.',
+    'palette_no_visible_colors': 'This image has no visible colors.',
+    'palette_read_error': 'Could not read this image.',
+    'palette_source_protected': 'Choose another name to keep the batch images intact.',
+})

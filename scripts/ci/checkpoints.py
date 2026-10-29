@@ -96,7 +96,7 @@ def stage_files(stage: str, platform: str, names: list[str]) -> list[str]:
         'core': ('app/*', 'assets/*', 'legal/*', 'scripts/*', 'tests/*', 'requirements*',
                  '*.spec', '*.iss', '*.ini', 'packaging/*', '.github/workflows/*', 'LICENSE', '*.md'),
         'ui': ('app/*', 'assets/*', 'legal/*', 'tests/*',
-               'scripts/verify.py', 'requirements*', '*.ini'),
+               'scripts/verify.py', 'scripts/ci/partitions.py', 'requirements*', '*.ini'),
         'deliver': ('*',),
     }
     known = ('app/*', 'assets/*', 'legal/*', 'tests/*', 'docs/*', 'packaging/linux/*',
