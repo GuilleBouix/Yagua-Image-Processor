@@ -368,8 +368,9 @@ def test_format_padding_and_fit_in_small_real_workspace(ui_root, scale):
     previous = ctk.ScalingTracker.widget_scaling
     try:
         ctk.set_widget_scaling(scale)
-        ui_root.geometry('900x600')
         ui_root.deiconify()
+        ui_root.state('normal')
+        ui_root.geometry('900x600')
         window = MainWindow(ui_root, auto_updates=False)
         window.pack(fill='both', expand=True)
         window.show_module('convert')

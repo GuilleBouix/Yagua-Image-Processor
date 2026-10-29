@@ -165,6 +165,12 @@ Die Befehle verwenden die im Repository festgelegten Abhängigkeitsversionen. Di
 - **Produktfotos vorbereiten:** Lade bis zu 10 Bilder in Hintergrund entfernen und exportiere sie als PNG oder WebP, um Transparenz zu erhalten. Füge bei Bedarf mit Wasserzeichen ein transparentes PNG-Logo hinzu.
 - **Text extrahieren:** Lade bis zu 10 scharfe Bilder in OCR, wähle Spanisch, Englisch oder beides und kopiere das Ergebnis oder exportiere eine TXT-Datei. Die Oberflächensprache fügt keine OCR-Erkennungssprachen hinzu. Prüfe den Text auf Erkennungsfehler.
 
+### Vorschau und Einstellungen zur Hintergrundentfernung
+
+- **Skalieren / Zuschneiden / Leinwand:** Klicke auf eine Dateizeile, um ein Bild anzusehen; die Verarbeitung gilt weiterhin für den geladenen Stapel. Die Vorschau folgt dem sichtbaren Tab und zeigt ursprüngliche und endgültige Abmessungen. Breiten-/Höhenregler der Leinwand sind mit manuellen Eingaben synchronisiert. Die verkleinerte Vorschau zeigt die Bildaufteilung, nicht die endgültigen Pixeldetails.
+
+- **Hintergrund entfernen:** zeigt vor der Verarbeitung das Original und danach das gespeicherte Ergebnis. Kantenverfeinerung bietet Auto/Ja/Nein; Weißsaumreduzierung (0–100 %, anfangs 85 %) und Verkleinern/Erweitern des Umrisses (−5 bis +5 Originalpixel, anfangs 0) sind immer sichtbar. Auto erhält das bisherige Verhalten; weiße Säume werden bei erkannten gleichmäßigen hellen Hintergründen reduziert. Die Ausgabe bleibt transparent. Nach Änderungen erneut verarbeiten; keine zusätzlichen Modelldownloads.
+
 <a id="requirements"></a>
 
 ## Voraussetzungen und Grenzen

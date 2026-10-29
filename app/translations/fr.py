@@ -588,3 +588,21 @@ TRANSLATIONS.update({
     "legal_folder": "Ouvrir le dossier juridique",
     "legal_error": "Impossible d’ouvrir la ressource juridique locale."
 })
+
+TRANSLATIONS.update({
+    "preview_empty": "Ajoutez des images pour les prévisualiser",
+    "preview_error": "Impossible de charger l’aperçu",
+    "preview_original": "Original",
+    "preview_result": "Résultat",
+    "preview_dimensions": "{width} × {height} px → {out_width} × {out_height} px"
+})
+
+TRANSLATIONS.update({
+    "remove_bg_refine": "Affiner les contours",
+    "remove_bg_auto": "Auto",
+    "remove_bg_on": "Oui",
+    "remove_bg_off": "Non",
+    "remove_bg_halo": "Réduire le halo blanc",
+    "remove_bg_contour": "Contracter / étendre",
+    "remove_bg_apply_hint": "Relancez le traitement pour appliquer les réglages."
+})

@@ -8,7 +8,7 @@ Relacionado con:
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 import io
 import logging
 import os
@@ -17,7 +17,7 @@ import sys
 from typing import Callable
 
 import numpy as np
-from PIL import Image, ImageOps
+from PIL import Image, ImageOps, ImageFilter, ImageChops
 
 from app.utils.output import unique_output_path, atomic_destination, require_single_frame
 from app.utils.saving import get_plan, run_plan
@@ -39,13 +39,32 @@ _MODEL_READY: set[str] = set()
 
 @dataclass(frozen=True)
 class RemoveBgConfig:
-    """Configuracion interna del pipeline de remocion de fondo."""
+    """Opciones inmutables compartidas por inferencia y guardado del lote.
+
+    refine_edges: auto conserva el modo previo, on fuerza refinado y off lo omite.
+    halo_strength: intensidad 0–100, aplicada sólo en fondos claros uniformes.
+    edge_offset: píxeles originales −5..5; negativo contrae, positivo expande.
+    Los valores iniciales mantienen el resultado del pipeline anterior.
+    """
 
     model_name: str = DEFAULT_MODEL
     post_process_mask: bool = True
     alpha_matting_foreground_threshold: int = 250
     alpha_matting_background_threshold: int = 15
     alpha_matting_erode_size: int = 5
+    refine_edges: str = 'auto'
+    halo_strength: int = 85
+    edge_offset: int = 0
+
+    def __post_init__(self):
+        """Rechaza opciones fuera de rango antes de iniciar la inferencia."""
+        if self.refine_edges not in ('auto', 'on', 'off'):
+            raise ValueError('Invalid edge refinement mode')
+        if not isinstance(self.halo_strength, int) or not 0 <= self.halo_strength <= 100:
+            raise ValueError('Invalid halo strength')
+        if not isinstance(self.edge_offset, int) or not -5 <= self.edge_offset <= 5:
+            raise ValueError('Invalid edge offset')
+
 
 
 @dataclass(frozen=True)
@@ -203,6 +222,7 @@ def _to_pil_image(image_like) -> Image.Image:
 def _decontaminate_light_halo(
     imagen: Image.Image,
     background_rgb: tuple[int, int, int],
+    strength: int = 85,
 ) -> Image.Image:
     """Reduce el halo claro alrededor del sujeto segmentado."""
     rgba = np.asarray(imagen.convert('RGBA'), dtype=np.float32)
@@ -226,12 +246,34 @@ def _decontaminate_light_halo(
 
     distance_factor = np.clip((60.0 - distance) / 60.0, 0.0, 1.0)
     transparency_factor = np.clip((220.0 - alpha) / 220.0, 0.0, 1.0)
-    blend = 0.85 * distance_factor * transparency_factor
+    blend = (strength / 100) * distance_factor * transparency_factor
     blend = np.where(target, blend, 0.0)[..., None]
 
     rgb_refined = (rgb * (1.0 - blend)) + (corrected * blend)
     rgba[..., :3] = np.clip(rgb_refined, 0.0, 255.0)
     return Image.fromarray(rgba.astype(np.uint8), mode='RGBA')
+
+
+def _adjust_edge(result: Image.Image, original: Image.Image, offset: int) -> Image.Image:
+    """Ajusta alfa y recupera color original al expandir, sin bordes negros.
+
+    Opera en resolución original, con exterior transparente; no ejecuta IA.
+    """
+    if not offset:
+        return result
+    old_alpha = result.getchannel('A')
+    border = abs(offset)
+    kernel = 2 * border + 1
+    padded = ImageOps.expand(old_alpha, border=border, fill=0)
+    alpha = padded.filter(ImageFilter.MaxFilter(kernel) if offset > 0 else ImageFilter.MinFilter(kernel))
+    alpha = alpha.crop((border, border, border + result.width, border + result.height))
+    if offset > 0:
+        exposed = ImageChops.subtract(alpha, old_alpha).point(lambda value: 255 if value else 0)
+        result = Image.composite(original.convert('RGB'), result.convert('RGB'), exposed).convert('RGBA')
+    else:
+        result = result.copy()
+    result.putalpha(alpha)
+    return result
 
 
 def _process_image(
@@ -249,9 +291,10 @@ def _process_image(
 
     remove_kwargs = {
         'session': session,
-        'post_process_mask': config.post_process_mask,
+        'post_process_mask': config.post_process_mask and config.refine_edges != 'off',
     }
-    if analysis.is_light_uniform:
+    refine = config.refine_edges == 'on' or (config.refine_edges == 'auto' and analysis.is_light_uniform)
+    if refine:
         remove_kwargs.update(
             {
                 'alpha_matting': True,
@@ -262,10 +305,11 @@ def _process_image(
         )
 
     result = _to_pil_image(rembg_remove(imagen, **remove_kwargs)).convert('RGBA')
-    if analysis.is_light_uniform:
+    result = _adjust_edge(result, imagen, config.edge_offset)
+    if analysis.is_light_uniform and config.halo_strength:
         if status_callback:
             status_callback('refining_edges')
-        result = _decontaminate_light_halo(result, analysis.background_rgb)
+        result = _decontaminate_light_halo(result, analysis.background_rgb, config.halo_strength)
     return result, analysis
 
 
@@ -292,7 +336,8 @@ def _save_output(
     return ruta_final, conflicto
 
 
-def quitar_fondo(ruta_entrada, ruta_salida, formato_salida='PNG', *, destination=None, status_callback=None):
+def quitar_fondo(ruta_entrada, ruta_salida, formato_salida='PNG', *, destination=None, status_callback=None,
+                config: RemoveBgConfig | None = None):
     """
     Elimina el fondo de una imagen y exporta con transparencia.
 
@@ -300,6 +345,7 @@ def quitar_fondo(ruta_entrada, ruta_salida, formato_salida='PNG', *, destination
         ruta_entrada: Ruta de la imagen original.
         ruta_salida: Carpeta donde guardar el resultado.
         formato_salida: Formato de exportacion (PNG, WEBP, TIFF).
+        config: Opciones inmutables; None conserva los valores predeterminados.
 
     Returns:
         Diccionario con ruta_salida, tam_original, tam_resultado y metadata del pipeline.
@@ -307,7 +353,7 @@ def quitar_fondo(ruta_entrada, ruta_salida, formato_salida='PNG', *, destination
     try:
         rembg_remove, _ = _import_rembg()
         session, model_used, used_fallback = _get_processing_session()
-        config = RemoveBgConfig(model_name=model_used)
+        config = replace(config or RemoveBgConfig(), model_name=model_used)
 
         logger.info(
             "remove_bg: quitar_fondo inicio (entrada=%s, salida=%s, formato=%s, modelo=%s)",
@@ -352,7 +398,8 @@ def quitar_fondo(ruta_entrada, ruta_salida, formato_salida='PNG', *, destination
         raise
 
 
-def batch_quitar_fondo(rutas, carpeta_salida, formato_salida='PNG', status_callback=None, *, output_policy=None):
+def batch_quitar_fondo(rutas, carpeta_salida, formato_salida='PNG', status_callback=None, *, output_policy=None,
+                      config: RemoveBgConfig | None = None):
     """
     Elimina el fondo de multiples imagenes.
     Reutiliza la misma sesion para mayor eficiencia.
@@ -361,7 +408,9 @@ def batch_quitar_fondo(rutas, carpeta_salida, formato_salida='PNG', status_callb
         rutas: Lista de rutas de imagenes.
         carpeta_salida: Carpeta donde guardar los resultados.
         formato_salida: Formato de exportacion (PNG, WEBP, TIFF).
+        config: Opciones inmutables; None conserva los valores predeterminados.
         status_callback: Callback opcional para reportar estados internos.
+        config: Snapshot opcional de ajustes aplicado a todas las entradas.
 
     Returns:
         Diccionario con ok, errores, resultados, conflictos y metadata del modelo usado.
@@ -370,14 +419,15 @@ def batch_quitar_fondo(rutas, carpeta_salida, formato_salida='PNG', status_callb
         limited = tuple(rutas)[:MAX_IMAGENES]
         result = run_plan(get_plan(output_policy, limited, carpeta_salida, formato_salida),
                          lambda source, target: quitar_fondo(source, carpeta_salida, formato_salida,
-                             destination=target, status_callback=status_callback))
+                             destination=target, status_callback=status_callback,
+                             **({'config': config} if config is not None else {})))
         saved = next((row for row in result['resultados'] if row['estado'] == 'saved'), {})
         result.update(model_used=saved.get('model_used'), used_fallback=saved.get('used_fallback', False))
         return result
     fallos: list[FileFailure] = []
     rembg_remove, _ = _import_rembg()
     session, model_used, used_fallback = _get_processing_session()
-    config = RemoveBgConfig(model_name=model_used)
+    config = replace(config or RemoveBgConfig(), model_name=model_used)
 
     logger.info(
         "remove_bg: batch_inicio (cantidad=%s, carpeta=%s, formato=%s, modelo=%s)",

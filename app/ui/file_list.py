@@ -24,13 +24,15 @@ from app.ui.rendering import VirtualRows, PooledRow, configure_changed
 
 class FileList:
     """File rows recycled as the viewport scrolls, with progressive thumbnails."""
-    def __init__(self, container, filas, thumbs, *, corner_radius=8, design_system=False):
+    def __init__(self, container, filas, thumbs, *, corner_radius=8, design_system=False, on_select=None):
         """Inicializa filas, selección y callbacks de la lista."""
         self.filas, self.thumbs = filas, thumbs
         self.corner_radius = corner_radius
         self.design_system = design_system
         self.generation = 0
         self.statuses = {}
+        self.on_select = on_select
+        self.selected = None
         for child in container.winfo_children():
             child.pack_forget()
             child.grid_forget()
@@ -62,11 +64,34 @@ class FileList:
             row.photo = None
             row.request_key = None
         row.release = release
+        if self.on_select is not None:
+            for widget in (row, row.thumb, row.name_label, row.info_label):
+                widget.bind('<Button-1>', lambda event, row=row: self.select(row.key))
+            row._canvas.configure(takefocus=1)
+            row.bind('<Return>', lambda event: self.select(row.key), add=True)
+            row.bind('<space>', lambda event: self.select(row.key), add=True)
         return row
+
+    def select(self, key):
+        """Inspect a file without changing the batch being processed."""
+        if self.on_select is None or key not in self.virtual.keys:
+            return
+        previous = self.selected
+        if key != previous and self.on_select(key[0]) is False:
+            return
+        self.selected = key
+        for item in (previous, key):
+            if item is not None:
+                self.virtual.refresh(item)
 
     def _render(self, row, key):
         """Dibuja las filas visibles a partir del estado de selección."""
         path, _occurrence = key
+        if self.on_select is not None:
+            from app.ui.styles import palette as get_palette
+            palette = get_palette()
+            configure_changed(row, border_width=1,
+                              border_color=palette.text if key == self.selected else palette.border)
         request_key = (self.generation, key)
         if row.request_key == request_key:
             return
@@ -103,6 +128,12 @@ class FileList:
             seen[path] = occurrence + 1
             keys.append((path, occurrence))
         self.virtual.sync(keys)
+        if self.on_select is not None and self.selected not in keys:
+            self.selected = None
+            if keys:
+                self.select(keys[0])
+            else:
+                self.on_select('')
         if keys:
             self.empty.pack_forget()
         else:

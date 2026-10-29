@@ -169,6 +169,12 @@ Os comandos usam as dependências fixadas pelo repositório. As verificações d
 - **Preparar fotos de produtos:** Carregue até 10 imagens em Remover fundo e exporte como PNG ou WebP para manter a transparência. Se necessário, adicione um logo PNG transparente com Marca d'água.
 - **Extrair texto:** Carregue até 10 imagens nítidas no OCR, escolha espanhol, inglês ou ambos e copie o resultado ou exporte um TXT. O idioma da interface não adiciona idiomas de reconhecimento ao OCR. Revise o texto para corrigir erros de reconhecimento.
 
+### Prévias e ajustes de remoção de fundo
+
+- **Redimensionar / Recortar / Tela:** clique em uma linha para inspecionar a imagem; o processamento continua abrangendo o lote carregado. A prévia acompanha a aba visível e mostra as dimensões originais e finais. A tela tem sliders de largura/altura sincronizados com os campos manuais. A prévia reduzida mostra a composição, não o detalhe final pixel a pixel.
+
+- **Remover fundo:** mostra o original antes do processamento e o resultado salvo depois. Refinar bordas oferece Auto/Sim/Não; redução de halo branco (0–100%, inicial 85%) e contração/expansão do contorno (−5 a +5 pixels do original, inicial 0) ficam sempre visíveis. Auto mantém o comportamento atual; o halo é reduzido em fundos claros uniformes detectados. A saída mantém transparência. Processe novamente após alterar os ajustes; não são baixados modelos adicionais.
+
 <a id="requirements"></a>
 
 ## Requisitos e limites

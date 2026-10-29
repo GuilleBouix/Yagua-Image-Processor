@@ -538,3 +538,21 @@ TRANSLATIONS.update({
     "legal_folder": "ライセンスフォルダーを開く",
     "legal_error": "ローカルのライセンス資料を開けませんでした。"
 })
+
+TRANSLATIONS.update({
+    "preview_empty": "画像を追加してプレビュー",
+    "preview_error": "プレビューを読み込めませんでした",
+    "preview_original": "元の画像",
+    "preview_result": "結果",
+    "preview_dimensions": "{width} × {height} px → {out_width} × {out_height} px"
+})
+
+TRANSLATIONS.update({
+    "remove_bg_refine": "輪郭を調整",
+    "remove_bg_auto": "自動",
+    "remove_bg_on": "はい",
+    "remove_bg_off": "いいえ",
+    "remove_bg_halo": "白い縁を軽減",
+    "remove_bg_contour": "縮小 / 拡張",
+    "remove_bg_apply_hint": "設定を適用するには、もう一度処理してください。"
+})

@@ -33,8 +33,12 @@ def wait_for(root, condition):
 
 
 def prepare_window(root, geometry):
-    root.geometry(geometry)
     root.deiconify()
+    # On Windows a newly mapped CTkToplevel can inherit the desktop's maximized
+    # state. Normalize it before requesting the test geometry so viewport checks
+    # measure the intended workspace instead of the monitor size.
+    root.state('normal')
+    root.geometry(geometry)
     width, height = map(int, geometry.split('x'))
     # CTk locks the old top-level dimensions for 1000 ms after scaling.
     # Match the real app: resize the window before entering a module.

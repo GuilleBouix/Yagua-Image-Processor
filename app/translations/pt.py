@@ -587,3 +587,21 @@ TRANSLATIONS.update({
     "legal_folder": "Abrir pasta legal",
     "legal_error": "Não foi possível abrir o recurso legal local."
 })
+
+TRANSLATIONS.update({
+    "preview_empty": "Adicione imagens para visualizar",
+    "preview_error": "Não foi possível carregar a prévia",
+    "preview_original": "Original",
+    "preview_result": "Resultado",
+    "preview_dimensions": "{width} × {height} px → {out_width} × {out_height} px"
+})
+
+TRANSLATIONS.update({
+    "remove_bg_refine": "Refinar bordas",
+    "remove_bg_auto": "Auto",
+    "remove_bg_on": "Sim",
+    "remove_bg_off": "Não",
+    "remove_bg_halo": "Reduzir halo branco",
+    "remove_bg_contour": "Contrair / expandir",
+    "remove_bg_apply_hint": "Processe novamente para aplicar os ajustes."
+})

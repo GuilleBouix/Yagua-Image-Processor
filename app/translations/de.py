@@ -571,3 +571,21 @@ TRANSLATIONS.update({
     "legal_folder": "Lizenzordner öffnen",
     "legal_error": "Die lokale Lizenzressource konnte nicht geöffnet werden."
 })
+
+TRANSLATIONS.update({
+    "preview_empty": "Bilder für die Vorschau hinzufügen",
+    "preview_error": "Vorschau konnte nicht geladen werden",
+    "preview_original": "Original",
+    "preview_result": "Ergebnis",
+    "preview_dimensions": "{width} × {height} px → {out_width} × {out_height} px"
+})
+
+TRANSLATIONS.update({
+    "remove_bg_refine": "Kanten verfeinern",
+    "remove_bg_auto": "Auto",
+    "remove_bg_on": "Ja",
+    "remove_bg_off": "Nein",
+    "remove_bg_halo": "Weißen Saum reduzieren",
+    "remove_bg_contour": "Verkleinern / erweitern",
+    "remove_bg_apply_hint": "Erneut verarbeiten, um die Einstellungen anzuwenden."
+})

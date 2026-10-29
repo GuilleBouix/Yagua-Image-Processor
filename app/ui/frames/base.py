@@ -295,6 +295,12 @@ class BaseFrame(UiLifetime, ctk.CTkScrollableFrame):
         except Exception:
             logger.debug("%s: viewport height sync omitido", self.__class__.__name__, exc_info=True)
 
+    def _settle_preview_layout(self):
+        """Opt-in preview preparation after the initial workspace has reflowed."""
+        previous = getattr(self, '_viewport_height', None)
+        self._sync_viewport_height()
+        return previous != getattr(self, '_viewport_height', None)
+
     def _ensure_full_overlay(self):
         """Crea overlay full-frame si no existe."""
         if self._full_overlay_frame:
@@ -626,7 +632,8 @@ class BaseFrame(UiLifetime, ctk.CTkScrollableFrame):
         from app.ui.file_list import FileList
         if not hasattr(self, '_virtual_file_list'):
             self._virtual_file_list = FileList(self._lista_frame, self._filas_lista, self._thumbs,
-                                               design_system=self.design_system)
+                                               design_system=self.design_system,
+                                               on_select=getattr(self, '_select_preview_file', None))
         self._virtual_file_list.statuses.clear()
         self._virtual_file_list.sync(rutas)
 

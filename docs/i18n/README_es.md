@@ -169,6 +169,16 @@ Estos comandos usan las dependencias fijadas por el repositorio. Las comprobacio
 - **Preparar fotos de productos:** Cargá hasta 10 imágenes en Quitar fondo y exportá como PNG o WebP para mantener la transparencia. Si hace falta, agregá un logo PNG transparente con Marca de agua.
 - **Extraer texto:** Cargá hasta 10 imágenes nítidas en OCR, elegí español, inglés o ambos y copiá el resultado o exportá un TXT. El idioma de la interfaz no agrega idiomas de reconocimiento OCR. Revisá el texto por posibles errores de reconocimiento.
 
+### Previews y ajustes de quitar fondo
+
+- **Redimensionar / Recortar / Lienzo:** hacé clic en una fila para inspeccionar su imagen; el procesamiento sigue aplicándose al lote cargado. La preview responde a la pestaña visible y muestra las dimensiones originales y finales. Lienzo incorpora sliders de ancho/alto sincronizados con los inputs manuales. La preview reducida muestra la composición, no el detalle final píxel a píxel.
+
+Detalles de uso e implementación: [Previews y ajustes de Quitar Fondo](../PREVIEWS_AND_BACKGROUND.md).
+
+- **Quitar fondo:** muestra el original antes de procesar y el resultado guardado después. Refinar bordes ofrece Auto/Sí/No; la reducción de halo blanco (0–100 %, inicial 85 %) y contraer/expandir el contorno (−5 a +5 píxeles del original, inicial 0) están siempre visibles. Auto mantiene el comportamiento actual; el halo se reduce en fondos claros uniformes detectados. La salida conserva transparencia. Volvé a procesar al cambiar estos ajustes; no se descargan modelos adicionales.
+
+Detalles de implementación y validación: [Previews y ajustes de Quitar Fondo](../PREVIEWS_AND_BACKGROUND.md).
+
 <a id="requirements"></a>
 
 ## Requisitos y límites

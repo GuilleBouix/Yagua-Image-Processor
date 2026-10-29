@@ -24,6 +24,7 @@ import customtkinter as ctk
 from app.ui import colors, fonts, styles
 from app.translations import t
 from app.ui.frames.base import BaseFrame
+from app.ui.preview import LivePreview
 from app.ui.rendering import activate_tab
 from app.ui.frames.resize.services import (
     batch_redimensionar,
@@ -50,6 +51,7 @@ class ResizeFrame(BaseFrame):
         """Prepara el estado y la construcción diferida del módulo."""
         logger.info("resize.ui: init")
         self._state = ResizeState()
+        self._preview_active_path = ''
         super().__init__(parent, t('resize_title'), defer_build=defer_build)
 
     def _prepare_additional_steps(self):
@@ -60,6 +62,11 @@ class ResizeFrame(BaseFrame):
 
     def _on_build_complete(self):
         """Conecta validación y acciones tras construir los controles."""
+        for variable in (self._state.modo_resize, self._state.pct_var, self._state.mantener_ratio,
+                         self._state.preset_var, self._state.ratio_var, self._state.color_fondo,
+                         self._state.width_var, self._state.height_var,
+                         self._state.canvas_width_var, self._state.canvas_height_var):
+            variable.trace_add('write', self._update_preview)
         self._scrollbar.configure(corner_radius=0, width=6, border_spacing=1)
         if isinstance(self._lista_frame, ctk.CTkScrollableFrame):
             self._lista_frame._scrollbar.configure(corner_radius=0, width=6, border_spacing=1)
@@ -71,9 +78,12 @@ class ResizeFrame(BaseFrame):
         yield
         izquierda, derecha = self._crear_workspace()
         yield
-        izquierda.grid_rowconfigure(3, weight=1)
+        izquierda.grid_rowconfigure(4, weight=1)
         yield
-        derecha.grid_rowconfigure(1, weight=1)
+        derecha.grid_rowconfigure(0, weight=1)
+        self._preview = LivePreview(derecha, settle=self._settle_preview_layout)
+        self._preview.grid(row=0, column=0, padx=16, pady=16, sticky='nsew')
+        yield
         yield
 
         self._tab = styles.SegmentedButton(
@@ -93,24 +103,11 @@ class ResizeFrame(BaseFrame):
         self._btn_seleccionar.grid(row=1, column=0, padx=16, pady=(0, 8), sticky='ew')
         yield
 
-        ctk.CTkLabel(
-            derecha, text=t('files_loaded').capitalize(), font=fonts.FUENTE_BASE,
-            text_color=colors.TEXT_COLOR, anchor='w'
-        ).grid(row=0, column=0, padx=16, pady=(16, 8), sticky='w')
+        self._lista_frame = self._crear_lista_archivos(izquierda, height=180)
         yield
-        self._lista_frame = self._crear_lista_archivos(derecha, height=420)
+        self._lista_frame.grid(row=4, column=0, padx=16, pady=(0, 16), sticky='nsew')
         yield
-        self._lista_frame.grid(row=1, column=0, padx=16, pady=(0, 16), sticky='nsew')
-        yield
-        self._lista_frame.grid_columnconfigure(0, weight=1)
-        yield
-
-        self._lbl_lista_vacia = ctk.CTkLabel(
-            self._lista_frame,
-            text=t('no_images'),
-            font=fonts.FUENTE_CHICA,
-            text_color=colors.TEXT_GRAY
-        )
+        self._lbl_lista_vacia = self._crear_lista_vacia(self._lista_frame)
         yield
         self._lbl_lista_vacia.pack(pady=12)
         yield
@@ -291,7 +288,7 @@ class ResizeFrame(BaseFrame):
 
             self._entry_ancho = styles.Entry(
                 fc, width=90, font=fonts.FUENTE_BASE,
-                placeholder_text='1920',
+                placeholder_text='1920', textvariable=self._state.width_var,
             )
             yield
             self._entry_ancho.grid(row=0, column=1, padx=(0, 16))
@@ -305,7 +302,7 @@ class ResizeFrame(BaseFrame):
 
             self._entry_alto = styles.Entry(
                 fc, width=90, font=fonts.FUENTE_BASE,
-                placeholder_text='1080',
+                placeholder_text='1080', textvariable=self._state.height_var,
             )
             yield
             self._entry_alto.grid(row=0, column=3)
@@ -397,43 +394,41 @@ class ResizeFrame(BaseFrame):
         panel.grid_columnconfigure(1, weight=1)
         yield
 
-        ctk.CTkLabel(
-            panel, text=t('size'), font=fonts.FUENTE_BASE,
-            text_color=colors.TEXT_GRAY, anchor='w'
-        ).grid(row=0, column=0, padx=(16, 12), pady=(16, 8), sticky='w')
+        panel.grid_columnconfigure(2, weight=0)
         yield
-
-        fila_dim = ctk.CTkFrame(panel, fg_color='transparent', corner_radius=0)
+        self._canvas_sliders = {}
         yield
-        fila_dim.grid(row=0, column=1, padx=(0, 16), pady=(16, 8), sticky='w')
-        yield
-
-        self._canvas_ancho = styles.Entry(
-            fila_dim, width=80, font=fonts.FUENTE_BASE,
-            placeholder_text='1080',
-        )
-        yield
-        self._canvas_ancho.pack(side='left', padx=(0, 8))
-        yield
-
-        ctk.CTkLabel(
-            fila_dim, text=t('x_symbol'), font=fonts.FUENTE_BASE,
-            text_color=colors.TEXT_GRAY
-        ).pack(side='left', padx=(0, 8))
-        yield
-
-        self._canvas_alto = styles.Entry(
-            fila_dim, width=80, font=fonts.FUENTE_BASE,
-            placeholder_text='1080',
-        )
-        yield
-        self._canvas_alto.pack(side='left')
-        yield
+        for row, (key, variable) in enumerate((('width', self._state.canvas_width_var),
+                                               ('height', self._state.canvas_height_var))):
+            ctk.CTkLabel(panel, text=t(key), font=fonts.FUENTE_BASE,
+                         text_color=colors.TEXT_GRAY, anchor='w').grid(
+                row=row, column=0, padx=(16, 12), pady=(16 if row == 0 else 8, 8), sticky='w')
+            yield
+            slider = ctk.CTkSlider(panel, from_=1, to=8192, number_of_steps=8191,
+                button_color=colors.ACENTO, button_hover_color=colors.ACENTO_HOVER,
+                progress_color=colors.ACENTO, fg_color=styles.palette().border,
+                command=lambda value, variable=variable: variable.set(str(round(value))))
+            yield
+            slider.set(int(variable.get()))
+            slider.grid(row=row, column=1, padx=(0, 12), pady=(16 if row == 0 else 8, 8), sticky='ew')
+            yield
+            entry = styles.Entry(panel, width=80, font=fonts.FUENTE_BASE, textvariable=variable)
+            yield
+            entry.grid(row=row, column=2, padx=(0, 16), pady=(16 if row == 0 else 8, 8), sticky='e')
+            yield
+            if key == 'width':
+                self._canvas_ancho = entry
+            else:
+                self._canvas_alto = entry
+            self._canvas_sliders[key] = slider
+            variable.trace_add('write', lambda *_, variable=variable, slider=slider:
+                               self._sync_canvas_slider(variable, slider))
+            yield
 
         ctk.CTkLabel(
             panel, text=t('background'), font=fonts.FUENTE_BASE,
             text_color=colors.TEXT_GRAY, anchor='w'
-        ).grid(row=1, column=0, padx=(16, 12), pady=8, sticky='w')
+        ).grid(row=2, column=0, padx=(16, 12), pady=8, sticky='w')
         yield
 
         styles.SegmentedButton(
@@ -442,7 +437,7 @@ class ResizeFrame(BaseFrame):
             variable=self._state.color_fondo,
             font=fonts.FUENTE_CHICA,
             command=self._actualizar_fondo_opciones
-        ).grid(row=1, column=1, padx=(0, 16), pady=8, sticky='w')
+        ).grid(row=2, column=1, padx=(0, 16), pady=8, sticky='w')
         yield
 
         self._lbl_aviso_fondo = ctk.CTkLabel(
@@ -452,7 +447,7 @@ class ResizeFrame(BaseFrame):
         )
         yield
         self._lbl_aviso_fondo.grid(
-            row=2, column=0, columnspan=2, padx=16, pady=(0, 4), sticky='w'
+            row=3, column=0, columnspan=3, padx=16, pady=(0, 4), sticky='w'
         )
         yield
 
@@ -463,7 +458,7 @@ class ResizeFrame(BaseFrame):
         )
         yield
         self._btn_canvas.grid(
-            row=2, column=0, columnspan=2, padx=16, pady=(0, 16), sticky='ew'
+            row=4, column=0, columnspan=3, padx=16, pady=(0, 16), sticky='ew'
         )
         yield
         return f
@@ -493,6 +488,7 @@ class ResizeFrame(BaseFrame):
         if self._limite_msg:
             msg += f'  -  {self._limite_msg}'
         self._lbl_info.configure(text=msg)
+        self._update_preview(force=True)
         logger.info("resize.ui: imagenes cargadas (mostradas=%s)", len(self._imagenes))
 
     def _cambiar_tab(self, tab: str):
@@ -503,6 +499,7 @@ class ResizeFrame(BaseFrame):
         """
         logger.info("resize.ui: cambiar_tab (%s)", tab)
         activate_tab(self._frames, tab)
+        self._update_preview()
 
     def _ejecutar_resize(self):
         """Construye el trabajo de redimensionado con las opciones capturadas."""
@@ -585,6 +582,9 @@ class ResizeFrame(BaseFrame):
         if self._operation_blocked(global_job=False):
             return
         super()._limpiar()
+        self._state.imagenes = []
+        self._preview_active_path = ''
+        self._preview.show(force=True)
 
     def _actualizar_fondo_opciones(self, valor: str):
         """Mostrar aviso si se elige transparencia con imagenes incompatibles.
@@ -600,3 +600,79 @@ class ResizeFrame(BaseFrame):
                 self._lbl_aviso_fondo.configure(text=t('warning_transparency'))
                 return
         self._lbl_aviso_fondo.configure(text='')
+
+    def _select_preview_file(self, path):
+        """Cambia la imagen inspeccionada sin modificar las entradas del lote."""
+        if self._operation_blocked():
+            return False
+        self._preview_active_path = path
+        self._update_preview()
+
+    def _update_preview(self, *_, force=False):
+        """Valida controles y captura la geometría de la pestaña visible."""
+        if not hasattr(self, '_preview'):
+            return
+        path = self._preview_active_path
+        if not path:
+            self._preview.show()
+            return
+        from app.modules.resize import RATIOS, preset_a_dimensiones
+        try:
+            tab = self._tab.get()
+            if tab == t('crop_tab'):
+                spec = dict(kind='crop', ratio=RATIOS[self._state.ratio_var.get()])
+            elif tab == t('canvas_tab'):
+                width = int(self._state.canvas_width_var.get())
+                height = int(self._state.canvas_height_var.get())
+                if min(width, height) < 1:
+                    raise ValueError('invalid_dimensions')
+                background, _ = canvas_color_for_choice(
+                    self._state.canvas_choice_map[self._state.color_fondo.get()],
+                    any_supports_transparency(self._imagenes))
+                spec = dict(kind='canvas', size=(width, height), background=background)
+            else:
+                mode = self._state.modo_resize.get()
+                if mode == t('percentage'):
+                    options = dict(porcentaje=self._state.pct_var.get())
+                elif mode == t('preset'):
+                    options = dict(preset=preset_a_dimensiones(self._state.preset_var.get()))
+                else:
+                    width = int(self._state.width_var.get()) if self._state.width_var.get() else None
+                    height = int(self._state.height_var.get()) if self._state.height_var.get() else None
+                    if (width is None and height is None) or any(v is not None and v < 1 for v in (width, height)):
+                        raise ValueError('invalid_dimensions')
+                    options = dict(ancho=width, alto=height, mantener_ratio=self._state.mantener_ratio.get())
+                spec = dict(kind='resize', options=options)
+        except (ValueError, KeyError):
+            self._preview.show(path, error=t('invalid_dimensions'), force=True)
+            return
+        self._preview.show(path, spec, debounce=150, force=force)
+
+    def _finish_save(self, result, *, strip=False):
+        """Actualiza salidas e invalida el render tras posibles sobrescrituras."""
+        super()._finish_save(result, strip=strip)
+        self._update_preview(force=True)
+
+    def on_view_shown(self):
+        """Retoma la preview sólo cuando el módulo está visible."""
+        super().on_view_shown()
+        if hasattr(self, '_preview'):
+            self._preview.set_visible(True)
+
+    def on_view_hidden(self):
+        """Suspende renders ocultos sin reconstruir controles ni pestañas."""
+        if hasattr(self, '_preview'):
+            self._preview.set_visible(False)
+
+    def _sync_canvas_slider(self, variable, slider):
+        """Sincroniza valores manuales válidos; conserva entradas incompletas."""
+        try:
+            value = int(variable.get())
+        except ValueError:
+            return
+        if value < 1:
+            return
+        upper = max(8192, value)
+        if slider.cget('to') != upper:
+            slider.configure(to=upper, number_of_steps=upper - 1)
+        slider.set(value)

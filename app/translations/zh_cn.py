@@ -538,3 +538,21 @@ TRANSLATIONS.update({
     "legal_folder": "打开法律资料文件夹",
     "legal_error": "无法打开本地法律资料。"
 })
+
+TRANSLATIONS.update({
+    "preview_empty": "添加图像以预览",
+    "preview_error": "无法加载预览",
+    "preview_original": "原图",
+    "preview_result": "结果",
+    "preview_dimensions": "{width} × {height} px → {out_width} × {out_height} px"
+})
+
+TRANSLATIONS.update({
+    "remove_bg_refine": "优化边缘",
+    "remove_bg_auto": "自动",
+    "remove_bg_on": "是",
+    "remove_bg_off": "否",
+    "remove_bg_halo": "减少白边",
+    "remove_bg_contour": "收缩 / 扩展",
+    "remove_bg_apply_hint": "请重新处理以应用这些设置。"
+})

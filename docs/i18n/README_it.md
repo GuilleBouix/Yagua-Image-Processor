@@ -169,6 +169,12 @@ I comandi usano le dipendenze con versioni fissate nel repository. I controlli C
 - **Preparare foto di prodotti:** Carica fino a 10 immagini in Rimuovere lo sfondo ed esportale in PNG o WebP per mantenere la trasparenza. Se necessario, aggiungi un logo PNG trasparente con Filigrana.
 - **Estrarre testo:** Carica fino a 10 immagini nitide nell’OCR, scegli spagnolo, inglese o entrambe le lingue, poi copia il risultato o esporta un file TXT. La lingua dell’interfaccia non aggiunge lingue di riconoscimento OCR. Controlla eventuali errori nel testo riconosciuto.
 
+### Anteprime e regolazioni della rimozione sfondo
+
+- **Ridimensiona / Ritaglia / Tela:** fai clic su una riga per esaminare l’immagine; l’elaborazione riguarda sempre il lotto caricato. L’anteprima segue la scheda visibile e mostra le dimensioni originali e finali. I cursori larghezza/altezza della tela sono sincronizzati con i campi manuali. L’anteprima ridotta mostra la composizione, non il dettaglio finale dei pixel.
+
+- **Rimuovi sfondo:** mostra l’originale prima dell’elaborazione e il risultato salvato dopo. Rifinisci bordi offre Auto/Sì/No; riduzione dell’alone bianco (0–100%, inizialmente 85%) e contrazione/espansione del contorno (−5 a +5 pixel originali, inizialmente 0) sono sempre visibili. Auto mantiene il comportamento precedente; l’alone viene ridotto sugli sfondi chiari uniformi rilevati. L’output resta trasparente. Elabora di nuovo dopo le modifiche; nessun modello aggiuntivo viene scaricato.
+
 <a id="requirements"></a>
 
 ## Requisiti e limiti

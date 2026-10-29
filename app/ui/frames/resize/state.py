@@ -20,6 +20,10 @@ class ResizeState:
     def __init__(self):
         """Inicializa los valores de redimensionado, recorte y lienzo."""
         self.imagenes: list[str] = []
+        self.width_var = ctk.StringVar(value='')
+        self.height_var = ctk.StringVar(value='')
+        self.canvas_width_var = ctk.StringVar(value='1080')
+        self.canvas_height_var = ctk.StringVar(value='1080')
         self.modo_resize: ctk.StringVar = ctk.StringVar(value=t('percentage'))
         self.mantener_ratio: ctk.BooleanVar = ctk.BooleanVar(value=True)
         self.pct_var: ctk.IntVar = ctk.IntVar(value=50)

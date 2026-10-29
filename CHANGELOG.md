@@ -13,6 +13,15 @@ Todos los cambios notables del proyecto se documentan en este archivo.
 - Compresión que descarta resultados iguales o mayores que el original; el módulo Comprimir ya no ofrece eliminar EXIF.
 - Nueve idiomas de interfaz y acceso a la web oficial y su documentación.
 
+### Previews y ajustes de imagen
+
+- Preview compartida de Redimensionar, Recortar y Canvas, con selección por fila, dimensiones originales/finales, orientación EXIF y transparencia sobre damero. La imagen inspeccionada no cambia el lote de procesamiento.
+- Sliders de ancho y alto de Canvas sincronizados con inputs manuales; preview acotada incluso para lienzos grandes y sin escribir archivos al cambiar controles.
+- Quitar Fondo muestra el original antes de procesar y la salida guardada después, también cuando Windows utiliza separadores distintos en las rutas de entrada y resultado.
+- Refinado de bordes Auto/Sí/No, reducción de halo blanco y contracción/expansión del contorno siempre visibles. Los valores iniciales conservan el comportamiento anterior; salida transparente, sin selector de color ni modelos o dependencias nuevos.
+- Caché compartida de 64 MiB, render en segundo plano, descarte de respuestas antiguas y preparación estable de la geometría antes de dibujar. Controles reutilizados y textos en los nueve idiomas.
+- Uso, límites, contratos internos y reproducción de pruebas: [Previews y ajustes de Quitar Fondo](docs/PREVIEWS_AND_BACKGROUND.md).
+
 ### Actualizaciones y migración desde las RC
 
 - El actualizador de 2.0.0 consulta el repositorio oficial Yagua-Image-Processor y ofrece únicamente versiones estables superiores de la misma plataforma. Descarta borradores y versiones preliminares, aunque el tag y la marca de GitHub no coincidan.

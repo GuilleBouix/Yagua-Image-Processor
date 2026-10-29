@@ -19,11 +19,14 @@ import customtkinter as ctk
 from app.ui import colors, fonts, styles
 from app.ui.scale import scale_wraplength
 from app.translations import t
+from app.ui.preview import LivePreview
+from app.utils.saving import path_key
 from app.ui.operations import operations
 from app.ui.frames.base import BaseFrame
 from app.ui.frames.remove_bg.state import RemoveBgState
 from app.ui.frames.remove_bg.services import (
     batch_quitar_fondo,
+    RemoveBgConfig,
     ensure_model,
     estado_rembg,
     modelo_descargado,
@@ -46,6 +49,12 @@ class RemoveBgFrame(BaseFrame):
         """Inicializa el frame."""
         self._formato_salida: ctk.StringVar = ctk.StringVar(value='PNG')
         self._state = RemoveBgState()
+        self._refine_edges = ctk.StringVar(value=t('remove_bg_auto'))
+        self._halo_strength = ctk.IntVar(value=85)
+        self._edge_offset = ctk.IntVar(value=0)
+        self._preview_active_path = ''
+        self._preview_outputs = {}
+        self._preview_errors = {}
         self._lbl_error_dependencia = None
         self._entry_dependencia_cmd = None
         self._btn_copiar_comando = None
@@ -102,21 +111,17 @@ class RemoveBgFrame(BaseFrame):
             return
 
         izquierda, derecha = self._crear_workspace()
-        derecha.grid_rowconfigure(1, weight=1)
+        izquierda.grid_rowconfigure(2, weight=1)
+        derecha.grid_rowconfigure(0, weight=1)
+        self._preview = LivePreview(derecha, settle=self._settle_preview_layout)
+        self._preview.grid(row=0, column=0, padx=16, pady=16, sticky='nsew')
 
         # Boton seleccionar
         self._btn_seleccionar = self._crear_boton_seleccionar(izquierda)
         self._btn_seleccionar.grid(row=0, column=0, padx=16, pady=(16, 8), sticky='ew')
 
-        ctk.CTkLabel(
-            derecha, text=t('files_loaded').capitalize(), font=fonts.FUENTE_BASE,
-            text_color=colors.TEXT_COLOR, anchor='w'
-        ).grid(row=0, column=0, padx=16, pady=(16, 8), sticky='w')
-        self._lista_frame = self._crear_lista_archivos(derecha, height=420)
-        self._lista_frame._scrollbar.configure(corner_radius=0, width=6, border_spacing=1)
-        self._lista_frame.grid(row=1, column=0, padx=16, pady=(0, 16), sticky='nsew')
-        self._lista_frame.grid_columnconfigure(0, weight=1)
-
+        self._lista_frame = self._crear_lista_archivos(izquierda, height=160)
+        self._lista_frame.grid(row=2, column=0, padx=16, pady=(0, 16), sticky='nsew')
         self._lbl_lista_vacia = self._crear_lista_vacia(self._lista_frame)
         self._lbl_lista_vacia.pack(pady=12)
 
@@ -151,8 +156,10 @@ class RemoveBgFrame(BaseFrame):
             font=fonts.FUENTE_CHICA,
         ).grid(row=1, column=1, padx=(0, 16), pady=(0, 8), sticky='w')
 
+        self._build_processing_controls(panel)
+
         # Boton procesar
-        for _ in self._build_save_selector(panel, 2, columnspan=2):
+        for _ in self._build_save_selector(panel, 4, columnspan=2):
             pass
 
         self._btn_procesar = self._new_button(
@@ -163,7 +170,7 @@ class RemoveBgFrame(BaseFrame):
             command=self._procesar
         )
         self._btn_procesar.grid(
-            row=3, column=0, columnspan=2,
+            row=5, column=0, columnspan=2,
             padx=16, pady=(0, 16), sticky='ew'
         )
 
@@ -345,7 +352,10 @@ class RemoveBgFrame(BaseFrame):
         else:
             self._limite_msg = None
 
+        self._preview_outputs.clear()
+        self._preview_errors.clear()
         super()._cargar_imagenes(rutas)
+        self._refresh_preview()
         n = len(rutas)
         suffix = t('files_loaded').capitalize() if n > 1 else t('image_loaded')
         msg = f'{n} {suffix}'
@@ -362,8 +372,12 @@ class RemoveBgFrame(BaseFrame):
             return
 
         paths, fmt = tuple(self._imagenes), self._formato_salida.get()
+        config = self._processing_config()
         def start(folder, plan):
             """Captura opciones y selección antes de iniciar la operación global."""
+            self._preview_outputs.clear()
+            self._preview_errors.clear()
+            self._refresh_preview()
             self._state.set_model_info(None, False)
             self._show_overlay(t('analyzing_image'))
             def finished(result):
@@ -371,11 +385,11 @@ class RemoveBgFrame(BaseFrame):
                 if result is not None:
                     self._state.set_model_info(result.get('model_used'), result.get('used_fallback', False))
                     self._finish_save(result)
-            self._submit_job(lambda: self._proceso(folder, paths, fmt, output_policy=plan),
+            self._submit_job(lambda: self._proceso(folder, paths, fmt, output_policy=plan, config=config),
                 button=self._btn_procesar, text=t('remove_bg_btn'), on_success=finished)
         self._prepare_save(paths, fmt, start)
 
-    def _proceso(self, carpeta, paths, fmt, *, output_policy=None):
+    def _proceso(self, carpeta, paths, fmt, *, output_policy=None, config=None):
         """Ejecuta la eliminacion de fondo."""
         try:
             if not modelo_descargado():
@@ -389,6 +403,7 @@ class RemoveBgFrame(BaseFrame):
                 carpeta,
                 formato_salida=fmt,
                 **({'output_policy': output_policy} if output_policy is not None else {}),
+                **({'config': config} if config is not None else {}),
                 status_callback=lambda key: self._post_ui(0, lambda k=key: self._set_overlay_key(k)),
             )
             if output_policy is not None:
@@ -413,6 +428,9 @@ class RemoveBgFrame(BaseFrame):
         self._hide_overlay()
         self._btn_procesar.configure(state='normal', text=t('remove_bg_btn'))
         self._lbl_info.configure(text=f'{t("error_generic")}: {msg}')
+        if hasattr(self, '_preview'):
+            self._preview_errors[path_key(self._preview_active_path)] = t('error_generic')
+            self._refresh_preview()
 
     def _finalizar(self, ok, errores, conflictos=0, used_fallback=False, model_used=None):
         """Muestra el resultado final."""
@@ -428,3 +446,106 @@ class RemoveBgFrame(BaseFrame):
         if self._state.used_fallback and self._state.model_used:
             msg += f'  -  {t("remove_bg_fallback_notice").format(model=self._state.model_used)}'
         self._lbl_info.configure(text=msg)
+
+    def _select_preview_file(self, path):
+        """Selecciona la entrada inspeccionada sin cambiar el lote de guardado."""
+        if self._operation_blocked():
+            return False
+        self._preview_active_path = path
+        self._refresh_preview()
+
+    def _refresh_preview(self):
+        """Muestra la salida guardada o el original, asociando rutas normalizadas."""
+        path = self._preview_active_path
+        key = path_key(path) if path else ''
+        output = self._preview_outputs.get(key)
+        self._preview.show(output or path, title=t('preview_result' if output else 'preview_original'),
+                           note=self._preview_errors.get(key, ''), force=True)
+
+    def _finish_save(self, result, *, strip=False):
+        """Asocia cada éxito con su archivo publicado y conserva errores individuales."""
+        super()._finish_save(result, strip=strip)
+        for row in result.get('resultados', []):
+            path = path_key(row['ruta_entrada'])
+            self._preview_outputs.pop(path, None)
+            self._preview_errors.pop(path, None)
+            if row.get('estado') == 'saved' and row.get('ruta_salida'):
+                self._preview_outputs[path] = row['ruta_salida']
+            elif row.get('estado') == 'error':
+                self._preview_errors[path] = t('error_generic') + ': ' + t(row.get('error', 'error_generic'))
+        self._refresh_preview()
+
+    def _limpiar(self):
+        """Invalida entradas y resultados, conservando los ajustes del usuario."""
+        if self._operation_blocked():
+            return
+        super()._limpiar()
+        self._preview_outputs.clear()
+        self._preview_errors.clear()
+        self._preview_active_path = ''
+        if hasattr(self, '_preview'):
+            self._preview.show(force=True)
+
+    def on_view_shown(self):
+        """Reanuda la preview al mostrar el módulo."""
+        super().on_view_shown()
+        if hasattr(self, '_preview'):
+            self._preview.set_visible(True)
+
+    def on_view_hidden(self):
+        """Pausa renders cuando se navega a otra herramienta."""
+        if hasattr(self, '_preview'):
+            self._preview.set_visible(False)
+
+    def _build_processing_controls(self, panel):
+        """Crea una sola vez los tres ajustes visibles; no inicializa modelos."""
+        ctk.CTkLabel(panel, text=t('remove_bg_refine'), font=fonts.FUENTE_BASE,
+                     text_color=colors.TEXT_GRAY, anchor='w').grid(
+            row=2, column=0, padx=(16, 12), pady=(0, 8), sticky='w')
+        styles.SegmentedButton(panel,
+            values=[t('remove_bg_auto'), t('remove_bg_on'), t('remove_bg_off')],
+            variable=self._refine_edges, font=fonts.FUENTE_CHICA,
+            command=self._processing_settings_changed).grid(
+                row=2, column=1, padx=(0, 16), pady=(0, 8), sticky='w')
+        self._edge_controls = ctk.CTkFrame(panel, fg_color='transparent', corner_radius=0)
+        self._edge_controls.grid(row=3, column=0, columnspan=2, padx=16, pady=(0, 8), sticky='ew')
+        self._edge_controls.grid_columnconfigure(1, weight=1)
+        for row, key in ((0, 'remove_bg_halo'), (1, 'remove_bg_contour')):
+            ctk.CTkLabel(self._edge_controls, text=t(key), font=fonts.FUENTE_CHICA,
+                         text_color=colors.TEXT_GRAY).grid(row=row, column=0, padx=(0, 12), pady=8, sticky='w')
+        self._lbl_halo = ctk.CTkLabel(self._edge_controls, text='85%', width=45, font=fonts.FUENTE_CHICA)
+        self._lbl_halo.grid(row=0, column=2, padx=(12, 0), pady=8)
+        self._lbl_contour = ctk.CTkLabel(self._edge_controls, text='0 px', width=45, font=fonts.FUENTE_CHICA)
+        self._lbl_contour.grid(row=1, column=2, padx=(12, 0), pady=8)
+        self._slider_halo = ctk.CTkSlider(self._edge_controls, from_=0, to=100, number_of_steps=100,
+            variable=self._halo_strength, button_color=colors.ACENTO, button_hover_color=colors.ACENTO_HOVER,
+            progress_color=colors.ACENTO, fg_color=styles.palette().border, command=self._halo_changed)
+        self._slider_halo.grid(row=0, column=1, sticky='ew', pady=8)
+        self._slider_contour = ctk.CTkSlider(self._edge_controls, from_=-5, to=5, number_of_steps=10,
+            variable=self._edge_offset, button_color=colors.ACENTO, button_hover_color=colors.ACENTO_HOVER,
+            progress_color=colors.ACENTO, fg_color=styles.palette().border, command=self._contour_changed)
+        self._slider_contour.grid(row=1, column=1, sticky='ew', pady=8)
+
+    def _halo_changed(self, value):
+        """Actualiza la intensidad porcentual para el próximo procesamiento."""
+        self._halo_strength.set(round(value))
+        self._lbl_halo.configure(text=f'{self._halo_strength.get()}%')
+        self._processing_settings_changed()
+
+    def _contour_changed(self, value):
+        """Guarda contracción negativa o expansión positiva en píxeles originales."""
+        self._edge_offset.set(round(value))
+        value = self._edge_offset.get()
+        self._lbl_contour.configure(text=f'{value:+d} px' if value else '0 px')
+        self._processing_settings_changed()
+
+    def _processing_settings_changed(self, *_):
+        """Aclara que mover controles no modifica la salida guardada visible."""
+        if self._preview_outputs:
+            self._lbl_info.configure(text=t('remove_bg_apply_hint'))
+
+    def _processing_config(self):
+        """Captura desde Tk opciones inmutables con identificadores no traducidos."""
+        refine = {t('remove_bg_auto'): 'auto', t('remove_bg_on'): 'on', t('remove_bg_off'): 'off'}
+        return RemoveBgConfig(refine_edges=refine[self._refine_edges.get()],
+                              halo_strength=self._halo_strength.get(), edge_offset=self._edge_offset.get())

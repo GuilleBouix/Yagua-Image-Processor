@@ -11,6 +11,7 @@ import logging
 from pathlib import Path
 
 from PIL import Image
+from app.modules.resize_geometry import resize_size, centered_crop, canvas_geometry
 
 from app.utils.image_utils import normalize_common
 from app.utils.output import unique_output_path, safe_image_output
@@ -136,38 +137,14 @@ def redimensionar(ruta_entrada, ruta_salida, ancho=None, alto=None,
         imagen = normalize_common(imagen)
         ancho_original, alto_original = imagen.size
 
-        # Si hay preset, usar sus dimensiones
-        if preset_key:
-            dims = preset_a_dimensiones(preset_key)
-            if dims:
-                ancho, alto = dims
-            mantener_ratio = False
-
-        # Si hay porcentaje, calcular dimensiones relativas
-        elif porcentaje is not None:
-            ancho = max(1, int(ancho_original * porcentaje / 100))
-            alto = max(1, int(alto_original * porcentaje / 100))
-            mantener_ratio = False
-
-        # Si solo se especifica ancho, calcular alto proporcional
-        elif ancho and not alto:
-            alto = max(1, int(alto_original * ancho / ancho_original))
-            mantener_ratio = False
-
-        # Si solo se especifica alto, calcular ancho proporcional
-        elif alto and not ancho:
-            ancho = max(1, int(ancho_original * alto / alto_original))
-            mantener_ratio = False
-
-        # Validar que haya dimensiones
-        if not ancho or not alto:
-            raise ValueError('Especifica dimensiones, porcentaje o preset.')
-
-        # Redimensionar manteniendo o no la relacion de aspecto
-        if mantener_ratio:
-            imagen.thumbnail((ancho, alto), resample)
+        target = resize_size(imagen.size, ancho, alto, porcentaje,
+                             preset_a_dimensiones(preset_key) if preset_key else None,
+                             mantener_ratio and not preset_key)
+        fit = mantener_ratio and not preset_key and porcentaje is None and ancho and alto
+        if fit:
+            imagen.thumbnail(target, resample)
         else:
-            imagen = imagen.resize((ancho, alto), resample)
+            imagen = imagen.resize(target, resample)
 
         # Guardar en el formato original
         imagen.save(ruta_salida, formato)
@@ -208,21 +185,7 @@ def recortar(ruta_entrada, ruta_salida, ratio=None,
 
         # Calcular recortes si hay ratio especificado
         if ratio and ratio in RATIOS:
-            rx, ry = RATIOS[ratio]
-            
-            # Determinar tamano del recorte manteniendo el ratio
-            if ancho / alto > rx / ry:
-                nuevo_ancho = int(alto * rx / ry)
-                nuevo_alto = alto
-            else:
-                nuevo_ancho = ancho
-                nuevo_alto = int(ancho * ry / rx)
-            
-            # Centrar el recorte
-            izq = (ancho - nuevo_ancho) // 2
-            sup = (alto - nuevo_alto) // 2
-            der = izq + nuevo_ancho
-            inf = sup + nuevo_alto
+            izq, sup, der, inf = centered_crop(imagen.size, RATIOS[ratio])
         else:
             # Usar coordenadas proporcionadas o limites de la imagen
             der = der if der is not None else ancho
@@ -265,6 +228,7 @@ def agregar_canvas(ruta_entrada, ruta_salida, ancho_final, alto_final,
         imagen = normalize_common(imagen)
         ancho, alto = imagen.size
 
+        _, offset = canvas_geometry(imagen.size, (ancho_final, alto_final), centrar)
         # Reducir imagen si es mas grande que el canvas
         if ancho > ancho_final or alto > alto_final:
             imagen.thumbnail((ancho_final, alto_final), Image.Resampling.LANCZOS)
@@ -283,8 +247,7 @@ def agregar_canvas(ruta_entrada, ruta_salida, ancho_final, alto_final,
             canvas = Image.new(modo, (ancho_final, alto_final), fondo_color)
 
         # Calcular posicion para centrar o esquina superior
-        coord_x = (ancho_final - ancho) // 2 if centrar else 0
-        coord_y = (alto_final - alto) // 2 if centrar else 0
+        coord_x, coord_y = offset
 
         # Pegar la imagen en el canvas
         if imagen.mode == 'RGBA':

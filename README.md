@@ -161,6 +161,14 @@ The commands use the repository's pinned dependencies. Compatibility with other 
 - **Prepare product photos:** Load up to 10 images in Remove background and export as PNG or WebP to keep transparency. Add a transparent PNG logo with Watermark if needed.
 - **Extract text:** Load up to 10 clear images in OCR, choose Spanish, English or both, then copy the result or export a TXT file. The interface language does not add OCR recognition languages. Review the text for recognition errors.
 
+### Resize previews and background removal
+
+- **Resize / Crop / Canvas:** click a file row to inspect it; processing still applies to the loaded batch. The preview follows the visible tab and shows original and output dimensions. Canvas has synchronized width/height sliders and manual inputs. The reduced preview shows composition, not final pixel-level detail.
+
+- **Remove background:** inspect the original before processing and the saved result afterward. Refine edges supports Auto/Yes/No; white-halo reduction (0–100%, initially 85%) and contour contraction/expansion (−5 to +5 original-image pixels, initially 0) are always visible. Auto keeps the current behavior; halo reduction targets detected uniform light backgrounds. Outputs stay transparent. Process again after changing these settings; no extra models are downloaded.
+
+Implementation and validation notes: [Resize previews and background removal settings](docs/RESIZE_PREVIEWS_AND_BACKGROUND.md).
+
 <a id="requirements"></a>
 
 ## Requirements and limits

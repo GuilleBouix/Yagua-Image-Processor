@@ -167,6 +167,12 @@ Ces commandes utilisent les versions de dépendances fixées par le dépôt. Les
 - **Préparer des photos de produits :** Chargez jusqu’à 10 images dans Supprimer l’arrière-plan et exportez en PNG ou WebP pour conserver la transparence. Ajoutez si nécessaire un logo PNG transparent avec Filigrane.
 - **Extraire du texte :** Chargez jusqu’à 10 images nettes dans OCR, choisissez l’espagnol, l’anglais ou les deux, puis copiez le résultat ou exportez un TXT. La langue de l’interface n’ajoute pas de langues de reconnaissance OCR. Relisez le texte pour corriger les erreurs de reconnaissance.
 
+### Aperçus et réglages de suppression du fond
+
+- **Redimensionner / Recadrer / Canevas :** cliquez sur une ligne pour examiner une image ; le traitement concerne toujours le lot chargé. L’aperçu suit l’onglet visible et affiche les dimensions originales et finales. Le canevas propose des curseurs de largeur/hauteur synchronisés avec les champs manuels. L’aperçu réduit montre la composition, pas le détail final pixel par pixel.
+
+- **Supprimer le fond :** affiche l’original avant le traitement puis le résultat enregistré. Le réglage des contours propose Auto/Oui/Non ; la réduction du halo blanc (0–100 %, initialement 85 %) et la contraction/extension (−5 à +5 pixels de l’original, initialement 0) restent visibles. Auto conserve le comportement actuel ; le halo est réduit sur les fonds clairs uniformes détectés. La sortie reste transparente. Relancez le traitement après modification ; aucun modèle supplémentaire n’est téléchargé.
+
 <a id="requirements"></a>
 
 ## Prérequis et limites

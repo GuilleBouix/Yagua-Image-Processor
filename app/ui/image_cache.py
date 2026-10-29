@@ -21,6 +21,7 @@ class ReducedImage:
     format: str
     bytes: int
     signature: tuple
+    oriented_dimensions: tuple[int, int] | None = None
 
 
 class ReducedImageCache:
@@ -47,12 +48,13 @@ class ReducedImageCache:
                 return cached
         with Image.open(canonical) as source:
             dimensions, format_name = source.size, source.format or ''
-            source.draft(mode, bounds)
+            oriented = (dimensions[1], dimensions[0]) if source.getexif().get(274, 1) in (5, 6, 7, 8) else dimensions
+            source.draft('RGB' if mode == 'RGBA' and format_name == 'JPEG' else mode, bounds)
             image = ImageOps.exif_transpose(source)
             image.thumbnail(bounds, Image.Resampling.LANCZOS)
             image = image.convert(mode)
             image.info.clear()  # Reduced previews must not retain large EXIF/ICC blobs.
-        result = ReducedImage(image, dimensions, format_name, stat.st_size, signature)
+        result = ReducedImage(image, dimensions, format_name, stat.st_size, signature, oriented)
         final_stat = Path(canonical).stat()
         if (final_stat.st_size, final_stat.st_mtime_ns) != signature[1:]:
             raise OSError('source_changed')

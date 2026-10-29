@@ -587,3 +587,21 @@ TRANSLATIONS.update({
     "legal_folder": "Open legal folder",
     "legal_error": "The local legal resource could not be opened."
 })
+
+TRANSLATIONS.update({
+    "preview_empty": "Add images to preview",
+    "preview_error": "Could not load the preview",
+    "preview_original": "Original",
+    "preview_result": "Result",
+    "preview_dimensions": "{width} × {height} px → {out_width} × {out_height} px"
+})
+
+TRANSLATIONS.update({
+    "remove_bg_refine": "Refine edges",
+    "remove_bg_auto": "Auto",
+    "remove_bg_on": "Yes",
+    "remove_bg_off": "No",
+    "remove_bg_halo": "Reduce white halo",
+    "remove_bg_contour": "Contract / expand",
+    "remove_bg_apply_hint": "Process again to apply these settings."
+})

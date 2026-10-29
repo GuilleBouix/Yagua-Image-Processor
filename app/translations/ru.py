@@ -538,3 +538,21 @@ TRANSLATIONS.update({
     "legal_folder": "Открыть папку лицензий",
     "legal_error": "Не удалось открыть локальные правовые материалы."
 })
+
+TRANSLATIONS.update({
+    "preview_empty": "Добавьте изображения для предпросмотра",
+    "preview_error": "Не удалось загрузить предпросмотр",
+    "preview_original": "Оригинал",
+    "preview_result": "Результат",
+    "preview_dimensions": "{width} × {height} px → {out_width} × {out_height} px"
+})
+
+TRANSLATIONS.update({
+    "remove_bg_refine": "Уточнить края",
+    "remove_bg_auto": "Авто",
+    "remove_bg_on": "Да",
+    "remove_bg_off": "Нет",
+    "remove_bg_halo": "Убрать белый ореол",
+    "remove_bg_contour": "Сжать / расширить",
+    "remove_bg_apply_hint": "Повторите обработку, чтобы применить настройки."
+})

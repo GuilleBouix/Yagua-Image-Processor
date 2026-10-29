@@ -8,6 +8,7 @@ Relacionado con:
 """
 
 from app.modules.remove_bg import (
+    RemoveBgConfig,
     quitar_fondo,
     batch_quitar_fondo,
     ensure_model,
@@ -19,6 +20,7 @@ from app.modules.remove_bg import (
 )
 
 __all__ = [
+    'RemoveBgConfig',
     'quitar_fondo',
     'batch_quitar_fondo',
     'ensure_model',

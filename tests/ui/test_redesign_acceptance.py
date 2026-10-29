@@ -167,8 +167,9 @@ def test_metadata_dialogs_styles_search_scope_and_cancel(ui_root, monkeypatch, t
 @pytest.mark.parametrize('scale', [1, .75, .5])
 def test_metadata_editor_save_actions_fit_visible_height(ui_root, monkeypatch, tmp_path, scale):
     ctk.set_widget_scaling(scale)
-    ui_root.geometry('1100x640')
     ui_root.deiconify()
+    ui_root.state('normal')
+    ui_root.geometry('1100x640')
     pump(ui_root, lambda: ui_root.winfo_width() == 1100 and ui_root.winfo_height() == 640, timeout=3)
     assert (ui_root.winfo_width(), ui_root.winfo_height()) == (1100, 640)
     view = MetadataFrame(ui_root)

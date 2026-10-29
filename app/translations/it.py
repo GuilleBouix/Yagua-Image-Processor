@@ -538,3 +538,21 @@ TRANSLATIONS.update({
     "legal_folder": "Apri cartella legale",
     "legal_error": "Impossibile aprire la risorsa legale locale."
 })
+
+TRANSLATIONS.update({
+    "preview_empty": "Aggiungi immagini per l’anteprima",
+    "preview_error": "Impossibile caricare l’anteprima",
+    "preview_original": "Originale",
+    "preview_result": "Risultato",
+    "preview_dimensions": "{width} × {height} px → {out_width} × {out_height} px"
+})
+
+TRANSLATIONS.update({
+    "remove_bg_refine": "Rifinisci bordi",
+    "remove_bg_auto": "Auto",
+    "remove_bg_on": "Sì",
+    "remove_bg_off": "No",
+    "remove_bg_halo": "Riduci alone bianco",
+    "remove_bg_contour": "Contrai / espandi",
+    "remove_bg_apply_hint": "Elabora di nuovo per applicare le impostazioni."
+})
