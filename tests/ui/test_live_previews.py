@@ -74,6 +74,14 @@ def pump_stable_geometry(root, *widgets, timeout=8):
     pump(root, stable, timeout)
 
 
+def pump_workspace_geometry(root, view, timeout=8):
+    """Wait for the scrollable frame and both workspace columns to settle together."""
+    widgets = [view, view._parent_canvas, view._workspace_host,
+               view._workspace_left, view._workspace_right, view._preview,
+               view._preview.viewport]
+    pump_stable_geometry(root, *widgets, timeout=timeout)
+
+
 def pictures(tmp_path, count=2):
     paths = []
     for i in range(count):
@@ -93,36 +101,30 @@ def test_resize_tabs_selection_and_stable_viewport(ui_root, tmp_path, geometry, 
         ui_root.deiconify()
         view = ResizeFrame(ui_root)
         view.pack(fill='both', expand=True)
-        pump_stable_geometry(
-            ui_root,
-            view,
-            view._workspace_host,
-            view._workspace_left,
-            view._workspace_right,
-            view._preview.viewport,
-        )
+        pump_workspace_geometry(ui_root, view)
         paths = pictures(tmp_path, 100)
         view._cargar_imagenes(paths)
         pump(ui_root, lambda: view._preview.output_dimensions == (50, 40))
-        pump_stable_size(ui_root, view._preview.viewport)
+        pump_workspace_geometry(ui_root, view)
         pump(ui_root, lambda: view._viewport_height == max(
             view.winfo_reqheight(), view._parent_canvas.winfo_height()))
         assert view._viewport_height == max(view.winfo_reqheight(), view._parent_canvas.winfo_height())
         viewport = view._preview.viewport
-        size = viewport.winfo_width(), viewport.winfo_height()
         view._virtual_file_list.select((paths[1], 0))
         pump(ui_root, lambda: view._preview.applied_path == paths[1])
+        pump_workspace_geometry(ui_root, view)
+        size = viewport.winfo_width(), viewport.winfo_height()
         assert view._imagenes == paths
         view._tab.set(t('crop_tab'))
         view._cambiar_tab(t('crop_tab'))
         pump(ui_root, lambda: view._preview.output_dimensions == (80, 80))
-        pump_stable_size(ui_root, viewport)
+        pump_workspace_geometry(ui_root, view)
         view._state.canvas_width_var.set('200')
         view._state.canvas_height_var.set('100')
         view._tab.set(t('canvas_tab'))
         view._cambiar_tab(t('canvas_tab'))
         pump(ui_root, lambda: view._preview.output_dimensions == (200, 100))
-        pump_stable_size(ui_root, viewport)
+        pump_workspace_geometry(ui_root, view)
         assert (viewport.winfo_width(), viewport.winfo_height()) == size
         assert len(view._virtual_file_list.virtual.rows) < 20
         view._state.canvas_width_var.set('bad')
