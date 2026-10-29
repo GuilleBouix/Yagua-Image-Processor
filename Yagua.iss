@@ -49,7 +49,7 @@ Name: "desktopicon"; Description: "Crear acceso directo en el escritorio"; Group
 Filename: "{app}\Yagua.exe"; Description: "Ejecutar Yagua"; Flags: nowait postinstall skipifsilent
 
 [Code]
-; Al completar el asistente abre la página correspondiente al idioma elegido.
+// Al completar el asistente abre la página correspondiente al idioma elegido.
 procedure CurStepChanged(CurStep: TSetupStep);
 var
   ErrorCode: Integer;
