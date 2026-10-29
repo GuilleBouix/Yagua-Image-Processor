@@ -47,6 +47,28 @@ def pump_stable_size(root, widget, timeout=8):
     pump(root, stable, timeout)
 
 
+def pump_stable_geometry(root, *widgets, timeout=8):
+    """Wait until the workspace and its children have completed their first layout."""
+    previous = None
+    unchanged_since = None
+
+    def stable():
+        nonlocal previous, unchanged_since
+        sizes = tuple((widget.winfo_width(), widget.winfo_height()) for widget in widgets)
+        now = monotonic()
+        if any(width <= 1 or height <= 1 for width, height in sizes):
+            previous = None
+            unchanged_since = None
+        elif sizes != previous:
+            previous = sizes
+            unchanged_since = now
+        elif unchanged_since is not None and now - unchanged_since >= .016:
+            return True
+        return False
+
+    pump(root, stable, timeout)
+
+
 def pictures(tmp_path, count=2):
     paths = []
     for i in range(count):
@@ -66,6 +88,14 @@ def test_resize_tabs_selection_and_stable_viewport(ui_root, tmp_path, geometry, 
         ui_root.deiconify()
         view = ResizeFrame(ui_root)
         view.pack(fill='both', expand=True)
+        pump_stable_geometry(
+            ui_root,
+            view,
+            view._workspace_host,
+            view._workspace_left,
+            view._workspace_right,
+            view._preview.viewport,
+        )
         paths = pictures(tmp_path, 100)
         view._cargar_imagenes(paths)
         pump(ui_root, lambda: view._preview.output_dimensions == (50, 40))
