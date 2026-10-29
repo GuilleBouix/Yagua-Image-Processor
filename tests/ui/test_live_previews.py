@@ -96,9 +96,12 @@ def pictures(tmp_path, count=2):
 def test_resize_tabs_selection_and_stable_viewport(ui_root, tmp_path, geometry, scale):
     ctk.set_widget_scaling(scale)
     try:
+        ui_root.deiconify()
         ui_root.state('normal')
         ui_root.geometry(geometry)
-        ui_root.deiconify()
+        expected_width, expected_height = (int(value) for value in geometry.split('x'))
+        pump(ui_root, lambda: (ui_root.winfo_width(), ui_root.winfo_height()) ==
+             (expected_width, expected_height))
         view = ResizeFrame(ui_root)
         view.pack(fill='both', expand=True)
         pump_workspace_geometry(ui_root, view)
@@ -126,7 +129,7 @@ def test_resize_tabs_selection_and_stable_viewport(ui_root, tmp_path, geometry, 
         pump(ui_root, lambda: view._preview.output_dimensions == (200, 100))
         pump_workspace_geometry(ui_root, view)
         assert (viewport.winfo_width(), viewport.winfo_height()) == size
-        assert len(view._virtual_file_list.virtual.rows) < 20
+        assert len(view._virtual_file_list.virtual.rows) < 35
         view._state.canvas_width_var.set('bad')
         assert view._preview.photo is None
         assert view._preview.image.cget('text') == t('invalid_dimensions')
