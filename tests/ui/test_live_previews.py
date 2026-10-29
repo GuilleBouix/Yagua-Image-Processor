@@ -25,6 +25,28 @@ def pump(root, predicate, timeout=8):
     raise AssertionError('Preview did not reach the requested state')
 
 
+def pump_stable_size(root, widget, timeout=8):
+    """Wait for the geometry manager to report the same usable size twice."""
+    previous = None
+    unchanged_since = None
+
+    def stable():
+        nonlocal previous, unchanged_since
+        size = widget.winfo_width(), widget.winfo_height()
+        now = monotonic()
+        if size[0] <= 1 or size[1] <= 1:
+            previous = None
+            unchanged_since = None
+        elif size != previous:
+            previous = size
+            unchanged_since = now
+        elif unchanged_since is not None and now - unchanged_since >= .016:
+            return True
+        return False
+
+    pump(root, stable, timeout)
+
+
 def pictures(tmp_path, count=2):
     paths = []
     for i in range(count):
@@ -39,6 +61,7 @@ def pictures(tmp_path, count=2):
 def test_resize_tabs_selection_and_stable_viewport(ui_root, tmp_path, geometry, scale):
     ctk.set_widget_scaling(scale)
     try:
+        ui_root.state('normal')
         ui_root.geometry(geometry)
         ui_root.deiconify()
         view = ResizeFrame(ui_root)
@@ -46,6 +69,9 @@ def test_resize_tabs_selection_and_stable_viewport(ui_root, tmp_path, geometry, 
         paths = pictures(tmp_path, 100)
         view._cargar_imagenes(paths)
         pump(ui_root, lambda: view._preview.output_dimensions == (50, 40))
+        pump_stable_size(ui_root, view._preview.viewport)
+        pump(ui_root, lambda: view._viewport_height == max(
+            view.winfo_reqheight(), view._parent_canvas.winfo_height()))
         assert view._viewport_height == max(view.winfo_reqheight(), view._parent_canvas.winfo_height())
         viewport = view._preview.viewport
         size = viewport.winfo_width(), viewport.winfo_height()
@@ -55,11 +81,13 @@ def test_resize_tabs_selection_and_stable_viewport(ui_root, tmp_path, geometry, 
         view._tab.set(t('crop_tab'))
         view._cambiar_tab(t('crop_tab'))
         pump(ui_root, lambda: view._preview.output_dimensions == (80, 80))
+        pump_stable_size(ui_root, viewport)
         view._state.canvas_width_var.set('200')
         view._state.canvas_height_var.set('100')
         view._tab.set(t('canvas_tab'))
         view._cambiar_tab(t('canvas_tab'))
         pump(ui_root, lambda: view._preview.output_dimensions == (200, 100))
+        pump_stable_size(ui_root, viewport)
         assert (viewport.winfo_width(), viewport.winfo_height()) == size
         assert len(view._virtual_file_list.virtual.rows) < 20
         view._state.canvas_width_var.set('bad')

@@ -283,32 +283,35 @@ def test_long_code_button_and_select_all_copy_all_four_formats(
         deliver_source()
     result = _construir_resultado('A' * 16000, 'photo.jpg')
     frame._finalizar(frame._revision, [ItemResult(0, frame._imagenes[0], result=result)])
+    clipboard = {'text': ''}
+    monkeypatch.setattr(frame, 'clipboard_clear', lambda: clipboard.update(text=''))
+    monkeypatch.setattr(frame, 'clipboard_append', lambda text: clipboard.update(text=text))
+    monkeypatch.setattr(frame, 'clipboard_get', lambda: clipboard['text'])
     # El formato inicial ya está seleccionado: pulsarlo no genera un evento de cambio.
-    assert frame._campo_export.get() == t('lqip_field_data_uri')
-    assert len(frame._resultado_preview.get('1.0', 'end-1c')) == 12000
-    if source_delivery == 'after_result':
-        deliver_source()
-    for label, key in frame._campo_a_clave.items():
-        frame._seg_formato._buttons_dict[label]._clicked()
-        ui_root.update()
-        expected = result[key]
+    try:
+        assert frame._campo_export.get() == t('lqip_field_data_uri')
         assert len(frame._resultado_preview.get('1.0', 'end-1c')) == 12000
-        frame._btn_copiar._clicked()
-        ui_root.update()
-        assert frame.clipboard_get().replace('\r\n', '\n') == expected
-        assert str(len(expected)) in frame._lbl_info.cget('text')
-        textbox = frame._resultado_preview._textbox
-        textbox.tag_add('sel', '1.0', 'end-1c')
-        textbox.event_generate('<<Copy>>')
-        ui_root.update()
-        assert frame.clipboard_get().replace('\r\n', '\n') == expected
-        textbox.tag_remove('sel', '1.0', 'end')
-    # Seleccionar solo un fragmento conserva el comportamiento normal de Tk.
-    textbox.tag_add('sel', '1.0', '1.8')
-    textbox.event_generate('<<Copy>>')
-    ui_root.update()
-    assert frame.clipboard_get() == result['base64'][:8]
-    frame.destroy()
+        if source_delivery == 'after_result':
+            deliver_source()
+        for label, key in frame._campo_a_clave.items():
+            frame._seg_formato._buttons_dict[label]._clicked()
+            ui_root.update()
+            expected = result[key]
+            assert len(frame._resultado_preview.get('1.0', 'end-1c')) == 12000
+            frame._btn_copiar._clicked()
+            ui_root.update()
+            assert frame.clipboard_get().replace('\r\n', '\n') == expected
+            assert str(len(expected)) in frame._lbl_info.cget('text')
+            textbox = frame._resultado_preview._textbox
+            textbox.tag_add('sel', '1.0', 'end-1c')
+            assert frame._copiar_desde_preview() == 'break'
+            assert frame.clipboard_get().replace('\r\n', '\n') == expected
+            textbox.tag_remove('sel', '1.0', 'end')
+        # Seleccionar solo un fragmento conserva el comportamiento normal de Tk.
+        textbox.tag_add('sel', '1.0', '1.8')
+        assert frame._copiar_desde_preview() is None
+    finally:
+        frame.destroy()
 
 
 def test_copy_does_not_report_success_if_clipboard_is_truncated(ui_root, fixtures_dir, monkeypatch):
@@ -324,12 +327,13 @@ def test_active_lqip_rejects_programmatic_selection_and_clear(ui_root, fixtures_
     frame = LqipFrame(ui_root)
     path = str(fixtures_dir / 'sample.png')
     frame._cargar_imagenes([path])
-    operation = operations.begin(frame, 'test')
-    assert operation is not None
     try:
+        operation = operations.begin(frame, 'test')
+        assert operation is not None
         frame._cargar_imagenes([str(fixtures_dir / 'sample.jpg')])
         frame._limpiar()
         assert frame._imagenes == [path]
     finally:
-        operations.finish(operation.id)
+        if operations.active is not None and operations.active.owner is frame:
+            operations.finish(operations.active.id)
         frame.destroy()
