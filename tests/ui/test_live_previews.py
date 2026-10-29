@@ -48,13 +48,18 @@ def pump_stable_size(root, widget, timeout=8):
 
 
 def pump_stable_geometry(root, *widgets, timeout=8):
-    """Wait until the workspace and its children have completed their first layout."""
+    """Wait until the toplevel and its workspace children complete their layout."""
     previous = None
     unchanged_since = None
 
     def stable():
         nonlocal previous, unchanged_since
-        sizes = tuple((widget.winfo_width(), widget.winfo_height()) for widget in widgets)
+        if not root.winfo_ismapped():
+            previous = None
+            unchanged_since = None
+            return False
+        sizes = ((root.winfo_width(), root.winfo_height()),) + tuple(
+            (widget.winfo_width(), widget.winfo_height()) for widget in widgets)
         now = monotonic()
         if any(width <= 1 or height <= 1 for width, height in sizes):
             previous = None
