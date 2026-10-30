@@ -53,9 +53,9 @@ Die Tabelle zeigt die Desktopmodule. Verfügbarkeit und Bedienelemente hängen v
 | --- | --- | --- | --- |
 | Konvertieren | Format ändern und die Qualität anpassen, sofern unterstützt. | Ausgaben als JPEG, PNG, WebP, AVIF, HEIC, ICO, BMP, TIFF und statisches GIF. | 100 Bilder |
 | Komprimieren | Dateigröße verringern und das ursprüngliche Format behalten. | JPEG, PNG, WebP, AVIF, HEIC/HEIF und weitere unterstützte Rasterformate. | 100 Bilder |
-| Skalieren / Zuschneiden / Leinwand | Abmessungen ändern, zuschneiden oder Fläche hinzufügen; Größenvorlagen verwenden. | Übliche Rasterbilder, darunter JPEG, PNG und WebP. | 100 Bilder |
-| Hintergrund entfernen | Hintergründe lokal mit KI entfernen. | PNG-, WebP- oder TIFF-Ausgabe mit Transparenz. | 10 Bilder |
-| Farbpalette | Farben extrahieren, HEX/RGB/HSL kopieren und ein PNG pro Bild exportieren. | Unterstützte Bilder → einzelne Paletten; den ganzen Stapel speichern. | 100 Bilder |
+| Skalieren / Zuschneiden / Leinwand | Nach Prozent, Pixeln oder Vorlage skalieren; nach Verhältnis oder exakten Maßen zuschneiden; Leinwandfarbe oder Transparenz wählen. | Unterstützte Rasterbilder; transparente Leinwände werden bei Bedarf zu PNG. | 100 Bilder |
+| Hintergrund entfernen | Hintergründe lokal mit KI entfernen; Kantenverfeinerung, weiße Säume und Konturgröße einstellen. | PNG-, WebP- oder TIFF-Ausgabe mit Transparenz. | 10 Bilder |
+| Farbpalette | Einzelne Paletten eines Stapels ansehen, HEX/RGB/HSL/CSS-Werte kopieren und eine oder alle Paletten speichern. | Unterstützte statische Bilder → eine PNG-Palette pro Bild. | 100 Bilder |
 | Wasserzeichen | Ein Logo hinzufügen; Position, Größe, Deckkraft und Abstand anpassen. | Unterstützte Ausgangsbilder; transparentes PNG für das Logo empfohlen. | 100 Bilder + 1 Logo |
 | Umbenennen | Nummerierung, Datumsangaben und Groß-/Kleinschreibung vorab ansehen. | Ändert Dateinamen im ursprünglichen Ordner. | 100 Dateien |
 | OCR | Spanischen und/oder englischen Text mit EasyOCR erkennen; kopieren oder als TXT exportieren. | Unterstützte Rasterbilder → Text. | 10 Bilder |
@@ -165,11 +165,39 @@ Die Befehle verwenden die im Repository festgelegten Abhängigkeitsversionen. Di
 - **Produktfotos vorbereiten:** Lade bis zu 10 Bilder in Hintergrund entfernen und exportiere sie als PNG oder WebP, um Transparenz zu erhalten. Füge bei Bedarf mit Wasserzeichen ein transparentes PNG-Logo hinzu.
 - **Text extrahieren:** Lade bis zu 10 scharfe Bilder in OCR, wähle Spanisch, Englisch oder beides und kopiere das Ergebnis oder exportiere eine TXT-Datei. Die Oberflächensprache fügt keine OCR-Erkennungssprachen hinzu. Prüfe den Text auf Erkennungsfehler.
 
-### Vorschau und Einstellungen zur Hintergrundentfernung
+### Verarbeitungsoptionen und Vorschauen
 
-- **Skalieren / Zuschneiden / Leinwand:** Klicke auf eine Dateizeile, um ein Bild anzusehen; die Verarbeitung gilt weiterhin für den geladenen Stapel. Die Vorschau folgt dem sichtbaren Tab und zeigt ursprüngliche und endgültige Abmessungen. Breiten-/Höhenregler der Leinwand sind mit manuellen Eingaben synchronisiert. Die verkleinerte Vorschau zeigt die Bildaufteilung, nicht die endgültigen Pixeldetails.
+Diese Steuerelemente beschreiben den aktuellen Entwicklungsstand des Quellcodes; ältere veröffentlichte Pakete enthalten möglicherweise nicht alle davon.
 
-- **Hintergrund entfernen:** zeigt vor der Verarbeitung das Original und danach das gespeicherte Ergebnis. Kantenverfeinerung bietet Auto/Ja/Nein; Weißsaumreduzierung (0–100 %, anfangs 85 %) und Verkleinern/Erweitern des Umrisses (−5 bis +5 Originalpixel, anfangs 0) sind immer sichtbar. Auto erhält das bisherige Verhalten; weiße Säume werden bei erkannten gleichmäßigen hellen Hintergründen reduziert. Die Ausgabe bleibt transparent. Nach Änderungen erneut verarbeiten; keine zusätzlichen Modelldownloads.
+#### Skalieren, Zuschneiden und Leinwand
+
+Die drei Register teilen sich einen Stapel mit bis zu **100 Bildern**. Ein Klick auf eine Dateizeile öffnet die Vorschau, ohne den Verarbeitungsstapel einzuschränken. Die Vorschau folgt dem aktiven Register und zeigt ursprüngliche und resultierende Maße nach Anwendung der EXIF-Ausrichtung. Reduzierte Pixel zeigen die Komposition, nicht die endgültigen Details im Maßstab 1:1. Änderungen an Parametern speichern keine Dateien.
+
+- **Skalieren:** **Prozent** reicht von **1–200 %**, anfangs **50 %**. **Pixel** akzeptiert Breite, Höhe oder beides; bei einem Wert wird der andere proportional berechnet. Mit beiden Werten und aktiviertem **Seitenverhältnis beibehalten** (Standard) passt das Bild ohne Vergrößerung in diese Grenzen; ohne diese Option werden die exakten Maße verwendet, was das Bild verzerren kann. **Preset** bietet exakte Größen für soziale Medien, Webbilder, Auflösungen und Symbole und kann ebenfalls die Proportionen ändern; die erste Vorlage ist Instagram 1080 × 1080.
+- **Zuschneiden:** **Seitenverhältnis** bietet **1:1** (Standard), **4:3, 3:4, 16:9, 9:16, 3:2, 2:3 und 21:9**. **Abmessungen** verwendet positive ganze Werte für Breite und Höhe mit synchronisierten Reglern und Eingabefeldern. Die Auswahl eines anderen Bildes übernimmt dessen ausgerichtete Maße und setzt die Reglergrenzen. Der Zuschnitt ist zentriert, ohne Vergrößerung, Auffüllen oder Verschieben des Bereichs mit der Maus. Die gewählten Maße gelten für den ganzen Stapel: Zu kleine Bilder werden übersprungen, ihre Originale bleiben erhalten und die Verarbeitung läuft weiter. Beispielsweise entfernt 1000 × 700 auf 800 × 600 jeweils 100 px an den Seiten und 50 px oben und unten.
+- **Leinwand:** Breite und Höhe beginnen bei **1080 × 1080 px**. Die Regler reichen zunächst von **1–8192 px**; eine größere manuell eingegebene positive Ganzzahl erweitert den Bereich, soweit der Arbeitsspeicher reicht. Das Bild wird zentriert, bei Bedarf proportional verkleinert und nie vergrößert. **Farbe** beginnt bei **#FFFFFF**; die HEX-Schaltfläche öffnet die Hintergrundfarbauswahl. Abbrechen oder der Wechsel zu **Transparent** erhält die letzte Farbe.
+
+Bei transparenter Leinwand behalten PNG, WebP, TIFF, AVIF und HEIF ihr Format, wenn ein Encoder verfügbar ist; andere Fälle werden PNG. JPEG, BMP, GIF und ICO werden daher PNG. Die Bestätigung nennt die Umwandlungen und erhält deren Originale auch bei **Originale überschreiben**. Halbtransparente Pixel werden mit einer farbigen Leinwand verrechnet oder behalten auf transparenter Leinwand ihr Alpha; das Schachbrett der Vorschau wird nicht gespeichert. [Ausführliche Anleitung (Englisch)](../RESIZE_PREVIEWS_AND_BACKGROUND.md).
+
+#### Farbpalette
+
+**Bilder hinzufügen** ergänzt die Sammlung auf bis zu **100 eindeutige Bilder** und meldet Duplikate oder ausgeschlossene Dateien. Das erste Bild öffnet sich automatisch; ein Klick auf eine andere Zeile ändert nur die sichtbare Palette. Wähle **4, 6, 8, 10 oder 12 Farben** (anfangs **6**); ein Bild kann weniger unterschiedliche Farben enthalten. **HEX, RGB, HSL und CSS var** kopieren den jeweiligen Farbwert. Vollständig transparente Pixel werden ignoriert; teilweise transparente liefern ihr RGB ohne Mischung mit einem Hintergrund. Vollständig transparente, unlesbare oder nicht unterstützte animierte/mehrseitige Dateien zeigen einen Fehler.
+
+**Palette speichern** exportiert die offene Palette als PNG; **Alle speichern** verarbeitet die gesamte Sammlung mit der gewählten Farbanzahl und exportiert ein PNG pro Bild, mit Fortschritt und Fehlern pro Datei. Aus `beach.jpg` wird beispielsweise `beach_paleta.png`; Namenskonflikte im Stapel werden zu `beach_paleta_1.png` usw. Der Stapelexport schützt vorhandene Dateien und Eingaben; der Einzelexport schützt ebenfalls alle Bilder der Sammlung. Abbrechen eines Dialogs schreibt nichts. **Leeren** leert Sammlung und Ergebnisse, ohne gespeicherte Exporte zu löschen. [Stapelanleitung (Spanisch/Englisch)](../PALETTE_BATCH.md).
+
+#### Hintergrund entfernen
+
+Lade bis zu **10 Bilder** und wähle **PNG** (Standard), **WEBP** oder **TIFF**, jeweils mit Transparenz. Wähle eine Zeile, um vor der Verarbeitung das Original und danach das gespeicherte Ergebnis zu sehen. Die drei Einstellungen sind immer sichtbar:
+
+- **Kanten verfeinern: Auto / Ja / Nein**, anfangs **Auto**. Auto bereinigt die Maske und verfeinert halbtransparente Kanten bei erkannten gleichmäßig hellen Hintergründen. Ja fordert beides bei jedem Hintergrund an; Nein deaktiviert beides.
+- **Weißen Saum reduzieren: 0–100 %**, anfangs **85 %**. Reduziert helle Hintergrundfarbe an Kanten nur bei als gleichmäßig hell erkanntem Hintergrund. Diese Einstellung ist unabhängig vom Verfeinerungsmodus.
+- **Verkleinern / erweitern: −5 bis +5 px**, anfangs **0 px**. Negative Werte verkleinern die Maske, positive erweitern sie, gemessen in Pixeln des Originalbildes. Verkleinern kann feine Details entfernen; Erweitern kann Hintergrund sichtbar machen.
+
+Geänderte Steuerelemente lassen das letzte gespeicherte Ergebnis in der Vorschau bestehen: Zur Anwendung erneut verarbeiten. Fehlerhafte Dateien zeigen ihr Original und eine Fehlermeldung. Diese Einstellungen wählen kein anderes Modell und benötigen keine zusätzlichen Modelle; der übliche Modelldownload beim ersten Einsatz bleibt erforderlich. Verfeinerung kann mehr CPU, RAM und Zeit benötigen und verlorene Details nicht garantiert wiederherstellen. [Ausführliche Anleitung (Englisch)](../RESIZE_PREVIEWS_AND_BACKGROUND.md).
+
+#### Speichern
+
+Für Skalieren, Zuschneiden, Leinwand und Hintergrund entfernen ist **Kopien erstellen** der Standard und fragt nach einem Ausgabeordner; **Originale überschreiben** ersetzt die Quelle nur bei unverändertem Format. Ein Formatwechsel erstellt eine separate Datei neben der Quelle und erhält das Original. Prüfe die Bestätigung vor der Verarbeitung. Namenskonflikte neuer Dateien werden nummeriert; übersprungene Zuschnitte werden getrennt von Fehlern gemeldet. Palette verwendet die oben beschriebenen eigenen PNG-Exportdialoge.
 
 <a id="requirements"></a>
 

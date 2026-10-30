@@ -51,9 +51,9 @@ The table lists the desktop modules. Availability and controls depend on your in
 | --- | --- | --- | --- |
 | Convert | Change format and adjust quality where supported. | JPEG, PNG, WebP, AVIF, HEIC, ICO, BMP, TIFF and static GIF outputs. | 100 images |
 | Compress | Reduce file size while keeping the original format. | JPEG, PNG, WebP, AVIF, HEIC/HEIF and other supported raster formats. | 100 images |
-| Resize / Crop / Canvas | Set dimensions, crop or add canvas space; use size presets. | Common raster images, including JPEG, PNG and WebP. | 100 images |
-| Remove background | Remove backgrounds locally with AI. | PNG, WebP or TIFF output with transparency. | 10 images |
-| Color palette | Extract colors, copy HEX/RGB/HSL values and export one PNG per image. | Supported images → individual palettes; save the whole batch. | 100 images |
+| Resize / Crop / Canvas | Resize by percentage, pixels or preset; crop by ratio or exact dimensions; choose a canvas color or transparency. | Supported raster images; transparent canvas converts to PNG when needed. | 100 images |
+| Remove Background | Remove backgrounds locally with AI; adjust edge refinement, white halos and contour size. | PNG, WebP or TIFF output with transparency. | 10 images |
+| Color Palette | Inspect individual palettes in a batch, copy HEX/RGB/HSL/CSS values and save one or all palettes. | Supported static images → one PNG palette per image. | 100 images |
 | Watermark | Apply an image logo; adjust position, size, opacity and margin. | Supported base images; transparent PNG recommended for the logo. | 100 images + 1 logo |
 | Rename | Preview numbered names, dates and letter case changes. | Changes filenames in their current folder. | 100 files |
 | OCR | Extract Spanish and/or English text with EasyOCR; copy it or export as TXT. | Supported raster images → text. | 10 images |
@@ -161,13 +161,39 @@ The commands use the repository's pinned dependencies. Compatibility with other 
 - **Prepare product photos:** Load up to 10 images in Remove background and export as PNG or WebP to keep transparency. Add a transparent PNG logo with Watermark if needed.
 - **Extract text:** Load up to 10 clear images in OCR, choose Spanish, English or both, then copy the result or export a TXT file. The interface language does not add OCR recognition languages. Review the text for recognition errors.
 
-### Resize previews and background removal
+### Processing options and previews
 
-- **Resize / Crop / Canvas:** click a file row to inspect it; processing still applies to the loaded batch. The preview follows the visible tab and shows original and output dimensions. Canvas has synchronized width/height sliders and manual inputs. The reduced preview shows composition, not final pixel-level detail.
+These controls describe the current development source; older published packages may not include all of them.
 
-- **Remove background:** inspect the original before processing and the saved result afterward. Refine edges supports Auto/Yes/No; white-halo reduction (0–100%, initially 85%) and contour contraction/expansion (−5 to +5 original-image pixels, initially 0) are always visible. Auto keeps the current behavior; halo reduction targets detected uniform light backgrounds. Outputs stay transparent. Process again after changing these settings; no extra models are downloaded.
+#### Resize, Crop and Canvas
 
-Implementation and validation notes: [Resize previews and background removal settings](docs/RESIZE_PREVIEWS_AND_BACKGROUND.md).
+These three tabs share a batch of up to **100 images**. Click a file row to inspect it without reducing the processing batch. The preview follows the active tab and shows original and output dimensions after EXIF orientation. It uses reduced pixels to show composition, rather than final detail at 1:1. Changing parameters does not save files.
+
+- **Resize:** **Percentage** ranges from **1–200%**, initially **50%**. **Pixels** accepts width, height or both; one dimension calculates the other proportionally. With both dimensions and **Maintain aspect ratio** enabled (the default), the image fits within those bounds without upscaling; disabling it uses the exact dimensions and can stretch the image. **Preset** uses exact sizes for social media, web images, resolutions and icons, and can also change proportions; the initial preset is Instagram 1080 × 1080.
+- **Crop:** **Aspect ratio** offers **1:1** (default), **4:3, 3:4, 16:9, 9:16, 3:2, 2:3 and 21:9**. **Dimensions** uses positive integer width and height with synchronized sliders and fields. Selecting another image loads its oriented dimensions into these controls and sets the slider limits. Cropping is centered, without enlargement, padding or dragging the crop area. The chosen dimensions apply to the whole batch: images too small for the crop are skipped, their originals stay intact and processing continues. For example, 1000 × 700 cropped to 800 × 600 removes 100 px from each side and 50 px from the top and bottom.
+- **Canvas:** width and height start at **1080 × 1080 px**. Sliders initially cover **1–8192 px**; a larger positive integer entered manually extends the range, subject to available memory. The image is centered, reduced proportionally if needed and never enlarged. **Color** starts at **#FFFFFF**; click the HEX button to choose any background color. Canceling the picker or switching to **Transparent** preserves the last color.
+
+For transparent canvas, PNG, WebP, TIFF, AVIF and HEIF keep their format when an encoder is available; other cases become PNG. JPEG, BMP, GIF and ICO therefore become PNG. The confirmation reports conversions and keeps converted originals even in **Overwrite originals** mode. Translucent pixels blend with a solid canvas or retain their alpha on a transparent one; the preview checkerboard is not saved. [Detailed guide](docs/RESIZE_PREVIEWS_AND_BACKGROUND.md).
+
+#### Color Palette
+
+**Add images** appends up to **100 unique images** to the collection and reports duplicates or excluded files. The first image opens automatically; clicking another row changes only the visible palette. Choose **4, 6, 8, 10 or 12 colors** (initially **6**); an image may contain fewer distinct colors. **HEX, RGB, HSL and CSS var** copy the corresponding color value. Fully transparent pixels are ignored; partly transparent pixels contribute their RGB without a background blend. Fully transparent, unreadable or unsupported animated/multipage files show an error.
+
+**Save palette** exports the open palette as PNG; **Save all** processes the entire collection with the chosen color count and exports one PNG per image, with progress and per-file errors. For example, `beach.jpg` produces `beach_paleta.png`; batch conflicts become `beach_paleta_1.png`, etc. Batch export preserves existing files and all inputs; single-palette export also protects every input in the collection. Canceling a dialog writes nothing. **Clear** empties the collection and results without deleting exported files. [Batch guide (Spanish/English)](docs/PALETTE_BATCH.md).
+
+#### Remove Background
+
+Load up to **10 images** and choose **PNG** (default), **WEBP** or **TIFF**, all with transparency. Select a row to see its original before processing and its saved result afterward. The three settings are always visible:
+
+- **Refine edges: Auto / Yes / No**, initially **Auto**. Auto cleans the mask and refines translucent edges on detected uniform light backgrounds. Yes requests both for any background; No disables both.
+- **Reduce white halo: 0–100%**, initially **85%**. Reduces light-background color contamination at edges only when the background is detected as uniform and light. This works independently of the refinement selector.
+- **Contract / expand: −5 to +5 px**, initially **0 px**. Negative values contract the mask; positive values expand it, measured in original-image pixels. Contraction can remove fine details; expansion can reveal background.
+
+Changing controls keeps the last saved result in the preview: process again to apply them. A failed file shows its original and an error. These controls do not select a new model or require additional models; the normal first-use model download still applies. Refinement can increase CPU, RAM and processing time, and cannot guarantee recovery of missing detail. [Detailed guide](docs/RESIZE_PREVIEWS_AND_BACKGROUND.md).
+
+#### Saving
+
+For Resize, Crop, Canvas and Remove Background, **Create copies** is the default and asks for an output folder; **Overwrite originals** replaces the source only when the output format is unchanged. A format change creates a separate file beside the source and keeps the original. Review the confirmation before processing. New-file name conflicts are numbered; cropping skips are reported separately from errors. Palette uses its own PNG export dialogs described above.
 
 <a id="requirements"></a>
 

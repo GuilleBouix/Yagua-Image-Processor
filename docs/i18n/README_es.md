@@ -53,9 +53,9 @@ La tabla enumera los módulos de escritorio. La disponibilidad y los controles d
 | --- | --- | --- | --- |
 | Convertir | Cambiar de formato y ajustar calidad cuando el formato lo permite. | Salidas JPEG, PNG, WebP, AVIF, HEIC, ICO, BMP, TIFF y GIF estático. | 100 imágenes |
 | Comprimir | Reducir el tamaño del archivo conservando su formato original. | JPEG, PNG, WebP, AVIF, HEIC/HEIF y otros formatos ráster compatibles. | 100 imágenes |
-| Redimensionar / Recortar / Lienzo | Cambiar dimensiones, recortar o agregar espacio; usar tamaños predefinidos. | Imágenes ráster habituales, como JPEG, PNG y WebP. | 100 imágenes |
-| Quitar fondo | Eliminar fondos localmente con IA. | Salida PNG, WebP o TIFF con transparencia. | 10 imágenes |
-| Paleta de colores | Extraer colores, copiar valores HEX/RGB/HSL y exportar un PNG por imagen. | Imágenes compatibles → paletas individuales; guardar todo el lote. | 100 imágenes |
+| Redimensionar / Recortar / Canvas | Redimensionar por porcentaje, píxeles o preset; recortar por proporción o dimensiones exactas; elegir color de lienzo o transparencia. | Imágenes ráster compatibles; el lienzo transparente convierte a PNG cuando hace falta. | 100 imágenes |
+| Quitar Fondo | Eliminar fondos localmente con IA; ajustar el refinado de bordes, el halo blanco y el tamaño del contorno. | Salida PNG, WebP o TIFF con transparencia. | 10 imágenes |
+| Paleta de colores | Inspeccionar paletas individuales de un lote, copiar valores HEX/RGB/HSL/CSS y guardar una o todas las paletas. | Imágenes estáticas compatibles → una paleta PNG por imagen. | 100 imágenes |
 | Marca de agua | Aplicar un logo; ajustar posición, tamaño, opacidad y margen. | Imágenes base compatibles; se recomienda PNG transparente para el logo. | 100 imágenes + 1 logo |
 | Renombrar | Previsualizar numeración, fechas y cambios de mayúsculas/minúsculas. | Cambia los nombres en la carpeta original. | 100 archivos |
 | OCR | Extraer texto en español y/o inglés con EasyOCR; copiarlo o exportarlo como TXT. | Imágenes ráster compatibles → texto. | 10 imágenes |
@@ -169,15 +169,39 @@ Estos comandos usan las dependencias fijadas por el repositorio. Las comprobacio
 - **Preparar fotos de productos:** Cargá hasta 10 imágenes en Quitar fondo y exportá como PNG o WebP para mantener la transparencia. Si hace falta, agregá un logo PNG transparente con Marca de agua.
 - **Extraer texto:** Cargá hasta 10 imágenes nítidas en OCR, elegí español, inglés o ambos y copiá el resultado o exportá un TXT. El idioma de la interfaz no agrega idiomas de reconocimiento OCR. Revisá el texto por posibles errores de reconocimiento.
 
-### Previews y ajustes de quitar fondo
+### Opciones de procesamiento y vistas previas
 
-- **Redimensionar / Recortar / Lienzo:** hacé clic en una fila para inspeccionar su imagen; el procesamiento sigue aplicándose al lote cargado. La preview responde a la pestaña visible y muestra las dimensiones originales y finales. Lienzo incorpora sliders de ancho/alto sincronizados con los inputs manuales. La preview reducida muestra la composición, no el detalle final píxel a píxel.
+Estos controles corresponden al código actual en desarrollo; los paquetes publicados anteriormente pueden no incluirlos todos.
 
-Detalles de uso e implementación: [Previews y ajustes de Quitar Fondo](../PREVIEWS_AND_BACKGROUND.md).
+#### Redimensionar, Recortar y Canvas
 
-- **Quitar fondo:** muestra el original antes de procesar y el resultado guardado después. Refinar bordes ofrece Auto/Sí/No; la reducción de halo blanco (0–100 %, inicial 85 %) y contraer/expandir el contorno (−5 a +5 píxeles del original, inicial 0) están siempre visibles. Auto mantiene el comportamiento actual; el halo se reduce en fondos claros uniformes detectados. La salida conserva transparencia. Volvé a procesar al cambiar estos ajustes; no se descargan modelos adicionales.
+Las tres pestañas comparten un lote de hasta **100 imágenes**. Hacé clic en una fila para inspeccionar su imagen sin reducir el lote que se procesará. La vista previa sigue la pestaña activa y muestra las dimensiones originales y finales después de aplicar la orientación EXIF. Usa píxeles reducidos para mostrar la composición, no el detalle final a escala 1:1. Cambiar parámetros no guarda archivos.
 
-Detalles de implementación y validación: [Previews y ajustes de Quitar Fondo](../PREVIEWS_AND_BACKGROUND.md).
+- **Redimensionar:** **Porcentaje** permite **1–200 %**, inicialmente **50 %**. **Píxeles** admite ancho, alto o ambos; con una dimensión calcula la otra proporcionalmente. Con ambas dimensiones y **Mantener relación de aspecto** activado (valor inicial), la imagen entra en esos límites sin ampliarse; desactivarlo usa las dimensiones exactas y puede deformarla. **Preset** ofrece tamaños exactos para redes sociales, web, resoluciones e iconos y también puede cambiar la proporción; el preset inicial es Instagram 1080 × 1080.
+- **Recortar:** **Proporción** ofrece **1:1** (inicial), **4:3, 3:4, 16:9, 9:16, 3:2, 2:3 y 21:9**. **Dimensiones** usa ancho y alto enteros positivos con sliders y campos sincronizados. Elegir otra imagen carga sus dimensiones orientadas en estos controles y fija los límites de los sliders. El recorte es centrado, sin ampliar, rellenar ni arrastrar el área. Las dimensiones elegidas se aplican a todo el lote: las imágenes demasiado pequeñas se omiten, conservan sus originales y el resto continúa. Por ejemplo, recortar 1000 × 700 a 800 × 600 quita 100 px de cada lado y 50 px de arriba y abajo.
+- **Canvas:** ancho y alto comienzan en **1080 × 1080 px**. Los sliders cubren inicialmente **1–8192 px**; ingresar manualmente un entero positivo mayor amplía ese rango, sujeto a la memoria disponible. La imagen se centra, se reduce proporcionalmente si hace falta y no se amplía. **Color** empieza en **#FFFFFF**; el botón HEX abre el selector de color de fondo. Cancelarlo o alternar a **Transparente** conserva el último color.
+
+Con lienzo transparente, PNG, WebP, TIFF, AVIF y HEIF conservan su formato si hay un codificador disponible; los demás casos pasan a PNG. JPEG, BMP, GIF e ICO pasan por tanto a PNG. La confirmación informa las conversiones y conserva sus originales incluso en **Sobrescribir originales**. Los píxeles semitransparentes se mezclan con el lienzo de color o conservan su alfa en uno transparente; el damero de la vista previa no se guarda. [Guía detallada](../PREVIEWS_AND_BACKGROUND.md).
+
+#### Paleta de colores
+
+**Agregar imágenes** suma hasta **100 imágenes únicas** a la colección e informa duplicadas o excluidas. La primera se abre automáticamente; hacer clic en otra fila solo cambia la paleta visible. Elegí **4, 6, 8, 10 o 12 colores** (inicialmente **6**); una imagen puede tener menos colores distintos. **HEX, RGB, HSL y CSS var** copian el valor correspondiente. Los píxeles totalmente transparentes se ignoran; los parcialmente transparentes aportan su RGB sin mezclarlo con un fondo. Los archivos totalmente transparentes, ilegibles o animados/multipágina no admitidos muestran un error.
+
+**Guardar paleta** exporta la paleta abierta como PNG; **Guardar todas** procesa toda la colección con la cantidad elegida y exporta un PNG por imagen, con progreso y errores por archivo. Por ejemplo, `beach.jpg` genera `beach_paleta.png`; los conflictos del lote se numeran como `beach_paleta_1.png`, etc. La exportación por lotes conserva archivos existentes y entradas; la individual también protege todas las imágenes de la colección. Cancelar un diálogo no escribe archivos. **Limpiar** vacía la colección y sus resultados sin borrar exportaciones guardadas. [Guía de paletas por lotes](../PALETTE_BATCH.md).
+
+#### Quitar Fondo
+
+Cargá hasta **10 imágenes** y elegí **PNG** (inicial), **WEBP** o **TIFF**, todos con transparencia. Seleccioná una fila para ver el original antes de procesar y el resultado guardado después. Los tres ajustes están siempre visibles:
+
+- **Refinar bordes: Auto / Sí / No**, inicialmente **Auto**. Auto limpia la máscara y refina los bordes semitransparentes en fondos detectados como claros y uniformes. Sí solicita ambas acciones con cualquier fondo; No desactiva ambas.
+- **Reducir halo blanco: 0–100 %**, inicialmente **85 %**. Reduce la contaminación del color de fondo claro en los bordes solo cuando se detecta un fondo claro uniforme. Funciona de forma independiente del selector de refinado.
+- **Contraer / expandir: −5 a +5 px**, inicialmente **0 px**. Los valores negativos contraen la máscara; los positivos la expanden, medidos en píxeles de la imagen original. Contraer puede quitar detalles finos; expandir puede revelar fondo.
+
+Cambiar controles conserva el último resultado guardado en la vista previa: volvé a procesar para aplicarlos. Si un archivo falla, muestra su original y un error. Estos controles no eligen otro modelo ni requieren modelos adicionales; sigue siendo necesaria la descarga habitual del primer uso. El refinado puede aumentar el consumo de CPU, RAM y tiempo y no garantiza recuperar detalles perdidos. [Guía detallada](../PREVIEWS_AND_BACKGROUND.md).
+
+#### Guardado
+
+En Redimensionar, Recortar, Canvas y Quitar Fondo, **Crear copias** es la opción inicial y pide una carpeta de salida; **Sobrescribir originales** reemplaza la fuente solo si no cambia el formato. Un cambio de formato crea otro archivo junto a la fuente y conserva el original. Revisá la confirmación antes de procesar. Los conflictos de nombres nuevos se numeran; las omisiones del recorte se informan por separado de los errores. Paleta usa sus propios diálogos de exportación PNG, explicados arriba.
 
 <a id="requirements"></a>
 

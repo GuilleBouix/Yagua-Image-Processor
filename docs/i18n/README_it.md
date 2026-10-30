@@ -53,9 +53,9 @@ La tabella elenca i moduli desktop. La disponibilità e i controlli dipendono da
 | --- | --- | --- | --- |
 | Convertire | Cambiare formato e regolare la qualità quando il formato lo consente. | Output JPEG, PNG, WebP, AVIF, HEIC, ICO, BMP, TIFF e GIF statici. | 100 immagini |
 | Comprimere | Ridurre le dimensioni del file mantenendo il formato originale. | JPEG, PNG, WebP, AVIF, HEIC/HEIF e altri formati raster supportati. | 100 immagini |
-| Ridimensionare / Ritagliare / Tela | Impostare le dimensioni, ritagliare o aggiungere spazio alla tela; usare dimensioni predefinite. | Immagini raster comuni, tra cui JPEG, PNG e WebP. | 100 immagini |
-| Rimuovere lo sfondo | Rimuovere gli sfondi localmente con l’IA. | Output PNG, WebP o TIFF con trasparenza. | 10 immagini |
-| Tavolozza colori | Estrarre colori, copiare HEX/RGB/HSL ed esportare un PNG per immagine. | Immagini supportate → tavolozze individuali; salvare tutto il lotto. | 100 immagini |
+| Ridimensiona / Ritaglia / Tela | Ridimensionare per percentuale, pixel o preimpostazione; ritagliare per proporzioni o dimensioni esatte; scegliere colore della tela o trasparenza. | Immagini raster supportate; la tela trasparente converte in PNG quando necessario. | 100 immagini |
+| Rimuovi sfondo | Rimuovere sfondi localmente con IA; regolare rifinitura dei bordi, aloni bianchi e dimensione del contorno. | Output PNG, WebP o TIFF con trasparenza. | 10 immagini |
+| Palette di colori | Esaminare le singole tavolozze di un gruppo, copiare valori HEX/RGB/HSL/CSS e salvarne una o tutte. | Immagini statiche supportate → una tavolozza PNG per immagine. | 100 immagini |
 | Filigrana | Applicare un logo; regolare posizione, dimensioni, opacità e margine. | Immagini di base supportate; per il logo è consigliato un PNG trasparente. | 100 immagini + 1 logo |
 | Rinominare | Visualizzare in anteprima nomi numerati, date e modifiche a maiuscole/minuscole. | Modifica i nomi dei file nella cartella corrente. | 100 file |
 | OCR | Estrarre testo in spagnolo e/o inglese con EasyOCR; copiarlo o esportarlo in TXT. | Immagini raster supportate → testo. | 10 immagini |
@@ -169,11 +169,39 @@ I comandi usano le dipendenze con versioni fissate nel repository. I controlli C
 - **Preparare foto di prodotti:** Carica fino a 10 immagini in Rimuovere lo sfondo ed esportale in PNG o WebP per mantenere la trasparenza. Se necessario, aggiungi un logo PNG trasparente con Filigrana.
 - **Estrarre testo:** Carica fino a 10 immagini nitide nell’OCR, scegli spagnolo, inglese o entrambe le lingue, poi copia il risultato o esporta un file TXT. La lingua dell’interfaccia non aggiunge lingue di riconoscimento OCR. Controlla eventuali errori nel testo riconosciuto.
 
-### Anteprime e regolazioni della rimozione sfondo
+### Opzioni di elaborazione e anteprime
 
-- **Ridimensiona / Ritaglia / Tela:** fai clic su una riga per esaminare l’immagine; l’elaborazione riguarda sempre il lotto caricato. L’anteprima segue la scheda visibile e mostra le dimensioni originali e finali. I cursori larghezza/altezza della tela sono sincronizzati con i campi manuali. L’anteprima ridotta mostra la composizione, non il dettaglio finale dei pixel.
+Questi controlli descrivono il codice attuale in sviluppo; i pacchetti pubblicati in precedenza potrebbero non includerli tutti.
 
-- **Rimuovi sfondo:** mostra l’originale prima dell’elaborazione e il risultato salvato dopo. Rifinisci bordi offre Auto/Sì/No; riduzione dell’alone bianco (0–100%, inizialmente 85%) e contrazione/espansione del contorno (−5 a +5 pixel originali, inizialmente 0) sono sempre visibili. Auto mantiene il comportamento precedente; l’alone viene ridotto sugli sfondi chiari uniformi rilevati. L’output resta trasparente. Elabora di nuovo dopo le modifiche; nessun modello aggiuntivo viene scaricato.
+#### Ridimensiona, Ritaglia e Tela
+
+Le tre schede condividono un gruppo di massimo **100 immagini**. Fai clic su una riga per esaminare l’immagine senza ridurre il gruppo da elaborare. L’anteprima segue la scheda attiva e mostra le dimensioni originali e finali dopo l’applicazione dell’orientamento EXIF. Usa pixel ridotti per mostrare la composizione, non il dettaglio finale in scala 1:1. Cambiare i parametri non salva file.
+
+- **Ridimensiona:** **Percentuale** varia da **1–200%**, inizialmente **50%**. **Pixel** accetta larghezza, altezza o entrambe; una dimensione calcola l’altra in proporzione. Con entrambe e **Mantieni proporzioni** attivo (impostazione iniziale), l’immagine rientra nei limiti senza ingrandirsi; disattivarlo usa le dimensioni esatte e può deformarla. **Predefinito** offre misure esatte per social, web, risoluzioni e icone e può modificare le proporzioni; la preimpostazione iniziale è Instagram 1080 × 1080.
+- **Ritaglia:** **Proporzioni** offre **1:1** (iniziale), **4:3, 3:4, 16:9, 9:16, 3:2, 2:3 e 21:9**. **Dimensioni** usa larghezza e altezza intere positive con cursori e campi sincronizzati. Selezionare un’altra immagine carica le sue dimensioni orientate nei controlli e fissa i limiti dei cursori. Il ritaglio è centrato, senza ingrandire, aggiungere spazio o trascinare l’area. Le dimensioni scelte valgono per l’intero gruppo: le immagini troppo piccole vengono saltate, i loro originali restano intatti e l’elaborazione continua. Ad esempio, ritagliare 1000 × 700 a 800 × 600 elimina 100 px per lato e 50 px sopra e sotto.
+- **Tela:** larghezza e altezza iniziano da **1080 × 1080 px**. I cursori coprono inizialmente **1–8192 px**; un intero positivo maggiore inserito manualmente estende l’intervallo, nei limiti della memoria disponibile. L’immagine è centrata, ridotta in proporzione se necessario e mai ingrandita. **Colore** inizia da **#FFFFFF**; il pulsante HEX apre il selettore del colore di sfondo. Annullarlo o passare a **Trasparente** conserva l’ultimo colore.
+
+Con tela trasparente, PNG, WebP, TIFF, AVIF e HEIF mantengono il formato se è disponibile un codificatore; gli altri casi diventano PNG. JPEG, BMP, GIF e ICO diventano quindi PNG. La conferma indica le conversioni e conserva gli originali convertiti anche in **Sovrascrivi originali**. I pixel semitrasparenti si mescolano alla tela colorata o mantengono l’alfa sulla tela trasparente; la scacchiera dell’anteprima non viene salvata. [Guida dettagliata (inglese)](../RESIZE_PREVIEWS_AND_BACKGROUND.md).
+
+#### Palette di colori
+
+**Aggiungi immagini** aggiunge fino a **100 immagini uniche** alla raccolta e segnala duplicati o file esclusi. La prima si apre automaticamente; fare clic su un’altra riga cambia solo la tavolozza visibile. Scegli **4, 6, 8, 10 o 12 colori** (inizialmente **6**); un’immagine può contenere meno colori distinti. **HEX, RGB, HSL e CSS var** copiano il valore corrispondente. I pixel completamente trasparenti sono ignorati; quelli parzialmente trasparenti contribuiscono con il proprio RGB senza mescolarlo a uno sfondo. I file completamente trasparenti, illeggibili o animati/multipagina non supportati mostrano un errore.
+
+**Salva palette** esporta la tavolozza aperta in PNG; **Salva tutte** elabora tutta la raccolta con il numero di colori scelto ed esporta un PNG per immagine, con avanzamento ed errori per file. Ad esempio, `beach.jpg` produce `beach_paleta.png`; i conflitti nel gruppo diventano `beach_paleta_1.png`, ecc. L’esportazione in gruppo preserva file esistenti e sorgenti; quella singola protegge anche tutte le immagini della raccolta. Annullare un dialogo non scrive file. **Pulisci** svuota raccolta e risultati senza eliminare le esportazioni salvate. [Guida ai gruppi (spagnolo/inglese)](../PALETTE_BATCH.md).
+
+#### Rimuovi sfondo
+
+Carica fino a **10 immagini** e scegli **PNG** (iniziale), **WEBP** o **TIFF**, tutti con trasparenza. Seleziona una riga per vedere l’originale prima dell’elaborazione e il risultato salvato dopo. Le tre impostazioni sono sempre visibili:
+
+- **Rifinisci bordi: Auto / Sì / No**, inizialmente **Auto**. Auto pulisce la maschera e rifinisce i bordi semitrasparenti sugli sfondi rilevati come chiari e uniformi. Sì richiede entrambe le azioni con qualsiasi sfondo; No le disattiva entrambe.
+- **Riduci alone bianco: 0–100%**, inizialmente **85%**. Riduce la contaminazione del colore dello sfondo chiaro sui bordi solo quando il fondo è rilevato come chiaro e uniforme. Funziona indipendentemente dal selettore di rifinitura.
+- **Contrai / espandi: −5 a +5 px**, inizialmente **0 px**. I valori negativi contraggono la maschera; quelli positivi la espandono, in pixel dell’immagine originale. Contrarre può eliminare dettagli fini; espandere può rivelare lo sfondo.
+
+Cambiare i controlli mantiene l’ultimo risultato salvato nell’anteprima: elabora di nuovo per applicarli. Un file non riuscito mostra il proprio originale e un errore. Questi controlli non scelgono un altro modello né richiedono modelli aggiuntivi; resta necessario il consueto download al primo utilizzo. La rifinitura può aumentare l’uso di CPU, RAM e tempo e non garantisce il recupero dei dettagli persi. [Guida dettagliata (inglese)](../RESIZE_PREVIEWS_AND_BACKGROUND.md).
+
+#### Salvataggio
+
+Per Ridimensiona, Ritaglia, Tela e Rimuovi sfondo, **Crea copie** è l’opzione iniziale e chiede una cartella di output; **Sovrascrivi originali** sostituisce la sorgente solo se il formato resta invariato. Un cambio di formato crea un file separato accanto alla sorgente e conserva l’originale. Controlla la conferma prima di elaborare. I conflitti dei nuovi nomi sono numerati; i ritagli saltati sono segnalati separatamente dagli errori. Tavolozza usa i propri dialoghi di esportazione PNG descritti sopra.
 
 <a id="requirements"></a>
 

@@ -53,9 +53,9 @@ Le tableau présente les modules de bureau. Leur disponibilité et leurs command
 | --- | --- | --- | --- |
 | Convertir | Changer de format et régler la qualité lorsque le format le permet. | Sorties JPEG, PNG, WebP, AVIF, HEIC, ICO, BMP, TIFF et GIF statique. | 100 images |
 | Compresser | Réduire la taille du fichier tout en conservant son format d’origine. | JPEG, PNG, WebP, AVIF, HEIC/HEIF et autres formats matriciels compatibles. | 100 images |
-| Redimensionner / Recadrer / Canevas | Modifier les dimensions, recadrer ou ajouter de l’espace ; utiliser des tailles prédéfinies. | Images matricielles courantes, dont JPEG, PNG et WebP. | 100 images |
-| Supprimer l’arrière-plan | Retirer les arrière-plans localement avec l’IA. | Sortie PNG, WebP ou TIFF avec transparence. | 10 images |
-| Palette de couleurs | Extraire des couleurs, copier HEX/RGB/HSL et exporter un PNG par image. | Images compatibles → palettes individuelles ; enregistrer tout le lot. | 100 images |
+| Redimensionner / Recadrer / Canevas | Redimensionner par pourcentage, pixels ou préréglage ; recadrer par ratio ou dimensions exactes ; choisir une couleur de canevas ou la transparence. | Images matricielles prises en charge ; canevas transparent converti en PNG si nécessaire. | 100 images |
+| Supprimer le Fond | Supprimer les arrière-plans localement par IA ; régler les contours, les halos blancs et la taille du masque. | Sortie PNG, WebP ou TIFF avec transparence. | 10 images |
+| Palette de couleurs | Examiner les palettes individuelles d’un lot, copier les valeurs HEX/RGB/HSL/CSS et enregistrer une ou toutes les palettes. | Images statiques prises en charge → une palette PNG par image. | 100 images |
 | Filigrane | Appliquer un logo ; régler position, taille, opacité et marge. | Images de base compatibles ; PNG transparent conseillé pour le logo. | 100 images + 1 logo |
 | Renommer | Prévisualiser une numérotation, des dates et des changements de casse. | Modifie les noms dans leur dossier d’origine. | 100 fichiers |
 | OCR | Extraire du texte en espagnol et/ou anglais avec EasyOCR ; le copier ou l’exporter en TXT. | Images matricielles compatibles → texte. | 10 images |
@@ -167,11 +167,39 @@ Ces commandes utilisent les versions de dépendances fixées par le dépôt. Les
 - **Préparer des photos de produits :** Chargez jusqu’à 10 images dans Supprimer l’arrière-plan et exportez en PNG ou WebP pour conserver la transparence. Ajoutez si nécessaire un logo PNG transparent avec Filigrane.
 - **Extraire du texte :** Chargez jusqu’à 10 images nettes dans OCR, choisissez l’espagnol, l’anglais ou les deux, puis copiez le résultat ou exportez un TXT. La langue de l’interface n’ajoute pas de langues de reconnaissance OCR. Relisez le texte pour corriger les erreurs de reconnaissance.
 
-### Aperçus et réglages de suppression du fond
+### Options de traitement et aperçus
 
-- **Redimensionner / Recadrer / Canevas :** cliquez sur une ligne pour examiner une image ; le traitement concerne toujours le lot chargé. L’aperçu suit l’onglet visible et affiche les dimensions originales et finales. Le canevas propose des curseurs de largeur/hauteur synchronisés avec les champs manuels. L’aperçu réduit montre la composition, pas le détail final pixel par pixel.
+Ces commandes décrivent le code actuel en développement ; les paquets publiés auparavant peuvent ne pas toutes les proposer.
 
-- **Supprimer le fond :** affiche l’original avant le traitement puis le résultat enregistré. Le réglage des contours propose Auto/Oui/Non ; la réduction du halo blanc (0–100 %, initialement 85 %) et la contraction/extension (−5 à +5 pixels de l’original, initialement 0) restent visibles. Auto conserve le comportement actuel ; le halo est réduit sur les fonds clairs uniformes détectés. La sortie reste transparente. Relancez le traitement après modification ; aucun modèle supplémentaire n’est téléchargé.
+#### Redimensionner, Recadrer et Canevas
+
+Ces trois onglets partagent un lot de **100 images** au maximum. Cliquez sur une ligne pour examiner son image sans réduire le lot à traiter. L’aperçu suit l’onglet actif et affiche les dimensions originales et finales après application de l’orientation EXIF. Il utilise des pixels réduits pour montrer la composition, sans représenter le détail final à l’échelle 1:1. Modifier les paramètres n’enregistre aucun fichier.
+
+- **Redimensionner :** **Pourcentage** va de **1–200 %**, avec **50 %** au départ. **Pixels** accepte la largeur, la hauteur ou les deux ; une dimension calcule l’autre proportionnellement. Avec les deux et **Maintenir le ratio** activé (par défaut), l’image tient dans ces limites sans agrandissement ; le désactiver utilise les dimensions exactes et peut déformer l’image. **Préréglage** propose des tailles exactes pour les réseaux sociaux, le web, les résolutions et les icônes et peut aussi changer les proportions ; le préréglage initial est Instagram 1080 × 1080.
+- **Recadrer :** **Proportions** propose **1:1** (par défaut), **4:3, 3:4, 16:9, 9:16, 3:2, 2:3 et 21:9**. **Dimensions** utilise une largeur et une hauteur entières positives, avec curseurs et champs synchronisés. Sélectionner une autre image charge ses dimensions orientées dans ces commandes et fixe les limites des curseurs. Le recadrage est centré, sans agrandissement, remplissage ni déplacement de la zone à la souris. Les dimensions choisies s’appliquent à tout le lot : les images trop petites sont ignorées, leurs originaux sont préservés et le traitement continue. Par exemple, passer de 1000 × 700 à 800 × 600 retire 100 px de chaque côté et 50 px en haut et en bas.
+- **Canevas :** largeur et hauteur commencent à **1080 × 1080 px**. Les curseurs couvrent initialement **1–8192 px** ; saisir manuellement un entier positif supérieur étend la plage, sous réserve de la mémoire disponible. L’image est centrée, réduite proportionnellement si nécessaire et jamais agrandie. **Couleur** commence à **#FFFFFF** ; le bouton HEX ouvre le sélecteur de couleur du fond. Annuler ou passer à **Transparent** conserve la dernière couleur.
+
+Avec un canevas transparent, PNG, WebP, TIFF, AVIF et HEIF conservent leur format si un encodeur est disponible ; les autres cas deviennent PNG. JPEG, BMP, GIF et ICO deviennent donc PNG. La confirmation indique les conversions et préserve leurs originaux même en mode **Écraser les originaux**. Les pixels semi-transparents se mélangent au canevas coloré ou conservent leur alpha sur le canevas transparent ; le damier de l’aperçu n’est pas enregistré. [Guide détaillé (anglais)](../RESIZE_PREVIEWS_AND_BACKGROUND.md).
+
+#### Palette de couleurs
+
+**Ajouter des images** ajoute jusqu’à **100 images uniques** à la collection et signale les doublons ou exclusions. La première s’ouvre automatiquement ; cliquer sur une autre ligne change uniquement la palette visible. Choisissez **4, 6, 8, 10 ou 12 couleurs** (initialement **6**) ; une image peut contenir moins de couleurs distinctes. **HEX, RGB, HSL et CSS var** copient la valeur correspondante. Les pixels entièrement transparents sont ignorés ; les pixels partiellement transparents apportent leur RGB sans mélange avec un fond. Les fichiers entièrement transparents, illisibles ou animés/multipages non pris en charge affichent une erreur.
+
+**Enregistrer la palette** exporte la palette ouverte en PNG ; **Tout enregistrer** traite toute la collection avec le nombre de couleurs choisi et exporte un PNG par image, avec progression et erreurs par fichier. Par exemple, `beach.jpg` donne `beach_paleta.png` ; les conflits du lot deviennent `beach_paleta_1.png`, etc. L’export par lots préserve les fichiers existants et les sources ; l’export individuel protège aussi toutes les images de la collection. Annuler un dialogue n’écrit rien. **Effacer** vide la collection et les résultats sans supprimer les exports enregistrés. [Guide des lots (espagnol/anglais)](../PALETTE_BATCH.md).
+
+#### Supprimer le Fond
+
+Chargez jusqu’à **10 images** et choisissez **PNG** (par défaut), **WEBP** ou **TIFF**, tous avec transparence. Sélectionnez une ligne pour voir l’original avant le traitement et le résultat enregistré ensuite. Les trois réglages restent toujours visibles :
+
+- **Affiner les contours : Auto / Oui / Non**, initialement **Auto**. Auto nettoie le masque et affine les contours semi-transparents sur les fonds détectés comme clairs et uniformes. Oui demande les deux actions sur tout fond ; Non les désactive toutes deux.
+- **Réduire le halo blanc : 0–100 %**, initialement **85 %**. Réduit la contamination des contours par la couleur du fond clair uniquement si celui-ci est détecté comme clair et uniforme. Ce réglage fonctionne indépendamment du sélecteur d’affinage.
+- **Contracter / étendre : −5 à +5 px**, initialement **0 px**. Les valeurs négatives contractent le masque ; les positives l’étendent, en pixels de l’image originale. Contracter peut supprimer les détails fins ; étendre peut révéler le fond.
+
+Modifier les commandes conserve le dernier résultat enregistré dans l’aperçu : relancez le traitement pour les appliquer. Un fichier en échec affiche son original et une erreur. Ces commandes ne sélectionnent pas d’autre modèle et n’exigent pas de modèles supplémentaires ; le téléchargement habituel au premier usage reste nécessaire. L’affinage peut augmenter l’utilisation du CPU, de la RAM et le temps de traitement, sans garantir la récupération des détails perdus. [Guide détaillé (anglais)](../RESIZE_PREVIEWS_AND_BACKGROUND.md).
+
+#### Enregistrement
+
+Pour Redimensionner, Recadrer, Canevas et Supprimer le Fond, **Créer des copies** est l’option initiale et demande un dossier de sortie ; **Écraser les originaux** remplace la source uniquement si le format reste identique. Un changement de format crée un fichier distinct à côté de la source et conserve l’original. Vérifiez la confirmation avant le traitement. Les conflits de nouveaux noms sont numérotés ; les recadrages ignorés sont signalés séparément des erreurs. Palette utilise ses propres dialogues d’export PNG décrits plus haut.
 
 <a id="requirements"></a>
 
