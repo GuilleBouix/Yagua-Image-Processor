@@ -5,8 +5,8 @@
 ; Identidad y rutas predeterminadas del instalador de Windows.
 AppId={{2A0F8C4B-6E0D-4E7B-9E92-9B8D3D34B6F1}}
 AppName=Yagua
-AppVersion=2.0.0
-AppVerName=Yagua 2.0.0
+AppVersion=2.0.1
+AppVerName=Yagua 2.0.1
 AppPublisher=GuilleBouix
 AppPublisherURL=https://github.com/GuilleBouix
 AppSupportURL=https://github.com/GuilleBouix
@@ -18,7 +18,7 @@ DefaultDirName={pf}\Yagua
 DefaultGroupName=Yagua
 UninstallDisplayIcon={app}\Yagua.exe
 OutputDir=installer
-OutputBaseFilename=Yagua_Setup_2.0.0
+OutputBaseFilename=Yagua_Setup_2.0.1
 Compression=lzma
 SolidCompression=yes
 ArchitecturesInstallIn64BitMode=x64
