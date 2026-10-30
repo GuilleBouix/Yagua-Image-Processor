@@ -211,6 +211,11 @@ def estimar_tamano(ruta_entrada, calidad):
     formato = _formato_desde_ruta(ruta_entrada)
     
     with Image.open(ruta_entrada) as imagen:
+        if imagen.format == 'MPO':
+            # Validate before reducing the primary: an HD preview can be larger
+            # than a draft-decoded primary even though its native size is smaller.
+            imagen = normalize_common(imagen)
+            imagen.thumbnail((200, 200), Image.Resampling.LANCZOS)
         # Para JPEG, usar draft para reducir procesamiento
         if formato == 'JPEG':
             imagen.draft('RGB', (200, 200))

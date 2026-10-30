@@ -10,6 +10,8 @@ from typing import Any
 
 from numpy.typing import NDArray
 from PIL import Image, ImageOps
+from app.utils.output import require_single_frame
+from app.utils.image_source import mpo_preview_count
 
 
 logger = logging.getLogger(__name__)
@@ -53,6 +55,20 @@ def load_cv_image(ruta: str | Path) -> CvImage | None:
         return None
 
     try:
+        require_single_frame(ruta)
+        with Image.open(ruta) as source:
+            if source.format == 'MPO':
+                # OpenCV does not apply EXIF orientation; use the validated primary.
+                pixels = np.array(normalize_common(source).convert('RGB'))
+                return cv2.cvtColor(pixels, cv2.COLOR_RGB2BGR)
+    except ValueError as error:
+        if str(error) == 'unsupported_frames':
+            raise
+        return None
+    except OSError:
+        return None
+
+    try:
         data = np.fromfile(str(ruta), dtype=np.uint8)
         if data.size:
             img = cv2.imdecode(data, cv2.IMREAD_COLOR)
@@ -80,6 +96,20 @@ def load_cv_image_unchanged(ruta: str | Path) -> CvImage | None:
         import cv2
         import numpy as np
     except Exception:
+        return None
+
+    try:
+        require_single_frame(ruta)
+        with Image.open(ruta) as source:
+            if source.format == 'MPO':
+                # OpenCV does not apply EXIF orientation; use the validated primary.
+                pixels = np.array(normalize_common(source).convert('RGB'))
+                return cv2.cvtColor(pixels, cv2.COLOR_RGB2BGR)
+    except ValueError as error:
+        if str(error) == 'unsupported_frames':
+            raise
+        return None
+    except OSError:
         return None
 
     try:
@@ -112,7 +142,16 @@ def normalize_common(imagen: Image.Image) -> Image.Image:
     - Corrige orientacion EXIF
     - Convierte CMYK a RGB
     """
+    camera_preview = imagen.format == 'MPO'
+    if camera_preview and not mpo_preview_count(imagen):
+        raise ValueError('unsupported_frames')
+    if camera_preview:
+        imagen.seek(0)
     imagen = ImageOps.exif_transpose(imagen)
+    if camera_preview:
+        # Do not propagate an MPF index whose secondary images are not saved.
+        imagen.info.pop('mp', None)
+        imagen.info.pop('mpoffset', None)
     if imagen.mode == 'CMYK':
         imagen = imagen.convert('RGB')
     return imagen

@@ -10,11 +10,12 @@ from PIL import Image
 
 from app.utils.output import atomic_destination, DiscardOutput, require_single_frame
 from app.utils.results import file_failure
+from app.utils.image_source import mpo_preview_count
 
 SaveMode = Literal['copies', 'overwrite']
 EXTENSIONS = {'JPEG': '.jpg', 'PNG': '.png', 'WEBP': '.webp', 'TIFF': '.tiff',
               'HEIF': '.heic', 'AVIF': '.avif', 'GIF': '.gif', 'BMP': '.bmp', 'ICO': '.ico'}
-ALIASES = {'JPG': 'JPEG', 'HEIC': 'HEIF', 'TIF': 'TIFF'}
+ALIASES = {'JPG': 'JPEG', 'HEIC': 'HEIF', 'TIF': 'TIFF', 'MPO': 'JPEG'}
 
 
 def canonical_format(value: str) -> str:
@@ -49,6 +50,7 @@ class OutputItem:
     target_format: str = ''
     replace: bool = False
     error: str = ''
+    embedded_previews: int = 0
 
 
 @dataclass(frozen=True)
@@ -100,6 +102,7 @@ def plan_outputs(paths, folder, mode: SaveMode, target_format=None, *, resources
             require_single_frame(source)
             with Image.open(source) as image:
                 original = canonical_format(image.format or '')
+                previews = mpo_preview_count(image)
             target = canonical_format(target_format or (format_resolver(original) if format_resolver else original))
             replace = mode == 'overwrite' and original == target
             if replace and path_key(source) in resource_keys:
@@ -110,7 +113,8 @@ def plan_outputs(paths, folder, mode: SaveMode, target_format=None, *, resources
                 extension = source.suffix if original == target else EXTENSIONS[target]
                 directory = Path(folder) if mode == 'copies' else source.parent
                 destination = directory / (source.stem + extension)
-            items.append(OutputItem(str(source), destination, stamp, original, target, replace))
+            items.append(OutputItem(str(source), destination, stamp, original, target, replace,
+                                    embedded_previews=previews))
         except Exception as error:
             items.append(OutputItem(str(source), None, None, error=str(error)))
     return OutputPlan(mode, tuple(items), protected, inputs, resource_stamps)

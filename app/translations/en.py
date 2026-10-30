@@ -646,3 +646,7 @@ TRANSLATIONS.update({
     'palette_read_error': 'Could not read this image.',
     'palette_source_protected': 'Choose another name to keep the batch images intact.',
 })
+
+
+# Camera JPEGs with embedded MPO previews.
+TRANSLATIONS['save_camera_preview_notice'] = 'The main photo will be used. The saved file will not keep the camera’s embedded previews.'

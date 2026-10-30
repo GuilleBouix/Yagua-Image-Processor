@@ -64,6 +64,8 @@ def prepare(view, paths, target_format, proceed, *, resources=(), button=None, t
     def ready(plan):
         """Indica si la selección y el plan permiten guardar."""
         message = t('save_confirm').format(replace=plan.replacements, copies=plan.copies)
+        if any(not item.error and item.embedded_previews for item in plan.items):
+            message += '\n\n' + t('save_camera_preview_notice')
         conversions = sum(not item.error and item.source_format != item.target_format for item in plan.items)
         if conversions and format_notice:
             message += '\n\n' + format_notice.format(count=conversions)

@@ -9,7 +9,8 @@ Relacionado con:
 import base64
 import html
 import io
-from app.utils.output import atomic_write_text
+from app.utils.output import atomic_write_text, require_single_frame
+from app.utils.image_utils import normalize_common
 import json
 import logging
 import re
@@ -65,7 +66,9 @@ def imagen_a_base64(ruta, calidad=85):
     Returns:
         Diccionario con base64, data_uri, html_tag, css_bg.
     """
-    imagen = Image.open(ruta)
+    require_single_frame(ruta)
+    with Image.open(ruta) as source:
+        imagen = normalize_common(source)
     buffer = io.BytesIO()
 
     if imagen.mode in ('RGBA', 'LA', 'P'):
@@ -91,7 +94,9 @@ def generar_lqip(ruta, ancho=20, blur=2.0, calidad=40):
     Returns:
         Diccionario con base64, data_uri, html_tag, css_bg, bytes.
     """
-    imagen = Image.open(ruta)
+    require_single_frame(ruta)
+    with Image.open(ruta) as source:
+        imagen = normalize_common(source)
 
     if imagen.mode in ('RGBA', 'LA', 'P'):
         imagen = imagen.convert('RGB')

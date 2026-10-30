@@ -597,3 +597,7 @@ TRANSLATIONS.update({
     'palette_read_error': '无法读取此图片。',
     'palette_source_protected': '请选择其他名称以保留批次中的原图。',
 })
+
+
+# Camera JPEGs with embedded MPO previews.
+TRANSLATIONS['save_camera_preview_notice'] = '将使用主照片。保存的文件不会保留相机内嵌的预览图。'

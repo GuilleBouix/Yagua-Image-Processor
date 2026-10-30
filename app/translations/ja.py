@@ -597,3 +597,7 @@ TRANSLATIONS.update({
     'palette_read_error': '画像を読み込めませんでした。',
     'palette_source_protected': '元の画像を保護するため別の名前を選んでください。',
 })
+
+
+# Camera JPEGs with embedded MPO previews.
+TRANSLATIONS['save_camera_preview_notice'] = 'メインの写真を使用します。保存したファイルにはカメラの埋め込みプレビューは保持されません。'

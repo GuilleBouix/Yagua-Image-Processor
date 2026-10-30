@@ -14,6 +14,7 @@ from typing import cast
 from PIL import Image
 
 from app.utils.paths import resource_path
+from app.utils.image_utils import normalize_common
 from app.utils.output import atomic_destination, require_single_frame
 
 logger = logging.getLogger(__name__)
@@ -30,7 +31,8 @@ def cargar_preview(ruta, size=(80, 80)):
         Tupla con (imagen_preview, ancho_original, alto_original, extension).
     """
     require_single_frame(ruta)
-    with Image.open(ruta) as imagen:
+    with Image.open(ruta) as source:
+        imagen = normalize_common(source)
         ancho, alto = imagen.size
         imagen = imagen.convert('RGB')
         imagen.thumbnail(size, Image.Resampling.LANCZOS)
@@ -56,7 +58,8 @@ def extraer_paleta(ruta, n_colores=6):
 
     logger.info("Extraer paleta: %s (n=%s)", ruta, n_colores)
     require_single_frame(ruta)
-    with Image.open(ruta) as imagen:
+    with Image.open(ruta) as source:
+        imagen = normalize_common(source)
         # Alpha is a visibility mask, never a background color to quantize.
         if 'A' in imagen.getbands() or 'transparency' in imagen.info:
             imagen = imagen.convert('RGBA')

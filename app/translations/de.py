@@ -630,3 +630,7 @@ TRANSLATIONS.update({
     'palette_read_error': 'Dieses Bild konnte nicht gelesen werden.',
     'palette_source_protected': 'Wähle einen anderen Namen, um die Stapelbilder zu erhalten.',
 })
+
+
+# Camera JPEGs with embedded MPO previews.
+TRANSLATIONS['save_camera_preview_notice'] = 'Das Hauptfoto wird verwendet. Die gespeicherte Datei enthält keine eingebetteten Kameravorschaubilder.'

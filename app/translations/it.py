@@ -597,3 +597,7 @@ TRANSLATIONS.update({
     'palette_read_error': 'Impossibile leggere questa immagine.',
     'palette_source_protected': 'Scegli un altro nome per conservare le immagini del lotto.',
 })
+
+
+# Camera JPEGs with embedded MPO previews.
+TRANSLATIONS['save_camera_preview_notice'] = 'Verrà usata la foto principale. Il file salvato non conserverà le anteprime incorporate della fotocamera.'

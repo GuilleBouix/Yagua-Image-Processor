@@ -103,10 +103,11 @@ def atomic_write_text(destination: str | Path, text: str) -> None:
 
 
 def require_single_frame(path: str | Path) -> None:
-    """Rechaza entradas animadas o multipágina que no se pueden preservar."""
+    """Reject real multi-image inputs; allow a camera primary with tagged previews."""
     from PIL import Image
+    from app.utils.image_source import mpo_preview_count
     with Image.open(path) as image:
-        if getattr(image, 'n_frames', 1) != 1 or getattr(image, 'is_animated', False):
+        if (getattr(image, 'n_frames', 1) != 1 or getattr(image, 'is_animated', False)) and not mpo_preview_count(image):
             raise ValueError('unsupported_frames')
 
 

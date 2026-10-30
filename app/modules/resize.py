@@ -133,7 +133,7 @@ def redimensionar(ruta_entrada, ruta_salida, ancho=None, alto=None,
 
     logger.info("Redimensionar: %s -> %s", ruta_entrada, ruta_salida)
     with Image.open(ruta_entrada) as imagen:
-        formato = imagen.format or _formato_desde_ruta(ruta_entrada)
+        formato = canonical_format(imagen.format or _formato_desde_ruta(ruta_entrada))
         imagen = normalize_common(imagen)
         ancho_original, alto_original = imagen.size
 
@@ -180,7 +180,7 @@ def recortar(ruta_entrada, ruta_salida, ratio=None,
 
     logger.info("Recortar: %s -> %s", ruta_entrada, ruta_salida)
     with Image.open(ruta_entrada) as imagen:
-        formato = imagen.format or _formato_desde_ruta(ruta_entrada)
+        formato = canonical_format(imagen.format or _formato_desde_ruta(ruta_entrada))
         imagen = normalize_common(imagen)
         original_width, original_height = imagen.size
 

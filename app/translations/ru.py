@@ -597,3 +597,7 @@ TRANSLATIONS.update({
     'palette_read_error': 'Не удалось прочитать изображение.',
     'palette_source_protected': 'Выберите другое имя, чтобы сохранить изображения пакета.',
 })
+
+
+# Camera JPEGs with embedded MPO previews.
+TRANSLATIONS['save_camera_preview_notice'] = 'Будет использована основная фотография. Встроенные превью камеры не сохранятся в записанном файле.'

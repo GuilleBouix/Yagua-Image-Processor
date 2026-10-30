@@ -16,6 +16,31 @@ MODULES = [('compress', 'CompressFrame'), ('convert', 'ConvertFrame'), ('resize'
            ('watermark', 'WatermarkFrame'), ('remove_bg', 'RemoveBgFrame'), ('metadata', 'MetadataFrame')]
 
 
+@pytest.mark.parametrize('module,klass', MODULES)
+def test_camera_preview_warning_precedes_writes_and_cancel_keeps_original(ui_root, tmp_path, monkeypatch, module, klass):
+    from tests.mpo_helpers import camera_mpo
+    source = camera_mpo(tmp_path / 'camera.JPG')
+    original = (tmp_path / 'camera.JPG').read_bytes()
+    imported = import_module(f'app.ui.frames.{module}.frame')
+    if module == 'remove_bg':
+        monkeypatch.setattr(imported, 'estado_rembg', lambda: (True, None))
+        monkeypatch.setattr(imported, 'modelo_descargado', lambda: True)
+    view = getattr(imported, klass)(ui_root)
+    if module == 'remove_bg':
+        pump(ui_root, lambda: hasattr(view, '_save_choice'), 5)
+    synchronous(view, monkeypatch)
+    confirmations = []
+    monkeypatch.setattr('app.ui.saving.messagebox.askyesno',
+                        lambda title, message, **kwargs: confirmations.append(message) or False)
+    for choice in ('save_copies', 'save_overwrite'):
+        view._save_choice.set(t(choice))
+        view._prepare_save([source], 'WEBP', lambda *args: pytest.fail('Cancelled operation started'),
+                           folder=str(tmp_path))
+    assert len(confirmations) == 2
+    assert all(t('save_camera_preview_notice') in message for message in confirmations)
+    assert (tmp_path / 'camera.JPG').read_bytes() == original
+
+
 def pump(root, condition=lambda: False, timeout=.3):
     deadline = monotonic() + timeout
     while monotonic() < deadline and not condition():

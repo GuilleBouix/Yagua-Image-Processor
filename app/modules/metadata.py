@@ -26,6 +26,8 @@ from piexif import helper as piexif_helper
 from app.utils.output import unique_output_path, safe_image_output, atomic_destination, require_single_frame, atomic_write_text
 
 from app.utils.results import FileFailure, file_failure
+from app.utils.saving import canonical_format
+from app.utils.image_source import primary_jpeg_bytes
 
 logger = logging.getLogger(__name__)
 
@@ -484,7 +486,7 @@ def limpiar_exif(ruta_entrada, ruta_salida):
 
     logger.info("Limpiar EXIF: %s -> %s", ruta_entrada, ruta_salida)
     with Image.open(ruta_entrada) as imagen:
-        formato = imagen.format or 'JPEG'
+        formato = canonical_format(imagen.format or 'JPEG')
         imagen = ImageOps.exif_transpose(imagen)
         tam_original = Path(ruta_entrada).stat().st_size
 
@@ -589,7 +591,7 @@ def _editar_exif(ruta_entrada, ruta_salida, request):
     logger.info("Editar EXIF: %s -> %s", ruta_entrada, ruta_salida)
     try:
         with Image.open(ruta_entrada) as imagen:
-            formato = imagen.format or 'JPEG'
+            formato = canonical_format(imagen.format or 'JPEG')
 
             # Solo JPEG y TIFF soportan EXIF editable
             if formato not in ('JPEG', 'TIFF'):
@@ -691,7 +693,8 @@ def _editar_exif(ruta_entrada, ruta_salida, request):
             exif_bytes = piexif.dump(exif_dict)
             if formato == 'JPEG' and request.orientation is None:
                 # Reemplaza solo APP1: no decodifica ni recomprime los datos de imagen JPEG.
-                piexif.insert(exif_bytes, Path(ruta_entrada).read_bytes(), str(ruta_salida))
+                source_bytes = primary_jpeg_bytes(ruta_entrada) if imagen.format == 'MPO' else Path(ruta_entrada).read_bytes()
+                piexif.insert(exif_bytes, source_bytes, str(ruta_salida))
                 return True, None
             opciones_guardado: dict[str, object] = {'exif': exif_bytes}
             if formato == 'TIFF':

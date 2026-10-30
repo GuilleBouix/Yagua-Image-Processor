@@ -12,7 +12,8 @@ from app.modules.metadata import (
     preparar_campos_exif,
 )
 from app.utils.output import atomic_write_text, require_single_frame, unique_output_path
-from app.utils.saving import get_plan, run_plan, path_key
+from app.utils.saving import get_plan, run_plan, path_key, canonical_format
+from app.utils.image_source import mpo_preview_count
 
 
 @dataclass
@@ -58,8 +59,9 @@ def leer_archivo(path: str) -> dict:
         image.getexif()
         frames = getattr(image, 'n_frames', 1)
         animated = getattr(image, 'is_animated', False)
+        camera_preview = bool(mpo_preview_count(image))
     metadata = leer_metadatos(path)
-    editable = fmt in ('JPEG', 'TIFF') and frames == 1 and not animated
+    editable = canonical_format(fmt) in ('JPEG', 'TIFF') and ((frames == 1 and not animated) or camera_preview)
     values, edit_error = {}, None
     if editable:
         try:
