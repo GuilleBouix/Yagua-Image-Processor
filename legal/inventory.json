@@ -1139,7 +1139,7 @@
     },
     {
       "path": "assets/screenshots/palette.png",
-      "sha256": "cb2dc6b154122a980b053b35ed53e40cc320195bfc499b3cc2260077c518d774",
+      "sha256": "3a6042dd4c7bdc7c9174c2b39d24e433e1d06f76486dd98a8c52f213f8b94a35",
       "packaged": false,
       "license": "NOASSERTION",
       "source": "Yagua repository screenshot",
@@ -1148,7 +1148,7 @@
     },
     {
       "path": "assets/screenshots/remove-background.png",
-      "sha256": "5d60e1ac39987bd58f18fb74f3fe24694ab7aead256060cab313a1fc3664865e",
+      "sha256": "5f3d4b7f834df684eee22ce0b5b9ee3ea093f1758db3661b9f9e1113c2dcc635",
       "packaged": false,
       "license": "NOASSERTION",
       "source": "Yagua repository screenshot",
@@ -1166,7 +1166,7 @@
     },
     {
       "path": "assets/screenshots/resize.png",
-      "sha256": "bd435638b25d61bab465c9383a6adfaeaaa5a63f2d216099aabadf7860b94d96",
+      "sha256": "d9bb4c09126625d733f15616a590113515fe4c9120752f02193717cbca3a97e2",
       "packaged": false,
       "license": "NOASSERTION",
       "source": "Yagua repository screenshot",
@@ -1185,6 +1185,24 @@
     {
       "path": "assets/screenshots/watermark.png",
       "sha256": "dd6c10211518e2d02d282f737a86fe510c7e00bd284978100b1a8b99b43ffea3",
+      "packaged": false,
+      "license": "NOASSERTION",
+      "source": "Yagua repository screenshot",
+      "status": "pending-embedded-content-provenance",
+      "note": "UI screenshot; no independent permissions inferred for embedded imagery."
+    },
+    {
+      "path": "assets/screenshots/canvas.png",
+      "sha256": "1a5926a279da31a7af58a8e04cfc58dce664cdae610fb5fec1e9f0687667a669",
+      "packaged": false,
+      "license": "NOASSERTION",
+      "source": "Yagua repository screenshot",
+      "status": "pending-embedded-content-provenance",
+      "note": "UI screenshot; no independent permissions inferred for embedded imagery."
+    },
+    {
+      "path": "assets/screenshots/crop.png",
+      "sha256": "ff4002cb98069d8a8512a99886a886ecce10b91594fc8bef92209de9e4ff756f",
       "packaged": false,
       "license": "NOASSERTION",
       "source": "Yagua repository screenshot",
