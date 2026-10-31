@@ -489,7 +489,7 @@ TRANSLATIONS.update({
     'meta_copy_fields': 'Copiar campos…',
     'meta_save': 'Salvar…',
     'meta_cancel': 'Cancelar',
-    'meta_save_scope': 'Quais imagens você quer salvar?',
+    'meta_save_scope': 'Onde deseja aplicar estes campos?',
     'meta_field': 'Campo',
     'meta_value': 'Valor',
     'meta_copy_summary': '{fields} campos · {images} imagens selecionadas',
@@ -511,7 +511,7 @@ TRANSLATIONS.update({
     'meta_pending': 'Pendente',
     'meta_preview_error': 'Não foi possível carregar a prévia',
     'meta_read_error': 'Erro de leitura',
-    'meta_read_only': 'Somente leitura: edição para JPEG/TIFF de uma imagem',
+    'meta_read_only': 'Formato não compatível. Use JPEG, TIFF, PNG ou WebP.',
     'meta_ready': 'Pronto',
     'meta_result': 'Salvas: {ok} · Sem alterações: {unchanged} · Erros: {errors}',
     'meta_saved': 'Original atualizado',
@@ -563,7 +563,7 @@ TRANSLATIONS.update({
 # Interfaz contextual de metadatos.
 TRANSLATIONS.update({
     'meta_start': 'Adicione imagens para começar',
-    'meta_read_only_short': 'Somente leitura. É possível editar metadados de imagens JPEG e TIFF.',
+    'meta_read_only_short': 'Formato não compatível. Use JPEG, TIFF, PNG ou WebP.',
     'meta_clean_confirm': 'Os metadados salvos das imagens selecionadas serão removidos. As alterações não salvas não serão aplicadas.',
     'meta_show_details': 'Ver detalhes',
     'meta_hide_details': 'Ocultar detalhes',
@@ -650,3 +650,17 @@ TRANSLATIONS.update({
 
 # Camera JPEGs with embedded MPO previews.
 TRANSLATIONS['save_camera_preview_notice'] = 'Será usada a foto principal. O arquivo salvo não manterá as prévias incorporadas da câmera.'
+
+
+# Static EXIF containers supported by the metadata workspace.
+TRANSLATIONS['meta_format_unsupported'] = 'Formato não compatível. Use JPEG, TIFF, PNG ou WebP.'
+
+
+# Direct save scope: apply populated fields and save in one action.
+TRANSLATIONS.update({
+    'meta_save_current_action': 'Somente esta imagem',
+    'meta_save_marked_action': 'Nas {count} imagens selecionadas',
+    'meta_save_nonempty': 'Campos vazios mantêm os dados existentes.',
+    'meta_save_overwrite_notice': 'Os arquivos originais do destino escolhido serão modificados.',
+    'meta_save_copies_notice': 'Serão criadas cópias na pasta escolhida.',
+})

@@ -57,14 +57,16 @@ The table lists the desktop modules. Availability and controls depend on your in
 | Watermark | Apply an image logo; adjust position, size, opacity and margin. | Supported base images; transparent PNG recommended for the logo. | 100 images + 1 logo |
 | Rename | Preview numbered names, dates and letter case changes. | Changes filenames in their current folder. | 100 files |
 | OCR | Extract Spanish and/or English text with EasyOCR; copy it or export as TXT. | Supported raster images → text. | 10 images |
-| EXIF metadata | Inspect, export, edit fields or remove metadata in batches. | JPEG/TIFF editing; TXT/JSON metadata export. | 1 image for editing; 100 for cleanup |
+| EXIF metadata | Inspect, export, edit fields or remove metadata in batches. | JPEG / TIFF / PNG / WebP; TXT/JSON | 100 images |
 | LQIP / Base64 | Generate low-quality placeholders or encode images for the web. | Base64, data URIs, HTML and CSS; TXT/JSON export. | 1 image |
+
+**EXIF metadata:** View, edit and clean JPEG, TIFF, PNG and WebP. Use Save… to apply all populated fields to the open image or the selected images, up to 100. Empty fields preserve each image’s existing values. Editing PNG/WebP preserves compressed pixels; cleaning removes EXIF, XMP and descriptive text while keeping color and transparency. Orientation transforms may increase file size. Other formats keep their preview but do not support metadata actions. [EXIF — PNG / WebP](docs/METADATA_FORMATS.md).
 
 Format support varies by module, installed codecs and platform. A listed format is not a guarantee that every module can read or write it. See [requirements](#requirements).
 
 ## Screenshots
 
-Yagua screenshots with the interface in English. Click any thumbnail to view the full-size image. Layouts and controls can vary between releases.
+Screenshots use the English interface and show the current development source. Click a thumbnail to open the full-size image. Older releases may have different controls.
 
 <table>
   <tr>
@@ -73,11 +75,15 @@ Yagua screenshots with the interface in English. Click any thumbnail to view the
   </tr>
   <tr>
     <td align="center" width="50%"><a href="assets/screenshots/compress.webp"><img src="assets/screenshots/compress.webp" width="450" alt="Compression with quality and saving controls" /></a></td>
-    <td align="center" width="50%"><a href="assets/screenshots/resize.webp"><img src="assets/screenshots/resize.webp" width="450" alt="Resizing with a YouTube channel art preset" /></a></td>
+    <td align="center" width="50%"><a href="assets/screenshots/resize.png"><img src="assets/screenshots/resize.png" width="450" alt="Resize tab with an image preview and target dimensions" /></a></td>
   </tr>
   <tr>
-    <td align="center" width="50%"><a href="assets/screenshots/remove-background.webp"><img src="assets/screenshots/remove-background.webp" width="450" alt="Background removal with a selected image" /></a></td>
-    <td align="center" width="50%"><a href="assets/screenshots/palette.webp"><img src="assets/screenshots/palette.webp" width="450" alt="Extracted palette with eight colors and color values" /></a></td>
+    <td align="center" width="50%"><a href="assets/screenshots/crop.png"><img src="assets/screenshots/crop.png" width="450" alt="Crop tab with a centered 3:4 crop preview" /></a></td>
+    <td align="center" width="50%"><a href="assets/screenshots/canvas.png"><img src="assets/screenshots/canvas.png" width="450" alt="Canvas tab with a custom solid-color background preview" /></a></td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="assets/screenshots/remove-background.png"><img src="assets/screenshots/remove-background.png" width="450" alt="Background removal with edge controls and a transparent result" /></a></td>
+    <td align="center" width="50%"><a href="assets/screenshots/palette.png"><img src="assets/screenshots/palette.png" width="450" alt="Batch palette view with eight extracted colors and Save all" /></a></td>
   </tr>
   <tr>
     <td align="center" width="50%"><a href="assets/screenshots/watermark.webp"><img src="assets/screenshots/watermark.webp" width="450" alt="Watermark controls and result preview" /></a></td>
@@ -153,7 +159,7 @@ The commands use the repository's pinned dependencies. Compatibility with other 
 
 **LQIP / Base64:** Select one image, choose the mode and parameters, generate, compare, then copy or export Data URI, HTML, CSS or raw Base64. Loading another image resets LQIP mode, width 20 px, blur 2 and qualities 40/85; canceling the picker preserves the current state. Both modes output JPEG without transparency.
 
-**Original files:** Rename changes filenames in place. EXIF editing overwrites the selected image after confirmation. Work on copies for these operations. Batch EXIF cleanup writes to the chosen output folder. Other export operations use their module's save or output-folder flow.
+**Original files:** Rename changes names in place. EXIF editing and cleanup offer copies or confirmed overwrite; copies are selected initially. Other exports use the save flow of their module.
 
 ### Practical workflows
 
@@ -183,7 +189,7 @@ For transparent canvas, PNG, WebP, TIFF, AVIF and HEIF keep their format when an
 
 #### Remove Background
 
-Load up to **10 images** and choose **PNG** (default), **WEBP** or **TIFF**, all with transparency. Select a row to see its original before processing and its saved result afterward. The three settings are always visible:
+Load up to **10 images** and choose **PNG** (default), **WEBP** or **TIFF**, all with transparency. Select a row to see its original before processing and its saved result afterward. After processing, the preview labels the saved output and shows the source and result dimensions. The checkerboard indicates transparency; it is only a preview background and is not part of the exported image. The three settings are always visible:
 
 - **Refine edges: Auto / Yes / No**, initially **Auto**. Auto cleans the mask and refines translucent edges on detected uniform light backgrounds. Yes requests both for any background; No disables both.
 - **Reduce white halo: 0–100%**, initially **85%**. Reduces light-background color contamination at edges only when the background is detected as uniform and light. This works independently of the refinement selector.
@@ -243,7 +249,7 @@ The package audit records these approximate observations from CI builds tested o
 ### Runtime and processing
 
 - **From source:** Python 3.13, Tk and the libraries in [`requirements.txt`](requirements.txt). Prebuilt packages do not require a separate Python installation.
-- **Batch limits:** The feature table lists current UI limits: one image for LQIP / Base64 or EXIF editing, 10 for OCR/background removal and 100 for the other listed batch operations.
+- **Batch limits:** The feature table lists current UI limits: one image for LQIP / Base64, 10 for OCR/background removal and 100 for the other listed batch operations.
 - **Codecs:** HEIC/HEIF uses `pillow-heif`, included in source dependencies. AVIF and other formats depend on Pillow codecs and platform. JPEG has no transparency; use PNG or WebP when alpha is needed. PNG compression can reduce the image to 256 colors, so check the result.
 - **AI models:** Downloads can occur on first use or when a newly selected model/language needs one. Offline use requires the models to be present. The tested package runs OCR and background removal on CPU.
 

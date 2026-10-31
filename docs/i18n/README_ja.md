@@ -59,8 +59,10 @@ Yagua は、Web 開発者、デザイナー、写真家など、画像を扱う�
 | 透かし | 画像ロゴを追加し、位置、サイズ、不透明度、余白を調整します。 | 対応する元画像。ロゴには透過 PNG を推奨。 | 100 枚 + ロゴ 1 枚 |
 | ファイル名変更 | 連番、日付、大文字・小文字の変更結果をプレビューします。 | ファイルがあるフォルダー内で名前を変更。 | 100 ファイル |
 | OCR | EasyOCR でスペイン語および／または英語の文字を抽出し、コピーまたは TXT に出力します。 | 対応するラスター画像 → テキスト。 | 10 枚 |
-| EXIF メタデータ | 内容の確認、書き出し、項目の編集、メタデータの一括削除。 | JPEG/TIFF の編集、TXT/JSON へのメタデータ出力。 | 編集は 1 枚、削除は 100 枚 |
+| EXIF メタデータ | 内容の確認、書き出し、項目の編集、メタデータの一括削除。 | JPEG / TIFF / PNG / WebP; TXT/JSON | 100 枚 |
 | LQIP / Base64 | 低画質のプレースホルダーを生成し、Web 用に画像をエンコードします。 | Base64、data URI、HTML、CSS。TXT/JSON 出力。 | 1 枚 |
+
+**EXIF メタデータ：** JPEG、TIFF、PNG、WebP の表示・編集・削除に対応します。保存…で、この画像または最大100枚の選択画像を選びます。入力済みの項目を適用し、空欄は各画像の既存データを保持します。PNG/WebP の編集では圧縮された画像データを保持します。削除では EXIF、XMP、説明テキストを除去し、色と透明度を保持します。向きの変換でファイルサイズが増える場合があります。他の形式はプレビューのみ利用できます。 [EXIF — PNG / WebP](../METADATA_FORMATS.md).
 
 対応形式はモジュール、インストール済みのコーデック、プラットフォームによって異なります。ここに記載された形式でも、すべてのモジュールで読み書きできるとは限りません。[動作要件](#requirements)を確認してください。
 
@@ -68,31 +70,35 @@ Yagua は、Web 開発者、デザイナー、写真家など、画像を扱う�
 
 ## スクリーンショット
 
-英語インターフェースの Yagua のスクリーンショットです。サムネイルをクリックすると原寸の画像を開けます。レイアウトや操作項目はバージョンによって異なる場合があります。
+スクリーンショットは英語の画面で、現在開発中のコードを表示しています。サムネイルをクリックすると原寸大で開きます。以前のリリースでは操作項目が異なる場合があります。
 
 <table>
   <tr>
     <td align="center" width="50%"><a href="../../assets/screenshots/home.webp"><img src="../../assets/screenshots/home.webp" width="450" alt="すべてのモジュールを表示したホーム画面" /></a></td>
-    <td align="center" width="50%"><a href="../../assets/screenshots/convert.webp"><img src="../../assets/screenshots/convert.webp" width="450" alt="選択した画像と出力形式の設定がある形式変換画面" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/convert.webp"><img src="../../assets/screenshots/convert.webp" width="450" alt="画像を選択し、出力形式を設定した変換画面" /></a></td>
   </tr>
   <tr>
-    <td align="center" width="50%"><a href="../../assets/screenshots/compress.webp"><img src="../../assets/screenshots/compress.webp" width="450" alt="品質と保存方法の設定がある圧縮画面" /></a></td>
-    <td align="center" width="50%"><a href="../../assets/screenshots/resize.webp"><img src="../../assets/screenshots/resize.webp" width="450" alt="YouTube チャンネルアート用のプリセットを選択したサイズ変更画面" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/compress.webp"><img src="../../assets/screenshots/compress.webp" width="450" alt="品質と保存方法を設定した圧縮画面" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/resize.png"><img src="../../assets/screenshots/resize.png" width="450" alt="プレビューと出力寸法を表示したサイズ変更タブ" /></a></td>
   </tr>
   <tr>
-    <td align="center" width="50%"><a href="../../assets/screenshots/remove-background.webp"><img src="../../assets/screenshots/remove-background.webp" width="450" alt="画像を選択した背景除去画面" /></a></td>
-    <td align="center" width="50%"><a href="../../assets/screenshots/palette.webp"><img src="../../assets/screenshots/palette.webp" width="450" alt="抽出した8色と色の値を表示したパレット" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/crop.png"><img src="../../assets/screenshots/crop.png" width="450" alt="中央配置の3:4トリミングをプレビューするタブ" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/canvas.png"><img src="../../assets/screenshots/canvas.png" width="450" alt="カスタム背景色を使ったキャンバスタブのプレビュー" /></a></td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="../../assets/screenshots/remove-background.png"><img src="../../assets/screenshots/remove-background.png" width="450" alt="境界調整と透明な結果を表示した背景削除" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/palette.png"><img src="../../assets/screenshots/palette.png" width="450" alt="8色の抽出結果と「すべて保存」を表示した一括パレット" /></a></td>
   </tr>
   <tr>
     <td align="center" width="50%"><a href="../../assets/screenshots/watermark.webp"><img src="../../assets/screenshots/watermark.webp" width="450" alt="透かしの設定と結果プレビュー" /></a></td>
-    <td align="center" width="50%"><a href="../../assets/screenshots/rename.webp"><img src="../../assets/screenshots/rename.webp" width="450" alt="元のファイル名と変更候補を表示する一括ファイル名変更" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/rename.webp"><img src="../../assets/screenshots/rename.webp" width="450" alt="元の名前と変更後の名前を表示した一括リネーム" /></a></td>
   </tr>
   <tr>
-    <td align="center" width="50%"><a href="../../assets/screenshots/ocr.webp"><img src="../../assets/screenshots/ocr.webp" width="450" alt="英語 OCR の認識結果" /></a></td>
-    <td align="center" width="50%"><a href="../../assets/screenshots/metadata.webp"><img src="../../assets/screenshots/metadata.webp" width="450" alt="画像選択、プレビュー、メタデータ項目がある EXIF 閲覧画面" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/ocr.webp"><img src="../../assets/screenshots/ocr.webp" width="450" alt="認識テキストを表示した英語OCR" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/metadata.webp"><img src="../../assets/screenshots/metadata.webp" width="450" alt="画像選択、プレビュー、メタデータ項目を表示したEXIFビューアー" /></a></td>
   </tr>
   <tr>
-    <td align="center" width="50%"><a href="../../assets/screenshots/lqip-base64.webp"><img src="../../assets/screenshots/lqip-base64.webp" width="450" alt="元画像との LQIP 比較と生成されたデータ URI" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/lqip-base64.webp"><img src="../../assets/screenshots/lqip-base64.webp" width="450" alt="元画像と生成したデータURIを比較するLQIP" /></a></td>
     <td align="center" width="50%"><a href="../../assets/screenshots/settings.webp"><img src="../../assets/screenshots/settings.webp" width="450" alt="言語、テーマ、表示倍率、表示モジュールの一般設定" /></a></td>
   </tr>
 </table>
@@ -161,7 +167,7 @@ python main.py
 
 **LQIP / Base64：** 画像を 1 枚選び、モードとパラメーターを設定して生成・比較し、data URI、HTML、CSS、または Base64 文字列をコピーまたは書き出します。別の画像を読み込むと、LQIP モード、幅 20 px、ぼかし 2、品質 40/85 に戻ります。ファイル選択をキャンセルした場合は現在の状態を維持します。どちらのモードも透過なしの JPEG を出力します。
 
-**元ファイルについて：** ファイル名変更は元の場所で名前を変更します。EXIF の編集は確認後に選択画像を上書きします。これらの操作はコピーで行ってください。EXIF の一括削除では、指定した出力フォルダーに保存します。その他の書き出しは、各モジュールの保存操作や出力フォルダー選択の流れに従います。
+**元ファイルについて：** 名前変更は元の場所で名前を変更します。EXIF の編集と削除では、初期設定のコピー保存か、確認後の上書きを選べます。他の書き出しは各モジュールの保存手順に従います。
 
 ### 具体的な使い方
 
@@ -191,7 +197,7 @@ python main.py
 
 #### 背景除去
 
-最大 **10画像**を読み込み、透明を扱える **PNG**（初期設定）、**WEBP**、**TIFF** から出力を選択します。行を選ぶと処理前には元画像、処理後には保存済みの結果を表示します。次の三項目は常に表示されます。
+最大 **10画像**を読み込み、透明を扱える **PNG**（初期設定）、**WEBP**、**TIFF** から出力を選択します。行を選ぶと処理前には元画像、処理後には保存済みの結果を表示します。 処理後、プレビューには保存された出力ファイルと、元画像および結果の寸法が表示されます。市松模様は透明部分を示すプレビュー用の背景で、書き出される画像には含まれません。 次の三項目は常に表示されます。
 
 - **輪郭を調整: 自動 / はい / いいえ**。初期値は **自動** です。Auto はマスクを整え、均一で明るいと判定した背景で半透明の輪郭を調整します。有効にすると背景によらず両方を要求し、無効にすると両方を停止します。
 - **白い縁を軽減: 0–100%**。初期値は **85%** です。背景が均一で明るいと判定された場合に限り、輪郭に残る明るい背景色を減らします。輪郭調整の選択とは独立して機能します。
@@ -251,7 +257,7 @@ python main.py
 ### 実行環境と処理
 
 - **ソースからの実行：** Python 3.13、Tk、[`requirements.txt`](../../requirements.txt) のライブラリが必要です。配布済みパッケージを使う場合、Python の別途インストールは不要です。
-- **一括処理の上限：** 機能一覧には現在の UI の上限を記載しています。LQIP / Base64、EXIF 編集は 1 枚、OCR と背景除去は 10 枚、その他の記載された一括処理は 100 枚です。
+- **一括処理の上限：** 機能一覧には現在の UI の上限を記載しています。LQIP / Base64は 1 枚、OCR と背景除去は 10 枚、その他の記載された一括処理は 100 枚です。
 - **コーデック：** HEIC/HEIF はソースの依存関係に含まれる `pillow-heif` を使用します。AVIF などは Pillow のコーデックとプラットフォームに依存します。JPEG は透過に対応していないため、アルファチャンネルが必要なら PNG または WebP を使ってください。PNG の圧縮では 256 色に減色される場合があるため、結果を確認してください。
 - **AI モデル：** 初回利用時や、新しく選択したモデル・認識言語に応じてダウンロードが発生する場合があります。オフライン利用には必要なモデルが保存済みである必要があります。検証したパッケージでは OCR と背景除去は CPU で実行されます。
 

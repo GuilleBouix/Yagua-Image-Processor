@@ -59,8 +59,10 @@ La tabla enumera los módulos de escritorio. La disponibilidad y los controles d
 | Marca de agua | Aplicar un logo; ajustar posición, tamaño, opacidad y margen. | Imágenes base compatibles; se recomienda PNG transparente para el logo. | 100 imágenes + 1 logo |
 | Renombrar | Previsualizar numeración, fechas y cambios de mayúsculas/minúsculas. | Cambia los nombres en la carpeta original. | 100 archivos |
 | OCR | Extraer texto en español y/o inglés con EasyOCR; copiarlo o exportarlo como TXT. | Imágenes ráster compatibles → texto. | 10 imágenes |
-| Metadatos EXIF | Consultar, exportar, editar campos o quitar metadatos en lote. | Edición JPEG/TIFF; exportación de metadatos TXT/JSON. | 1 imagen para editar; 100 para limpiar |
+| Metadatos EXIF | Consultar, exportar, editar campos o quitar metadatos en lote. | JPEG / TIFF / PNG / WebP; TXT/JSON | 100 imágenes |
 | LQIP / Base64 | Generar placeholders de baja calidad o codificar imágenes para la web. | Base64, data URI, HTML y CSS; exportación TXT/JSON. | 1 imagen |
+
+**Metadatos EXIF:** Consultá, editá y limpiá JPEG, TIFF, PNG y WebP. En Guardar… elegí esta imagen o las seleccionadas, hasta 100: se aplican los campos con contenido y los vacíos conservan los datos de cada foto. Editar PNG/WebP conserva los píxeles comprimidos; limpiar quita EXIF, XMP y textos descriptivos, conservando color y transparencia. Transformar la orientación puede aumentar el peso. Los demás formatos conservan su preview, sin acciones de metadatos. [EXIF — PNG / WebP](../METADATA_FORMATS.md).
 
 La compatibilidad depende del módulo, los códecs instalados y la plataforma. Que un formato aparezca en la tabla no garantiza que todos los módulos puedan leerlo o escribirlo. Consultá los [requisitos](#requirements).
 
@@ -68,7 +70,7 @@ La compatibilidad depende del módulo, los códecs instalados y la plataforma. Q
 
 ## Capturas
 
-Capturas de Yagua con la interfaz en inglés. Hacé clic en cualquier miniatura para verla en tamaño completo. La distribución y los controles pueden variar entre versiones.
+Las capturas muestran la interfaz en inglés y el código actual en desarrollo. Hacé clic en una miniatura para abrir la imagen completa. Las versiones anteriores pueden tener controles distintos.
 
 <table>
   <tr>
@@ -77,11 +79,15 @@ Capturas de Yagua con la interfaz en inglés. Hacé clic en cualquier miniatura 
   </tr>
   <tr>
     <td align="center" width="50%"><a href="../../assets/screenshots/compress.webp"><img src="../../assets/screenshots/compress.webp" width="450" alt="Compresión con controles de calidad y guardado" /></a></td>
-    <td align="center" width="50%"><a href="../../assets/screenshots/resize.webp"><img src="../../assets/screenshots/resize.webp" width="450" alt="Redimensionado con un preajuste para la cabecera de YouTube" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/resize.png"><img src="../../assets/screenshots/resize.png" width="450" alt="Pestaña Redimensionar con vista previa y dimensiones de salida" /></a></td>
   </tr>
   <tr>
-    <td align="center" width="50%"><a href="../../assets/screenshots/remove-background.webp"><img src="../../assets/screenshots/remove-background.webp" width="450" alt="Quitar fondo con una imagen seleccionada" /></a></td>
-    <td align="center" width="50%"><a href="../../assets/screenshots/palette.webp"><img src="../../assets/screenshots/palette.webp" width="450" alt="Paleta extraída con ocho colores y sus valores" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/crop.png"><img src="../../assets/screenshots/crop.png" width="450" alt="Pestaña Recortar con vista previa de recorte centrado 3:4" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/canvas.png"><img src="../../assets/screenshots/canvas.png" width="450" alt="Pestaña Canvas con vista previa y fondo de color personalizado" /></a></td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="../../assets/screenshots/remove-background.png"><img src="../../assets/screenshots/remove-background.png" width="450" alt="Quitar fondo con controles de bordes y resultado transparente" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/palette.png"><img src="../../assets/screenshots/palette.png" width="450" alt="Paleta por lotes con ocho colores extraídos y Guardar todas" /></a></td>
   </tr>
   <tr>
     <td align="center" width="50%"><a href="../../assets/screenshots/watermark.webp"><img src="../../assets/screenshots/watermark.webp" width="450" alt="Controles de marca de agua y vista previa del resultado" /></a></td>
@@ -161,7 +167,7 @@ Estos comandos usan las dependencias fijadas por el repositorio. Las comprobacio
 
 **LQIP / Base64:** Seleccioná una imagen, elegí el modo y los parámetros, generá, compará y copiá o exportá Data URI, HTML, CSS o Base64 puro. Cargar otra imagen restablece el modo LQIP, ancho 20 px, desenfoque 2 y calidades 40/85; cancelar el selector conserva el estado actual. Ambos modos generan JPEG sin transparencia.
 
-**Archivos originales:** Renombrar cambia los nombres en su ubicación actual. Editar EXIF sobrescribe la imagen seleccionada después de pedir confirmación. Trabajá con copias para esas operaciones. Limpiar EXIF en lote guarda en la carpeta elegida. Las otras exportaciones usan el flujo de guardado o carpeta de salida de cada módulo.
+**Archivos originales:** Renombrar cambia los nombres en su ubicación actual. Editar y limpiar EXIF permiten crear copias o sobrescribir con confirmación; crear copias es la opción inicial. Las otras exportaciones usan el flujo de guardado de su módulo.
 
 ### Ejemplos prácticos
 
@@ -191,7 +197,7 @@ Con lienzo transparente, PNG, WebP, TIFF, AVIF y HEIF conservan su formato si ha
 
 #### Quitar Fondo
 
-Cargá hasta **10 imágenes** y elegí **PNG** (inicial), **WEBP** o **TIFF**, todos con transparencia. Seleccioná una fila para ver el original antes de procesar y el resultado guardado después. Los tres ajustes están siempre visibles:
+Cargá hasta **10 imágenes** y elegí **PNG** (inicial), **WEBP** o **TIFF**, todos con transparencia. Seleccioná una fila para ver el original antes de procesar y el resultado guardado después. Después de procesar, la vista previa identifica el archivo guardado y muestra las dimensiones de origen y resultado. El damero representa transparencia: es solo el fondo de la vista previa y no forma parte de la imagen exportada. Los tres ajustes están siempre visibles:
 
 - **Refinar bordes: Auto / Sí / No**, inicialmente **Auto**. Auto limpia la máscara y refina los bordes semitransparentes en fondos detectados como claros y uniformes. Sí solicita ambas acciones con cualquier fondo; No desactiva ambas.
 - **Reducir halo blanco: 0–100 %**, inicialmente **85 %**. Reduce la contaminación del color de fondo claro en los bordes solo cuando se detecta un fondo claro uniforme. Funciona de forma independiente del selector de refinado.
@@ -251,7 +257,7 @@ La auditoría de paquetes registra estas observaciones aproximadas en compilacio
 ### Ejecución y procesamiento
 
 - **Desde código:** Python 3.13, Tk y las bibliotecas de [`requirements.txt`](../../requirements.txt). Los paquetes compilados no requieren instalar Python por separado.
-- **Lotes:** La tabla de funciones muestra los límites actuales de la interfaz: una imagen para LQIP / Base64 o edición EXIF, 10 para OCR/quitar fondo y 100 para las otras operaciones en lote indicadas.
+- **Lotes:** La tabla de funciones muestra los límites actuales de la interfaz: una imagen para LQIP / Base64, 10 para OCR/quitar fondo y 100 para las otras operaciones en lote indicadas.
 - **Códecs:** HEIC/HEIF usa `pillow-heif`, incluido en las dependencias del código. AVIF y otros formatos dependen de los códecs de Pillow y la plataforma. JPEG no admite transparencia; usá PNG o WebP si la necesitás. La compresión PNG puede reducir la imagen a 256 colores: revisá el resultado.
 - **Modelos de IA:** Puede haber descargas en el primer uso o al elegir un modelo/idioma que necesite otro modelo. Para trabajar sin conexión deben estar guardados. El paquete probado ejecuta OCR y quitar fondo por CPU.
 

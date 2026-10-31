@@ -489,7 +489,7 @@ TRANSLATIONS.update({
     'meta_copy_fields': 'Copy fields…',
     'meta_save': 'Save…',
     'meta_cancel': 'Cancel',
-    'meta_save_scope': 'Which images do you want to save?',
+    'meta_save_scope': 'Where do you want to apply these fields?',
     'meta_field': 'Field',
     'meta_value': 'Value',
     'meta_copy_summary': '{fields} fields · {images} selected images',
@@ -511,7 +511,7 @@ TRANSLATIONS.update({
     'meta_pending': 'Pending',
     'meta_preview_error': 'Could not load preview',
     'meta_read_error': 'Read error',
-    'meta_read_only': 'Read only: editing supports single-frame JPEG/TIFF',
+    'meta_read_only': 'Unsupported format. Use JPEG, TIFF, PNG or WebP.',
     'meta_ready': 'Ready',
     'meta_result': 'Saved: {ok} · Unchanged: {unchanged} · Errors: {errors}',
     'meta_saved': 'Original updated',
@@ -563,7 +563,7 @@ TRANSLATIONS.update({
 # Interfaz contextual de metadatos.
 TRANSLATIONS.update({
     'meta_start': 'Add images to get started',
-    'meta_read_only_short': 'Read only. Metadata editing is available for JPEG and TIFF images.',
+    'meta_read_only_short': 'Unsupported format. Use JPEG, TIFF, PNG or WebP.',
     'meta_clean_confirm': 'Stored metadata will be removed from the selected images. Unsaved changes will not be applied.',
     'meta_show_details': 'Show details',
     'meta_hide_details': 'Hide details',
@@ -650,3 +650,17 @@ TRANSLATIONS.update({
 
 # Camera JPEGs with embedded MPO previews.
 TRANSLATIONS['save_camera_preview_notice'] = 'The main photo will be used. The saved file will not keep the camera’s embedded previews.'
+
+
+# Static EXIF containers supported by the metadata workspace.
+TRANSLATIONS['meta_format_unsupported'] = 'Unsupported format. Use JPEG, TIFF, PNG or WebP.'
+
+
+# Direct save scope: apply populated fields and save in one action.
+TRANSLATIONS.update({
+    'meta_save_current_action': 'Only this image',
+    'meta_save_marked_action': 'To the {count} selected images',
+    'meta_save_nonempty': 'Empty fields leave existing data unchanged.',
+    'meta_save_overwrite_notice': 'The original files in your chosen scope will be modified.',
+    'meta_save_copies_notice': 'Copies will be created in the folder you choose.',
+})

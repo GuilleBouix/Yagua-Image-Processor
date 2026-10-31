@@ -45,11 +45,11 @@ def frame(ui_root, monkeypatch):
     return view
 
 
-def pictures(tmp_path, n=2):
+def pictures(tmp_path, n=2, fmt="JPEG"):
     paths = []
     for i in range(n):
         path = tmp_path / f'gato-{i}.jpg'
-        Image.new('RGB', (30, 20), 'red').save(path)
+        Image.new('RGB', (30, 20), 'red').save(path, fmt)
         paths.append(str(path))
     return paths
 
@@ -93,7 +93,7 @@ def test_marking_is_independent_of_active_image(frame, tmp_path):
             assert not files.rows[path_key(paths[1])][1].get()
 
 
-def test_drafts_survive_selection_tabs_and_common_fields(frame, tmp_path):
+def test_drafts_survive_selection_and_tabs_without_cross_image_changes(frame, tmp_path):
     paths = pictures(tmp_path)
     frame._cargar_lote(paths)
     set_value(frame, 'Artist', 'Guille')
@@ -102,23 +102,29 @@ def test_drafts_survive_selection_tabs_and_common_fields(frame, tmp_path):
     set_value(frame, 'Copyright', 'Segunda')
     frame._cambiar_tab(t('view'))
     frame._cambiar_tab(t('edit'))
-    frame._collection.apply_fields({'Artist': 'Común'})
     assert frame._state.items[path_key(paths[0])].draft.values['Copyright'] == 'Primera'
     assert frame._state.items[path_key(paths[1])].draft.values['Copyright'] == 'Segunda'
-    assert all(item.draft.values['Artist'] == 'Común' for item in frame._state.items.values())
     frame._collection.activate(path_key(paths[0]))
     assert frame._campos_edit['Copyright'].get() == 'Primera'
-    assert frame._campos_edit['Artist'].get() == 'Común'
-    assert frame._state.items[path_key(paths[1])].draft.values['Artist'] == 'Común'
+    assert frame._campos_edit['Artist'].get() == 'Guille'
+    assert 'Artist' not in frame._state.items[path_key(paths[1])].draft.values
 
 
-def test_common_fields_do_not_affect_unchecked_images(frame, tmp_path):
+def test_save_selected_does_not_affect_unchecked_images(frame, tmp_path, monkeypatch):
+    from app.modules.metadata import leer_campos_edicion
     paths = pictures(tmp_path)
     frame._cargar_lote(paths)
+    before = Path(paths[0]).read_bytes()
     frame._collection.mark(path_key(paths[0]), False)
-    frame._collection.apply_fields({'Artist': 'Guille', 'Copyright': ''})
-    assert not frame._state.items[path_key(paths[0])].draft.dirty
-    assert frame._state.items[path_key(paths[1])].draft.values == {'Artist': 'Guille'}
+    set_value(frame, 'Artist', 'Guille')
+    folder = tmp_path / 'copies'
+    folder.mkdir()
+    monkeypatch.setattr(frame._collection, 'destination', lambda *a, **kw: (False, str(folder)))
+    frame._collection.save(selected=True)
+    assert Path(paths[0]).read_bytes() == before
+    assert len(list(folder.iterdir())) == 1
+    assert leer_campos_edicion(str(next(folder.iterdir())))['Artist'] == 'Guille'
+    assert frame._state.items[path_key(paths[0])].draft.dirty
 
 
 def test_clear_confirmation_cancellation_and_stale_deliveries(frame, tmp_path, monkeypatch):
@@ -181,12 +187,54 @@ def test_failed_preview_does_not_hide_metadata(frame, tmp_path):
 
 
 def test_readonly_active_cannot_be_edited(frame, tmp_path):
-    path = tmp_path / 'view-only.png'
+    path = tmp_path / 'view-only.bmp'
     Image.new('RGB', (20, 30)).save(path)
     frame._cargar_lote([str(path)])
     assert frame._state.ruta_edicion is None
     assert frame._preview_ver.source is not None
     assert frame._campos_edit['Artist'].cget('state') == 'disabled'
+
+
+@pytest.mark.parametrize('fmt', ['PNG', 'WEBP'])
+def test_new_formats_edit_view_copy_and_clean(frame, tmp_path, monkeypatch, fmt):
+    from app.modules.metadata import leer_campos_edicion
+    paths = []
+    for index, format_name in enumerate((fmt, 'JPEG', 'TIFF', 'PNG', 'WEBP', 'BMP')):
+        path = tmp_path / f'{index}.file'
+        Image.new('RGB', (20, 30), 'red').save(path, format_name)
+        paths.append(str(path))
+    frame._cargar_lote(paths)
+    frame._tab.set(t('edit'))
+    frame._cambiar_tab(t('edit'))
+    assert frame._edit_filters.winfo_manager()
+    assert frame._edit_viewport.winfo_manager()
+    assert frame._state.ruta_edicion == paths[0]
+    set_value(frame, 'Artist', 'Café 日本語')
+    # Header information for unopened rows may still be pending; the worker
+    # checks actual compatibility when saving, without blocking Tk to read files.
+    output = tmp_path / 'copies'
+    output.mkdir()
+    monkeypatch.setattr(frame._collection, 'destination', lambda *a, **k: (False, str(output)))
+    results = []
+    original_finished = frame._collection.finished
+    def finished(result, overwrite):
+        results.append(result)
+        original_finished(result, overwrite)
+    monkeypatch.setattr(frame._collection, 'finished', finished)
+    frame._collection.save(selected=True)
+    result = results[-1]
+    assert result['ok'] == 5 and result['omitidos'] == 1 and result['errores'] == 0
+    saved = [row['destino'] for row in result['items'] if row['estado'] == 'saved']
+    assert all(leer_campos_edicion(path)['Artist'] == 'Café 日本語' for path in saved)
+    # Reload real outputs: the viewer must display values rather than stale drafts.
+    frame._collection.capture()
+    frame._limpiar()
+    frame._cargar_lote(saved)
+    assert frame._state.metadatos['Autor'] == 'Café 日本語'
+    frame._collection.save(selected=True, clean=True)
+    assert results[-1]['ok'] == 5
+    assert all('Autor' not in leer_archivo(row['destino'])['metadata']
+               for row in results[-1]['items'])
 
 
 def test_unchanged_form_does_not_open_destination(frame, tmp_path, monkeypatch):
@@ -206,7 +254,7 @@ def test_save_selected_and_copy_draft_behavior(frame, tmp_path, monkeypatch, ove
     output = tmp_path / 'copies'
     output.mkdir()
     frame._save_choice.set(t('save_overwrite') if overwrite else t('save_copies'))
-    monkeypatch.setattr(frame._collection, 'destination', lambda count: (overwrite, str(output)))
+    monkeypatch.setattr(frame._collection, 'destination', lambda count, **kwargs: (overwrite, str(output)))
     frame._collection.save(selected=True)
     assert all(item.status == ('meta_saved' if overwrite else 'meta_copied') for item in frame._state.items.values())
     assert all(item.draft.dirty != overwrite for item in frame._state.items.values())
@@ -223,7 +271,7 @@ def test_cancel_destination_preserves_original_and_draft(frame, tmp_path, monkey
     frame._cargar_lote([path])
     before = Path(path).read_bytes()
     set_value(frame, 'Artist', 'Pending')
-    monkeypatch.setattr(frame._collection, 'destination', lambda count: None)
+    monkeypatch.setattr(frame._collection, 'destination', lambda count, **kwargs: None)
     frame._guardar_edicion()
     assert Path(path).read_bytes() == before
     assert frame._state.current.draft.values == {'Artist': 'Pending'}
@@ -317,17 +365,20 @@ def test_single_counter_uses_natural_singular(frame, tmp_path):
         assert files.count.cget('text') == t('meta_image_count').format(count=1) + ' · ' + t('meta_selected_one').format(marked=1)
 
 
-def test_read_only_image_hides_form_but_keeps_view_and_cleanup(frame, tmp_path):
-    path = tmp_path / 'readonly.png'
+def test_unsupported_image_keeps_preview_but_blocks_metadata(frame, tmp_path):
+    path = tmp_path / 'readonly.bmp'
     Image.new('RGB', (20, 20)).save(path)
     frame._cargar_lote([str(path)])
     assert not frame._edit_filters.winfo_manager()
     assert not frame._edit_viewport.winfo_manager()
     assert not frame._edit_save_group.winfo_manager()
     assert frame._edit_message.cget('text') == t('meta_read_only_short')
-    assert frame._export_actions.winfo_manager()
+    assert not frame._export_actions.winfo_manager()
     assert frame._clean_save_group.winfo_manager()
-    assert frame._btn_limpiar_exif.cget('state') == 'normal'
+    assert frame._btn_limpiar_exif.cget('state') == 'disabled'
+    assert frame._state.current.status == 'meta_format_unsupported'
+    assert frame._meta_empty.cget('text') == t('meta_format_unsupported')
+    assert all(button.cget('state') == 'disabled' for button in frame._export_actions.winfo_children())
 
 
 def test_clear_resets_filters_and_reuses_controls(frame, tmp_path, monkeypatch):
@@ -381,21 +432,27 @@ def test_clean_confirmation_and_collapsed_result_details(frame, tmp_path, monkey
     assert not frame._result_bar.winfo_manager()
 
 
-def test_copy_confirmation_keeps_unsaved_changes_explanation(frame, ui_root, tmp_path, monkeypatch):
+def test_save_dialog_explains_nonempty_fields_and_mode(frame, tmp_path, monkeypatch):
     frame._cargar_lote(pictures(tmp_path))
     set_value(frame, 'Artist', 'Autora')
     def inspect(dialog):
         labels = [child.cget('text') for child in dialog.winfo_children() if isinstance(child, ctk.CTkLabel)]
-        assert t('meta_apply_help') in labels
-        assert t('meta_apply_help').strip()
+        assert t('meta_save_scope') in labels
+        assert t('meta_save_nonempty') in labels
+        assert t('meta_save_copies_notice') in labels
+        buttons = [w for w in dialog.winfo_children() if isinstance(w, ctk.CTkButton)]
+        assert len(buttons) == 3
+        assert any(w.cget('text') == t('meta_save_marked_action').format(count=2) for w in buttons)
         dialog.destroy()
     monkeypatch.setattr(frame, 'wait_window', inspect)
-    frame._collection.choose_fields()
+    frame._guardar_edicion()
+    assert not frame._state.items[path_key(next(reversed(frame._state.items)))].draft.dirty
 
 
 @pytest.mark.parametrize('scale', [1, .75, .5])
 @pytest.mark.parametrize('geometry', [(1360, 720), (900, 600)])
-def test_workspace_lists_preview_and_fields_fit(ui_root, tmp_path, geometry, scale):
+@pytest.mark.parametrize('format_name', ['JPEG', 'PNG', 'WEBP'])
+def test_workspace_lists_preview_and_fields_fit(ui_root, tmp_path, geometry, scale, format_name):
     # Usa la cola real de lectura: una actualización de Tk no garantiza
     # que termine el worker ni que lleguen las dos mediciones estables del viewport.
     frame = MetadataFrame(ui_root)
@@ -410,7 +467,7 @@ def test_workspace_lists_preview_and_fields_fit(ui_root, tmp_path, geometry, sca
     original_scale = ctk.ScalingTracker.widget_scaling
     try:
         ctk.set_widget_scaling(scale)
-        paths = pictures(tmp_path)
+        paths = pictures(tmp_path, fmt=format_name)
         frame._cargar_lote(paths)
         for index, tab in enumerate((t('view'), t('edit'), t('clean_batch'))):
             frame._tab.set(tab)
@@ -508,32 +565,86 @@ def test_module_selector_and_preflight_confirmation(frame, tmp_path, monkeypatch
     assert not list(output.iterdir())
 
 
-def test_apply_dialog_can_include_existing_fields_without_saving(frame, ui_root, tmp_path, monkeypatch):
+def test_save_dialog_applies_existing_nonempty_fields_and_saves(frame, tmp_path, monkeypatch):
     from app.modules.metadata_batch import MetadataDraft, MetadataTask, procesar_lote
+    from app.modules.metadata import leer_campos_edicion
     paths = pictures(tmp_path)
     procesar_lote((MetadataTask(paths[0], MetadataDraft({'Artist': 'Guille'})),), overwrite=True)
     frame._cargar_lote(paths)
     before = [Path(path).read_bytes() for path in paths]
-    ui_root.deiconify()
+    folder = tmp_path / 'copies'
+    folder.mkdir()
+    monkeypatch.setattr('app.ui.frames.metadata.collection.filedialog.askdirectory', lambda **kwargs: str(folder))
+    # Editing save must not open the shared second confirmation window.
+    monkeypatch.setattr(frame, '_prepare_save', lambda *a, **kw: pytest.fail('Duplicate save confirmation'))
     def interact(dialog):
-        def descendants(widget):
-            for child in widget.winfo_children():
-                yield child
-                yield from descendants(child)
-        try:
-            dialog.update()
-            choice = next(w for w in descendants(dialog) if isinstance(w, ctk.CTkCheckBox) and w.cget('text') == t('artist'))
-            assert choice.get() == 0  # Existing values are available, not applied implicitly.
-            choice.select()
-            next(w for w in descendants(dialog) if isinstance(w, ctk.CTkButton)
-                 and w.cget('text') == t('apply_changes')).invoke()
-        finally:
-            if dialog.winfo_exists():
-                dialog.destroy()
+        button = next(w for w in dialog.winfo_children() if isinstance(w, ctk.CTkButton)
+                      and w.cget('text') == t('meta_save_marked_action').format(count=2))
+        button.invoke()
     monkeypatch.setattr(frame, 'wait_window', interact)
-    frame._collection.choose_fields()
-    assert frame._state.items[path_key(paths[1])].draft.values['Artist'] == 'Guille'
+    frame._guardar_edicion()
     assert [Path(path).read_bytes() for path in paths] == before
+    assert len(list(folder.iterdir())) == 1  # The open image already has the field.
+    assert leer_campos_edicion(str(next(folder.iterdir())))['Artist'] == 'Guille'
+    assert frame._state.items[path_key(paths[1])].draft.values['Artist'] == 'Guille'
+
+
+@pytest.mark.parametrize('selected', [False, True])
+@pytest.mark.parametrize('overwrite', [False, True])
+def test_direct_save_scope_and_empty_fields(frame, tmp_path, monkeypatch, selected, overwrite):
+    from app.modules.metadata import editar_exif, leer_campos_edicion
+    paths = []
+    for index, fmt in enumerate(('PNG', 'WEBP')):
+        path = tmp_path / (str(index) + '.' + fmt.lower())
+        Image.new('RGB', (20, 30), 'red').save(path, fmt)
+        assert editar_exif(path, path, {'Artist': f'Author {index}', 'UserComment': f'Comment {index}',
+                                      'Software': 'Yagua'})[0]
+        paths.append(str(path))
+    before = [Path(path).read_bytes() for path in paths]
+    frame._cargar_lote(paths)
+    set_value(frame, 'ImageDescription', 'Shared description')
+    set_value(frame, 'Artist', '')  # Blank must not erase either image's author.
+    set_value(frame, 'UserComment', '')
+    folder = tmp_path / 'copies'
+    folder.mkdir()
+    frame._save_choice.set(t('save_overwrite') if overwrite else t('save_copies'))
+    monkeypatch.setattr('app.ui.frames.metadata.collection.filedialog.askdirectory', lambda **kw: str(folder))
+    monkeypatch.setattr(frame, '_prepare_save', lambda *a, **kw: pytest.fail('Second confirmation'))
+    def choose(dialog):
+        text = t('meta_save_marked_action').format(count=2) if selected else t('meta_save_current_action')
+        next(w for w in dialog.winfo_children() if isinstance(w, ctk.CTkButton) and w.cget('text') == text).invoke()
+    monkeypatch.setattr(frame, 'wait_window', choose)
+    frame._guardar_edicion()
+    for index, path in enumerate(paths):
+        processed = selected or index == 0
+        output = Path(path) if overwrite or not processed else folder / Path(path).name
+        data = leer_campos_edicion(str(output))
+        assert data['Artist'] == f'Author {index}'
+        assert data['UserComment'] == f'Comment {index}'
+        assert data.get('ImageDescription') == ('Shared description' if processed else None)
+        if not overwrite or not processed:
+            assert Path(path).read_bytes() == before[index]
+
+
+def test_scope_and_folder_cancellation_do_not_propagate_fields(frame, tmp_path, monkeypatch):
+    paths = pictures(tmp_path)
+    frame._cargar_lote(paths)
+    before = [Path(path).read_bytes() for path in paths]
+    set_value(frame, 'Artist', 'Unsaved source')
+    target = frame._state.items[path_key(paths[1])]
+    target.draft.values['Copyright'] = 'Independent draft'
+    monkeypatch.setattr('app.ui.frames.metadata.collection.filedialog.askdirectory', lambda **kw: '')
+    def choose(dialog):
+        next(w for w in dialog.winfo_children() if isinstance(w, ctk.CTkButton)
+             and w.cget('text') == t('meta_save_marked_action').format(count=2)).invoke()
+        assert dialog.winfo_exists()
+        assert target.draft.values == {'Copyright': 'Independent draft'}
+        dialog.destroy()
+    monkeypatch.setattr(frame, 'wait_window', choose)
+    frame._guardar_edicion()
+    assert target.draft.values == {'Copyright': 'Independent draft'}
+    assert [Path(path).read_bytes() for path in paths] == before
+    assert frame._state.current.draft.values['Artist'] == 'Unsaved source'
 
 
 def test_actual_job_freezes_controls_and_uses_snapshot(ui_root, tmp_path, monkeypatch):
@@ -548,10 +659,9 @@ def test_actual_job_freezes_controls_and_uses_snapshot(ui_root, tmp_path, monkey
         ui_root.update()
         sleep(.01)
     set_value(view, 'Artist', 'Snapshot')
-    view._collection.apply_fields({'Artist': 'Snapshot'})
     output = tmp_path / 'out'
     output.mkdir()
-    monkeypatch.setattr(view._collection, 'destination', lambda count: (False, str(output)))
+    monkeypatch.setattr(view._collection, 'destination', lambda count, **kwargs: (False, str(output)))
     release = Event()
     original = collection.procesar_lote
     def work(*args, **kwargs):

@@ -199,7 +199,7 @@ def _verify_image_formats(work: Path, observations: dict | None = None) -> list[
         if ocr.preprocesar_imagen(output_path).size == 0:
             raise RuntimeError(f'OCR could not decode {fmt}')
     profile = ImageCms.ImageCmsProfile(ImageCms.createProfile('sRGB')).tobytes()
-    for fmt, suffix in (('JPEG', '.jpg'), ('TIFF', '.tiff')):
+    for fmt, suffix in (('JPEG', '.jpg'), ('TIFF', '.tiff'), ('PNG', '.png'), ('WEBP', '.webp')):
         original = work / f'metadata{suffix}'
         edited = work / f'metadata-edited{suffix}'
         exif = piexif.dump({'0th': {piexif.ImageIFD.Make: b'Yagua-test'}, 'Exif': {}})
@@ -214,8 +214,8 @@ def _verify_image_formats(work: Path, observations: dict | None = None) -> list[
                 raise RuntimeError(f'{fmt}: color profile lost')
             if hashlib.sha256(output.tobytes()).hexdigest() != pixels:
                 raise RuntimeError(f'{fmt}: metadata edit changed pixels')
-        tags = piexif.load(str(edited))
-        if tags['0th'][piexif.ImageIFD.Artist] != b'Test' or tags['0th'][piexif.ImageIFD.Make] != b'Yagua-test':
+        tags = metadata.leer_campos_edicion(str(edited))
+        if tags['Artist'] != 'Test' or tags['Make'] != 'Yagua-test':
             raise RuntimeError(f'{fmt}: EXIF roundtrip failed')
     rotated = work / 'orientation.jpg'
     image.convert('RGB').save(rotated, exif=piexif.dump({'0th': {274: 6}}))

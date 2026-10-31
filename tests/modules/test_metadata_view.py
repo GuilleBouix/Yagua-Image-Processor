@@ -27,7 +27,7 @@ def _editar(path, campos, **opciones):
     return result
 
 
-@pytest.mark.parametrize('formato,extension', [('JPEG', 'jpg'), ('TIFF', 'tiff')])
+@pytest.mark.parametrize('formato,extension', [('JPEG', 'jpg'), ('TIFF', 'tiff'), ('PNG', 'png'), ('WEBP', 'webp')])
 def test_ver_muestra_los_cinco_campos_del_ejemplo(tmp_path, formato, extension):
     path = tmp_path / f'gáto con espacios.{extension}'
     _crear_imagen(path, formato)
@@ -42,7 +42,7 @@ def test_ver_muestra_los_cinco_campos_del_ejemplo(tmp_path, formato, extension):
     assert result['Software'] == 'Yagua'
 
 
-@pytest.mark.parametrize('formato,extension', [('JPEG', 'jpg'), ('TIFF', 'tiff')])
+@pytest.mark.parametrize('formato,extension', [('JPEG', 'jpg'), ('TIFF', 'tiff'), ('PNG', 'png'), ('WEBP', 'webp')])
 def test_ver_cubre_editor_secciones_y_exportaciones(tmp_path, formato, extension):
     path = tmp_path / f'completa.{extension}'
     _crear_imagen(path, formato)
@@ -87,7 +87,7 @@ def test_ver_cubre_editor_secciones_y_exportaciones(tmp_path, formato, extension
 
 
 @pytest.mark.parametrize('formato,extension', [('PNG', 'png'), ('WEBP', 'webp')])
-def test_visor_conserva_lectura_en_formatos_no_editables(tmp_path, formato, extension):
+def test_visor_lee_png_y_webp(tmp_path, formato, extension):
     path = tmp_path / ('original.' + extension)
     exif = {'0th': {piexif.ImageIFD.ImageDescription: b'Gato'},
             'Exif': {piexif.ExifIFD.UserComment: piexif.helper.UserComment.dump('Café', encoding='unicode')},
@@ -110,7 +110,7 @@ def test_formatear_racionales_unicode_y_cero(nombre, valor, esperado):
     assert metadata._formatear_valor(nombre, valor) == esperado
 
 
-@pytest.mark.parametrize('formato,extension', [('JPEG', 'jpg'), ('TIFF', 'tiff')])
+@pytest.mark.parametrize('formato,extension', [('JPEG', 'jpg'), ('TIFF', 'tiff'), ('PNG', 'png'), ('WEBP', 'webp')])
 def test_descripcion_utf8_no_se_muestra_como_latin1(tmp_path, formato, extension):
     path = tmp_path / f'unicode.{extension}'
     _crear_imagen(path, formato)

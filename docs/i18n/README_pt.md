@@ -59,8 +59,10 @@ A tabela lista os módulos de desktop. A disponibilidade e os controles dependem
 | Marca d'água | Aplicar um logo; ajustar posição, tamanho, opacidade e margem. | Imagens base compatíveis; PNG transparente recomendado para o logo. | 100 imagens + 1 logo |
 | Renomear | Pré-visualizar numeração, datas e alterações de maiúsculas/minúsculas. | Altera os nomes na pasta original. | 100 arquivos |
 | OCR | Extrair texto em espanhol e/ou inglês com EasyOCR; copiar ou exportar como TXT. | Imagens raster compatíveis → texto. | 10 imagens |
-| Metadados EXIF | Consultar, exportar, editar campos ou remover metadados em lote. | Edição JPEG/TIFF; exportação de metadados TXT/JSON. | 1 imagem para editar; 100 para limpar |
+| Metadados EXIF | Consultar, exportar, editar campos ou remover metadados em lote. | JPEG / TIFF / PNG / WebP; TXT/JSON | 100 imagens |
 | LQIP / Base64 | Gerar placeholders de baixa qualidade ou codificar imagens para a web. | Base64, data URI, HTML e CSS; exportação TXT/JSON. | 1 imagem |
+
+**Metadados EXIF:** Consulte, edite e limpe JPEG, TIFF, PNG e WebP. Em Salvar…, escolha esta imagem ou as selecionadas, até 100: campos preenchidos são aplicados e campos vazios mantêm os dados de cada imagem. A edição de PNG/WebP preserva os pixels comprimidos; a limpeza remove EXIF, XMP e textos descritivos, mantendo cor e transparência. Transformar a orientação pode aumentar o tamanho. Outros formatos mantêm a prévia, sem ações de metadados. [EXIF — PNG / WebP](../METADATA_FORMATS.md).
 
 A compatibilidade depende do módulo, dos codecs instalados e da plataforma. Um formato listado não garante que todos os módulos possam lê-lo ou gravá-lo. Consulte os [requisitos](#requirements).
 
@@ -68,23 +70,27 @@ A compatibilidade depende do módulo, dos codecs instalados e da plataforma. Um 
 
 ## Capturas de tela
 
-Capturas do Yagua com a interface em inglês. Clique em qualquer miniatura para ver a imagem em tamanho completo. O layout e os controles podem variar entre versões.
+As capturas usam a interface em inglês e mostram o código atual em desenvolvimento. Clique em uma miniatura para abrir a imagem em tamanho original. Versões anteriores podem ter controles diferentes.
 
 <table>
   <tr>
     <td align="center" width="50%"><a href="../../assets/screenshots/home.webp"><img src="../../assets/screenshots/home.webp" width="450" alt="Tela inicial com todos os módulos" /></a></td>
-    <td align="center" width="50%"><a href="../../assets/screenshots/convert.webp"><img src="../../assets/screenshots/convert.webp" width="450" alt="Conversão com imagens selecionadas e controles do formato de saída" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/convert.webp"><img src="../../assets/screenshots/convert.webp" width="450" alt="Conversão com imagens selecionadas e controles de formato de saída" /></a></td>
   </tr>
   <tr>
     <td align="center" width="50%"><a href="../../assets/screenshots/compress.webp"><img src="../../assets/screenshots/compress.webp" width="450" alt="Compressão com controles de qualidade e salvamento" /></a></td>
-    <td align="center" width="50%"><a href="../../assets/screenshots/resize.webp"><img src="../../assets/screenshots/resize.webp" width="450" alt="Redimensionamento com uma predefinição para a capa do canal do YouTube" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/resize.png"><img src="../../assets/screenshots/resize.png" width="450" alt="Aba Redimensionar com prévia da imagem e dimensões de saída" /></a></td>
   </tr>
   <tr>
-    <td align="center" width="50%"><a href="../../assets/screenshots/remove-background.webp"><img src="../../assets/screenshots/remove-background.webp" width="450" alt="Remoção de fundo com uma imagem selecionada" /></a></td>
-    <td align="center" width="50%"><a href="../../assets/screenshots/palette.webp"><img src="../../assets/screenshots/palette.webp" width="450" alt="Paleta extraída com oito cores e seus valores" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/crop.png"><img src="../../assets/screenshots/crop.png" width="450" alt="Aba Cortar com prévia de corte centralizado 3:4" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/canvas.png"><img src="../../assets/screenshots/canvas.png" width="450" alt="Aba Canvas com prévia e fundo de cor personalizada" /></a></td>
   </tr>
   <tr>
-    <td align="center" width="50%"><a href="../../assets/screenshots/watermark.webp"><img src="../../assets/screenshots/watermark.webp" width="450" alt="Controles de marca-d’água e prévia do resultado" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/remove-background.png"><img src="../../assets/screenshots/remove-background.png" width="450" alt="Remoção de fundo com controles de bordas e resultado transparente" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/palette.png"><img src="../../assets/screenshots/palette.png" width="450" alt="Paleta em lote com oito cores extraídas e Salvar tudo" /></a></td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="../../assets/screenshots/watermark.webp"><img src="../../assets/screenshots/watermark.webp" width="450" alt="Controles de marca-d'água e prévia do resultado" /></a></td>
     <td align="center" width="50%"><a href="../../assets/screenshots/rename.webp"><img src="../../assets/screenshots/rename.webp" width="450" alt="Renomeação em lote com nomes originais e propostos" /></a></td>
   </tr>
   <tr>
@@ -161,7 +167,7 @@ Os comandos usam as dependências fixadas pelo repositório. As verificações d
 
 **LQIP / Base64:** Selecione uma imagem, escolha o modo e os parâmetros, gere, compare e copie ou exporte Data URI, HTML, CSS ou Base64 puro. Carregar outra imagem redefine o modo LQIP, largura 20 px, desfoque 2 e qualidades 40/85; cancelar o seletor preserva o estado atual. Ambos os modos geram JPEG sem transparência.
 
-**Arquivos originais:** Renomear altera os nomes na localização atual. Editar EXIF sobrescreve a imagem selecionada após confirmação. Trabalhe com cópias nessas operações. A limpeza EXIF em lote grava na pasta escolhida. As outras exportações usam o fluxo de salvamento ou pasta de saída de cada módulo.
+**Arquivos originais:** Renomear altera os nomes no local. Editar e limpar EXIF permitem criar cópias ou sobrescrever com confirmação; criar cópias é a opção inicial. As outras exportações usam o fluxo do módulo.
 
 ### Exemplos práticos
 
@@ -191,7 +197,7 @@ Na tela transparente, PNG, WebP, TIFF, AVIF e HEIF mantêm o formato quando há 
 
 #### Remover Fundo
 
-Carregue até **10 imagens** e escolha **PNG** (padrão), **WEBP** ou **TIFF**, todos com transparência. Selecione uma linha para ver o original antes do processamento e o resultado salvo depois. Os três ajustes ficam sempre visíveis:
+Carregue até **10 imagens** e escolha **PNG** (padrão), **WEBP** ou **TIFF**, todos com transparência. Selecione uma linha para ver o original antes do processamento e o resultado salvo depois. Após o processamento, a prévia identifica o arquivo salvo e mostra as dimensões de origem e do resultado. O quadriculado indica transparência: é apenas o fundo da prévia e não faz parte da imagem exportada. Os três ajustes ficam sempre visíveis:
 
 - **Refinar bordas: Auto / Sim / Não**, inicialmente **Auto**. Auto limpa a máscara e refina bordas semitransparentes em fundos detectados como claros e uniformes. Sim solicita ambas as ações em qualquer fundo; Não desativa ambas.
 - **Reduzir halo branco: 0–100%**, inicialmente **85%**. Reduz a contaminação da cor do fundo claro nas bordas somente quando o fundo é detectado como claro e uniforme. Funciona independentemente do seletor de refinamento.
@@ -251,7 +257,7 @@ A auditoria dos pacotes registra estas observações aproximadas em compilaçõe
 ### Execução e processamento
 
 - **Código-fonte:** Python 3.13, Tk e as bibliotecas de [`requirements.txt`](../../requirements.txt). Os pacotes compilados não exigem uma instalação separada do Python.
-- **Lotes:** A tabela de recursos mostra os limites atuais da interface: uma imagem para LQIP / Base64 ou edição EXIF, 10 para OCR/remoção de fundo e 100 para as outras operações em lote listadas.
+- **Lotes:** A tabela de recursos mostra os limites atuais da interface: uma imagem para LQIP / Base64, 10 para OCR/remoção de fundo e 100 para as outras operações em lote listadas.
 - **Codecs:** HEIC/HEIF usa `pillow-heif`, incluído nas dependências do código. AVIF e outros formatos dependem dos codecs do Pillow e da plataforma. JPEG não aceita transparência; use PNG ou WebP quando necessário. A compressão PNG pode reduzir a imagem a 256 cores: confira o resultado.
 - **Modelos de IA:** Downloads podem acontecer no primeiro uso ou ao selecionar um modelo/idioma que precise de outro modelo. O uso offline exige modelos armazenados. O pacote testado executa OCR e remoção de fundo pela CPU.
 

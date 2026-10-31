@@ -440,7 +440,7 @@ TRANSLATIONS.update({
     'meta_copy_fields': 'フィールドをコピー…',
     'meta_save': '保存…',
     'meta_cancel': 'キャンセル',
-    'meta_save_scope': 'どの画像を保存しますか？',
+    'meta_save_scope': 'これらの項目をどこに適用しますか？',
     'meta_field': 'フィールド',
     'meta_value': '値',
     'meta_copy_summary': '{fields} 項目 · 選択画像 {images} 枚',
@@ -462,7 +462,7 @@ TRANSLATIONS.update({
     'meta_pending': '待機中',
     'meta_preview_error': 'プレビューを読み込めませんでした',
     'meta_read_error': '読み取りエラー',
-    'meta_read_only': '読み取り専用: 単一フレームのJPEG/TIFFのみ編集可能',
+    'meta_read_only': '未対応の形式です。JPEG、TIFF、PNG、WebP を使用してください。',
     'meta_ready': '準備完了',
     'meta_result': '保存: {ok} · 変更なし: {unchanged} · エラー: {errors}',
     'meta_saved': '元のファイルを更新しました',
@@ -514,7 +514,7 @@ TRANSLATIONS.update({
 # Interfaz contextual de metadatos.
 TRANSLATIONS.update({
     'meta_start': '画像を追加して開始',
-    'meta_read_only_short': '読み取り専用です。JPEGとTIFF画像のメタデータを編集できます。',
+    'meta_read_only_short': '未対応の形式です。JPEG、TIFF、PNG、WebP を使用してください。',
     'meta_clean_confirm': '選択した画像の保存済みメタデータを削除します。未保存の変更は適用されません。',
     'meta_show_details': '詳細を表示',
     'meta_hide_details': '詳細を隠す',
@@ -601,3 +601,17 @@ TRANSLATIONS.update({
 
 # Camera JPEGs with embedded MPO previews.
 TRANSLATIONS['save_camera_preview_notice'] = 'メインの写真を使用します。保存したファイルにはカメラの埋め込みプレビューは保持されません。'
+
+
+# Static EXIF containers supported by the metadata workspace.
+TRANSLATIONS['meta_format_unsupported'] = '未対応の形式です。JPEG、TIFF、PNG、WebP を使用してください。'
+
+
+# Direct save scope: apply populated fields and save in one action.
+TRANSLATIONS.update({
+    'meta_save_current_action': 'この画像のみ',
+    'meta_save_marked_action': '選択した {count} 枚の画像',
+    'meta_save_nonempty': '空欄の項目は既存のデータを変更しません。',
+    'meta_save_overwrite_notice': '選択した対象の元ファイルを変更します。',
+    'meta_save_copies_notice': '選択したフォルダーにコピーを保存します。',
+})

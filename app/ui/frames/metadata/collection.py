@@ -14,14 +14,17 @@ import customtkinter as ctk
 from PIL import Image, ImageTk
 
 from app.modules.compress import formatear_bytes
+from app.modules.metadata_containers import SUPPORTED_FORMATS
+from app.utils.saving import canonical_format, plan_outputs
 from app.modules.metadata_batch import (
-    MetadataDraft, MetadataTask, exportar_lote, leer_archivo, preparar_borrador, procesar_lote,
+    MetadataDraft, MetadataTask, combinar_formulario, exportar_lote, leer_archivo, preparar_borrador, procesar_lote,
 )
 from app.translations import t
 from app.ui import colors, fonts, styles
 from app.ui.frames.metadata.state import path_key
 from app.ui.operations import operations
 from app.ui.status import operation_summary
+from app.ui.windows import center_on_parent
 from app.utils.paths import resource_path
 from app.ui.image_cache import image_cache
 from app.ui.rendering import activate_tab, configure_changed
@@ -36,6 +39,7 @@ ERROR_KEYS = {
     'gps_pair': 'gps_pair_required', 'gps_conflict': 'gps_clear_conflict',
     'sync_requires_date': 'sync_date_required', 'invalid_orientation': 'invalid_orientation',
     'empty': 'no_metadata_changes',
+    'invalid_metadata_container': 'meta_read_error',
     'source_changed': 'meta_source_changed', 'error': 'error_saving',
     'invalid_field': 'invalid_metadata_option', 'output_folder_required': 'select_output_folder_clean',
 }
@@ -80,6 +84,13 @@ class MetadataCollection:
         """Devuelve el estado vigente para comprobar callbacks antiguos."""
         return self.view._state
 
+    @staticmethod
+    def compatible(item):
+        """Unknown headers are checked by the worker; known unsupported files stay inert."""
+        if item.data is not None:
+            return item.data.get('writable', item.data['editable'])
+        return not item.format or canonical_format(item.format) in SUPPORTED_FORMATS
+
     def refresh(self, *, rebuild=False, key=None):
         """Invalida trabajos asociados a una selección anterior."""
         for files in self.view._file_views:
@@ -92,13 +103,16 @@ class MetadataCollection:
             current = self.state.current
             editable = bool(current and current.data and current.data['editable'] and not current.data['edit_error'])
             for button, enabled in (
-                (self.view._btn_guardar_edit, editable or bool(self.state.marked)),
-                (self.view._btn_apply_fields, editable and bool(self.state.marked)),
-                (self.view._btn_limpiar_exif, bool(self.state.marked)),
+                (self.view._btn_guardar_edit, editable or any(i.draft.dirty and self.compatible(i) for i in self.state.marked)),
+                (self.view._btn_limpiar_exif, any(self.compatible(i) for i in self.state.marked)),
             ):
                 configure_changed(button, state='normal' if enabled else 'disabled')
         if not operations.is_busy():
             self.view._sync_presentation()
+            current = self.state.current
+            exportable = bool(current and current.data and current.data.get('supported', True) and not current.data.get('read_error'))
+            for button in self.view._export_actions.winfo_children():
+                configure_changed(button, state='normal' if exportable else 'disabled')
 
     def request_thumbnail(self, key):
         """Solicita una miniatura vinculada a la revisión actual."""
@@ -274,8 +288,11 @@ class MetadataCollection:
             self.set_form({}, enabled=False)
         else:
             item.format, item.size_bytes = data['format'], data['bytes']
-            if item.status in ('meta_pending', 'meta_read_error', 'meta_ready', 'meta_no_exif'):
-                item.status = 'meta_ready' if data['metadata'] else 'meta_no_exif'
+            if item.status in ('meta_pending', 'meta_read_error', 'meta_ready', 'meta_no_exif', 'meta_format_unsupported', 'unsupported_frames'):
+                item.status = ('meta_format_unsupported' if not data.get('supported', True) else
+                               'unsupported_frames' if not data.get('writable', True) else
+                               'meta_read_error' if data['edit_error'] and not data['metadata'] else
+                               'meta_ready' if data['metadata'] else 'meta_no_exif')
                 item.detail = ''
             enabled = data['editable'] and not data['edit_error']
             self.state.ruta_edicion = item.path if enabled else None
@@ -288,7 +305,7 @@ class MetadataCollection:
                               if value == item.draft.orientation), t('keep_orientation'))
                 self.view._combo_orientacion.set(label)
             else:
-                self.view._info_tecnica.configure(text=t('meta_read_only') if not data['edit_error'] else error_text(data['edit_error']))
+                self.view._info_tecnica.configure(text=error_text(data.get('blocked_reason') or 'meta_read_only') if not data['edit_error'] else error_text(data['edit_error']))
             self.view._aplicar_metadatos(data['metadata'])
             self.view._lbl_info.configure(text=self.notice or (
                 self.feedback if self.tab != t('clean_batch') else ''))
@@ -356,7 +373,7 @@ class MetadataCollection:
         dialog.transient(self.view.winfo_toplevel())
         dialog.grid_columnconfigure(0, weight=1)
         dialog.bind('<Escape>', lambda _event: dialog.destroy())
-        dialog.after_idle(lambda: (dialog.lift(), dialog.grab_set()))
+        center_on_parent(dialog, self.view, modal=True)
         return dialog
 
     @staticmethod
@@ -380,127 +397,111 @@ class MetadataCollection:
             text=t(key), command=command, height=40, width=1, font=fonts.FUENTE_BASE)
 
     def destination(self, count_items, *, choose_scope=False) -> 'Any':
-        """Solicita carpeta de destino y cancela sin cambiar estado si se cierra el diálogo."""
+        """Choose the save scope; this dialog also confirms overwriting originals."""
         from app.ui.saving import mode
         overwrite = mode(self.view) == 'overwrite'
         if not choose_scope:
             folder = None if overwrite else filedialog.askdirectory(parent=self.view, title=t('select_output_folder_clean'))
             return (overwrite, folder) if overwrite or folder else None
-        dialog = self._dialog('meta_save', 540, 290)
-        dialog.minsize(500, 290)
-        scope = ctk.StringVar(value='current' if self.state.current else 'marked')
-        palette = styles.palette()
-        row_offset = 0
-        if choose_scope:
-            ctk.CTkLabel(dialog, text=t('meta_save_scope'), font=fonts.FUENTE_BASE, anchor='w').grid(
-                row=0, column=0, padx=20, pady=(16, 4), sticky='ew')
-            for row, (value, key) in enumerate((('current', 'meta_current'), ('marked', 'meta_marked')), 1):
-                enabled = bool(self.state.current) if value == 'current' else bool(self.state.marked)
-                ctk.CTkRadioButton(dialog, text=t(key), variable=scope, value=value,
-                    state='normal' if enabled else 'disabled', font=fonts.FUENTE_BASE,
-                    fg_color=palette.primary, hover_color=palette.primary_hover,
-                    border_color=palette.border, text_color=palette.text,
-                    text_color_disabled=palette.muted).grid(
-                        row=row, column=0, padx=20, pady=8, sticky='w')
-            row_offset = 3
-        count_label = ctk.CTkLabel(dialog, text=t('meta_destination_count').format(count=count_items),
-            font=fonts.FUENTE_CHICA, text_color=colors.TEXT_GRAY, wraplength=480, justify='left')
-        count_label.grid(row=row_offset, column=0, padx=20, pady=(12, 8), sticky='w')
-        def update_count(*_args):
-            """Actualiza el conteo del diálogo según el alcance elegido."""
-            count_label.configure(text=t('meta_destination_count').format(
-                count=len(self.state.marked) if scope.get() == 'marked' else int(self.state.current is not None)))
-        if choose_scope:
-            scope.trace_add('write', update_count)
-            update_count()
+        dialog = self._dialog('meta_save', 540, 320)
+        dialog.minsize(440, 320)
+        current = self.state.current
+        current_editable = bool(current and current.data and current.data['editable'] and not current.data['edit_error'])
+        ctk.CTkLabel(dialog, text=t('meta_save_scope'), font=fonts.FUENTE_BASE, anchor='w',
+            justify='left', wraplength=480).grid(row=0, column=0, padx=20, pady=(16, 8), sticky='ew')
+        explanation = t('meta_save_overwrite_notice' if overwrite else 'meta_save_copies_notice')
+        ctk.CTkLabel(dialog, text=explanation, font=fonts.FUENTE_CHICA, text_color=colors.TEXT_GRAY,
+            anchor='w', justify='left', wraplength=480).grid(row=1, column=0, padx=20, pady=(0, 8), sticky='ew')
+        ctk.CTkLabel(dialog, text=t('meta_save_nonempty'), font=fonts.FUENTE_CHICA,
+            text_color=colors.TEXT_GRAY, anchor='w', justify='left', wraplength=480).grid(
+                row=2, column=0, padx=20, pady=(0, 12), sticky='ew')
         result = []
-        def accept():
-            """Valida destino y cambios pendientes antes de cerrar el diálogo."""
-            count = (len(self.state.marked) if scope.get() == 'marked' else int(self.state.current is not None)) if choose_scope else count_items
-            if not count:
-                return
-            if choose_scope:
-                items = self.state.marked if scope.get() == 'marked' else [self.state.current]
-                if not any(item and item.draft.dirty for item in items):
-                    count_label.configure(text=t('no_metadata_changes'))
-                    return
-                if scope.get() == 'current':
-                    item = self.state.current
-                    if item is None or item.data is None or not item.data['editable'] or item.data['edit_error']:
-                        count_label.configure(text=t('meta_read_only'))
-                        return
-                    _, error = preparar_borrador(item.data['values'], item.draft)
-                    if error:
-                        count_label.configure(text=error_text(error))
-                        return
+        def accept(selected):
+            """Only choose a folder after the scope; cancelling preserves all drafts."""
             folder = None if overwrite else filedialog.askdirectory(parent=dialog, title=t('select_output_folder_clean'))
             if not overwrite and not folder:
                 return
-            result.append((scope.get() == 'marked', overwrite, folder) if choose_scope else (overwrite, folder))
+            result.append((selected, overwrite, folder))
             dialog.destroy()
-        actions = ctk.CTkFrame(dialog, fg_color='transparent')
-        actions.grid(row=row_offset + 1, column=0, padx=20, pady=(16, 20), sticky='ew')
-        actions.grid_columnconfigure((0, 1), weight=1)
-        self._dialog_button(actions, 'meta_cancel', dialog.destroy).grid(row=0, column=0, padx=(0, 6), sticky='ew')
-        self._dialog_button(actions, 'meta_continue', accept, primary=True).grid(row=0, column=1, padx=(6, 0), sticky='ew')
+        current_button = self._dialog_button(dialog, 'meta_save_current_action', lambda: accept(False))
+        current_button.grid(row=3, column=0, padx=20, pady=(0, 8), sticky='ew')
+        current_button.configure(state='normal' if current_editable else 'disabled')
+        count = len(self.state.marked)
+        batch_button = self._dialog_button(dialog, 'meta_save_marked_action', lambda: accept(True), primary=True)
+        batch_button.configure(text=t('meta_save_marked_action').format(count=count),
+            state='normal' if count and any(self.compatible(item) for item in self.state.marked) else 'disabled')
+        batch_button.grid(row=4, column=0, padx=20, pady=(0, 8), sticky='ew')
+        self._dialog_button(dialog, 'meta_cancel', dialog.destroy).grid(
+            row=5, column=0, padx=20, pady=(0, 16), sticky='ew')
         self.view.wait_window(dialog)
         return result[0] if result else None
 
     def save(self, *, selected: bool | None = False, clean=False):
-        """Guarda cambios validados y registra el resultado individual de cada archivo."""
+        """Apply the open form to the chosen scope and save immutable per-file tasks."""
         if self.view._operation_blocked(global_job=True):
             return
         self.capture()
+        current = self.state.current
+        source = MetadataDraft()
+        if not clean and current and current.data and current.data['editable'] and not current.data['edit_error']:
+            source = MetadataDraft({key: value for key, value in self.form_values().items() if value},
+                current.draft.sync_dates, current.draft.clear_gps, current.draft.orientation)
+            _, error = preparar_borrador(current.data['values'], source)
+            if error and error != 'empty':
+                self.view._lbl_info.configure(text=error_text(error))
+                return
+        if not clean and not source.dirty and not any(item.draft.dirty for item in self.state.items.values()):
+            self.view._lbl_info.configure(text=t('no_metadata_changes'))
+            return
         destination = None
         if selected is None:
-            if not self.state.current and not self.state.marked:
+            if not current and not self.state.marked:
                 self.view._lbl_info.configure(text=t('meta_no_selection'))
                 return
-            if not any(item.draft.dirty for item in self.state.items.values()):
-                self.view._lbl_info.configure(text=t('no_metadata_changes'))
-                return
-            chosen = self.destination(1, choose_scope=True)
+            chosen = self.destination(len(self.state.marked), choose_scope=True)
             if chosen is None:
                 return
             selected, overwrite, folder = chosen
             destination = (overwrite, folder)
-        items = self.state.marked if selected else ([self.state.current] if self.state.current else [])
+        items = self.state.marked if selected else ([current] if current else [])
         if not items:
             self.view._lbl_info.configure(text=t('meta_no_selection'))
             return
-        if not clean and selected and not any(item.draft.dirty for item in items):
-            self.view._lbl_info.configure(text=t('no_metadata_changes'))
+        if not clean and not selected and (not current or not current.data or not current.data['editable'] or current.data['edit_error']):
+            self.view._lbl_info.configure(text=t('meta_read_only'))
             return
-        if not clean and not selected:
-            item = items[0]
-            if item.data is None or not item.data['editable'] or item.data['edit_error']:
-                self.view._lbl_info.configure(text=t('meta_read_only'))
-                return
-            _, error = preparar_borrador(item.data['values'], item.draft)
-            if error:
-                self.view._lbl_info.configure(text=error_text(error))
-                return
-        tasks = tuple(MetadataTask(item.path, item.draft.copy(),
+        tasks = tuple(MetadataTask(item.path,
+                                   combinar_formulario(item.draft, source) if selected and not clean else item.draft.copy(),
                                    item.data['fingerprint'] if item.data else None) for item in items)
         if destination is None:
             destination = self.destination(len(tasks))
         if destination is None:
             return
         overwrite, folder = destination
-        def start(_folder, plan):
-            """Invalida revisiones anteriores y entrega las tareas capturadas al coordinador."""
+        def start(_folder, plan=None):
+            """The scope choice confirms edits; cleanup keeps its separate warning."""
+            if not clean and selected:
+                for task in tasks:
+                    item = self.state.items.get(path_key(task.path))
+                    if item and self.compatible(item):
+                        item.draft = task.draft.copy()
             self.epoch += 1
             self._thumb_requests.clear()
             self.revision += 1
             self.view._lbl_info.configure(text=t('processing'))
             def work():
-                """Procesa el lote bajo el bloqueo de E/S compartido."""
+                """Plan and save outside Tk after the user confirms the scope."""
                 with self.io_lock:
+                    output = plan if plan is not None else plan_outputs(
+                        tuple(task.path for task in tasks), _folder, 'overwrite' if overwrite else 'copies')
                     return procesar_lote(tasks, clean=clean, overwrite=overwrite,
-                                         folder=_folder, output_policy=plan)
+                                         folder=_folder, output_policy=output)
             self.view._submit_job(work, on_success=lambda result: self.finished(result, overwrite))
-        self.view._prepare_save(tuple(task.path for task in tasks), None, start, folder=folder,
-                                notice=t('meta_clean_confirm') if clean else '')
+        if clean:
+            self.view._prepare_save(tuple(task.path for task in tasks), None, start, folder=folder,
+                                    notice=t('meta_clean_confirm'))
+        else:
+            start(folder)
 
     def finished(self, result, overwrite):
         """Libera estado de operación y presenta resultados parciales del lote."""
@@ -511,7 +512,8 @@ class MetadataCollection:
                 continue
             status = row['estado']
             item.status = {'saved': 'meta_saved' if overwrite else 'meta_copied',
-                           'unchanged': 'no_metadata_changes', 'unsupported': 'meta_read_only', 'error': 'error_generic'}[status]
+                           'unchanged': 'no_metadata_changes', 'unsupported': 'meta_format_unsupported',
+                           'skipped': row.get('motivo', 'meta_format_unsupported'), 'error': 'error_generic'}[status]
             item.detail = row['destino'] if status == 'saved' else error_text(row['error'])
             lines.append(f'{item.path}\n{t(item.status)}: {item.detail}')
             if status == 'saved' and overwrite:
@@ -520,7 +522,8 @@ class MetadataCollection:
                 item.draft = MetadataDraft()
                 item.thumbnail = None
                 self.enqueue('thumb', path_key(item.path))
-        self.summary = operation_summary(result['ok'], result['errores'], unchanged=result['unchanged'])
+        self.summary = operation_summary(result['ok'], result['errores'], unchanged=result['unchanged'],
+                                         skipped=result.get('omitidos', 0))
         self.feedback = self.summary
         self.details_expanded = False
         self.view._summary.configure(state='normal')
@@ -533,147 +536,6 @@ class MetadataCollection:
         if self.state.active:
             self.activate(self.state.active, force=True)
         self.view._lbl_info.configure(text='' if self.tab == t('clean_batch') else self.summary)
-
-    def apply_fields(self, fields, options=None):
-        """Aplica el mismo conjunto de campos elegidos a imágenes marcadas."""
-        self.capture()
-        for item in self.state.marked:
-            for key, value in fields.items():
-                if value:
-                    item.draft.values[key] = value
-            for key, value in (options or {}).items():
-                setattr(item.draft, key, value)
-        current = self.state.current
-        if current and current.checked and current.data and self.form_key == self.state.active:
-            draft = current.draft
-            self.set_form({**current.data['values'], **draft.values}, enabled=True)
-            self.view._sync_dates_var.set(draft.sync_dates)
-            self.view._clear_gps_var.set(draft.clear_gps)
-            label = next((label for label, value in self.view._orientacion_values.items()
-                          if value == draft.orientation), t('keep_orientation'))
-            self.view._combo_orientacion.set(label)
-        self.refresh()
-
-    def choose_fields(self):
-        """Solicita qué etiquetas EXIF se aplicarán al lote."""
-        if self.view._operation_blocked(global_job=True):
-            return
-        self.capture()
-        item = self.state.current
-        if not self.state.marked or item is None or item.data is None or not item.data['editable'] or item.data['edit_error']:
-            self.view._lbl_info.configure(text=t('meta_no_selection'))
-            return
-        values = self.form_values()
-        populated = sum(bool(value) for value in values.values())
-        dialog = self._dialog('meta_copy_fields', 660, min(540, 290 + populated * 40))
-        dialog.minsize(560, 340)
-        dialog.grid_rowconfigure(4, weight=1)
-        ctk.CTkLabel(dialog, text=Path(item.path).name, font=fonts.FUENTE_BASE,
-            anchor='w', justify='left', wraplength=600).grid(
-                row=0, column=0, padx=20, pady=(16, 4), sticky='ew')
-        ctk.CTkLabel(dialog, text=t('meta_apply_help'), font=fonts.FUENTE_CHICA,
-            text_color=colors.TEXT_GRAY, wraplength=600, justify='left', anchor='w').grid(
-                row=1, column=0, padx=20, pady=(0, 12), sticky='ew')
-        query = ctk.StringVar()
-        search = styles.Entry(dialog, textvariable=query, placeholder_text=t('meta_search_fields'),
-            height=36, font=fonts.FUENTE_BASE)
-        search.grid(row=2, column=0, padx=20, pady=(0, 8), sticky='ew')
-        headings = ctk.CTkFrame(dialog, fg_color='transparent')
-        headings.grid(row=3, column=0, padx=24, sticky='ew')
-        headings.grid_columnconfigure((0, 1), weight=1, uniform='copy-fields')
-        for column, key in enumerate(('meta_field', 'meta_value')):
-            ctk.CTkLabel(headings, text=t(key), font=fonts.FUENTE_CHICA, anchor='w',
-                         text_color=colors.TEXT_GRAY).grid(row=0, column=column, sticky='ew')
-        body = ctk.CTkScrollableFrame(dialog, **styles.surface('list'), **styles.scrollbar())
-        body._scrollbar.configure(corner_radius=0, width=6, border_spacing=1)
-        body.grid(row=4, column=0, padx=16, sticky='nsew')
-        body.grid_columnconfigure(0, weight=1)
-        choices = {}
-        rows = []
-        summary = ctk.CTkLabel(dialog, text='', font=fonts.FUENTE_CHICA,
-                              text_color=colors.TEXT_GRAY, anchor='w')
-        summary.grid(row=5, column=0, padx=20, pady=(8, 0), sticky='ew')
-        actions = ctk.CTkFrame(dialog, fg_color='transparent')
-        actions.grid(row=6, column=0, padx=20, pady=(8, 16), sticky='ew')
-        actions.grid_columnconfigure((0, 1), weight=1)
-        def update_summary(*_args):
-            """Cuenta campos seleccionados y habilita Aplicar solo si hay cambios."""
-            count = sum(variable.get() for variable in choices.values()) + sum(
-                variable.get() for variable, _value in options.values())
-            summary.configure(text=t('meta_copy_summary').format(fields=count, images=len(self.state.marked)))
-            apply_button.configure(state='normal' if count else 'disabled')
-        def add_row(label, value, variable):
-            """Construye una fila filtrable con casilla y vista del valor."""
-            row = ctk.CTkFrame(body, fg_color='transparent')
-            row.grid(row=len(rows), column=0, sticky='ew', pady=4)
-            row.grid_columnconfigure((0, 1), weight=1, uniform='copy-fields')
-            checkbox = styles.CheckBox(row, text=label, variable=variable, width=1,
-                checkbox_width=18, checkbox_height=18, font=fonts.FUENTE_BASE)
-            checkbox.grid(row=0, column=0, sticky='ew', padx=(0, 12), pady=4)
-            preview = value[:120] + ('…' if len(value) > 120 else '')
-            value_label = ctk.CTkLabel(row, text=preview, anchor='w', justify='left', width=1,
-                wraplength=260, font=fonts.FUENTE_CHICA, text_color=colors.TEXT_GRAY)
-            value_label.grid(row=0, column=1, sticky='ew')
-            def resize_row(event):
-                """Ajusta el ancho de texto al tamaño disponible de la fila."""
-                half = int(event.width / self.view._get_widget_scaling()) // 2
-                value_label.configure(wraplength=max(80, half - 8))
-                if checkbox._text_label is not None:
-                    checkbox._text_label.configure(wraplength=max(80, half - 44))
-            row.bind('<Configure>', resize_row, add=True)
-            rows.append((self.view._texto_busqueda(f'{label} {value}'), row))
-            variable.trace_add('write', update_summary)
-        from app.modules.metadata import CAMPOS_EDITABLES
-        for key, value in values.items():
-            if not value:
-                continue
-            variable = ctk.BooleanVar(value=bool(item.draft.values.get(key)))
-            add_row(t(CAMPOS_EDITABLES[key]), value, variable)
-            choices[key] = variable
-        options = {}
-        for key, label, value in (
-            ('clear_gps', 'clear_gps', item.draft.clear_gps),
-            ('sync_dates', 'sync_dates', item.draft.sync_dates),
-            ('orientation', 'orientation_transform', item.draft.orientation),
-        ):
-            if value:
-                variable = ctk.BooleanVar(value=True)
-                display = next((name for name, code in self.view._orientacion_values.items()
-                                if code == value), str(value)) if key == 'orientation' else t('apply_changes')
-                add_row(t(label), display, variable)
-                options[key] = (variable, value)
-        def accept():
-            """Aplica únicamente campos marcados y cierra el selector."""
-            selected = {key: values[key] for key, variable in choices.items() if variable.get()}
-            flags = {key: value for key, (variable, value) in options.items() if variable.get()}
-            self.apply_fields(selected, flags)
-            dialog.destroy()
-        self._dialog_button(actions, 'meta_cancel', dialog.destroy).grid(row=0, column=0, padx=(0, 6), sticky='ew')
-        apply_button = self._dialog_button(actions, 'apply_changes', accept, primary=True)
-        apply_button.grid(row=0, column=1, padx=(6, 0), sticky='ew')
-        empty = ctk.CTkLabel(body, text=t('meta_no_matching_fields'), font=fonts.FUENTE_CHICA,
-                             text_color=colors.TEXT_GRAY)
-        empty.grid(row=len(rows), column=0, pady=16)
-        def filter_rows(*_args):
-            """Filtra filas visibles y restablece el desplazamiento del diálogo."""
-            term = self.view._texto_busqueda(query.get().strip())
-            visible = 0
-            for text, row in rows:
-                if term in text:
-                    row.grid()
-                    visible += 1
-                else:
-                    row.grid_remove()
-            if visible:
-                empty.grid_remove()
-            else:
-                empty.grid()
-            body._parent_canvas.yview_moveto(0)
-        query.trace_add('write', filter_rows)
-        filter_rows()
-        update_summary()
-        search.focus_set()
-        self.view.wait_window(dialog)
 
     def export(self, fmt):
         """Exporta los metadatos seleccionados al formato pedido."""
@@ -695,6 +557,10 @@ class MetadataCollection:
                 if batch:
                     return exportar_lote(paths, destination, fmt)
                 data = leer_archivo(paths[0])
+                if not data['supported']:
+                    raise ValueError('meta_format_unsupported')
+                if data.get('read_error'):
+                    raise ValueError('meta_read_error')
                 from app.modules.metadata import exportar_metadatos
                 exportar_metadatos(data['metadata'], destination, fmt)
                 return []
@@ -703,7 +569,7 @@ class MetadataCollection:
             for entry in entries:
                 item = self.state.items.get(path_key(entry['ruta']))
                 if item and entry['error']:
-                    item.status, item.detail = 'meta_read_error', error_text(entry['error'])
+                    item.status, item.detail = ('meta_format_unsupported' if entry['error'] == 'meta_format_unsupported' else 'meta_read_error'), error_text(entry['error'])
             self.refresh()
             self.view._lbl_info.configure(text=f'{t("exported_as")} {Path(destination).name}')
         self.view._submit_job(work, on_success=success,

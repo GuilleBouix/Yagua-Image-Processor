@@ -490,7 +490,7 @@ TRANSLATIONS.update({
     'meta_copy_fields': 'Copier les champs…',
     'meta_save': 'Enregistrer…',
     'meta_cancel': 'Annuler',
-    'meta_save_scope': 'Quelles images souhaites-tu enregistrer ?',
+    'meta_save_scope': 'Où appliquer ces champs ?',
     'meta_field': 'Champ',
     'meta_value': 'Valeur',
     'meta_copy_summary': '{fields} champs · {images} images sélectionnées',
@@ -512,7 +512,7 @@ TRANSLATIONS.update({
     'meta_pending': 'En attente',
     'meta_preview_error': 'Impossible de charger l’aperçu',
     'meta_read_error': 'Erreur de lecture',
-    'meta_read_only': 'Lecture seule : édition JPEG/TIFF à une seule image',
+    'meta_read_only': 'Format non pris en charge. Utilisez JPEG, TIFF, PNG ou WebP.',
     'meta_ready': 'Prêt',
     'meta_result': 'Enregistrées : {ok} · Inchangées : {unchanged} · Erreurs : {errors}',
     'meta_saved': 'Original mis à jour',
@@ -564,7 +564,7 @@ TRANSLATIONS.update({
 # Interfaz contextual de metadatos.
 TRANSLATIONS.update({
     'meta_start': 'Ajoutez des images pour commencer',
-    'meta_read_only_short': 'Lecture seule. Les métadonnées des images JPEG et TIFF sont modifiables.',
+    'meta_read_only_short': 'Format non pris en charge. Utilisez JPEG, TIFF, PNG ou WebP.',
     'meta_clean_confirm': 'Les métadonnées enregistrées des images sélectionnées seront supprimées. Les modifications non enregistrées ne seront pas appliquées.',
     'meta_show_details': 'Voir les détails',
     'meta_hide_details': 'Masquer les détails',
@@ -651,3 +651,17 @@ TRANSLATIONS.update({
 
 # Camera JPEGs with embedded MPO previews.
 TRANSLATIONS['save_camera_preview_notice'] = 'La photo principale sera utilisée. Le fichier enregistré ne conservera pas les aperçus intégrés de l’appareil photo.'
+
+
+# Static EXIF containers supported by the metadata workspace.
+TRANSLATIONS['meta_format_unsupported'] = 'Format non pris en charge. Utilisez JPEG, TIFF, PNG ou WebP.'
+
+
+# Direct save scope: apply populated fields and save in one action.
+TRANSLATIONS.update({
+    'meta_save_current_action': 'Uniquement cette image',
+    'meta_save_marked_action': 'Aux {count} images sélectionnées',
+    'meta_save_nonempty': 'Les champs vides conservent les données existantes.',
+    'meta_save_overwrite_notice': 'Les fichiers originaux du groupe choisi seront modifiés.',
+    'meta_save_copies_notice': 'Des copies seront créées dans le dossier choisi.',
+})

@@ -11,7 +11,8 @@ from app.modules.metadata import (
     editar_exif, leer_campos_edicion, leer_metadatos, limpiar_exif,
     preparar_campos_exif,
 )
-from app.utils.output import atomic_write_text, require_single_frame, unique_output_path
+from app.utils.output import atomic_write_text, require_single_frame, unique_output_path, DiscardOutput
+from app.modules.metadata_containers import SUPPORTED_FORMATS
 from app.utils.saving import get_plan, run_plan, path_key, canonical_format
 from app.utils.image_source import mpo_preview_count
 
@@ -44,6 +45,23 @@ class MetadataTask:
     fingerprint: tuple[int, int] | None = None
 
 
+def combinar_formulario(draft: MetadataDraft, source: MetadataDraft) -> MetadataDraft:
+    """Copy populated form fields without erasing another image's empty-field data.
+
+    Work on snapshots so cancelling the save dialog does not propagate edits.
+    Explicit GPS/date/orientation actions accompany the populated fields.
+    """
+    result = draft.copy()
+    result.values.update({key: value for key, value in source.values.items() if value.strip()})
+    if source.clear_gps:
+        result.clear_gps = True
+    if source.sync_dates:
+        result.sync_dates = True
+    if source.orientation is not None:
+        result.orientation = source.orientation
+    return result
+
+
 def fingerprint(path: str) -> tuple[int, int]:
     """Registra tamaño y fecha de modificación para detectar cambios externos."""
     stat = Path(path).stat()
@@ -56,12 +74,14 @@ def leer_archivo(path: str) -> dict:
     with Image.open(path) as image:
         fmt = image.format or ''
         size = image.size
-        image.getexif()
         frames = getattr(image, 'n_frames', 1)
         animated = getattr(image, 'is_animated', False)
         camera_preview = bool(mpo_preview_count(image))
-    metadata = leer_metadatos(path)
-    editable = canonical_format(fmt) in ('JPEG', 'TIFF') and ((frames == 1 and not animated) or camera_preview)
+    supported = canonical_format(fmt) in SUPPORTED_FORMATS
+    writable = supported and ((frames == 1 and not animated) or camera_preview)
+    reason = '' if writable else ('unsupported_frames' if supported else 'meta_format_unsupported')
+    metadata = leer_metadatos(path) if supported else {}
+    editable = writable
     values, edit_error = {}, None
     if editable:
         try:
@@ -71,7 +91,9 @@ def leer_archivo(path: str) -> dict:
     if before != fingerprint(path):
         raise OSError('source_changed')
     return dict(metadata=metadata, values=values, format=fmt, size=size,
-                bytes=before[0], fingerprint=before, editable=editable, edit_error=edit_error)
+                bytes=before[0], fingerprint=before, editable=editable, edit_error=edit_error,
+                supported=supported, writable=writable, blocked_reason=reason,
+                read_error=edit_error if not metadata else None)
 
 
 def preparar_borrador(base: dict[str, str], draft: MetadataDraft):
@@ -102,9 +124,14 @@ def procesar_lote(tasks: tuple[MetadataTask, ...], *, clean: bool = False,
             task = by_path[path_key(source)]
             if task.fingerprint is not None and fingerprint(source) != task.fingerprint:
                 raise OSError('source_changed')
+            data = leer_archivo(source)
+            if not data['supported']:
+                raise DiscardOutput(dict(estado='skipped', motivo='meta_format_unsupported',
+                                         error='meta_format_unsupported'))
+            if not data['writable']:
+                raise ValueError(data['blocked_reason'])
             if clean:
                 return limpiar_exif(source, target)
-            data = leer_archivo(source)
             if not data['editable'] or data['edit_error']:
                 raise ValueError(data['edit_error'] or 'meta_read_only')
             request, error = preparar_borrador(data['values'], task.draft)
@@ -125,12 +152,17 @@ def procesar_lote(tasks: tuple[MetadataTask, ...], *, clean: bool = False,
         try:
             if task.fingerprint is not None and fingerprint(task.path) != task.fingerprint:
                 raise OSError('source_changed')
+            data = leer_archivo(task.path)
+            if not data['supported']:
+                result.update(estado='unsupported', error='meta_format_unsupported')
+                results.append(result)
+                continue
             require_single_frame(task.path)
             request = None
             if not clean:
                 data = leer_archivo(task.path)
                 if not data['editable']:
-                    result.update(estado='unsupported', error='meta_read_only')
+                    result.update(estado='unsupported', error=data['blocked_reason'])
                     results.append(result)
                     continue
                 if data['edit_error']:
@@ -156,7 +188,8 @@ def procesar_lote(tasks: tuple[MetadataTask, ...], *, clean: bool = False,
         results.append(result)
     return dict(items=results, ok=sum(r['estado'] == 'saved' for r in results),
                 unchanged=sum(r['estado'] == 'unchanged' for r in results),
-                errores=sum(r['estado'] in ('error', 'unsupported') for r in results))
+                errores=sum(r['estado'] == 'error' for r in results),
+                omitidos=sum(r['estado'] == 'unsupported' for r in results))
 
 
 def exportar_lote(paths: tuple[str, ...], destination: str, fmt: str) -> list[dict]:
@@ -167,8 +200,13 @@ def exportar_lote(paths: tuple[str, ...], destination: str, fmt: str) -> list[di
     for path in paths:
         entry = dict(ruta=str(Path(path).resolve()), metadatos={}, error=None)
         try:
+            data = leer_archivo(path)
+            if not data['supported']:
+                raise ValueError('meta_format_unsupported')
+            if data.get('read_error'):
+                raise ValueError('meta_read_error')
             entry['metadatos'] = {
-                key: value for key, value in leer_archivo(path)['metadata'].items()
+                key: value for key, value in data['metadata'].items()
                 if not key.startswith('__')
             }
         except Exception as error:

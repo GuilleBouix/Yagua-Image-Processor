@@ -59,8 +59,10 @@ Yagua 将日常图像处理任务整合到一个桌面应用中，适合网页�
 | 水印 | 添加图像标志，并调整位置、大小、不透明度和边距。 | 受支持的底图；标志建议使用透明 PNG。 | 100 张图像 + 1 个标志 |
 | 重命名 | 预览编号、日期和大小写变更后的文件名。 | 在文件当前所在的文件夹中修改名称。 | 100 个文件 |
 | OCR | 使用 EasyOCR 提取西班牙语和／或英语文本，复制结果或导出为 TXT。 | 受支持的位图图像 → 文本。 | 10 张图像 |
-| EXIF 元数据 | 查看、导出、编辑字段，或批量移除元数据。 | 编辑 JPEG/TIFF；导出 TXT/JSON 元数据。 | 编辑 1 张；清理 100 张 |
+| EXIF 元数据 | 查看、导出、编辑字段，或批量移除元数据。 | JPEG / TIFF / PNG / WebP; TXT/JSON | 100 张 |
 | LQIP / Base64 | 生成低质量占位图，或为网页编码图像。 | Base64、data URI、HTML 和 CSS；导出 TXT/JSON。 | 1 张图像 |
+
+**EXIF 元数据：** 支持查看、编辑和清理 JPEG、TIFF、PNG、WebP。在保存…中选择此图像或最多100张所选图像。应用已填写的字段，空字段保留每张图像的现有数据。编辑 PNG/WebP 会保留压缩像素；清理会删除 EXIF、XMP 和描述文本，同时保留颜色和透明度。变换方向可能增大文件体积。其他格式保留预览，但不提供元数据操作。 [EXIF — PNG / WebP](../METADATA_FORMATS.md).
 
 格式支持取决于模块、已安装的编解码器和平台。此处列出的格式不代表所有模块都能读取或写入该格式。请参阅[系统要求](#requirements)。
 
@@ -68,32 +70,36 @@ Yagua 将日常图像处理任务整合到一个桌面应用中，适合网页�
 
 ## 截图
 
-以上为英文界面的 Yagua 截图。点击任意缩略图可查看原图。布局和控件可能因版本而异。
+截图使用英文界面，展示当前开发中的代码。点击缩略图可查看原图。较早版本的控件可能有所不同。
 
 <table>
   <tr>
-    <td align="center" width="50%"><a href="../../assets/screenshots/home.webp"><img src="../../assets/screenshots/home.webp" width="450" alt="显示所有模块的首页" /></a></td>
-    <td align="center" width="50%"><a href="../../assets/screenshots/convert.webp"><img src="../../assets/screenshots/convert.webp" width="450" alt="显示所选图像和输出格式控件的转换页面" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/home.webp"><img src="../../assets/screenshots/home.webp" width="450" alt="显示全部模块的主页" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/convert.webp"><img src="../../assets/screenshots/convert.webp" width="450" alt="已选择图像并显示输出格式控件的转换界面" /></a></td>
   </tr>
   <tr>
-    <td align="center" width="50%"><a href="../../assets/screenshots/compress.webp"><img src="../../assets/screenshots/compress.webp" width="450" alt="带有质量和保存设置的压缩页面" /></a></td>
-    <td align="center" width="50%"><a href="../../assets/screenshots/resize.webp"><img src="../../assets/screenshots/resize.webp" width="450" alt="选择 YouTube 频道横幅预设的调整大小页面" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/compress.webp"><img src="../../assets/screenshots/compress.webp" width="450" alt="显示质量和保存设置的压缩界面" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/resize.png"><img src="../../assets/screenshots/resize.png" width="450" alt="显示图像预览和输出尺寸的调整大小选项卡" /></a></td>
   </tr>
   <tr>
-    <td align="center" width="50%"><a href="../../assets/screenshots/remove-background.webp"><img src="../../assets/screenshots/remove-background.webp" width="450" alt="已选中图像的背景移除页面" /></a></td>
-    <td align="center" width="50%"><a href="../../assets/screenshots/palette.webp"><img src="../../assets/screenshots/palette.webp" width="450" alt="显示提取的八种颜色及其数值的调色板" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/crop.png"><img src="../../assets/screenshots/crop.png" width="450" alt="显示居中 3:4 裁剪预览的裁剪选项卡" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/canvas.png"><img src="../../assets/screenshots/canvas.png" width="450" alt="显示自定义纯色背景预览的画布选项卡" /></a></td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="../../assets/screenshots/remove-background.png"><img src="../../assets/screenshots/remove-background.png" width="450" alt="显示边缘调整控件和透明结果的背景移除界面" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/palette.png"><img src="../../assets/screenshots/palette.png" width="450" alt="显示八种提取颜色和“全部保存”的批量调色板" /></a></td>
   </tr>
   <tr>
     <td align="center" width="50%"><a href="../../assets/screenshots/watermark.webp"><img src="../../assets/screenshots/watermark.webp" width="450" alt="水印设置和结果预览" /></a></td>
-    <td align="center" width="50%"><a href="../../assets/screenshots/rename.webp"><img src="../../assets/screenshots/rename.webp" width="450" alt="显示原始文件名和拟定名称的批量重命名页面" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/rename.webp"><img src="../../assets/screenshots/rename.webp" width="450" alt="显示原文件名和建议文件名的批量重命名" /></a></td>
   </tr>
   <tr>
-    <td align="center" width="50%"><a href="../../assets/screenshots/ocr.webp"><img src="../../assets/screenshots/ocr.webp" width="450" alt="英语 OCR 的识别结果" /></a></td>
-    <td align="center" width="50%"><a href="../../assets/screenshots/metadata.webp"><img src="../../assets/screenshots/metadata.webp" width="450" alt="带有图像选择、预览和元数据字段的 EXIF 查看页面" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/ocr.webp"><img src="../../assets/screenshots/ocr.webp" width="450" alt="显示识别文本的英语 OCR" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/metadata.webp"><img src="../../assets/screenshots/metadata.webp" width="450" alt="显示图像选择、预览和元数据字段的 EXIF 查看器" /></a></td>
   </tr>
   <tr>
-    <td align="center" width="50%"><a href="../../assets/screenshots/lqip-base64.webp"><img src="../../assets/screenshots/lqip-base64.webp" width="450" alt="LQIP 与原图的对比及生成的数据 URI" /></a></td>
-    <td align="center" width="50%"><a href="../../assets/screenshots/settings.webp"><img src="../../assets/screenshots/settings.webp" width="450" alt="包含语言、主题、缩放和可见模块的一般设置" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/lqip-base64.webp"><img src="../../assets/screenshots/lqip-base64.webp" width="450" alt="原图与生成的数据 URI 的 LQIP 对比" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/settings.webp"><img src="../../assets/screenshots/settings.webp" width="450" alt="语言、主题、缩放和可见模块的常规设置" /></a></td>
   </tr>
 </table>
 
@@ -161,7 +167,7 @@ python main.py
 
 **LQIP / Base64：** 选择一张图像，设置模式和参数，生成并比较结果，然后复制或导出 data URI、HTML、CSS 或原始 Base64。加载另一张图像会重置为 LQIP 模式、宽度 20 px、模糊度 2、质量 40/85；取消文件选择会保留当前状态。两种模式均输出不带透明通道的 JPEG。
 
-**原始文件：** 重命名会直接修改原文件名。EXIF 编辑会在确认后覆盖所选图像。执行这些操作时请使用副本。批量 EXIF 清理会写入所选输出文件夹。其他导出操作遵循各模块的保存或输出文件夹选择流程。
+**原始文件：** 重命名直接更改原文件名。EXIF 编辑和清理可选择创建副本（默认）或确认后覆盖。其他导出遵循各模块的保存流程。
 
 ### 实用示例
 
@@ -191,7 +197,7 @@ python main.py
 
 #### 移除背景
 
-加载最多 **10 张图像**，选择支持透明通道的 **PNG**（默认）、**WEBP** 或 **TIFF**。选中一行时，处理前显示原图，处理后显示已保存的结果。以下三项设置始终可见：
+加载最多 **10 张图像**，选择支持透明通道的 **PNG**（默认）、**WEBP** 或 **TIFF**。选中一行时，处理前显示原图，处理后显示已保存的结果。 处理后，预览会标明已保存的输出文件，并显示原图和结果的尺寸。棋盘格表示透明区域；它仅是预览背景，不会包含在导出的图像中。 以下三项设置始终可见：
 
 - **优化边缘：自动 / 是 / 否**，初始为 **自动**。Auto 清理蒙版，并在检测到均匀明亮的背景时细化半透明边缘。启用会对所有背景请求这两项处理；禁用会关闭两项处理。
 - **减少白边：0–100%**，初始为 **85%**。仅在背景被识别为均匀明亮时，减少边缘残留的明亮背景色。该设置独立于边缘细化选项。
@@ -251,7 +257,7 @@ python main.py
 ### 运行环境与处理
 
 - **从源代码运行：** 需要 Python 3.13、Tk 和 [`requirements.txt`](../../requirements.txt) 中的库。预编译安装包无需单独安装 Python。
-- **批量上限：** 功能表列出了当前界面的限制：LQIP / Base64 和 EXIF 编辑为 1 张，OCR 和背景移除为 10 张，其他列出的批量操作为 100 张。
+- **批量上限：** 功能表列出了当前界面的限制：LQIP / Base64为 1 张，OCR 和背景移除为 10 张，其他列出的批量操作为 100 张。
 - **编解码器：** HEIC/HEIF 使用源代码依赖中包含的 `pillow-heif`。AVIF 和其他格式取决于 Pillow 的编解码器与平台。JPEG 不支持透明通道；需要透明度时请使用 PNG 或 WebP。PNG 压缩可能将图像减少到 256 色，请检查结果。
 - **AI 模型：** 首次使用时，或新选的模型／识别语言需要时，可能会下载模型。离线使用前必须已有相应模型。已测试的安装包在 CPU 上运行 OCR 和背景移除。
 

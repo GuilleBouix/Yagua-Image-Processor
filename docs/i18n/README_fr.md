@@ -59,8 +59,10 @@ Le tableau présente les modules de bureau. Leur disponibilité et leurs command
 | Filigrane | Appliquer un logo ; régler position, taille, opacité et marge. | Images de base compatibles ; PNG transparent conseillé pour le logo. | 100 images + 1 logo |
 | Renommer | Prévisualiser une numérotation, des dates et des changements de casse. | Modifie les noms dans leur dossier d’origine. | 100 fichiers |
 | OCR | Extraire du texte en espagnol et/ou anglais avec EasyOCR ; le copier ou l’exporter en TXT. | Images matricielles compatibles → texte. | 10 images |
-| Métadonnées EXIF | Consulter, exporter, modifier des champs ou supprimer les métadonnées par lots. | Modification JPEG/TIFF ; export des métadonnées en TXT/JSON. | 1 image à modifier ; 100 à nettoyer |
+| Métadonnées EXIF | Consulter, exporter, modifier des champs ou supprimer les métadonnées par lots. | JPEG / TIFF / PNG / WebP; TXT/JSON | 100 images |
 | LQIP / Base64 | Générer des aperçus de faible qualité ou encoder des images pour le web. | Base64, URI de données, HTML et CSS ; export TXT/JSON. | 1 image |
+
+**Métadonnées EXIF :** Consultez, modifiez et nettoyez JPEG, TIFF, PNG et WebP. Dans Enregistrer…, choisissez cette image ou les images sélectionnées, jusqu’à 100 : les champs remplis sont appliqués et les champs vides préservent les données de chaque image. Modifier PNG/WebP conserve les pixels compressés ; nettoyer supprime EXIF, XMP et les textes descriptifs en préservant couleurs et transparence. Transformer l’orientation peut augmenter la taille. Les autres formats gardent leur aperçu sans actions de métadonnées. [EXIF — PNG / WebP](../METADATA_FORMATS.md).
 
 La compatibilité dépend du module, des codecs installés et de la plateforme. Un format indiqué ne garantit pas que tous les modules puissent le lire ou l’écrire. Consultez les [prérequis](#requirements).
 
@@ -68,32 +70,36 @@ La compatibilité dépend du module, des codecs installés et de la plateforme. 
 
 ## Captures d’écran
 
-Captures de Yagua avec l’interface en anglais. Cliquez sur une miniature pour afficher l’image en taille réelle. La disposition et les commandes peuvent varier selon la version.
+Les captures montrent l’interface en anglais et le code actuel en développement. Cliquez sur une miniature pour ouvrir l’image en taille réelle. Les versions précédentes peuvent présenter des commandes différentes.
 
 <table>
   <tr>
     <td align="center" width="50%"><a href="../../assets/screenshots/home.webp"><img src="../../assets/screenshots/home.webp" width="450" alt="Écran d’accueil avec tous les modules" /></a></td>
-    <td align="center" width="50%"><a href="../../assets/screenshots/convert.webp"><img src="../../assets/screenshots/convert.webp" width="450" alt="Conversion avec images sélectionnées et réglages du format de sortie" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/convert.webp"><img src="../../assets/screenshots/convert.webp" width="450" alt="Conversion avec images sélectionnées et options de format de sortie" /></a></td>
   </tr>
   <tr>
     <td align="center" width="50%"><a href="../../assets/screenshots/compress.webp"><img src="../../assets/screenshots/compress.webp" width="450" alt="Compression avec réglages de qualité et d’enregistrement" /></a></td>
-    <td align="center" width="50%"><a href="../../assets/screenshots/resize.webp"><img src="../../assets/screenshots/resize.webp" width="450" alt="Redimensionnement avec un préréglage pour la bannière YouTube" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/resize.png"><img src="../../assets/screenshots/resize.png" width="450" alt="Onglet Redimensionner avec aperçu et dimensions de sortie" /></a></td>
   </tr>
   <tr>
-    <td align="center" width="50%"><a href="../../assets/screenshots/remove-background.webp"><img src="../../assets/screenshots/remove-background.webp" width="450" alt="Suppression d’arrière-plan avec une image sélectionnée" /></a></td>
-    <td align="center" width="50%"><a href="../../assets/screenshots/palette.webp"><img src="../../assets/screenshots/palette.webp" width="450" alt="Palette extraite avec huit couleurs et leurs valeurs" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/crop.png"><img src="../../assets/screenshots/crop.png" width="450" alt="Onglet Recadrer avec aperçu d’un recadrage centré 3:4" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/canvas.png"><img src="../../assets/screenshots/canvas.png" width="450" alt="Onglet Canevas avec aperçu et fond de couleur personnalisé" /></a></td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="../../assets/screenshots/remove-background.png"><img src="../../assets/screenshots/remove-background.png" width="450" alt="Suppression de l’arrière-plan avec réglages des contours et résultat transparent" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/palette.png"><img src="../../assets/screenshots/palette.png" width="450" alt="Palette par lot avec huit couleurs extraites et Enregistrer tout" /></a></td>
   </tr>
   <tr>
     <td align="center" width="50%"><a href="../../assets/screenshots/watermark.webp"><img src="../../assets/screenshots/watermark.webp" width="450" alt="Réglages du filigrane et aperçu du résultat" /></a></td>
-    <td align="center" width="50%"><a href="../../assets/screenshots/rename.webp"><img src="../../assets/screenshots/rename.webp" width="450" alt="Renommage par lots avec noms d’origine et proposés" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/rename.webp"><img src="../../assets/screenshots/rename.webp" width="450" alt="Renommage par lot avec noms d’origine et noms proposés" /></a></td>
   </tr>
   <tr>
     <td align="center" width="50%"><a href="../../assets/screenshots/ocr.webp"><img src="../../assets/screenshots/ocr.webp" width="450" alt="OCR en anglais avec le texte reconnu" /></a></td>
-    <td align="center" width="50%"><a href="../../assets/screenshots/metadata.webp"><img src="../../assets/screenshots/metadata.webp" width="450" alt="Visionneuse EXIF avec sélection d’image, aperçu et champs de métadonnées" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/metadata.webp"><img src="../../assets/screenshots/metadata.webp" width="450" alt="Lecteur EXIF avec sélection d’image, aperçu et champs de métadonnées" /></a></td>
   </tr>
   <tr>
-    <td align="center" width="50%"><a href="../../assets/screenshots/lqip-base64.webp"><img src="../../assets/screenshots/lqip-base64.webp" width="450" alt="Comparaison LQIP avec l’image d’origine et l’URI de données généré" /></a></td>
-    <td align="center" width="50%"><a href="../../assets/screenshots/settings.webp"><img src="../../assets/screenshots/settings.webp" width="450" alt="Paramètres généraux de langue, thème, échelle et modules visibles" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/lqip-base64.webp"><img src="../../assets/screenshots/lqip-base64.webp" width="450" alt="Comparaison LQIP avec l’image d’origine et l’URI de données générée" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/settings.webp"><img src="../../assets/screenshots/settings.webp" width="450" alt="Réglages généraux de langue, thème, échelle et modules visibles" /></a></td>
   </tr>
 </table>
 
@@ -159,7 +165,7 @@ Ces commandes utilisent les versions de dépendances fixées par le dépôt. Les
 
 **LQIP / Base64 :** Sélectionnez une image, choisissez le mode et les paramètres, générez, comparez puis copiez ou exportez Data URI, HTML, CSS ou Base64 brut. Charger une autre image réinitialise le mode LQIP, largeur 20 px, flou 2 et qualités 40/85 ; annuler le sélecteur conserve l’état actuel. Les deux modes produisent du JPEG sans transparence.
 
-**Fichiers originaux :** Renommer modifie les noms à leur emplacement actuel. La modification EXIF écrase l’image sélectionnée après confirmation. Travaillez sur des copies pour ces opérations. Le nettoyage EXIF par lots écrit dans le dossier choisi. Les autres exports suivent le processus d’enregistrement ou de dossier de sortie de chaque module.
+**Fichiers originaux :** Renommer change les noms sur place. Modifier et nettoyer EXIF proposent des copies, sélectionnées par défaut, ou un écrasement confirmé. Les autres exports suivent le flux du module.
 
 ### Exemples pratiques
 
@@ -189,7 +195,7 @@ Avec un canevas transparent, PNG, WebP, TIFF, AVIF et HEIF conservent leur forma
 
 #### Supprimer le Fond
 
-Chargez jusqu’à **10 images** et choisissez **PNG** (par défaut), **WEBP** ou **TIFF**, tous avec transparence. Sélectionnez une ligne pour voir l’original avant le traitement et le résultat enregistré ensuite. Les trois réglages restent toujours visibles :
+Chargez jusqu’à **10 images** et choisissez **PNG** (par défaut), **WEBP** ou **TIFF**, tous avec transparence. Sélectionnez une ligne pour voir l’original avant le traitement et le résultat enregistré ensuite. Après le traitement, l’aperçu indique le fichier enregistré et affiche les dimensions d’origine et du résultat. Le damier représente la transparence : c’est uniquement le fond de l’aperçu, il ne fait pas partie de l’image exportée. Les trois réglages restent toujours visibles :
 
 - **Affiner les contours : Auto / Oui / Non**, initialement **Auto**. Auto nettoie le masque et affine les contours semi-transparents sur les fonds détectés comme clairs et uniformes. Oui demande les deux actions sur tout fond ; Non les désactive toutes deux.
 - **Réduire le halo blanc : 0–100 %**, initialement **85 %**. Réduit la contamination des contours par la couleur du fond clair uniquement si celui-ci est détecté comme clair et uniforme. Ce réglage fonctionne indépendamment du sélecteur d’affinage.
@@ -249,7 +255,7 @@ L’audit des paquets rapporte ces observations approximatives pour des compilat
 ### Exécution et traitement
 
 - **Code source :** Python 3.13, Tk et les bibliothèques de [`requirements.txt`](../../requirements.txt). Les paquets compilés ne nécessitent pas d’installation séparée de Python.
-- **Lots :** Le tableau des fonctionnalités indique les limites actuelles de l’interface : une image pour LQIP / Base64 ou modification EXIF, 10 pour OCR/suppression d’arrière-plan et 100 pour les autres opérations par lots indiquées.
+- **Lots :** Le tableau des fonctionnalités indique les limites actuelles de l’interface : une image pour LQIP / Base64, 10 pour OCR/suppression d’arrière-plan et 100 pour les autres opérations par lots indiquées.
 - **Codecs :** HEIC/HEIF utilise `pillow-heif`, inclus dans les dépendances du code. AVIF et d’autres formats dépendent des codecs Pillow et de la plateforme. JPEG ne gère pas la transparence ; utilisez PNG ou WebP si nécessaire. La compression PNG peut réduire l’image à 256 couleurs : vérifiez le résultat.
 - **Modèles d’IA :** Des téléchargements peuvent avoir lieu au premier usage ou lorsqu’un nouveau modèle/une nouvelle langue nécessite un autre modèle. L’usage hors ligne exige des modèles en cache. Le paquet testé exécute l’OCR et la suppression d’arrière-plan sur CPU.
 

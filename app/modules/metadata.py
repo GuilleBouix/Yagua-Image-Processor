@@ -28,6 +28,7 @@ from app.utils.output import unique_output_path, safe_image_output, atomic_desti
 from app.utils.results import FileFailure, file_failure
 from app.utils.saving import canonical_format
 from app.utils.image_source import primary_jpeg_bytes
+from app.modules.metadata_containers import SUPPORTED_FORMATS, read_exif, rewrite, save_transformed
 
 logger = logging.getLogger(__name__)
 
@@ -293,6 +294,10 @@ def leer_metadatos(ruta):
     resultado = {}
     try:
         with Image.open(ruta) as imagen:
+            if canonical_format(getattr(imagen, "format", "JPEG") or "JPEG") not in SUPPORTED_FORMATS:
+                raise ValueError("meta_format_unsupported")
+            if getattr(imagen, "format", None) == "PNG":
+                imagen.load()  # EXIF may follow IDAT; read it while the file is open.
             info = imagen.getexif()
             if not info:
                 return resultado
@@ -331,6 +336,7 @@ def leer_metadatos(ruta):
                 resultado['__gps_decimal__'] = f'{latitud},{longitud}'
     except Exception as exc:
         logger.warning("Error al leer EXIF en %s: %s", ruta, exc)
+        raise
     return resultado
 
 
@@ -353,7 +359,10 @@ def leer_campos_edicion(ruta):
     """Lee los valores EXIF editables sin convertirlos a etiquetas de vista."""
     with Image.open(ruta) as imagen:
         tamano = imagen.size
-        exif = piexif.load(ruta)
+        formato = canonical_format(imagen.format or "")
+        if formato not in SUPPORTED_FORMATS:
+            raise ValueError("meta_format_unsupported")
+        exif = read_exif(ruta, formato)
 
     resultado = {'__image_size__': f'{tamano[0]} x {tamano[1]}'}
     for nombre, (tag, ifd) in _TEXT_TAGS.items():
@@ -404,8 +413,7 @@ def leer_campos_edicion(ruta):
         if direction:
             resultado['GPSImgDirection'] = _decimal_texto(direction)
 
-    with Image.open(ruta) as imagen:
-        color_space = imagen.getexif().get(piexif.ExifIFD.ColorSpace)
+    color_space = exif.get('Exif', {}).get(piexif.ExifIFD.ColorSpace)
     resultado['__color_space__'] = str(color_space) if color_space is not None else ''
     resultado['__orientation__'] = str(exif.get('0th', {}).get(piexif.ImageIFD.Orientation, 1))
     return resultado
@@ -487,6 +495,19 @@ def limpiar_exif(ruta_entrada, ruta_salida):
     logger.info("Limpiar EXIF: %s -> %s", ruta_entrada, ruta_salida)
     with Image.open(ruta_entrada) as imagen:
         formato = canonical_format(imagen.format or 'JPEG')
+        if formato not in SUPPORTED_FORMATS:
+            raise ValueError('meta_format_unsupported')
+        if formato in ('PNG', 'WEBP'):
+            read_exif(ruta_entrada, formato)  # Validate metadata before modifying the container.
+            imagen.load()
+            tam_original = Path(ruta_entrada).stat().st_size
+            if imagen.getexif().get(274, 1) not in range(2, 9):
+                rewrite(ruta_entrada, ruta_salida, formato, clean=True)
+            else:
+                oriented = ImageOps.exif_transpose(imagen)
+                save_transformed(oriented, ruta_entrada, ruta_salida, formato, clean=True)
+            return dict(ruta_salida=ruta_salida, tam_original=tam_original,
+                        tam_final=Path(ruta_salida).stat().st_size)
         imagen = ImageOps.exif_transpose(imagen)
         tam_original = Path(ruta_entrada).stat().st_size
 
@@ -573,7 +594,7 @@ def _editar_exif(ruta_entrada, ruta_salida, request):
     """
     Edita campos EXIF especificos y guarda la imagen.
     
-    Solo soporta JPEG y TIFF que tienen soporte EXIF real.
+    Soporta JPEG, TIFF, PNG y WebP estáticos, preservando sus datos de imagen.
     
     Args:
         ruta_entrada: Ruta de la imagen original.
@@ -593,11 +614,10 @@ def _editar_exif(ruta_entrada, ruta_salida, request):
         with Image.open(ruta_entrada) as imagen:
             formato = canonical_format(imagen.format or 'JPEG')
 
-            # Solo JPEG y TIFF soportan EXIF editable
-            if formato not in ('JPEG', 'TIFF'):
-                return False, 'no_exif'
+            if formato not in SUPPORTED_FORMATS:
+                return False, 'meta_format_unsupported'
 
-            exif_dict = piexif.load(str(ruta_entrada))
+            exif_dict = read_exif(ruta_entrada, formato)
             # Pillow puede guardar UserComment TIFF como BYTE; piexif lo lee como una
             # tupla, pero necesita bytes al serializar la etiqueta EXIF UNDEFINED.
             comentario = exif_dict['Exif'].get(piexif.ExifIFD.UserComment)
@@ -691,6 +711,14 @@ def _editar_exif(ruta_entrada, ruta_salida, request):
                 ):
                     exif_dict['0th'].pop(tag, None)
             exif_bytes = piexif.dump(exif_dict)
+            if formato in ('PNG', 'WEBP'):
+                imagen.load()
+                if request.orientation is None:
+                    rewrite(ruta_entrada, ruta_salida, formato, exif=exif_bytes)
+                else:
+                    save_transformed(image, ruta_entrada, ruta_salida, formato, exif=exif_bytes,
+                                     orientation=request.orientation)
+                return True, None
             if formato == 'JPEG' and request.orientation is None:
                 # Reemplaza solo APP1: no decodifica ni recomprime los datos de imagen JPEG.
                 source_bytes = primary_jpeg_bytes(ruta_entrada) if imagen.format == 'MPO' else Path(ruta_entrada).read_bytes()

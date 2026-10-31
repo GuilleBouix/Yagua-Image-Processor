@@ -79,8 +79,9 @@ class LegalPanel(ctk.CTkFrame):
 
     def _open_documents(self):
         """Abre el documento legal seleccionado dentro de la ventana local."""
+        from app.ui.windows import center_on_parent
         if self._window is not None and self._window.winfo_exists():
-            self._window.lift()
+            center_on_parent(self._window, self)
             return
         window = ctk.CTkToplevel(self)
         self._window = window
@@ -88,6 +89,7 @@ class LegalPanel(ctk.CTkFrame):
         window.geometry('760x540')
         window.minsize(360, 300)
         window.transient(self.winfo_toplevel())
+        center_on_parent(window, self)
         self._set_window_icon(window)
         if sys.platform == 'win32':
             # CustomTkinter vuelve a aplicar su icono después de 200 ms.

@@ -440,7 +440,7 @@ TRANSLATIONS.update({
     'meta_copy_fields': 'Копировать поля…',
     'meta_save': 'Сохранить…',
     'meta_cancel': 'Отмена',
-    'meta_save_scope': 'Какие изображения сохранить?',
+    'meta_save_scope': 'Куда применить эти поля?',
     'meta_field': 'Поле',
     'meta_value': 'Значение',
     'meta_copy_summary': '{fields} полей · {images} выбранных фото',
@@ -462,7 +462,7 @@ TRANSLATIONS.update({
     'meta_pending': 'Ожидает',
     'meta_preview_error': 'Не удалось загрузить предпросмотр',
     'meta_read_error': 'Ошибка чтения',
-    'meta_read_only': 'Только чтение: редактирование однокадровых JPEG/TIFF',
+    'meta_read_only': 'Формат не поддерживается. Используйте JPEG, TIFF, PNG или WebP.',
     'meta_ready': 'Готово',
     'meta_result': 'Сохранено: {ok} · Без изменений: {unchanged} · Ошибки: {errors}',
     'meta_saved': 'Оригинал обновлён',
@@ -514,7 +514,7 @@ TRANSLATIONS.update({
 # Interfaz contextual de metadatos.
 TRANSLATIONS.update({
     'meta_start': 'Добавьте изображения, чтобы начать',
-    'meta_read_only_short': 'Только чтение. Можно редактировать метаданные изображений JPEG и TIFF.',
+    'meta_read_only_short': 'Формат не поддерживается. Используйте JPEG, TIFF, PNG или WebP.',
     'meta_clean_confirm': 'Сохранённые метаданные выбранных изображений будут удалены. Несохранённые изменения не будут применены.',
     'meta_show_details': 'Показать детали',
     'meta_hide_details': 'Скрыть детали',
@@ -601,3 +601,17 @@ TRANSLATIONS.update({
 
 # Camera JPEGs with embedded MPO previews.
 TRANSLATIONS['save_camera_preview_notice'] = 'Будет использована основная фотография. Встроенные превью камеры не сохранятся в записанном файле.'
+
+
+# Static EXIF containers supported by the metadata workspace.
+TRANSLATIONS['meta_format_unsupported'] = 'Формат не поддерживается. Используйте JPEG, TIFF, PNG или WebP.'
+
+
+# Direct save scope: apply populated fields and save in one action.
+TRANSLATIONS.update({
+    'meta_save_current_action': 'Только к этому изображению',
+    'meta_save_marked_action': 'К выбранным изображениям: {count}',
+    'meta_save_nonempty': 'Пустые поля не изменяют существующие данные.',
+    'meta_save_overwrite_notice': 'Исходные файлы в выбранной группе будут изменены.',
+    'meta_save_copies_notice': 'Копии будут созданы в выбранной папке.',
+})

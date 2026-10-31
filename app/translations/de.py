@@ -473,7 +473,7 @@ TRANSLATIONS.update({
     'meta_copy_fields': 'Felder kopieren…',
     'meta_save': 'Speichern…',
     'meta_cancel': 'Abbrechen',
-    'meta_save_scope': 'Welche Bilder möchtest du speichern?',
+    'meta_save_scope': 'Wo sollen diese Felder angewendet werden?',
     'meta_field': 'Feld',
     'meta_value': 'Wert',
     'meta_copy_summary': '{fields} Felder · {images} ausgewählte Bilder',
@@ -495,7 +495,7 @@ TRANSLATIONS.update({
     'meta_pending': 'Ausstehend',
     'meta_preview_error': 'Vorschau konnte nicht geladen werden',
     'meta_read_error': 'Lesefehler',
-    'meta_read_only': 'Nur Lesen: Bearbeitung einzelner JPEG/TIFF-Bilder',
+    'meta_read_only': 'Nicht unterstütztes Format. Verwende JPEG, TIFF, PNG oder WebP.',
     'meta_ready': 'Bereit',
     'meta_result': 'Gespeichert: {ok} · Unverändert: {unchanged} · Fehler: {errors}',
     'meta_saved': 'Original aktualisiert',
@@ -547,7 +547,7 @@ TRANSLATIONS.update({
 # Interfaz contextual de metadatos.
 TRANSLATIONS.update({
     'meta_start': 'Füge Bilder hinzu, um zu beginnen',
-    'meta_read_only_short': 'Nur lesen. Metadaten lassen sich bei JPEG- und TIFF-Bildern bearbeiten.',
+    'meta_read_only_short': 'Nicht unterstütztes Format. Verwende JPEG, TIFF, PNG oder WebP.',
     'meta_clean_confirm': 'Gespeicherte Metadaten der ausgewählten Bilder werden entfernt. Ungespeicherte Änderungen werden nicht angewendet.',
     'meta_show_details': 'Details anzeigen',
     'meta_hide_details': 'Details ausblenden',
@@ -634,3 +634,17 @@ TRANSLATIONS.update({
 
 # Camera JPEGs with embedded MPO previews.
 TRANSLATIONS['save_camera_preview_notice'] = 'Das Hauptfoto wird verwendet. Die gespeicherte Datei enthält keine eingebetteten Kameravorschaubilder.'
+
+
+# Static EXIF containers supported by the metadata workspace.
+TRANSLATIONS['meta_format_unsupported'] = 'Nicht unterstütztes Format. Verwende JPEG, TIFF, PNG oder WebP.'
+
+
+# Direct save scope: apply populated fields and save in one action.
+TRANSLATIONS.update({
+    'meta_save_current_action': 'Nur dieses Bild',
+    'meta_save_marked_action': 'Auf die {count} ausgewählten Bilder',
+    'meta_save_nonempty': 'Leere Felder lassen vorhandene Daten unverändert.',
+    'meta_save_overwrite_notice': 'Die Originaldateien der gewählten Auswahl werden geändert.',
+    'meta_save_copies_notice': 'Kopien werden im gewählten Ordner erstellt.',
+})

@@ -80,7 +80,7 @@ class MetadataFrame(BaseFrame):
             self._collection.epoch, self._collection.revision, self._state.active))
         data = current.data if current and ready else None
         editable = bool(data and data['editable'] and not data['edit_error'])
-        can_save = editable or any(item.draft.dirty for item in self._state.marked)
+        can_save = editable or any(item.draft.dirty and self._collection.compatible(item) for item in self._state.marked)
         for preview in self._previews:
             self._show_control(preview, current is not None)
             if current is None:
@@ -88,7 +88,7 @@ class MetadataFrame(BaseFrame):
         for widget in (self._meta_heading, self._scroll_meta):
             self._show_control(widget, current is not None)
         for widget in (self._export_scope, self._export_actions):
-            self._show_control(widget, data is not None)
+            self._show_control(widget, bool(data and data.get('supported', True) and not data.get('read_error')))
         self._show_control(self._edit_target, current is not None)
         for widget in (self._edit_filters, self._edit_viewport, self._info_tecnica):
             self._show_control(widget, editable)
@@ -97,7 +97,7 @@ class MetadataFrame(BaseFrame):
         self._show_control(self._edit_message, current is not None and not editable)
         message = t('reading_metadata') if not ready else (
             t('meta_read_error') if data is None else
-            t('meta_read_only_short') if not data['edit_error'] else t('error_generic'))
+            t(data.get('blocked_reason') or 'meta_read_only_short') if not data['edit_error'] else t('meta_read_error'))
         configure_changed(self._edit_message, text=message)
         for widget in (self._btn_limpiar_exif, self._clean_save_group):
             self._show_control(widget, has_images)
@@ -452,16 +452,11 @@ class MetadataFrame(BaseFrame):
         yield
         actions.grid(row=5, column=0, padx=16, pady=(8, 16), sticky='ew')
         yield
-        actions.grid_columnconfigure((0, 1), weight=1)
-        yield
-        self._btn_apply_fields = self._action(actions, 'meta_copy_fields', self._collection.choose_fields,
-            role='secondary')
-        yield
-        self._btn_apply_fields.grid(row=0, column=0, padx=(0, 6), sticky='ew')
+        actions.grid_columnconfigure(0, weight=1)
         yield
         self._btn_guardar_edit = self._action(actions, 'meta_save', lambda: self._collection.save(selected=None))
         yield
-        self._btn_guardar_edit.grid(row=0, column=1, padx=(6, 0), sticky='ew')
+        self._btn_guardar_edit.grid(row=0, column=0, sticky='ew')
         yield
         self._edit_message = ctk.CTkLabel(derecha, text='', font=fonts.FUENTE_CHICA,
             text_color=colors.TEXT_GRAY, width=1, anchor='center', justify='center', wraplength=260)
@@ -573,6 +568,8 @@ class MetadataFrame(BaseFrame):
             configure_changed(valor, wraplength=max(80, int(ancho * .6) - 12))
         for seccion in self._metadata_sections:
             configure_changed(seccion, wraplength=ancho)
+        if hasattr(self, '_meta_empty'):
+            configure_changed(self._meta_empty, wraplength=ancho)
 
 
     def _renderizar_metadatos(self, metadatos: dict[str, str]):
@@ -581,7 +578,7 @@ class MetadataFrame(BaseFrame):
             self._meta_row_cache = {}
             self._meta_section_cache = {}
             self._meta_empty = ctk.CTkLabel(self._scroll_meta, text=t('no_metadata_image'),
-                font=fonts.FUENTE_CHICA, text_color=colors.TEXT_GRAY)
+                font=fonts.FUENTE_CHICA, text_color=colors.TEXT_GRAY, wraplength=240, width=1)
         previous = {name for name, _, _ in self._metadata_rows}
         previous_sections = set(self._metadata_sections)
         self._metadata_rows = []
@@ -641,7 +638,8 @@ class MetadataFrame(BaseFrame):
             current = self._state.current
             ready = self._collection.preview_token == (self._collection.epoch, self._collection.revision, self._state.active)
             text = '' if current is None else t('reading_metadata') if not ready else (
-                t('no_metadata_image') if current.data is not None else t('meta_read_error'))
+                t('meta_read_error') if current.data is None or current.data.get('edit_error') else
+                t('meta_format_unsupported') if not current.data.get('supported', True) else t('no_metadata_image'))
             configure_changed(self._meta_empty, text=text)
             if text:
                 self._meta_empty.grid(row=0, column=0, columnspan=2, pady=20)
@@ -719,7 +717,7 @@ class MetadataFrame(BaseFrame):
 
     def _guardar_edicion(self):
         """Valida los campos actuales y solicita el guardado de la imagen editada."""
-        self._collection.save()
+        self._collection.save(selected=None)
 
     def _limpiar_lote(self):
         """Quita archivos del lote sin tocar los originales."""

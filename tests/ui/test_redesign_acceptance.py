@@ -107,8 +107,8 @@ def picture(tmp_path, name='foto.jpg', size=(160, 100)):
     return str(path)
 
 
-@pytest.mark.parametrize('dialog_kind', ['save', 'copy'])
-def test_metadata_dialogs_styles_search_scope_and_cancel(ui_root, monkeypatch, tmp_path, dialog_kind):
+@pytest.mark.parametrize('mode', ['save_copies', 'save_overwrite'])
+def test_metadata_save_dialog_styles_scope_and_cancel(ui_root, monkeypatch, tmp_path, mode):
     view = MetadataFrame(ui_root)
     view.pack(fill='both', expand=True)
     ui_root.deiconify()
@@ -117,6 +117,8 @@ def test_metadata_dialogs_styles_search_scope_and_cancel(ui_root, monkeypatch, t
     load_metadata(view, monkeypatch, paths)
     view._campos_edit['Artist'].insert(0, 'Guille')
     view._collection.capture()
+    view._save_choice.set(t(mode))
+    assert not hasattr(view, '_btn_apply_fields')
     monkeypatch.setattr('app.ui.frames.metadata.collection.filedialog.askdirectory', lambda **kwargs: '')
     inspected, failures = [], []
     def inspect():
@@ -132,20 +134,16 @@ def test_metadata_dialogs_styles_search_scope_and_cancel(ui_root, monkeypatch, t
             assert dialog.cget('fg_color') == styles.palette().background
             assert buttons and all(isinstance(button, styles.Button) for button in buttons)
             assert all(button.cget('corner_radius') == 0 for button in buttons)
-            if dialog_kind == 'copy':
-                search = next(widget for widget in widgets if isinstance(widget, styles.Entry))
-                search.insert(0, 'campo inexistente')
-                search.delete(0, 'end')
-                checks = [widget for widget in widgets if isinstance(widget, styles.CheckBox)]
-                assert checks
-                checks[0].toggle()
-                checks[0].toggle()
+            assert len(buttons) == 3
+            assert not any(isinstance(w, ctk.CTkRadioButton) for w in widgets)
+            selected_button = next(button for button in buttons
+                                   if button.cget('text') == t('meta_save_marked_action').format(count=2))
+            if mode == 'save_copies':
+                selected_button.invoke()
+                assert dialog.winfo_exists()  # Folder cancellation keeps the scope dialog open.
             else:
-                radios = [widget for widget in widgets if isinstance(widget, ctk.CTkRadioButton)]
-                assert len(radios) == 2
-                radios[1].invoke()
-                next(button for button in buttons if button.cget('text') == t('meta_continue')).invoke()
-                assert dialog.winfo_exists()  # Cancelling the folder picker keeps the dialog open.
+                labels = [w.cget('text') for w in widgets if isinstance(w, ctk.CTkLabel)]
+                assert t('meta_save_overwrite_notice') in labels
             inspected.append(True)
             next(button for button in buttons if button.cget('text') == t('meta_cancel')).invoke()
         except Exception as error:
@@ -154,10 +152,7 @@ def test_metadata_dialogs_styles_search_scope_and_cancel(ui_root, monkeypatch, t
             if dialog.winfo_exists():
                 dialog.destroy()
     view.after(60, inspect)
-    if dialog_kind == 'copy':
-        view._collection.choose_fields()
-    else:
-        assert view._collection.destination(2, choose_scope=True) is None
+    assert view._collection.destination(2, choose_scope=True) is None
     assert not failures, failures
     assert inspected
     assert before == [Path(path).read_bytes() for path in paths]

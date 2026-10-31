@@ -11,6 +11,19 @@ from app.modules.metadata import leer_campos_edicion, leer_metadatos
 from app.ui.frames.metadata.state import MetadataState, path_key
 
 
+def test_form_overlay_keeps_empty_fields_and_independent_drafts():
+    target = batch.MetadataDraft({'Artist': 'Target author', 'UserComment': 'Keep comment'}, orientation=3)
+    source = batch.MetadataDraft({'Artist': '', 'UserComment': '  ', 'Software': 'Yagua', 'ExposureMode': '0'},
+                                 clear_gps=True)
+    merged = batch.combinar_formulario(target, source)
+    assert merged.values == {'Artist': 'Target author', 'UserComment': 'Keep comment',
+                             'Software': 'Yagua', 'ExposureMode': '0'}
+    assert merged.clear_gps and merged.orientation == 3
+    assert target.values == {'Artist': 'Target author', 'UserComment': 'Keep comment'}
+    assert not target.clear_gps
+    assert source.values['Artist'] == ''
+
+
 def image(path, fmt='JPEG'):
     path.parent.mkdir(parents=True, exist_ok=True)
     Image.new('RGB', (30, 20), 'red').save(path, fmt)
@@ -75,7 +88,7 @@ def test_partial_errors_unsupported_and_unchanged(tmp_path):
     good = image(tmp_path / 'good.jpg')
     invalid = image(tmp_path / 'invalid.jpg')
     unchanged = image(tmp_path / 'unchanged.jpg')
-    readonly = image(tmp_path / 'read-only.png', 'PNG')
+    readonly = image(tmp_path / 'read-only.bmp', 'BMP')
     missing = str(tmp_path / 'missing.jpg')
     tasks = (batch.MetadataTask(good, batch.MetadataDraft({'Artist': 'Guille'})),
              batch.MetadataTask(invalid, batch.MetadataDraft({'FNumber': 'nan'})),
@@ -83,7 +96,7 @@ def test_partial_errors_unsupported_and_unchanged(tmp_path):
              batch.MetadataTask(missing, batch.MetadataDraft({'Artist': 'X'})))
     before = Path(invalid).read_bytes()
     result = batch.procesar_lote(tasks, overwrite=True)
-    assert (result['ok'], result['unchanged'], result['errores']) == (1, 1, 3)
+    assert (result['ok'], result['unchanged'], result['errores']) == (1, 1, 2)
     assert [r['ruta'] for r in result['items']] == [t.path for t in tasks]
     assert Path(invalid).read_bytes() == before
     assert result['items'][3]['estado'] == 'unsupported'

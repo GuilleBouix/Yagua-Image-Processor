@@ -59,27 +59,33 @@ Die Tabelle zeigt die Desktopmodule. Verfügbarkeit und Bedienelemente hängen v
 | Wasserzeichen | Ein Logo hinzufügen; Position, Größe, Deckkraft und Abstand anpassen. | Unterstützte Ausgangsbilder; transparentes PNG für das Logo empfohlen. | 100 Bilder + 1 Logo |
 | Umbenennen | Nummerierung, Datumsangaben und Groß-/Kleinschreibung vorab ansehen. | Ändert Dateinamen im ursprünglichen Ordner. | 100 Dateien |
 | OCR | Spanischen und/oder englischen Text mit EasyOCR erkennen; kopieren oder als TXT exportieren. | Unterstützte Rasterbilder → Text. | 10 Bilder |
-| EXIF-Metadaten | Anzeigen, exportieren, Felder bearbeiten oder Metadaten im Stapel entfernen. | JPEG/TIFF bearbeiten; Metadaten als TXT/JSON exportieren. | 1 Bild zum Bearbeiten; 100 zum Bereinigen |
+| EXIF-Metadaten | Anzeigen, exportieren, Felder bearbeiten oder Metadaten im Stapel entfernen. | JPEG / TIFF / PNG / WebP; TXT/JSON | 100 Bilder |
 | LQIP / Base64 | Platzhalter geringer Qualität erzeugen oder Bilder für das Web kodieren. | Base64, Daten-URIs, HTML und CSS; TXT/JSON-Export. | 1 Bild |
+
+**EXIF-Metadaten:** JPEG, TIFF, PNG und WebP anzeigen, bearbeiten und bereinigen. Unter Speichern… dieses Bild oder bis zu 100 ausgewählte Bilder wählen: ausgefüllte Felder werden angewendet, leere Felder erhalten die jeweiligen vorhandenen Daten. PNG/WebP-Bearbeitung erhält komprimierte Pixel; die Bereinigung entfernt EXIF, XMP und Beschreibungstexte, bewahrt aber Farben und Transparenz. Eine Ausrichtungstransformation kann die Dateigröße erhöhen. Andere Formate behalten ihre Vorschau ohne Metadatenaktionen. [EXIF — PNG / WebP](../METADATA_FORMATS.md).
 
 Die Unterstützung hängt vom Modul, den installierten Codecs und der Plattform ab. Ein aufgeführtes Format bedeutet nicht, dass jedes Modul es lesen oder schreiben kann. Siehe [Voraussetzungen](#requirements).
 
 ## Screenshots
 
-Yagua-Screenshots mit englischer Oberfläche. Klicke auf ein Vorschaubild, um es in voller Größe zu öffnen. Anordnung und Bedienelemente können je nach Version abweichen.
+Die Screenshots zeigen die englische Oberfläche und den aktuellen Entwicklungsstand. Klicke auf ein Vorschaubild, um das Bild in voller Größe zu öffnen. Ältere Versionen können andere Bedienelemente haben.
 
 <table>
   <tr>
     <td align="center" width="50%"><a href="../../assets/screenshots/home.webp"><img src="../../assets/screenshots/home.webp" width="450" alt="Startseite mit allen Modulen" /></a></td>
-    <td align="center" width="50%"><a href="../../assets/screenshots/convert.webp"><img src="../../assets/screenshots/convert.webp" width="450" alt="Konvertierung mit ausgewählten Bildern und Ausgabeformat" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/convert.webp"><img src="../../assets/screenshots/convert.webp" width="450" alt="Konvertierung mit ausgewählten Bildern und Ausgabeformaten" /></a></td>
   </tr>
   <tr>
     <td align="center" width="50%"><a href="../../assets/screenshots/compress.webp"><img src="../../assets/screenshots/compress.webp" width="450" alt="Komprimierung mit Qualitäts- und Speichereinstellungen" /></a></td>
-    <td align="center" width="50%"><a href="../../assets/screenshots/resize.webp"><img src="../../assets/screenshots/resize.webp" width="450" alt="Größenänderung mit einer Vorlage für YouTube-Kanalbanner" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/resize.png"><img src="../../assets/screenshots/resize.png" width="450" alt="Registerkarte Größenänderung mit Vorschau und Ausgabemaßen" /></a></td>
   </tr>
   <tr>
-    <td align="center" width="50%"><a href="../../assets/screenshots/remove-background.webp"><img src="../../assets/screenshots/remove-background.webp" width="450" alt="Hintergrundentfernung mit ausgewähltem Bild" /></a></td>
-    <td align="center" width="50%"><a href="../../assets/screenshots/palette.webp"><img src="../../assets/screenshots/palette.webp" width="450" alt="Extrahierte Palette mit acht Farben und Farbwerten" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/crop.png"><img src="../../assets/screenshots/crop.png" width="450" alt="Registerkarte Zuschneiden mit Vorschau eines zentrierten 3:4-Zuschnitts" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/canvas.png"><img src="../../assets/screenshots/canvas.png" width="450" alt="Registerkarte Canvas mit Vorschau und benutzerdefinierter Hintergrundfarbe" /></a></td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="../../assets/screenshots/remove-background.png"><img src="../../assets/screenshots/remove-background.png" width="450" alt="Hintergrundentfernung mit Kantenoptionen und transparentem Ergebnis" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/palette.png"><img src="../../assets/screenshots/palette.png" width="450" alt="Stapelpalette mit acht extrahierten Farben und Alle speichern" /></a></td>
   </tr>
   <tr>
     <td align="center" width="50%"><a href="../../assets/screenshots/watermark.webp"><img src="../../assets/screenshots/watermark.webp" width="450" alt="Wasserzeicheneinstellungen und Ergebnisvorschau" /></a></td>
@@ -90,7 +96,7 @@ Yagua-Screenshots mit englischer Oberfläche. Klicke auf ein Vorschaubild, um es
     <td align="center" width="50%"><a href="../../assets/screenshots/metadata.webp"><img src="../../assets/screenshots/metadata.webp" width="450" alt="EXIF-Ansicht mit Bildauswahl, Vorschau und Metadatenfeldern" /></a></td>
   </tr>
   <tr>
-    <td align="center" width="50%"><a href="../../assets/screenshots/lqip-base64.webp"><img src="../../assets/screenshots/lqip-base64.webp" width="450" alt="LQIP-Vergleich mit dem Originalbild und erzeugter Daten-URI" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/lqip-base64.webp"><img src="../../assets/screenshots/lqip-base64.webp" width="450" alt="LQIP-Vergleich mit Originalbild und erzeugter Daten-URI" /></a></td>
     <td align="center" width="50%"><a href="../../assets/screenshots/settings.webp"><img src="../../assets/screenshots/settings.webp" width="450" alt="Allgemeine Einstellungen für Sprache, Thema, Skalierung und sichtbare Module" /></a></td>
   </tr>
 </table>
@@ -157,7 +163,7 @@ Die Befehle verwenden die im Repository festgelegten Abhängigkeitsversionen. Di
 
 **LQIP / Base64:** Ein Bild auswählen, Modus und Parameter einstellen, erzeugen, vergleichen und Data URI, HTML, CSS oder reines Base64 kopieren oder exportieren. Ein neues Bild setzt LQIP-Modus, Breite 20 px, Unschärfe 2 und Qualitäten 40/85 zurück; Abbrechen behält den aktuellen Zustand. Beide Modi erzeugen JPEG ohne Transparenz.
 
-**Originaldateien:** Umbenennen ändert die Dateinamen am aktuellen Speicherort. EXIF-Bearbeitung überschreibt das ausgewählte Bild nach Bestätigung. Arbeite bei diesen Vorgängen mit Kopien. Die EXIF-Stapelbereinigung schreibt in den gewählten Ausgabeordner. Andere Exporte verwenden den Speichern- oder Ausgabeordnerablauf des jeweiligen Moduls.
+**Originaldateien:** Umbenennen ändert Namen am Speicherort. EXIF-Bearbeitung und Bereinigung bieten standardmäßig Kopien oder bestätigtes Überschreiben. Andere Exporte nutzen den Ablauf ihres Moduls.
 
 ### Praktische Beispiele
 
@@ -187,7 +193,7 @@ Bei transparenter Leinwand behalten PNG, WebP, TIFF, AVIF und HEIF ihr Format, w
 
 #### Hintergrund entfernen
 
-Lade bis zu **10 Bilder** und wähle **PNG** (Standard), **WEBP** oder **TIFF**, jeweils mit Transparenz. Wähle eine Zeile, um vor der Verarbeitung das Original und danach das gespeicherte Ergebnis zu sehen. Die drei Einstellungen sind immer sichtbar:
+Lade bis zu **10 Bilder** und wähle **PNG** (Standard), **WEBP** oder **TIFF**, jeweils mit Transparenz. Wähle eine Zeile, um vor der Verarbeitung das Original und danach das gespeicherte Ergebnis zu sehen. Nach der Verarbeitung zeigt die Vorschau die gespeicherte Ausgabedatei sowie die ursprünglichen und die resultierenden Abmessungen an. Das Schachbrettmuster kennzeichnet Transparenz; es ist nur ein Vorschauhintergrund und gehört nicht zum exportierten Bild. Die drei Einstellungen sind immer sichtbar:
 
 - **Kanten verfeinern: Auto / Ja / Nein**, anfangs **Auto**. Auto bereinigt die Maske und verfeinert halbtransparente Kanten bei erkannten gleichmäßig hellen Hintergründen. Ja fordert beides bei jedem Hintergrund an; Nein deaktiviert beides.
 - **Weißen Saum reduzieren: 0–100 %**, anfangs **85 %**. Reduziert helle Hintergrundfarbe an Kanten nur bei als gleichmäßig hell erkanntem Hintergrund. Diese Einstellung ist unabhängig vom Verfeinerungsmodus.
@@ -247,7 +253,7 @@ Die Paketprüfung dokumentiert diese ungefähren Beobachtungen aus CI-Builds, di
 ### Ausführung und Verarbeitung
 
 - **Quellcode:** Python 3.13, Tk und die Bibliotheken aus [`requirements.txt`](../../requirements.txt). Fertige Pakete benötigen keine separate Python-Installation.
-- **Stapel:** Die Funktionstabelle zeigt die aktuellen Oberflächengrenzen: ein Bild für LQIP / Base64 oder EXIF-Bearbeitung, 10 für OCR/Hintergrundentfernung und 100 für die anderen aufgeführten Stapelvorgänge.
+- **Stapel:** Die Funktionstabelle zeigt die aktuellen Oberflächengrenzen: ein Bild für LQIP / Base64, 10 für OCR/Hintergrundentfernung und 100 für die anderen aufgeführten Stapelvorgänge.
 - **Codecs:** HEIC/HEIF verwendet `pillow-heif`, das in den Quellcode-Abhängigkeiten enthalten ist. AVIF und andere Formate hängen von Pillow-Codecs und Plattform ab. JPEG unterstützt keine Transparenz; verwende bei Bedarf PNG oder WebP. PNG-Komprimierung kann das Bild auf 256 Farben reduzieren: Prüfe das Ergebnis.
 - **KI-Modelle:** Downloads können beim ersten Einsatz oder bei einer neu gewählten Modell-/Sprachkombination erfolgen. Für Offline-Nutzung müssen die Modelle gespeichert sein. Das getestete Paket führt OCR und Hintergrundentfernung auf der CPU aus.
 

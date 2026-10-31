@@ -440,7 +440,7 @@ TRANSLATIONS.update({
     'meta_copy_fields': '复制字段…',
     'meta_save': '保存…',
     'meta_cancel': '取消',
-    'meta_save_scope': '要保存哪些图像？',
+    'meta_save_scope': '将这些字段应用到哪里？',
     'meta_field': '字段',
     'meta_value': '值',
     'meta_copy_summary': '{fields} 个字段 · 已选 {images} 张图片',
@@ -462,7 +462,7 @@ TRANSLATIONS.update({
     'meta_pending': '等待处理',
     'meta_preview_error': '无法加载预览',
     'meta_read_error': '读取错误',
-    'meta_read_only': '只读：仅支持编辑单帧JPEG/TIFF',
+    'meta_read_only': '不支持此格式。请使用 JPEG、TIFF、PNG 或 WebP。',
     'meta_ready': '就绪',
     'meta_result': '已保存：{ok} · 无更改：{unchanged} · 错误：{errors}',
     'meta_saved': '原始文件已更新',
@@ -514,7 +514,7 @@ TRANSLATIONS.update({
 # Interfaz contextual de metadatos.
 TRANSLATIONS.update({
     'meta_start': '添加图片以开始',
-    'meta_read_only_short': '只读。可编辑 JPEG 和 TIFF 图片的元数据。',
+    'meta_read_only_short': '不支持此格式。请使用 JPEG、TIFF、PNG 或 WebP。',
     'meta_clean_confirm': '将删除所选图片已保存的元数据，不会应用未保存的更改。',
     'meta_show_details': '查看详情',
     'meta_hide_details': '隐藏详情',
@@ -601,3 +601,17 @@ TRANSLATIONS.update({
 
 # Camera JPEGs with embedded MPO previews.
 TRANSLATIONS['save_camera_preview_notice'] = '将使用主照片。保存的文件不会保留相机内嵌的预览图。'
+
+
+# Static EXIF containers supported by the metadata workspace.
+TRANSLATIONS['meta_format_unsupported'] = '不支持此格式。请使用 JPEG、TIFF、PNG 或 WebP。'
+
+
+# Direct save scope: apply populated fields and save in one action.
+TRANSLATIONS.update({
+    'meta_save_current_action': '仅此图像',
+    'meta_save_marked_action': '应用到所选的 {count} 张图像',
+    'meta_save_nonempty': '空字段不会更改现有数据。',
+    'meta_save_overwrite_notice': '所选范围内的原始文件将被修改。',
+    'meta_save_copies_notice': '将在所选文件夹中创建副本。',
+})

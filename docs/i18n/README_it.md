@@ -59,8 +59,10 @@ La tabella elenca i moduli desktop. La disponibilità e i controlli dipendono da
 | Filigrana | Applicare un logo; regolare posizione, dimensioni, opacità e margine. | Immagini di base supportate; per il logo è consigliato un PNG trasparente. | 100 immagini + 1 logo |
 | Rinominare | Visualizzare in anteprima nomi numerati, date e modifiche a maiuscole/minuscole. | Modifica i nomi dei file nella cartella corrente. | 100 file |
 | OCR | Estrarre testo in spagnolo e/o inglese con EasyOCR; copiarlo o esportarlo in TXT. | Immagini raster supportate → testo. | 10 immagini |
-| Metadati EXIF | Esaminare, esportare, modificare campi o rimuovere metadati in batch. | Modifica JPEG/TIFF; esportazione dei metadati in TXT/JSON. | 1 immagine per la modifica; 100 per la pulizia |
+| Metadati EXIF | Esaminare, esportare, modificare campi o rimuovere metadati in batch. | JPEG / TIFF / PNG / WebP; TXT/JSON | 100 immagini |
 | LQIP / Base64 | Generare segnaposto a bassa qualità o codificare immagini per il web. | Base64, URI data, HTML e CSS; esportazione TXT/JSON. | 1 immagine |
+
+**Metadati EXIF:** Visualizza, modifica e pulisci JPEG, TIFF, PNG e WebP. In Salva…, scegli questa immagine o fino a 100 immagini selezionate: vengono applicati i campi compilati, mentre quelli vuoti mantengono i dati di ogni immagine. La modifica PNG/WebP conserva i pixel compressi; la pulizia rimuove EXIF, XMP e testi descrittivi, mantenendo colori e trasparenza. Trasformare l’orientamento può aumentare le dimensioni. Gli altri formati mantengono l’anteprima senza azioni sui metadati. [EXIF — PNG / WebP](../METADATA_FORMATS.md).
 
 Il supporto dei formati varia in base al modulo, ai codec installati e alla piattaforma. Un formato elencato non garantisce che tutti i moduli possano leggerlo o scriverlo. Vedi i [requisiti](#requirements).
 
@@ -68,7 +70,7 @@ Il supporto dei formati varia in base al modulo, ai codec installati e alla piat
 
 ## Schermate
 
-Schermate di Yagua con l’interfaccia in inglese. Fai clic su una miniatura per aprire l’immagine a dimensione intera. Disposizione e controlli possono variare tra le versioni.
+Le schermate mostrano l’interfaccia in inglese e il codice attuale in sviluppo. Fai clic su una miniatura per aprire l’immagine a dimensione intera. Le versioni precedenti possono avere controlli diversi.
 
 <table>
   <tr>
@@ -77,22 +79,26 @@ Schermate di Yagua con l’interfaccia in inglese. Fai clic su una miniatura per
   </tr>
   <tr>
     <td align="center" width="50%"><a href="../../assets/screenshots/compress.webp"><img src="../../assets/screenshots/compress.webp" width="450" alt="Compressione con controlli di qualità e salvataggio" /></a></td>
-    <td align="center" width="50%"><a href="../../assets/screenshots/resize.webp"><img src="../../assets/screenshots/resize.webp" width="450" alt="Ridimensionamento con una preimpostazione per la copertina del canale YouTube" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/resize.png"><img src="../../assets/screenshots/resize.png" width="450" alt="Scheda Ridimensiona con anteprima e dimensioni di output" /></a></td>
   </tr>
   <tr>
-    <td align="center" width="50%"><a href="../../assets/screenshots/remove-background.webp"><img src="../../assets/screenshots/remove-background.webp" width="450" alt="Rimozione dello sfondo con un’immagine selezionata" /></a></td>
-    <td align="center" width="50%"><a href="../../assets/screenshots/palette.webp"><img src="../../assets/screenshots/palette.webp" width="450" alt="Tavolozza estratta con otto colori e relativi valori" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/crop.png"><img src="../../assets/screenshots/crop.png" width="450" alt="Scheda Ritaglia con anteprima di un ritaglio centrato 3:4" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/canvas.png"><img src="../../assets/screenshots/canvas.png" width="450" alt="Scheda Tela con anteprima e sfondo a tinta personalizzata" /></a></td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="../../assets/screenshots/remove-background.png"><img src="../../assets/screenshots/remove-background.png" width="450" alt="Rimozione dello sfondo con controlli dei bordi e risultato trasparente" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/palette.png"><img src="../../assets/screenshots/palette.png" width="450" alt="Palette in batch con otto colori estratti e Salva tutto" /></a></td>
   </tr>
   <tr>
     <td align="center" width="50%"><a href="../../assets/screenshots/watermark.webp"><img src="../../assets/screenshots/watermark.webp" width="450" alt="Controlli della filigrana e anteprima del risultato" /></a></td>
     <td align="center" width="50%"><a href="../../assets/screenshots/rename.webp"><img src="../../assets/screenshots/rename.webp" width="450" alt="Rinomina in batch con nomi originali e proposti" /></a></td>
   </tr>
   <tr>
-    <td align="center" width="50%"><a href="../../assets/screenshots/ocr.webp"><img src="../../assets/screenshots/ocr.webp" width="450" alt="OCR in inglese con il testo riconosciuto" /></a></td>
-    <td align="center" width="50%"><a href="../../assets/screenshots/metadata.webp"><img src="../../assets/screenshots/metadata.webp" width="450" alt="Visualizzatore EXIF con selezione dell’immagine, anteprima e campi dei metadati" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/ocr.webp"><img src="../../assets/screenshots/ocr.webp" width="450" alt="OCR in inglese con testo riconosciuto" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/metadata.webp"><img src="../../assets/screenshots/metadata.webp" width="450" alt="Visualizzatore EXIF con selezione immagine, anteprima e campi metadati" /></a></td>
   </tr>
   <tr>
-    <td align="center" width="50%"><a href="../../assets/screenshots/lqip-base64.webp"><img src="../../assets/screenshots/lqip-base64.webp" width="450" alt="Confronto LQIP con l’immagine originale e data URI generato" /></a></td>
+    <td align="center" width="50%"><a href="../../assets/screenshots/lqip-base64.webp"><img src="../../assets/screenshots/lqip-base64.webp" width="450" alt="Confronto LQIP con immagine originale e data URI generato" /></a></td>
     <td align="center" width="50%"><a href="../../assets/screenshots/settings.webp"><img src="../../assets/screenshots/settings.webp" width="450" alt="Impostazioni generali di lingua, tema, scala e moduli visibili" /></a></td>
   </tr>
 </table>
@@ -161,7 +167,7 @@ I comandi usano le dipendenze con versioni fissate nel repository. I controlli C
 
 **LQIP / Base64:** Seleziona un’immagine, scegli modalità e parametri, genera, confronta e poi copia o esporta URI data, HTML, CSS o Base64 puro. Caricare un’altra immagine ripristina la modalità LQIP, larghezza 20 px, sfocatura 2 e qualità 40/85; annullare la selezione mantiene lo stato corrente. Entrambe le modalità producono JPEG senza trasparenza.
 
-**File originali:** La rinomina cambia i nomi direttamente nella cartella originale. La modifica EXIF sovrascrive l’immagine selezionata dopo una conferma. Lavora su copie per queste operazioni. La pulizia EXIF in batch salva nella cartella di destinazione scelta. Le altre esportazioni seguono la procedura di salvataggio o selezione della cartella del relativo modulo.
+**File originali:** Rinominare cambia i nomi sul posto. Modifica e pulizia EXIF offrono copie, selezionate inizialmente, o sovrascrittura confermata. Le altre esportazioni seguono il flusso del modulo.
 
 ### Esempi pratici
 
@@ -191,7 +197,7 @@ Con tela trasparente, PNG, WebP, TIFF, AVIF e HEIF mantengono il formato se è d
 
 #### Rimuovi sfondo
 
-Carica fino a **10 immagini** e scegli **PNG** (iniziale), **WEBP** o **TIFF**, tutti con trasparenza. Seleziona una riga per vedere l’originale prima dell’elaborazione e il risultato salvato dopo. Le tre impostazioni sono sempre visibili:
+Carica fino a **10 immagini** e scegli **PNG** (iniziale), **WEBP** o **TIFF**, tutti con trasparenza. Seleziona una riga per vedere l’originale prima dell’elaborazione e il risultato salvato dopo. Dopo l’elaborazione, l’anteprima indica il file salvato e mostra le dimensioni originali e quelle del risultato. La scacchiera indica la trasparenza: è solo lo sfondo dell’anteprima e non fa parte dell’immagine esportata. Le tre impostazioni sono sempre visibili:
 
 - **Rifinisci bordi: Auto / Sì / No**, inizialmente **Auto**. Auto pulisce la maschera e rifinisce i bordi semitrasparenti sugli sfondi rilevati come chiari e uniformi. Sì richiede entrambe le azioni con qualsiasi sfondo; No le disattiva entrambe.
 - **Riduci alone bianco: 0–100%**, inizialmente **85%**. Riduce la contaminazione del colore dello sfondo chiaro sui bordi solo quando il fondo è rilevato come chiaro e uniforme. Funziona indipendentemente dal selettore di rifinitura.
@@ -251,7 +257,7 @@ L’analisi dei pacchetti riporta queste osservazioni approssimative dalle build
 ### Ambiente di esecuzione ed elaborazione
 
 - **Da sorgente:** Python 3.13, Tk e le librerie in [`requirements.txt`](../../requirements.txt). I pacchetti precompilati non richiedono un’installazione separata di Python.
-- **Limiti dei batch:** La tabella delle funzionalità indica i limiti attuali dell’interfaccia: un’immagine per LQIP / Base64 o modifica EXIF, 10 per OCR/rimozione dello sfondo e 100 per le altre operazioni in batch elencate.
+- **Limiti dei batch:** La tabella delle funzionalità indica i limiti attuali dell’interfaccia: un’immagine per LQIP / Base64, 10 per OCR/rimozione dello sfondo e 100 per le altre operazioni in batch elencate.
 - **Codec:** HEIC/HEIF usa `pillow-heif`, incluso nelle dipendenze da sorgente. AVIF e altri formati dipendono dai codec di Pillow e dalla piattaforma. JPEG non supporta la trasparenza; usa PNG o WebP quando serve il canale alfa. La compressione PNG può ridurre l’immagine a 256 colori: controlla il risultato.
 - **Modelli IA:** Possono essere scaricati al primo utilizzo o quando un nuovo modello o una nuova lingua lo richiedono. Per l’uso offline i modelli devono essere già presenti. Il pacchetto testato esegue OCR e rimozione dello sfondo sulla CPU.
 
