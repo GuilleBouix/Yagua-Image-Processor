@@ -21,6 +21,7 @@ from app.ui.scale import scale_wraplength
 from app.translations import t
 from app.ui.status import operation_summary
 from app.ui.preview import LivePreview
+from app.ui.toast import Toast, toast_host
 from app.utils.saving import path_key
 from app.ui.operations import operations
 from app.ui.frames.base import BaseFrame
@@ -62,6 +63,11 @@ class RemoveBgFrame(BaseFrame):
         self._primer_uso_notice = None
         self._primer_uso_notice_job = None
         super().__init__(parent, t('remove_bg_title'))
+
+    def destroy(self):
+        """Retira el aviso central y su temporizador al cerrar la vista."""
+        self._ocultar_aviso_primer_uso()
+        super().destroy()
 
     def _build_content(self):
         """Construye el contenido del modulo."""
@@ -276,26 +282,14 @@ class RemoveBgFrame(BaseFrame):
         self._btn_copiar_comando.grid(row=0, column=1, sticky='e')
 
     def _construir_aviso_primer_uso(self):
-        """Muestra un aviso temporal en la parte inferior para el primer uso."""
+        """Muestra el aviso de primera descarga con el estilo flotante compartido."""
         self._ocultar_aviso_primer_uso()
 
-        aviso = ctk.CTkFrame(
-            getattr(self, 'content', self),
-            **styles.surface('panel'),
+        self._primer_uso_notice = Toast(
+            toast_host(self),
+            t('model_first_download'),
+            close_command=self._ocultar_aviso_primer_uso,
         )
-        aviso.place(relx=0.5, rely=1.0, y=-16, anchor='s', relwidth=0.78)
-        aviso.grid_columnconfigure(0, weight=1)
-
-        ctk.CTkLabel(
-            aviso,
-            text=t('model_first_download'),
-            font=fonts.FUENTE_CHICA,
-            text_color=colors.TEXT_GRAY,
-            justify='center',
-            wraplength=scale_wraplength(500)
-        ).grid(row=0, column=0, padx=16, pady=8)
-
-        self._primer_uso_notice = aviso
         self._primer_uso_notice_job = self.after(5000, self._ocultar_aviso_primer_uso)
 
     def _ocultar_aviso_primer_uso(self):
@@ -490,6 +484,7 @@ class RemoveBgFrame(BaseFrame):
 
     def on_view_hidden(self):
         """Pausa renders cuando se navega a otra herramienta."""
+        self._ocultar_aviso_primer_uso()
         if hasattr(self, '_preview'):
             self._preview.set_visible(False)
 
