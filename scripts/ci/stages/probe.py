@@ -40,6 +40,9 @@ def main():
                  ROOT / 'reports/raw-preflight', '--preflight')
             xvfb(PYTHON, 'scripts/ci/probe_package.py', compressed,
                  ROOT / 'reports/appimage-runtime', '--preflight')
+            # Exercise Apply and the replacement GUI, not only the restart path.
+            xvfb(PYTHON, 'scripts/ci/probe_restart.py', compressed,
+                 REPORTS / 'appimage-restart')
             xvfb(PYTHON, 'scripts/ci/probe_package.py', app / 'AppRun', profile)
             for source, name in [
                 (REPORTS / 'raw-preflight/preflight/selftest.json', 'selftest-preflight.json'),
@@ -63,7 +66,8 @@ def main():
         if profile.exists():
             collect_reports(profile, REPORTS / f'{PLATFORM}-probe')
     save('reports/*.json', 'reports/*.md', 'reports/*-probe/**/*.json', 'reports/*-probe/**/*.log',
-         'reports/raw-preflight/**/*.json', 'reports/appimage-runtime/**/*.json')
+         'reports/raw-preflight/**/*.json', 'reports/appimage-runtime/**/*.json',
+         'reports/appimage-restart/**/*.json', 'reports/appimage-restart/**/*.log')
 
 
 if __name__ == '__main__':

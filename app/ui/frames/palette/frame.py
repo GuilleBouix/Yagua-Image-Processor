@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import math
 from pathlib import Path
 from threading import Lock, Thread
 from tkinter import filedialog
@@ -51,12 +52,15 @@ class PaletteFrame(BaseFrame):
     @stepwise
     def _build_content(self):
         """Create controls once, preserving incremental startup construction."""
+        # Let the file list absorb the available viewport height. Keep only a
+        # small minimum so the actions also fit in short, unscaled windows.
+        self.grid_rowconfigure(3, weight=1)
         self._btn_seleccionar = self._crear_boton_seleccionar(
             self, t('palette_add_images'), self._explorar)
         self._btn_seleccionar.grid(row=1, column=0, padx=24, pady=(8, 12), sticky='ew')
         yield
-        self._frame_preview = ctk.CTkFrame(self, height=160, **styles.surface('list'))
-        self._frame_preview.grid(row=3, column=0, padx=24, pady=(0, 12), sticky='ew')
+        self._frame_preview = ctk.CTkFrame(self, height=64, **styles.surface('list'))
+        self._frame_preview.grid(row=3, column=0, padx=24, pady=(0, 12), sticky='nsew')
         self._frame_preview.grid_propagate(False)
         self._frame_preview.grid_columnconfigure(0, weight=1)
         self._frame_preview.grid_rowconfigure(1, weight=1)
@@ -137,14 +141,23 @@ class PaletteFrame(BaseFrame):
             col.grid_remove()
         self._palette_empty.configure(text=message)
         self._palette_empty.place(relx=.5, rely=.5, anchor='center')
+        self.after_idle(self._fit_swatches_width)
 
     def _fit_swatches_width(self, _event=None):
-        """Fill the viewport, keeping horizontal scrolling only when needed."""
+        """Fit reusable colors and their buttons without clipping scaled fonts."""
         canvas = self._swatches_frame._parent_canvas
         width = max(canvas.winfo_width(), self._visible_color_count * 72)
         window = self._swatches_frame._create_window_id
         if int(float(canvas.itemcget(window, 'width'))) != width:
             canvas.itemconfigure(window, width=width)
+        height = 240
+        if self._visible_color_count:
+            # Tk font metrics can round up on Linux at 50%. Reserve the actual
+            # content height before giving the remaining space to the file list.
+            content = self._swatches_frame.winfo_reqheight()
+            chrome = self._swatches_frame._parent_frame.winfo_height() - canvas.winfo_height()
+            height = max(240, math.ceil((content + chrome) / self._get_widget_scaling()) + 2)
+        configure_changed(self._swatch_host, height=height)
 
     def _renderizar_paleta(self, paleta: list[tuple[int, int, int]]):
         """Renderizar los swatches de color en el panel.

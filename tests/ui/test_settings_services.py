@@ -117,6 +117,44 @@ def test_restart_environment_limpia_montaje_y_conserva_display():
         'LD_LIBRARY_PATH': '/usr/local/lib',
         'DISPLAY': ':0',
         'WAYLAND_DISPLAY': 'wayland-0',
+        'PYINSTALLER_RESET_ENVIRONMENT': '1',
+    }
+
+
+def test_restart_restores_apprun_host_snapshot_without_stale_mounts():
+    """The real AppRun launcher exports more state than APPDIR/APPIMAGE."""
+    mount = '/tmp/.mount_Yagua-old'
+    original = {
+        'APPIMAGE': '/home/user/Yagua.AppImage', 'APPDIR': mount,
+        'APPIMAGE_UUID': 'old-id', 'APPDIR_EXEC_PATH': mount + '/usr/lib/yagua/Yagua',
+        'APPDIR_RUNTIME': mount + '/runtime', 'APPRUN_STARTUP_ORIGIN': mount,
+        'APPRUN_STARTUP_APPDIR_EXEC_PATH': mount + '/usr/lib/yagua/Yagua',
+        'LD_LIBRARY_PATH': mount + '/usr/lib', 'LD_LIBRARY_PATH_ORIG': mount + '/lib',
+        'APPRUN_ORIGINAL_LD_LIBRARY_PATH': '/opt/custom/lib',
+        'LD_PRELOAD': mount + '/hooks.so', 'APPRUN_ORIGINAL_LD_PRELOAD': '',
+        'PATH': mount + '/usr/bin:/usr/bin', 'APPRUN_ORIGINAL_PATH': '/usr/bin',
+        'XDG_DATA_DIRS': mount + '/usr/share:/usr/share',
+        'APPRUN_ORIGINAL_XDG_DATA_DIRS': '/usr/share',
+        'APPRUN_ORIGINAL_APPDIR': '', 'APPRUN_ORIGINAL_APPRUN_RUNTIME': '',
+        'DISPLAY': ':1', 'XAUTHORITY': '/home/user/.Xauthority',
+        'DBUS_SESSION_BUS_ADDRESS': 'unix:path=/run/user/1000/bus',
+        'APPIMAGE_EXTRACT_AND_RUN': '1',
+    }
+    environment = services._restart_environment(original)
+    assert environment == {
+        'LD_LIBRARY_PATH': '/opt/custom/lib', 'PATH': '/usr/bin',
+        'XDG_DATA_DIRS': '/usr/share', 'DISPLAY': ':1',
+        'XAUTHORITY': '/home/user/.Xauthority',
+        'DBUS_SESSION_BUS_ADDRESS': 'unix:path=/run/user/1000/bus',
+        'APPIMAGE_EXTRACT_AND_RUN': '1', 'PYINSTALLER_RESET_ENVIRONMENT': '1',
+    }
+    assert original['APPDIR'] == mount
+
+
+def test_frozen_restart_requests_independent_pyinstaller_instance(monkeypatch):
+    monkeypatch.setattr(sys, 'frozen', True, raising=False)
+    assert services._restart_environment({'PATH': '/usr/bin'}) == {
+        'PATH': '/usr/bin', 'PYINSTALLER_RESET_ENVIRONMENT': '1',
     }
 
 

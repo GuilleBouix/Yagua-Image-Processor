@@ -141,7 +141,8 @@ def test_batch_layout_keeps_swatches_and_list_bounded(ui_root, tmp_path, geometr
         assert view._frame_preview.winfo_width() > 300, (ui_root.winfo_width(), view.winfo_width(), view._frame_preview.winfo_width())
         view._renderizar_paleta([(index * 20, 40, 80) for index in range(12)])
         ui_root.update_idletasks()
-        assert len(view._files.virtual.rows) < 10
+        # A taller list may show more rows, but must not build the entire batch.
+        assert len(view._files.virtual.rows) < 30
         assert view._swatch_host.winfo_width() < ui_root.winfo_width()
         assert view._btn_guardar_todas.winfo_rootx() + view._btn_guardar_todas.winfo_width() <= (
             ui_root.winfo_rootx() + ui_root.winfo_width())
@@ -149,9 +150,11 @@ def test_batch_layout_keeps_swatches_and_list_bounded(ui_root, tmp_path, geometr
         assert [widget.grid_info()['row'] for widget in (
             view._btn_seleccionar, view._panel_paleta, view._frame_preview, view._actions
         )] == [1, 2, 3, 4]
-        # A short window keeps the one-column layout accessible by scrolling.
-        view._parent_canvas.yview_moveto(1)
-        ui_root.update_idletasks()
+        # The file list fills spare height at every scale; only its contents
+        # scroll, while the actions stay near the bottom of the viewport.
+        viewport = view._parent_canvas
+        assert view.winfo_height() <= viewport.winfo_height() + 1
+        assert view._actions.winfo_rooty() > viewport.winfo_rooty() + .85 * viewport.winfo_height()
         assert view._btn_guardar_todas.winfo_rooty() + view._btn_guardar_todas.winfo_height() <= (
             ui_root.winfo_rooty() + ui_root.winfo_height())
         assert len(view._swatch_pool) == 12

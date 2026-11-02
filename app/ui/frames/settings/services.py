@@ -93,19 +93,37 @@ def _restart_command(environ: Mapping[str, str] | None = None) -> list[str]:
 
 
 def _restart_environment(environ: Mapping[str, str] | None = None) -> dict[str, str]:
-    """Quitar referencias al montaje viejo sin perder el entorno grafico."""
+    """Restore the host environment before a fresh AppRun/PyInstaller launch."""
     environment = dict(os.environ if environ is None else environ)
-    if 'APPIMAGE' not in environment and 'APPDIR' not in environment:
+    appimage = 'APPIMAGE' in environment or 'APPDIR' in environment
+    if getattr(sys, 'frozen', False) or appimage:
+        environment['PYINSTALLER_RESET_ENVIRONMENT'] = '1'
+    if not appimage:
         return environment
 
-    for key in ('APPDIR', 'APPIMAGE', 'ARGV0'):
-        environment.pop(key, None)
-
-    original_library_path = environment.pop('LD_LIBRARY_PATH_ORIG', None)
-    if original_library_path is None:
-        environment.pop('LD_LIBRARY_PATH', None)
-    else:
-        environment['LD_LIBRARY_PATH'] = original_library_path
+    # AppRun records host values before adding its private loader, hooks and
+    # search paths. PyInstaller's LD_LIBRARY_PATH_ORIG is already *inside* that
+    # environment, so restoring only that value still retains the old mount.
+    originals = {
+        key.removeprefix('APPRUN_ORIGINAL_'): value
+        for key, value in environment.items() if key.startswith('APPRUN_ORIGINAL_')
+    }
+    library_path = environment.pop('LD_LIBRARY_PATH_ORIG', None)
+    if 'LD_LIBRARY_PATH' not in originals:
+        if library_path is None:
+            environment.pop('LD_LIBRARY_PATH', None)
+        else:
+            environment['LD_LIBRARY_PATH'] = library_path
+    for key, value in originals.items():
+        if value:
+            environment[key] = value
+        else:
+            environment.pop(key, None)
+    for key in tuple(environment):
+        if key.startswith(('APPRUN_', 'APPDIR_')) or key in (
+            'APPDIR', 'APPIMAGE', 'APPIMAGE_UUID', 'ARGV0',
+        ):
+            environment.pop(key, None)
     return environment
 
 
