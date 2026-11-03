@@ -6,12 +6,6 @@
 
 # Yagua · Image Processor
 
-Free, open-source desktop tools to convert, compress and process images in batches.
-
-**Official website**
-
-[Home](https://yagua.bouixdev.workers.dev/en/) · [Downloads](https://yagua.bouixdev.workers.dev/en/downloads/) · [Documentation](https://yagua.bouixdev.workers.dev/en/docs/) · [FAQ](https://yagua.bouixdev.workers.dev/en/faq/)
-
 <p align="center">
   <a href="https://github.com/GuilleBouix/Yagua-Image-Processor/releases/latest"><img src="https://img.shields.io/github/v/release/GuilleBouix/Yagua-Image-Processor?style=flat-square&amp;label=stable&amp;color=2563eb" alt="Latest stable release" /></a>
   <a href="https://github.com/GuilleBouix/Yagua-Image-Processor/releases"><img src="https://img.shields.io/github/downloads/GuilleBouix/Yagua-Image-Processor/total?style=flat-square&amp;label=downloads&amp;color=22c55e" alt="Total downloads" /></a>
@@ -19,6 +13,12 @@ Free, open-source desktop tools to convert, compress and process images in batch
   <a href="#requirements"><img src="https://img.shields.io/badge/Python-3.13-3776ab?style=flat-square&amp;logo=python&amp;logoColor=white" alt="Python 3.13" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-f4c430?style=flat-square" alt="MIT license" /></a>
 </p>
+
+Free, open-source desktop tools to convert, compress and process images in batches.
+
+**Official website**
+
+[Home](https://yagua.bouixdev.workers.dev/en/) · [Downloads](https://yagua.bouixdev.workers.dev/en/downloads/) · [Documentation](https://yagua.bouixdev.workers.dev/en/docs/) · [FAQ](https://yagua.bouixdev.workers.dev/en/faq/)
 
 </div>
 
