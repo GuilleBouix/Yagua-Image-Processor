@@ -6,8 +6,6 @@
 
 # Yagua · Image Processor
 
-### Your images. Your computer. Your workflow.
-
 Free, open-source desktop tools to convert, compress and process images in batches.
 
 **Official website**
