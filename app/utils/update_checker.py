@@ -94,7 +94,14 @@ def check_latest_update(current_version: str) -> UpdateInfo | None:
             continue
 
         tag_name = str(release.get('tag_name') or '').strip()
-        remote_version = _parse_release_version(tag_name, prefix)
+        release_prefix = 'v' if tag_name.startswith('v') else prefix
+        if release_prefix == 'v':
+            suffix = '.exe' if get_update_platform() == 'windows' else '.appimage'
+            assets = release.get('assets') or []
+            if not any(isinstance(asset, dict) and str(asset.get('name', '')).lower().endswith(suffix)
+                       for asset in assets):
+                continue
+        remote_version = _parse_release_version(tag_name, release_prefix)
         if (remote_version is None or remote_version.is_prerelease
                 or remote_version.is_devrelease or remote_version <= cur_v):
             continue
@@ -110,7 +117,7 @@ def check_latest_update(current_version: str) -> UpdateInfo | None:
             release_url = f'https://github.com/{repo}/releases/tag/{tag_name}'
 
         if best_match is None or remote_version > best_match[0]:
-            best_match = (remote_version, tag_name[len(prefix):].strip(), release_url)
+            best_match = (remote_version, tag_name[len(release_prefix):].strip(), release_url)
 
     if best_match is None:
         return None

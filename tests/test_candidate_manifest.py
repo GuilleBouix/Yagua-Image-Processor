@@ -86,13 +86,24 @@ def test_candidate_workflows_cannot_publish_and_publication_never_builds():
         text = (root / name).read_text(encoding='utf-8')
         workflow = yaml.load(text, Loader=yaml.BaseLoader)
         assert workflow['permissions'] == {'contents': 'read', 'actions': 'read'}
-        assert 'push' not in workflow['on']
+        if name == 'candidates.yml':
+            assert workflow['on']['push'] == {'tags': ['v*']}
+        else:
+            assert 'push' not in workflow['on']
         assert 'action-gh-release' not in text and 'contents: write' not in text
         assert 'apply_version.py' not in text
-    for name in ('release.yml', 'release-linux.yml'):
+    for name in ('release.yml',):
         text = (root / name).read_text(encoding='utf-8')
         workflow = yaml.load(text, Loader=yaml.BaseLoader)
         assert set(workflow['on']) == {'workflow_dispatch'}
         assert 'candidate_run_id' in workflow['on']['workflow_dispatch']['inputs']
         assert 'candidate_manifest.py --verify' in text
         assert 'PyInstaller' not in text and 'build-linux' not in text
+
+    release = yaml.load((root / 'release.yml').read_text(encoding='utf-8'), Loader=yaml.BaseLoader)
+    steps = release['jobs']['publish']['steps']
+    publisher = next(step for step in steps if 'action-gh-release' in step.get('uses', ''))
+    assert publisher['with']['draft'] == 'true'
+    assert publisher['with']['tag_name'] == 'v${{ inputs.version }}'
+    assert '.AppImage' in publisher['with']['files'] and '.exe' in publisher['with']['files']
+    assert 'action-gh-release' not in (root / 'release-linux.yml').read_text(encoding='utf-8')

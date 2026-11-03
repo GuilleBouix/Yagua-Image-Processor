@@ -90,6 +90,7 @@ prototype-web
 /audit/
 
 /lean-reports/
+/reports/
 
 # Disposable Actions recovery workspace
 /.ci-state/
@@ -99,3 +100,6 @@ prototype-web
 
 # Local Playwright MCP test artifacts
 /.playwright-mcp/
+
+# Local organic marketing campaign
+/marketing-organico/

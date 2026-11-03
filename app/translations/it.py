@@ -393,7 +393,7 @@ TRANSLATIONS = {
     'apply_changes': 'Applica',
     'restart_required_generic': "Riavvio dell'app per applicare le modifiche...",
     'donate_paypal': 'Dona con PayPal',
-    'donate_paypal_btn': 'Sostieni con PayPal',
+    'donate_paypal_btn': 'Sostieni il progetto',
     'donate': 'Sostieni il progetto',
     'lqip_input': 'File di ingresso',
     'lqip_generation': 'Generazione',

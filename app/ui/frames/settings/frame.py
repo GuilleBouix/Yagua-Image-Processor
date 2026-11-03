@@ -15,6 +15,7 @@ import webbrowser
 from app.ui import fonts, styles
 from app.utils import tintar_icono
 from app.translations import t
+from app.utils.support import support_url
 from app.ui.frames.base import BaseFrame
 from app.ui.rendering import activate_tab
 from app.ui.frames.settings.state import SettingsState
@@ -23,9 +24,6 @@ from app.ui.frames.settings.tabs.updates_tab import UpdatesTab
 
 
 logger = logging.getLogger(__name__)
-
-PAYPAL_DONATION_URL = 'https://paypal.me/guillebouix?locale.x=es_XC&country.x=AR'
-
 
 class SettingsFrame(BaseFrame):
     """Frame principal del modulo de ajustes de la aplicacion."""
@@ -128,7 +126,7 @@ class SettingsFrame(BaseFrame):
             width=175,
             height=30,
             font=fonts.FUENTE_CHICA,
-            command=lambda: webbrowser.open(PAYPAL_DONATION_URL)
+            command=lambda: webbrowser.open(support_url())
         )
         yield
         btn.grid(row=0, column=2, padx=(8, 0), sticky='e')

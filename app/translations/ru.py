@@ -393,7 +393,7 @@ TRANSLATIONS = {
     'apply_changes': 'Применить',
     'restart_required_generic': 'Перезапуск для применения изменений...',
     'donate_paypal': 'Пожертвовать через PayPal',
-    'donate_paypal_btn': 'Поддержать (PayPal)',
+    'donate_paypal_btn': 'Поддержать проект',
     'donate': 'Поддержать проект',
     'lqip_input': 'Исходные файлы',
     'lqip_generation': 'Создание',

@@ -1,5 +1,5 @@
-name: Publish validated Linux candidate
-# La publicación verifica el manifiesto y hashes del candidato existente.
+name: Legacy Linux publisher (use joint release workflow)
+# La publicaciÃ³n verifica el manifiesto y hashes del candidato existente.
 
 on:
   workflow_dispatch:
@@ -19,39 +19,8 @@ permissions:
   actions: read
 
 jobs:
-  publish:
+  redirect:
     runs-on: ubuntu-22.04
-    permissions:
-      contents: write
-      actions: read
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.13"
-      - name: Download the approved candidate
-        uses: actions/download-artifact@v4
-        with:
-          name: linux-validated-${{ inputs.version }}
-          path: release/
-          run-id: ${{ inputs.candidate_run_id }}
-          github-token: ${{ github.token }}
-      - name: Verify version, source and exact artifact hashes
-        env:
-          CANDIDATE_VERSION: ${{ inputs.version }}
-          CANDIDATE_COMMIT: ${{ inputs.candidate_commit }}
-          CANDIDATE_RUN_ID: ${{ inputs.candidate_run_id }}
-        run: |
-          python scripts/ci/candidate_manifest.py --verify release/candidate-linux.json --version "$CANDIDATE_VERSION" --commit "$CANDIDATE_COMMIT" --run-id "$CANDIDATE_RUN_ID"
-      - name: Publish existing validated files
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: linux-v${{ inputs.version }}
-          target_commitish: ${{ inputs.candidate_commit }}
-          name: Linux v${{ inputs.version }}
-          prerelease: ${{ contains(inputs.version, '-') }}
-          fail_on_unmatched_files: true
-          files: |
-            release/Yagua-*.AppImage
-            release/Yagua-*.sha256
-            release/validation.md
+      - run: |
+          echo "Use release.yml to prepare one joint Windows/Linux draft release."

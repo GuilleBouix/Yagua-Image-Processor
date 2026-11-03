@@ -435,7 +435,7 @@ TRANSLATIONS = {
     'apply_changes': 'Apply',
     'restart_required_generic': 'Restarting application to apply changes...',
     'donate_paypal': 'Donate with PayPal',
-    'donate_paypal_btn': 'Support with PayPal',
+    'donate_paypal_btn': 'Support the Project',
     'donate': 'Support the Project',
 
     # LQIP: comparación y código por archivo

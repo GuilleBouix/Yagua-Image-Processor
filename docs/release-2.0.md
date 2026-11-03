@@ -120,6 +120,18 @@ En el lanzamiento, tras verificar la lista exacta, las releases 2.0.1-rc
 acordadas se pasarán a borradores conservando archivos y tags. No se eliminarán.
 Las estables 1.x se conservarán como históricas.
 
-Los tags finales serán `win-v2.0.0` y `linux-v2.0.0`, sobre el mismo commit
-validado. Todavía no deben crearse ni iniciarse los workflows de publicación;
-durante la etapa 3 sólo se ejecutan los de construcción y validación.
+El tag común final es `v2.0.0`, para Windows y Linux. Su push ejecuta
+`candidates.yml`: comprueba que el tag coincida con `app/version.py` y genera
+ambos candidatos sin publicar una release. Los tags identifican el código;
+la comprobación previa bloquea versiones con una release existente.
+
+Cuando termine correctamente el candidato conjunto, `release.yml` recibe su
+run ID, versión y commit exacto. Verifica ambos manifiestos y los hashes y
+prepara una sola release **en borrador**, con instalador, portable y AppImage.
+No recompila los paquetes. La publicación pública se realiza después de la
+aprobación final. El antiguo publicador Linux queda deshabilitado para evitar
+crear otra release por plataforma.
+
+El actualizador reconoce tags comunes `vX.Y.Z` cuando la publicación incluye
+un instalador `.exe` o un `.AppImage` para su sistema, respectivamente, y
+conserva compatibilidad con los tags históricos `win-v` y `linux-v`.

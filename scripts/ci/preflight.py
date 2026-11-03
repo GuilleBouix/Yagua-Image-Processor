@@ -25,17 +25,18 @@ def check_version(version: str, platform: str, root: Path = ROOT) -> None:
                       if '=' in line and not line.lstrip().startswith(';'))
         if fields.get('AppVersion') != version or fields.get('OutputBaseFilename') != f'Yagua_Setup_{version}':
             raise ValueError('Installer version/output filename differs from the candidate')
-    if platform == 'linux':
+    if platform in {'windows', 'linux'}:
         import urllib.error
         from scripts.ci.checkpoints import api
-        for endpoint in (f'releases/tags/linux-v{version}', f'git/ref/tags/linux-v{version}'):
+        legacy_prefix = 'win-v' if platform == 'windows' else 'linux-v'
+        for endpoint in (f'releases/tags/v{version}', f'releases/tags/{legacy_prefix}{version}'):
             try:
                 api(endpoint)
             except urllib.error.HTTPError as error:
                 if error.code != 404:
                     raise
             else:
-                raise ValueError('Linux version already has a release or tag; use a new version')
+                raise ValueError('Version already has a release; use a new version')
 
 
 def check_stage_initializer(text: str) -> None:

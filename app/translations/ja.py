@@ -393,7 +393,7 @@ TRANSLATIONS = {
     'apply_changes': '適用',
     'restart_required_generic': '変更を適用するために再起動中...',
     'donate_paypal': 'PayPal で寄付',
-    'donate_paypal_btn': 'PayPal で支援',
+    'donate_paypal_btn': 'プロジェクトを支援',
     'donate': 'プロジェクトを支援',
     'lqip_input': '入力ファイル',
     'lqip_generation': '生成設定',

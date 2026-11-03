@@ -1,6 +1,9 @@
 name: Validated candidates (no publication)
 # Valida primero el origen y después construye los candidatos por plataforma.
 'on':
+  push:
+    tags:
+    - 'v*'
   workflow_dispatch:
     inputs:
       version:
@@ -23,6 +26,8 @@ concurrency:
   cancel-in-progress: false
 jobs:
   source:
+    outputs:
+      version: ${{ steps.version.outputs.version }}
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v4
@@ -30,26 +35,32 @@ jobs:
       with:
         python-version: '3.13.17'
     - name: Require the committed version
+      id: version
       env:
         CANDIDATE_VERSION: ${{ inputs.version }}
       run: |
         python - <<'PY'
         import os
         from app.version import __version__
-        if os.environ['CANDIDATE_VERSION'] != __version__:
+        requested = os.environ['CANDIDATE_VERSION']
+        if requested and requested != __version__:
             raise SystemExit('Commit the candidate version before building')
+        if os.environ['GITHUB_REF_TYPE'] == 'tag' and os.environ['GITHUB_REF_NAME'] != f'v{__version__}':
+            raise SystemExit('Tag differs from the committed version')
+        with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+            output.write(f'version={__version__}\n')
         PY
   windows:
     needs: source
     uses: ./.github/workflows/build-windows.yml
     with:
-      version: ${{ inputs.version }}
+      version: ${{ needs.source.outputs.version }}
       resume_run_id: ${{ inputs.resume_run_id }}
-      force_rebuild: ${{ inputs.force_rebuild }}
+      force_rebuild: ${{ inputs.force_rebuild || false }}
   linux:
     needs: source
     uses: ./.github/workflows/build-linux.yml
     with:
-      version: ${{ inputs.version }}
+      version: ${{ needs.source.outputs.version }}
       resume_run_id: ${{ inputs.resume_run_id }}
-      force_rebuild: ${{ inputs.force_rebuild }}
+      force_rebuild: ${{ inputs.force_rebuild || false }}

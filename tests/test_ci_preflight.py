@@ -15,6 +15,9 @@ def test_unhashed_stage_package_marker_cannot_contain_hidden_executable_helpers(
 
 def test_version_and_installer_mismatch_fail_before_build(tmp_path, monkeypatch):
     monkeypatch.setattr(preflight, 'check_source_version', lambda _: None)
+    def missing(_):
+        raise urllib.error.HTTPError('https://github', 404, 'Not Found', {}, None)
+    monkeypatch.setattr(checkpoints, 'api', missing)
     file = tmp_path / 'Yagua.iss'
     file.write_text('AppVersion=2.0.0\nOutputBaseFilename=Yagua_Setup_2.0.0\n')
     preflight.check_version('2.0.0', 'windows', tmp_path)

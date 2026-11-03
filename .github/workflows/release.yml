@@ -1,5 +1,5 @@
-name: Publish validated Windows candidate
-# Solo publica artefactos ya construidos y verificados para el commit indicado.
+name: Prepare joint Windows and Linux release
+# Prepara un borrador conjunto con los artefactos verificados, sin recompilar.
 
 on:
   workflow_dispatch:
@@ -26,14 +26,40 @@ jobs:
       actions: read
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.candidate_commit }}
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
+      - name: Require a successful candidate run from this repository
+        uses: actions/github-script@v7
+        env:
+          CANDIDATE_RUN_ID: ${{ inputs.candidate_run_id }}
+          CANDIDATE_COMMIT: ${{ inputs.candidate_commit }}
+        with:
+          script: |
+            const {data: run} = await github.rest.actions.getWorkflowRun({
+              ...context.repo, run_id: Number(process.env.CANDIDATE_RUN_ID)
+            });
+            if (run.conclusion !== 'success' || run.head_sha !== process.env.CANDIDATE_COMMIT ||
+                run.path !== '.github/workflows/candidates.yml' ||
+                !['push', 'workflow_dispatch'].includes(run.event) ||
+                run.head_repository.full_name !== `${context.repo.owner}/${context.repo.repo}`) {
+              throw new Error('Use a successful joint candidate run for the exact approved commit');
+            }
       - name: Download the approved candidate
         uses: actions/download-artifact@v4
         with:
           name: windows-validated-${{ inputs.version }}
-          path: release/
+          path: release/windows/
+          run-id: ${{ inputs.candidate_run_id }}
+          github-token: ${{ github.token }}
+      - name: Download the approved Linux candidate
+        uses: actions/download-artifact@v4
+        with:
+          name: linux-validated-${{ inputs.version }}
+          path: release/linux/
           run-id: ${{ inputs.candidate_run_id }}
           github-token: ${{ github.token }}
       - name: Verify version, source and exact artifact hashes
@@ -42,17 +68,23 @@ jobs:
           CANDIDATE_COMMIT: ${{ inputs.candidate_commit }}
           CANDIDATE_RUN_ID: ${{ inputs.candidate_run_id }}
         run: |
-          python scripts/ci/candidate_manifest.py --verify release/installer/candidate-windows.json --version "$CANDIDATE_VERSION" --commit "$CANDIDATE_COMMIT" --run-id "$CANDIDATE_RUN_ID"
+          test "$(git rev-parse "refs/tags/v${CANDIDATE_VERSION}^{commit}")" = "$CANDIDATE_COMMIT"
+          python scripts/ci/candidate_manifest.py --verify release/linux/candidate-linux.json --version "$CANDIDATE_VERSION" --commit "$CANDIDATE_COMMIT" --run-id "$CANDIDATE_RUN_ID"
+          python scripts/ci/candidate_manifest.py --verify release/windows/installer/candidate-windows.json --version "$CANDIDATE_VERSION" --commit "$CANDIDATE_COMMIT" --run-id "$CANDIDATE_RUN_ID"
       - name: Publish existing validated files
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: win-v${{ inputs.version }}
+          tag_name: v${{ inputs.version }}
           target_commitish: ${{ inputs.candidate_commit }}
-          name: Windows v${{ inputs.version }}
+          name: Yagua ${{ inputs.version == '2.0.0' && '2.0' || inputs.version }}
+          draft: true
           prerelease: ${{ contains(inputs.version, '-') }}
           fail_on_unmatched_files: true
           files: |
-            release/installer/Yagua_*.exe
-            release/installer/Yagua_*.zip
-            release/installer/*.sha256
-            release/installer/latest.json
+            release/windows/installer/Yagua_*.exe
+            release/windows/installer/Yagua_*.zip
+            release/windows/installer/*.sha256
+            release/windows/installer/latest.json
+            release/linux/Yagua-*.AppImage
+            release/linux/Yagua-*.sha256
+            release/linux/validation.md

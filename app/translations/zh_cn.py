@@ -393,7 +393,7 @@ TRANSLATIONS = {
     'apply_changes': '应用',
     'restart_required_generic': '正在重启应用以应用更改...',
     'donate_paypal': '通过 PayPal 捐赠',
-    'donate_paypal_btn': '通过 PayPal 支持',
+    'donate_paypal_btn': '支持本项目',
     'donate': '支持本项目',
     'lqip_input': '输入文件',
     'lqip_generation': '生成',

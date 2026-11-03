@@ -212,3 +212,16 @@ def test_network_http_and_invalid_json_are_reported_as_errors(monkeypatch, failu
     monkeypatch.setattr(update_checker.requests, 'get', get)
     with pytest.raises(update_checker.UpdateCheckError):
         update_checker.check_latest_update('2.0.1-rc.4')
+
+
+@pytest.mark.parametrize('platform,filename', [('windows', 'Yagua_Setup_2.0.0.exe'),
+                                               ('linux', 'Yagua-2.0.0-x86_64.AppImage')])
+def test_common_tag_requires_platform_asset(monkeypatch, platform, filename):
+    monkeypatch.setenv('YAGUA_UPDATE_PLATFORM', platform)
+    payload = [{'tag_name': 'v2.0.0', 'html_url': 'https://example/joint',
+                'assets': [{'name': filename}]}]
+    monkeypatch.setattr(update_checker.requests, 'get', lambda *a, **kw: _FakeResponse(payload))
+    info = update_checker.check_latest_update('1.1.2')
+    assert info is not None and info.version == '2.0.0'
+    payload[0]['assets'] = []
+    assert update_checker.check_latest_update('1.1.2') is None

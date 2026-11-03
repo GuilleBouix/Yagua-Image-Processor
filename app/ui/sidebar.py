@@ -21,11 +21,8 @@ from app.ui import colors, fonts, styles
 from app.utils import tintar_icono
 from app.utils.paths import resource_path
 from app.translations import t
+from app.utils.support import support_url
 from app.ui.module_registry import iter_enabled_modules
-
-# URL de donacion (PayPal)
-DONATION_URL = 'https://paypal.me/guillebouix?locale.x=es_XC&country.x=AR'
-
 
 logger = logging.getLogger(__name__)
 
@@ -233,7 +230,7 @@ class Sidebar(ctk.CTkFrame):
             width=120,
             height=30,
             font=fonts.FUENTE_CHICA,
-            command=lambda: webbrowser.open(DONATION_URL)
+            command=lambda: webbrowser.open(support_url())
         )
         yield
         btn_donar.grid(row=1, column=0, columnspan=2, pady=(8, 0), sticky='ew')
