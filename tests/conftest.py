@@ -23,6 +23,7 @@ FIXTURES_DIR = Path(__file__).parent / "fixtures"
 
 @pytest.fixture()
 def fixtures_dir() -> Path:
+    """Devuelve la carpeta temporal compartida por los recursos de prueba."""
     return FIXTURES_DIR
 
 
@@ -33,6 +34,7 @@ def assert_image_size(path: Path, expected_size: tuple[int, int]):
 
 @pytest.fixture(scope="session")
 def tk_session():
+    """Comprueba una vez por sesión que Tk esté disponible para los tests de UI."""
     from app.ui import fonts
     fonts.registrar_fuentes()
     try:
@@ -56,6 +58,7 @@ def ui_root(tk_session):
     # Libera ciclos de widgets y fuentes desde el hilo Tk. Si no, un
     # worker de imágenes podría recolectarlos y bloquearse en Font.__del__ esperando
     # el mainloop, mientras las pruebas controlan Tk con update().
+    """Crea una raíz Tk aislada y la destruye al terminar cada test."""
     gc.collect()
     root = ctk.CTkToplevel(tk_session)
     root.withdraw()

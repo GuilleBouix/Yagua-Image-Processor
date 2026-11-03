@@ -25,6 +25,7 @@ def test_preview_images_are_loaded_asynchronously(ui_root, monkeypatch):
     workers = []
 
     class DeferredThread:
+        """Hilo controlado que retrasa su ejecución hasta que el test la solicita."""
         def __init__(self, target, args=(), daemon=None):
             self.target = target
             self.args = args
@@ -60,6 +61,7 @@ def test_preview_discards_stale_result_and_uses_latest_slider_values(ui_root, mo
     workers = []
 
     class DeferredThread:
+        """Hilo controlado que retrasa su ejecución hasta que el test la solicita."""
         def __init__(self, target, args=(), daemon=None):
             self.target = target
             self.args = args

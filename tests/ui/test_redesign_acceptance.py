@@ -31,6 +31,7 @@ def descendants(parent):
 
 @pytest.fixture(autouse=True)
 def isolate(ui_root, monkeypatch):
+    """Aísla recursos y ajustes globales durante la prueba visual."""
     if fonts.FUENTE_BASE is None:
         fonts.inicializar_fuentes()
     previous = colors.get_current_theme()

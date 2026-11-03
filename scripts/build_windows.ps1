@@ -1,3 +1,4 @@
+# Construye y verifica el instalador de Windows en un entorno temporal aislado.
 param(
   [string]$OutputRoot = (Join-Path $env:TEMP ('yagua-build-' + [guid]::NewGuid().ToString('N')))
 )

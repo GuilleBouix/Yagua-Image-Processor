@@ -41,6 +41,7 @@ def settled(root, *widgets):
 
 @pytest.fixture(autouse=True)
 def isolate(ui_root, monkeypatch):
+    """Aísla el gestor de avisos flotantes entre casos de UI."""
     if fonts.FUENTE_BASE is None:
         fonts.inicializar_fuentes()
     old_theme, old_scale = colors.get_current_theme(), ctk.ScalingTracker.widget_scaling
@@ -121,6 +122,7 @@ def test_actual_update_delivery_action_dedup_navigation_and_close(ui_root, monke
     workers = []
 
     class Worker:
+        """Worker controlable para reproducir resultados sin depender del reloj real."""
         def __init__(self, *, target, daemon):
             self.target = target
 

@@ -78,6 +78,7 @@ def test_never_replace_existing_output(tmp_path):
 def test_download_failure_cleans_temporary_files(tmp_path, monkeypatch):
     document = manifest()
     class Response(io.BytesIO):
+        """Respuesta HTTP simulada para probar la descarga de materiales."""
         url = document['files'][0]['url']
     monkeypatch.setattr(source_materials.urllib.request, 'urlopen',
                         lambda *args, **kwargs: Response(b'wrong source'))
@@ -99,6 +100,7 @@ def test_download_and_publication_are_atomic(tmp_path, monkeypatch, failure):
     document = manifest()
     data = b'original source' if failure != 'oversized' else b'too many source bytes'
     class Response(io.BytesIO):
+        """Respuesta HTTP simulada para probar la descarga de materiales."""
         url = 'http://example.org/source' if failure == 'redirect' else document['files'][0]['url']
     monkeypatch.setattr(source_materials.urllib.request, 'urlopen',
                         lambda *args, **kwargs: Response(data))

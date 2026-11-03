@@ -1,3 +1,4 @@
+# Comprueba el comportamiento final del instalador mediante automatización UI.
 param(
     [Parameter(Mandatory = $true)][string]$Installer,
     [Parameter(Mandatory = $true)][string]$WorkDirectory

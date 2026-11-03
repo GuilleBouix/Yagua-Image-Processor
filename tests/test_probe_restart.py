@@ -43,6 +43,7 @@ def test_peer_name_reuse_is_matched_by_profile_not_initial_name(monkeypatch):
     profile = Path('/tmp/isolated-profile')
     marker = b'HOME=' + os.fsencode(profile) + b'\0'
     class Process:
+        """Representa un proceso y su archivo de entorno bajo /proc."""
         def __init__(self, path):
             self.path = path
 
@@ -76,6 +77,7 @@ def test_failed_probe_preserves_report_and_closes_owned_resources(monkeypatch, t
     monkeypatch.setattr(probe_restart.tk, 'Tk', lambda: client)
 
     class Probe:
+        """Doble de la sonda para reproducir esperas y reinicios de forma controlada."""
         def __init__(self, *args):
             self.client = args[0]
 

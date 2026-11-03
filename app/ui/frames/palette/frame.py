@@ -209,7 +209,9 @@ class PaletteFrame(BaseFrame):
         if self._copy_timer is not None:
             self.after_cancel(self._copy_timer)
         revision = self._revision
+
         def restore():
+            """Limpia el aviso sólo si sigue vigente la selección que lo creó."""
             self._copy_timer = None
             if revision == self._revision:
                 self._lbl_info.configure(text='')
@@ -316,6 +318,7 @@ class PaletteFrame(BaseFrame):
                 configure_changed(row.info_label, text=base + (f' · {message}' if message else ''))
 
     def _aplicar_paleta(self, paleta):
+        """Actualiza el estado y los controles con la paleta calculada."""
         self._state.paleta = paleta
         self._renderizar_paleta(paleta)
         self._update_controls()
@@ -335,11 +338,17 @@ class PaletteFrame(BaseFrame):
         bar.stop()
         bar.configure(mode='determinate')
         bar.set(0)
+
         def progress(done, total):
+            """Publica el avance del lote mediante la cola segura para Tk."""
             operations.post(self, lambda: self._progress(revision, done, total))
+
         def work():
+            """Procesa la selección capturada fuera del hilo de la interfaz."""
             return process_palettes(paths, count, cache, folder=folder, progress=progress)
+
         def finished(results):
+            """Refleja resultados por archivo y libera el panel de progreso."""
             bar.configure(mode='indeterminate')
             self._results = results
             for item in results:
@@ -354,6 +363,7 @@ class PaletteFrame(BaseFrame):
             self._lbl_info.configure(text=operation_summary(len(results) - errors, errors,
                                     action='saved' if folder is not None else 'processed'))
             self._update_controls()
+
         self._submit_job(work, on_success=finished)
 
     def _progress(self, revision, done, total):
@@ -387,14 +397,19 @@ class PaletteFrame(BaseFrame):
             self._lbl_info.configure(text=t('palette_source_protected'))
             return
         self._show_full_overlay(t('processing'))
+
         def work():
+            """Revalida la fuente y exporta sin bloquear la interfaz."""
             # Revalidate the source even if the palette was shown earlier.
             palette = cache.extract(source, count)
             exportar_paleta_imagen(palette, path)
             return palette
+
         def finished(palette):
+            """Muestra la paleta exportada y confirma el guardado."""
             self._aplicar_paleta(list(palette))
             self._lbl_info.configure(text=operation_summary(1))
+
         self._submit_job(work, on_success=finished)
 
     def _limpiar(self):
@@ -416,7 +431,7 @@ class PaletteFrame(BaseFrame):
         self._update_controls()
 
     def destroy(self):
-        """Stop pending work; late deliveries are ignored by the coordinator."""
+        """Descarta solicitudes pendientes antes de destruir los controles."""
         with self._request_lock:
             self._closed = True
             self._pending = None

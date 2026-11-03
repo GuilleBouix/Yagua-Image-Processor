@@ -130,6 +130,7 @@ def test_dimensiones_guardadas_en_ifd_de_captura(tmp_path):
 
 def test_lee_ifds_antes_de_cerrar_y_aisla_un_campo_roto(monkeypatch):
     class Source:
+        """Envuelve una imagen de prueba y expone su lectura en contexto."""
         opened = False
 
         def __enter__(self):
@@ -143,6 +144,7 @@ def test_lee_ifds_antes_de_cerrar_y_aisla_un_campo_roto(monkeypatch):
             source = self
 
             class Exif(dict):
+                """Imita la estructura EXIF mínima usada por la vista de metadatos."""
                 def get_ifd(self, tag):
                     assert source.opened, 'EXIF accessed after image was closed'
                     if tag == 34665:
@@ -167,10 +169,12 @@ def test_lee_ifds_antes_de_cerrar_y_aisla_un_campo_roto(monkeypatch):
 
 def test_un_bloque_roto_no_oculta_los_campos_principales(monkeypatch):
     class Exif(dict):
+        """Imita la estructura EXIF mínima usada por la vista de metadatos."""
         def get_ifd(self, _):
             raise ValueError('IFD roto')
 
     class Source:
+        """Envuelve una imagen de prueba y expone su lectura en contexto."""
         def __enter__(self):
             return self
 

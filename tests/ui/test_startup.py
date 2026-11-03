@@ -28,6 +28,7 @@ def wait(root, condition, timeout=20):
 
 
 class PendingImports:
+    """Importador simulado que permite liberar módulos en el orden elegido."""
     def __init__(self):
         self.pending = {}
 
@@ -39,6 +40,7 @@ class PendingImports:
 
 
 class TinyFrame(UiLifetime, ctk.CTkFrame):
+    """Vista mínima que registra cuándo se construye su contenido."""
     def __init__(self, parent, *, defer_build=False):
         super().__init__(parent)
         self.build_ready = False
@@ -71,6 +73,7 @@ def preloader(root, monkeypatch, keys=('convert', 'compress')):
 
 def test_stepwise_preserves_return_values_and_synchronous_api():
     class Builder:
+        """Constructor de vistas que registra el orden de inicialización."""
         @stepwise
         def build(self, value):
             yield
@@ -286,6 +289,7 @@ def test_failure_continues_cleans_partial_and_can_retry(ui_root, monkeypatch, co
     ui_root.deiconify()
     loader, imports, window, events = preloader(ui_root, monkeypatch)
     class Broken(TinyFrame):
+        """Vista cuyo montaje falla para comprobar la recuperación del arranque."""
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
             if constructor_failure:

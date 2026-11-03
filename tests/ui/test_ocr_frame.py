@@ -45,6 +45,7 @@ def test_error_en_background_se_muestra_despues_del_except(monkeypatch):
         raise RuntimeError("fallo OCR de prueba")
 
     class FakeFrame:
+        """Vista OCR mínima para comprobar el envío y manejo de errores."""
         _imagenes = ["entrada.png"]
 
         def _post_ui(self, delay, callback):

@@ -18,6 +18,7 @@ from app.ui.operations import operations
 
 @pytest.fixture
 def frame(ui_root, monkeypatch):
+    """Crea el frame de metadatos con servicios controlados por el test."""
     monkeypatch.setattr('app.ui.saving.messagebox.askyesno', lambda *a, **k: True)
     view = MetadataFrame(ui_root)
     controller = view._collection

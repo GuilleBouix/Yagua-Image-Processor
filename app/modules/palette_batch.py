@@ -29,6 +29,7 @@ class PaletteCache:
     """Serialize extraction and retain at most 500 small palette results."""
 
     def __init__(self):
+        """Prepara la sincronización y la caché ordenada de paletas."""
         self._lock = RLock()
         self._entries = OrderedDict()
 

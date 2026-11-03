@@ -10,6 +10,7 @@ from app.modules.remove_bg import RemoveBgConfig, _adjust_edge, _process_image, 
 
 @pytest.fixture(autouse=True)
 def clean_sessions():
+    """Cierra las sesiones de modelos creadas durante cada test."""
     module._SESSION_CACHE.clear()
     module._MODEL_READY.clear()
     yield

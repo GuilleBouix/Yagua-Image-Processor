@@ -142,6 +142,7 @@ def test_close_waits_for_current_write_and_can_be_cancelled(monkeypatch):
     coordinator = OperationCoordinator()
     monkeypatch.setattr(app_module, 'operations', coordinator)
     class Window:
+        """Ventana falsa que registra callbacks y cierres durante una operación."""
         _close_after_operation = False
         destroyed = False
         callbacks = []
@@ -174,6 +175,7 @@ def test_restart_waits_for_current_write(monkeypatch):
     monkeypatch.setattr(operation_module, 'operations', coordinator)
     callbacks, starts = [], []
     class Root:
+        """Raíz Tk falsa para controlar el calendario de callbacks."""
         def after(self, delay, callback):
             callbacks.append(callback)
     monkeypatch.setattr(tkinter, '_default_root', Root(), raising=False)

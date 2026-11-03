@@ -19,6 +19,7 @@ def center_on_parent(window, parent, *, modal=False):
     job = None
 
     def size(widget):
+        """Lee el tamaño físico y aplica la escala de respaldo de CustomTkinter."""
         geometry = str(widget.tk.call('wm', 'geometry', widget._w))
         match = re.match(r'(\d+)x(\d+)', geometry)
         width, height = (int(match[1]), int(match[2])) if match else (1, 1)
@@ -29,6 +30,7 @@ def center_on_parent(window, parent, *, modal=False):
                 height if height > 1 else int(apply_scale(getattr(widget, '_current_height', widget.winfo_reqheight()))))
 
     def place():
+        """Centra y muestra la ventana cuando su geometría ya está estable."""
         nonlocal job
         job = None
         try:
@@ -51,6 +53,7 @@ def center_on_parent(window, parent, *, modal=False):
             return
 
     def cancel(event):
+        """Cancela la colocación diferida cuando se destruye la ventana."""
         nonlocal job
         if event.widget is window and job is not None:
             try:

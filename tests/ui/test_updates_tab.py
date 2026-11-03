@@ -31,6 +31,7 @@ def test_update_check_delivers_correct_status_and_restores_controls(ui_root, mon
     state = {'outcome': outcome}
 
     class Response:
+        """Respuesta HTTP simulada para probar la pestaña de actualizaciones."""
         def raise_for_status(self):
             pass
 

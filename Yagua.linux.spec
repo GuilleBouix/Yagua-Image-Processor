@@ -1,4 +1,5 @@
 # -*- mode: python ; coding: utf-8 -*-
+# Configuración PyInstaller para el paquete Linux de Yagua.
 from pathlib import Path
 import runpy
 

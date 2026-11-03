@@ -73,6 +73,7 @@ def test_load_inter_font_reports_damaged_resource(monkeypatch, tmp_path):
 
 def test_wait_for_ui_reports_timeout():
     class FakeApp:
+        """Doble de Tk para probar la sonda sin crear una ventana real."""
         def __init__(self):
             self.callbacks = []
 

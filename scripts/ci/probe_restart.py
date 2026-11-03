@@ -34,7 +34,7 @@ proc qa_restart_tree {w} {
 
 
 def process_exited(pid):
-    """A dead child can remain as a zombie until its former parent is reaped."""
+    """Detecta procesos terminados que aún figuran como zombis en Linux."""
     try:
         state = Path(f'/proc/{pid}/stat').read_text().rsplit(')', 1)[1].split()[0]
         return state == 'Z'
@@ -43,9 +43,10 @@ def process_exited(pid):
 
 
 class RestartProbe:
-    """Control only new Tk applications on this display, using native Tk events."""
+    """Controla sólo las instancias nuevas de Tk mediante eventos nativos."""
 
     def __init__(self, client, timeout, profile_home=None):
+        """Inicializa el control y registra los intérpretes ya presentes."""
         self.client = client
         self.timeout = timeout
         self.before = set(self.peers())
@@ -53,10 +54,10 @@ class RestartProbe:
         self.profile_home = profile_home
 
     def renew_client(self):
-        """Drop Tk's cached X11 target before contacting a restarted interpreter.
+        """Renueva el cliente Tk antes de contactar al proceso reiniciado.
 
-        Some desktop Tk versions cache the old app's XID under the reused name.
-        Querying it during process exit can block inside synchronous Tk.send.
+        Algunas versiones de Tk conservan el XID anterior bajo el mismo nombre.
+        Consultarlo mientras el proceso termina puede bloquear el envío síncrono.
         """
         self.client.destroy()
         self.client = tk.Tk()
@@ -64,7 +65,7 @@ class RestartProbe:
         self.client.tk.call('tk', 'appname', f'yagua-restart-probe-{os.getpid()}')
 
     def owned_peers(self):
-        """Interpreter names can be reused; identify ownership by the profile."""
+        """Identifica las instancias propias usando el perfil temporal de CI."""
         if self.profile_home is None:
             return set(self.peers()) - self.before
         owned = set()
@@ -82,16 +83,20 @@ class RestartProbe:
         return owned
 
     def peers(self):
+        """Devuelve los intérpretes Tk visibles en la pantalla actual."""
         return self.client.tk.splitlist(self.client.tk.call('winfo', 'interps'))
 
     def remote(self, script):
+        """Ejecuta un script Tcl en la instancia de Yagua controlada."""
         return self.client.tk.call('send', self.peer, script)
 
     def call(self, *args):
+        """Cita argumentos como Tcl y los envía a la instancia remota."""
         quote = getattr(tk, '_join')
         return self.remote(quote(tuple(str(arg) for arg in args)))
 
     def wait(self, check, message):
+        """Reintenta una condición hasta cumplirla o agotar el tiempo límite."""
         deadline = time.monotonic() + self.timeout
         while time.monotonic() < deadline:
             self.client.update()
@@ -105,16 +110,19 @@ class RestartProbe:
         raise TimeoutError(message)
 
     def tree(self):
+        """Obtiene los widgets visibles de la ventana remota."""
         return [self.client.tk.splitlist(row)
                 for row in self.client.tk.splitlist(self.remote('qa_restart_tree .'))]
 
     def find(self, text):
+        """Busca un control visible cuyo texto coincide exactamente."""
         return next((w for w, _, label, mapped in self.tree()
                      if int(mapped) and label.strip() == text), None)
 
     def home(self, language, previous_pid=None):
-        """Require a new process, a mapped Home, and completion of the splash."""
+        """Espera un proceso nuevo, la pantalla Inicio y el fin de la carga."""
         def ready():
+            """Comprueba que la nueva instancia muestre Inicio en el idioma pedido."""
             peers = self.owned_peers()
             for peer in peers:
                 self.peer = peer
@@ -131,13 +139,14 @@ class RestartProbe:
         return self.wait(ready, f'AppImage did not reopen Home in {language}')
 
     def click(self, text):
+        """Envía un clic a un control visible identificado por su etiqueta."""
         widget = self.wait(lambda: self.find(text), f'Missing visible control: {text}')
         event = getattr(tk, '_join')(
             ('event', 'generate', widget, '<Button-1>', '-x', '5', '-y', '5'))
         self.call('after', 0, event)
 
     def choose(self, value):
-        """Select a real CTk dropdown entry without replacing its callback."""
+        """Elige una opción real del menú CTk sin reemplazar su callback."""
         for widget, kind, _, _ in self.tree():
             if kind != 'Menu':
                 continue
@@ -152,12 +161,14 @@ class RestartProbe:
         raise AssertionError(f'Dropdown option not found: {value}')
 
     def open_settings(self, language):
+        """Abre Ajustes y devuelve la altura del botón Aplicar."""
         self.click(TEXT[language][1])
         apply = self.wait(lambda: self.find(TEXT[language][2]), 'Settings did not open')
         button = self.call('winfo', 'parent', apply)
         return int(self.call('winfo', 'height', button))
 
     def close(self):
+        """Cierra sólo las instancias de Yagua creadas por esta sonda."""
         for peer in self.owned_peers():
             try:
                 self.client.tk.call('send', peer, 'destroy .')
@@ -166,7 +177,7 @@ class RestartProbe:
 
 
 def run(executable: Path, directory: Path, timeout=180) -> dict:
-    """Fail if Apply only saves preferences, closes, or reuses the old process."""
+    """Comprueba que Aplicar guarde ajustes y reinicie el paquete correctamente."""
     directory.mkdir(parents=True, exist_ok=False)
     home = directory / 'home'
     settings = home / '.config/Yagua/user_settings.json'
@@ -243,6 +254,7 @@ def run(executable: Path, directory: Path, timeout=180) -> dict:
 
 
 def main():
+    """Lee los argumentos de CI y ejecuta la verificación del reinicio real."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('executable', type=Path)
     parser.add_argument('directory', type=Path)

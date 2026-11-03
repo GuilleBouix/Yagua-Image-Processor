@@ -11,6 +11,7 @@ from app.ui import main_window as main_window_module
 
 @dataclass(frozen=True)
 class _Spec:
+    """Especificación mínima de una vista del menú principal."""
     key: str
     frame_import: str = "fake.module:FakeFrame"
 
@@ -20,6 +21,7 @@ def _host(view):
 
 
 class _FakeSidebar(ctk.CTkFrame):
+    """Barra lateral falsa que registra la vista activa."""
     def __init__(self, parent, on_select):
         super().__init__(parent)
         self.on_select = on_select
@@ -30,6 +32,7 @@ class _FakeSidebar(ctk.CTkFrame):
 
 
 class _BaseFakeView(ctk.CTkScrollableFrame):
+    """Vista falsa con los callbacks de ciclo de vida del contenedor."""
     def __init__(self, parent):
         super().__init__(parent, corner_radius=0)
         self.shown_calls = 0
@@ -44,24 +47,29 @@ class _BaseFakeView(ctk.CTkScrollableFrame):
 
 
 class _FakeHomeView(_BaseFakeView):
+    """Vista Inicio usada para verificar la navegación principal."""
     pass
 
 
 class _FakeSettingsView(_BaseFakeView):
+    """Vista Ajustes usada para verificar la navegación principal."""
     pass
 
 
 class _FakeLqipView(_BaseFakeView):
+    """Vista LQIP usada para verificar la navegación principal."""
     pass
 
 
 class _FakeRemoveBgView(_BaseFakeView):
+    """Vista Quitar fondo usada para verificar la navegación principal."""
     def __init__(self, parent):
         super().__init__(parent)
         self.after(0, lambda: self.status.set("ready"))
 
 
 class _FakeOcrView(_BaseFakeView):
+    """Vista OCR usada para verificar la navegación principal."""
     def __init__(self, parent):
         super().__init__(parent)
         self.after(0, lambda: self.status.set("loaded"))

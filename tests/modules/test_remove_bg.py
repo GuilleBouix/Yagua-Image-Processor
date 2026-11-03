@@ -20,6 +20,7 @@ from app.modules.remove_bg import (
 
 @pytest.fixture(autouse=True)
 def reset_remove_bg_state():
+    """Restablece el estado global del módulo antes y después de cada caso."""
     remove_bg._SESSION_CACHE.clear()
     remove_bg._MODEL_READY.clear()
     yield

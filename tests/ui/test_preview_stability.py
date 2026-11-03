@@ -52,6 +52,7 @@ def prepare_window(root, geometry):
 def isolate_scaling(ui_root):
     # CTk menus retain scaling callbacks after their owner is destroyed.
     # Like the UI matrix, isolate each independently constructed scale.
+    """Aísla la escala de widgets y restaura su valor original."""
     tracker = ctk.ScalingTracker
     callbacks = {window: list(items) for window, items in tracker.window_widgets_dict.items()}
     previous = tracker.widget_scaling

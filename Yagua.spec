@@ -1,4 +1,5 @@
 # -*- mode: python ; coding: utf-8 -*-
+# Configuración PyInstaller para los paquetes de escritorio de Windows y Linux.
 from pathlib import Path
 import runpy
 

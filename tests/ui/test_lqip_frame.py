@@ -94,6 +94,7 @@ def test_modes_reuse_controls_and_preserve_parameters(ui_root):
 def test_generation_uses_snapshot_and_discards_stale_results(ui_root, fixtures_dir, monkeypatch, change):
     submitted = []
     class CapturedCoordinator:
+        """Coordinador que conserva los trabajos enviados para ejecutarlos en el test."""
         def submit(self, owner, label, work, success, failure):
             submitted.append((work, success))
             return True

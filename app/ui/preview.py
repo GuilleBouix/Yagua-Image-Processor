@@ -71,6 +71,7 @@ class LivePreview(UiLifetime, ctk.CTkFrame):
     """Conserva el viewport y acepta sólo el render de la revisión vigente."""
 
     def __init__(self, parent, *, settle=None):
+        """Crea el visor y conserva sus dimensiones al cambiar la selección."""
         palette = styles.palette()
         super().__init__(parent, fg_color='transparent', corner_radius=0)
         self.grid_columnconfigure(0, weight=1)
@@ -176,6 +177,7 @@ class LivePreview(UiLifetime, ctk.CTkFrame):
         path, spec, checker = self.path, self.spec, self._checker_colors
 
         def work():
+            """Carga y transforma los píxeles sin acceder a widgets desde el worker."""
             try:
                 source = image_cache.load(path, (1024, 1024), mode='RGBA')
                 result, error = render_pixels(source, bounds, spec, checker), None

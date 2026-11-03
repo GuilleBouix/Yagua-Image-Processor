@@ -15,6 +15,7 @@ def test_main_aplica_escala_antes_de_crear_app(monkeypatch, tmp_path):
     monkeypatch.setattr(app_main, "apply_ui_scale", lambda: events.append(("scale", None)))
 
     class FakeApp:
+        """Doble de la aplicación para comprobar el arranque sin dependencias del sistema."""
         def __init__(self):
             events.append(("app", None))
 
@@ -39,6 +40,7 @@ def test_dock_reopen_registra_y_ejecuta_callback_en_macos(monkeypatch):
     calls = []
 
     class FakeWindow:
+        """Doble de la ventana para simular callbacks y cierres de Tk."""
         def createcommand(self, name, callback):
             commands[name] = callback
 
@@ -64,6 +66,7 @@ def test_unwritable_log_directory_does_not_block_startup(monkeypatch, tmp_path):
     def denied(*args, **kwargs):
         raise PermissionError('read-only profile')
     class FakeApp:
+        """Doble de la aplicación para comprobar el arranque sin dependencias del sistema."""
         def mainloop(self):
             calls.append('started')
     monkeypatch.setattr(app_main, 'settings_path', lambda: tmp_path / 'settings.json')

@@ -8,6 +8,7 @@ from app.utils import update_checker
 
 
 class _FakeResponse:
+    """Respuesta HTTP simulada para los casos comunes del actualizador."""
     def __init__(self, payload):
         self._payload = payload
 
@@ -109,6 +110,7 @@ def test_check_latest_update_distingue_timeout_de_sin_actualizaciones(monkeypatc
 def test_update_url_rejects_non_https_and_non_strings(monkeypatch, url):
     from app.utils import update_checker
     class Response:
+        """Respuesta HTTP simulada para los casos del actualizador."""
         def raise_for_status(self):
             pass
         def json(self):
@@ -195,6 +197,7 @@ def test_update_request_uses_official_repo_or_explicit_override(monkeypatch, ove
 @pytest.mark.parametrize('failure', ['connection', 'http', 'json'])
 def test_network_http_and_invalid_json_are_reported_as_errors(monkeypatch, failure):
     class Response(_FakeResponse):
+        """Respuesta HTTP simulada para los casos del actualizador."""
         def raise_for_status(self):
             if failure == 'http':
                 raise update_checker.requests.HTTPError('403 rate limit')

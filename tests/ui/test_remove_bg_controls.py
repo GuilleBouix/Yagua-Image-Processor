@@ -9,6 +9,7 @@ from app.ui.frames.remove_bg.frame import RemoveBgFrame
 
 @pytest.fixture
 def view(monkeypatch, ui_root):
+    """Crea la vista de quitar fondo con workers y dependencias controlados."""
     monkeypatch.setattr(RemoveBgFrame, '_inicializar_en_background',
                         lambda self: self._build_content_ready(True, True))
     frame = RemoveBgFrame(ui_root)

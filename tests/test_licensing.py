@@ -68,6 +68,7 @@ def write_catalog(root, catalog):
 
 @pytest.fixture
 def repository(tmp_path):
+    """Prepara un repositorio temporal para validar los avisos legales."""
     root = tmp_path / 'repository'
     (root / 'legal/licenses').mkdir(parents=True)
     files = ['LICENSE', 'THIRD_PARTY_NOTICES.md', 'legal/README.md', 'legal/REVIEW.md',

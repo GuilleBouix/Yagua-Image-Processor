@@ -16,6 +16,7 @@ from scripts.ci import checkpoints as cp
 
 @pytest.fixture
 def source(tmp_path, monkeypatch):
+    """Crea un árbol de fuentes temporal para probar los checkpoints."""
     files = {
         'app/version.py': '__version__="2.0.0"',
         'app/main.py': 'original',

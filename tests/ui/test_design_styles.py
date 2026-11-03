@@ -15,6 +15,7 @@ from app.translations import t
 
 @pytest.fixture(autouse=True)
 def default_theme(ui_root):
+    """Fija el tema base y restaura el anterior al finalizar cada test."""
     if fonts.FUENTE_BASE is None:
         fonts.inicializar_fuentes()
     previous = colors.get_current_theme()

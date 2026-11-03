@@ -24,6 +24,7 @@ def test_raw_preflight_uses_original_runtime_instead_of_appimage_rewritten_elf(t
         (Path(cwd) / 'squashfs-root').mkdir()
     monkeypatch.setattr(probe.subprocess, 'run', extract)
     class PreflightReached(Exception):
+        """Señala que la sonda alcanzó la validación previa del paquete."""
         pass
     def preflight(interpreter, script, executable, *args, **kwargs):
         assert executable == runtime

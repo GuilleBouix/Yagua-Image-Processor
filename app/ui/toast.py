@@ -24,6 +24,7 @@ class Toast(ctk.CTkFrame):
     simultáneos comparten la esquina superior derecha sin taparse entre sí.
     """
     def __init__(self, parent, text, *, close_command=None, action_text=None, action=None):
+        """Construye el aviso y sus acciones opcionales dentro del propietario."""
         super().__init__(parent, corner_radius=0, fg_color=colors.PANEL_BG,
                          border_width=1, border_color='#357A52')
         self._last_layout = None
