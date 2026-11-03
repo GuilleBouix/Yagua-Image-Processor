@@ -64,6 +64,8 @@ The table lists the desktop modules. Availability and controls depend on your in
 
 Format support varies by module, installed codecs and platform. A listed format is not a guarantee that every module can read or write it. See [requirements](#requirements).
 
+Some camera JPEGs contain embedded MPO previews. Yagua supports only recognized files with a main photo and smaller VGA/Full HD previews, and processes the main photo. Processed results do not retain the camera previews. Saving as a copy keeps the original intact; overwriting replaces it with the result.
+
 ## Screenshots
 
 Screenshots use the English interface and show the current development source. Click a thumbnail to open the full-size image. Older releases may have different controls.

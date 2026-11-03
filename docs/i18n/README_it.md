@@ -66,6 +66,8 @@ La tabella elenca i moduli desktop. La disponibilità e i controlli dipendono da
 
 Il supporto dei formati varia in base al modulo, ai codec installati e alla piattaforma. Un formato elencato non garantisce che tutti i moduli possano leggerlo o scriverlo. Vedi i [requisiti](#requirements).
 
+Alcuni JPEG delle fotocamere contengono anteprime MPO incorporate. Yagua supporta solo i file riconosciuti con una foto principale e miniature VGA/Full HD più piccole, ed elabora la foto principale. I risultati elaborati non mantengono le anteprime della fotocamera. Salvare una copia lascia intatto l’originale; sovrascriverlo lo sostituisce con il risultato.
+
 <a id="screenshots"></a>
 
 ## Schermate

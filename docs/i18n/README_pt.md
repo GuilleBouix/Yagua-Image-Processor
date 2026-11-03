@@ -66,6 +66,8 @@ A tabela lista os módulos de desktop. A disponibilidade e os controles dependem
 
 A compatibilidade depende do módulo, dos codecs instalados e da plataforma. Um formato listado não garante que todos os módulos possam lê-lo ou gravá-lo. Consulte os [requisitos](#requirements).
 
+Alguns JPEG de câmeras contêm prévias MPO incorporadas. O Yagua aceita apenas arquivos reconhecidos com uma foto principal e miniaturas VGA/Full HD menores, e processa a foto principal. Os resultados processados não mantêm as prévias da câmera. Salvar como cópia preserva o original; sobrescrevê-lo o substitui pelo resultado.
+
 <a id="screenshots"></a>
 
 ## Capturas de tela

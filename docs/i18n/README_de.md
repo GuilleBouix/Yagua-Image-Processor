@@ -66,6 +66,8 @@ Die Tabelle zeigt die Desktopmodule. Verfügbarkeit und Bedienelemente hängen v
 
 Die Unterstützung hängt vom Modul, den installierten Codecs und der Plattform ab. Ein aufgeführtes Format bedeutet nicht, dass jedes Modul es lesen oder schreiben kann. Siehe [Voraussetzungen](#requirements).
 
+Einige Kamera-JPEGs enthalten eingebettete MPO-Vorschaubilder. Yagua unterstützt nur erkannte Dateien mit einem Hauptfoto und kleineren VGA-/Full-HD-Vorschaubildern und verarbeitet das Hauptfoto. Die bearbeiteten Ergebnisse enthalten diese Kameravorschauen nicht. Beim Speichern als Kopie bleibt das Original erhalten; beim Überschreiben wird es durch das Ergebnis ersetzt.
+
 ## Screenshots
 
 Die Screenshots zeigen die englische Oberfläche und den aktuellen Entwicklungsstand. Klicke auf ein Vorschaubild, um das Bild in voller Größe zu öffnen. Ältere Versionen können andere Bedienelemente haben.

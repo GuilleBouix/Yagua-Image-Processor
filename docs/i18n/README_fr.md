@@ -66,6 +66,8 @@ Le tableau présente les modules de bureau. Leur disponibilité et leurs command
 
 La compatibilité dépend du module, des codecs installés et de la plateforme. Un format indiqué ne garantit pas que tous les modules puissent le lire ou l’écrire. Consultez les [prérequis](#requirements).
 
+Certains JPEG d’appareil photo contiennent des aperçus MPO intégrés. Yagua accepte uniquement les fichiers reconnus qui contiennent une photo principale et des miniatures VGA/Full HD plus petites, et traite la photo principale. Les résultats ne conservent pas les aperçus de l’appareil. Enregistrer une copie préserve l’original ; l’écraser le remplace par le résultat.
+
 <a id="screenshots"></a>
 
 ## Captures d’écran

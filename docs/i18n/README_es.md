@@ -66,6 +66,8 @@ La tabla enumera los módulos de escritorio. La disponibilidad y los controles d
 
 La compatibilidad depende del módulo, los códecs instalados y la plataforma. Que un formato aparezca en la tabla no garantiza que todos los módulos puedan leerlo o escribirlo. Consultá los [requisitos](#requirements).
 
+Algunos JPEG de cámara contienen vistas previas MPO. Yagua admite solo archivos reconocidos con una foto principal y miniaturas VGA/Full HD más pequeñas, y procesa la foto principal. Los resultados procesados no conservan las vistas de la cámara. Guardar como copia mantiene intacto el original; sobrescribirlo lo reemplaza por el resultado.
+
 <a id="screenshots"></a>
 
 ## Capturas
